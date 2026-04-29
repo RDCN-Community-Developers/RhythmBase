@@ -1,9 +1,21 @@
-﻿namespace RhythmBase.BeatBlock.Events
+namespace RhythmBase.BeatBlock.Events;
+
+/// <summary>
+/// Set Boolean
+/// </summary>
+/// <remarks>
+/// Sets a boolean variable
+/// </remarks>
+public record class SetBoolean : BaseEvent
 {
-    public record class SetBoolean : BaseEvent
-    {
-        public override Enums Type => Enums.SetBoolean;
-        public string Var { get; set; }
-        public bool Enable { get; set; }
-    }
+    /// <inheritdoc/>
+    public override EventType Type => EventType.SetBoolean;
+    /// <summary>
+    /// Variable to set (must be a child of cs)
+    /// </summary>
+    public string Var { get; set; } = string.Empty;
+    /// <summary>
+    /// The value
+    /// </summary>
+    public bool Enable { get; set; }
 }

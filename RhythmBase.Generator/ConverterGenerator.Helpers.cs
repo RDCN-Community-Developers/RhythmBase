@@ -168,10 +168,12 @@ public partial class ConverterGenerator
             if (symbol is null)
                 return default;
             info.Symbol = new(symbol.Name, symbol.ToDisplayString());
+            info.PascalCase = symbol.GetAttributes().Any(a => IsAttribute(a, JsonEnumAttrName) && a.ConstructorArguments.Length == 1 && a.ConstructorArguments[0].Value is bool b && b);
             info.Fields = [.. enumMemberDeclaration.Select(i =>
             {
                 IFieldSymbol? symbol = ctx.SemanticModel.GetDeclaredSymbol(i);
-                return new FieldName(i.Identifier.Text, symbol?.ToDisplayString() ?? "");
+                string? alias = symbol?.GetAttributes().FirstOrDefault(a => IsAttribute(a, JsonAliasAttrName) && a.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string;
+                return new FieldName(i.Identifier.Text, symbol?.ToDisplayString() ?? "", alias);
             })];
             return info;
         }
@@ -198,6 +200,14 @@ public partial class ConverterGenerator
 
             foreach (EnumInfo e in enumSymbols.OrderBy(i => i.Symbol.FullName))
             {
+                static string GetStringName(FieldName fieldName, bool isPascalCase)
+                {
+                    if (!string.IsNullOrEmpty(fieldName.Alias))
+                        return fieldName.Alias;
+                    if (isPascalCase)
+                        return fieldName.Name;
+                    return ToLowerCamelCase(fieldName.Name);
+                }
                 string fullName = e.Symbol.FullName;
                 sb.AppendLine($"/* {fullName} */");
 
@@ -217,7 +227,7 @@ public partial class ConverterGenerator
                 foreach (FieldName field in e.Fields)
                 {
                     sb.AppendLine($$"""
-									case "{{field.Name}}":
+									case "{{GetStringName(field, e.PascalCase)}}":
 										result = {{field.FullName}};
 										return true;
 					""");
@@ -249,7 +259,7 @@ public partial class ConverterGenerator
                 foreach (FieldName field in e.Fields.OrderBy(i => i.FullName))
                 {
                     sb.AppendLine($$"""
-								{{(isFirst ? "" : "else ")}}if (value.SequenceEqual("{{field.Name}}"u8))
+								{{(isFirst ? "" : "else ")}}if (value.SequenceEqual("{{GetStringName(field, e.PascalCase)}}"u8))
 								{
 									result = {{field.FullName}};
 									return true;
@@ -281,7 +291,7 @@ public partial class ConverterGenerator
                 foreach (FieldName field in e.Fields)
                 {
                     sb.AppendLine($"""
-								{field.FullName} => "{field.Name}",
+								{field.FullName} => "{GetStringName(field, e.PascalCase)}",
 					""");
                 }
                 sb.AppendLine("""

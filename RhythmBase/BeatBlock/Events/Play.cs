@@ -1,15 +1,29 @@
-﻿using RhythmBase.Global.Components.Easing;
-using System;
-using System.Collections.Generic;
-using System.Text;
+namespace RhythmBase.BeatBlock.Events;
 
-namespace RhythmBase.BeatBlock.Events
+/// <summary>
+/// Play song
+/// </summary>
+/// <remarks>
+/// Plays a song
+/// </remarks>
+public record class Play : BaseEvent, IPureEvent
 {
-    public record class Play : BaseEvent
-    {
-        public override Enums Type => Enums.Play;
-        public FileReference File { get; set; }
-        public float Bpm { get; set; }
-        public float Volume { get; set; }
-    }
+    /// <inheritdoc/>
+    public override EventType Type => EventType.Play;
+    /// <summary>
+    /// Filename of song
+    /// </summary>
+    public string File { get; set; } = string.Empty;
+    /// <summary>
+    /// BPM of song
+    /// </summary>
+    public float Bpm { get; set; } 
+    /// <summary>
+    /// Volume of song, 1 = 100% volume
+    /// </summary>
+    public float Volume { get; set; } 
+    /// <summary>
+    /// Offset of the song, in seconds.
+    /// </summary>
+    public float? Offset { get; set; } 
 }

@@ -1,17 +1,31 @@
-﻿using RhythmBase.Global.Components.Easing;
+using RhythmBase.BeatBlock.Components;
+using RhythmBase.Global.Components.Easing;
+namespace RhythmBase.BeatBlock.Events;
 
-namespace RhythmBase.BeatBlock.Events
+/// <summary>
+/// Set color
+/// </summary>
+/// <remarks>
+/// Changes a color in the palette
+/// </remarks>
+public record class SetColor : BaseEvent
 {
-    public record class SetColor : BaseEvent, IEaseEvent
-    {
-        public override Enums Type => Enums.SetColor;
-        public byte R { get; set; }
-        public byte G { get; set; }
-        public byte B { get; set; }
-        public byte Color { get; set; }
-        [RDJsonCondition($"$&.{nameof(Duration)} > 0")]
-        public float Duration { get; set; }
-        [RDJsonCondition($"$&.{nameof(Duration)} > 0")]
-        public EaseType Ease { get; set; }
-    }
+    /// <inheritdoc/>
+    public override EventType Type => EventType.SetColor;
+    /// <summary>
+    /// Use HOM?
+    /// </summary>
+    public bool Enable { get; set; }
+    /// <summary>
+    /// Color index
+    /// </summary>
+    public ColorIndex Color { get; set; }
+    /// <summary>
+    /// Length of ease
+    /// </summary>
+    public float? Duration { get; set; }
+    /// <summary>
+    /// Ease function to use
+    /// </summary>
+    public EaseType? Ease { get; set; }
 }

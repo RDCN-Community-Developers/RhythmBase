@@ -1,16 +1,38 @@
-﻿using RhythmBase.Global.Components.Easing;
+using RhythmBase.Global.Components.Easing;
+namespace RhythmBase.BeatBlock.Events;
 
-namespace RhythmBase.BeatBlock.Events
+/// <summary>
+/// Edit Paddles
+/// </summary>
+/// <remarks>
+/// Change paddle properties
+/// </remarks>
+public record class Paddles : BaseEvent, IChartEvent, IPureEvent
 {
-    public record class Paddles : BaseEvent, IEaseEvent
-    {
-        public override Enums Type { get; }
-        public EaseType Ease { get; set; }
-        public float Duration { get; set; }
-        public int Paddle { get; set; }
-        public bool Enabled { get; set; }
-        public int NewWidth { get; set; }
-        //public int NewHeight { get; set; }
-        public float NewAngle { get; set; }
-    }
+    /// <inheritdoc/>
+    public override EventType Type => EventType.Paddles;
+    /// <summary>
+    /// What paddle to change? 0 = all paddles
+    /// </summary>
+    public int Paddle { get; set; } 
+    /// <summary>
+    /// New width to ease to
+    /// </summary>
+    public int NewWidth { get; set; } 
+    /// <summary>
+    /// New height to ease to
+    /// </summary>
+    public int NewHeight { get; set; } 
+    /// <summary>
+    /// New angle to ease to
+    /// </summary>
+    public int NewAngle { get; set; } 
+    /// <summary>
+    /// Length of ease (in beats)
+    /// </summary>
+    public float Duration { get; set; } 
+    /// <summary>
+    /// Ease function to use
+    /// </summary>
+    public EaseType Ease { get; set; } 
 }

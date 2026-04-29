@@ -96,9 +96,7 @@ public partial class RDLevel : OrderedEventCollection<IBaseEvent>, IJsonLevel<RD
         foreach (IBaseEvent item in items)
             Add(item);
     }
-    /// <summary>
-    /// The default level within the game.
-    /// </summary>
+    /// <inheritdoc/>
     public static RDLevel Default
     {
         get

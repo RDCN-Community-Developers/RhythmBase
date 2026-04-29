@@ -1,9 +1,27 @@
-﻿namespace RhythmBase.BeatBlock.Events
+namespace RhythmBase.BeatBlock.Events;
+
+/// <summary>
+/// Run tag
+/// </summary>
+/// <remarks>
+/// Runs a tag, which is a collection of events
+/// </remarks>
+public record class Tag : BaseEvent, IPureEvent
 {
-    public record class Tag
-    {
-        [RDJsonAlias("Tag")]
-        public string TagName { get; set; }
-        public bool AngleOffset { get; set; }
-    }
+    /// <inheritdoc/>
+    public override EventType Type => EventType.Tag;
+    /// <summary>
+    /// Name of tag
+    /// </summary>
+
+    [RDJsonAlias("tag")]
+    public string TagName { get; set; } = string.Empty;
+    /// <summary>
+    /// Times to repeat
+    /// </summary>
+    public int? Repeats { get; set; } 
+    /// <summary>
+    /// Beats between repeats
+    /// </summary>
+    public float? RepeatDelay { get; set; } 
 }

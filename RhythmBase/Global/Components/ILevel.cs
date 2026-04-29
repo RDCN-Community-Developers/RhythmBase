@@ -22,6 +22,10 @@ namespace RhythmBase.Global.Components
         TCalculator Calculator { get; }
 #if NET8_0_OR_GREATER
         /// <summary>
+        /// The default level within the game.
+        /// </summary>
+        static abstract TSelf Default { get; }
+        /// <summary>
         /// Creates an <typeparamref name="TSelf"/> instance by reading data from the specified file.
         /// </summary>
         /// <remarks>This method supports both plain level files and compressed

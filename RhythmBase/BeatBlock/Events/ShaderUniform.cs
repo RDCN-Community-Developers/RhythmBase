@@ -2,17 +2,17 @@ using RhythmBase.Global.Components.Easing;
 namespace RhythmBase.BeatBlock.Events;
 
 /// <summary>
-/// Ease
+/// Shader Uniform
 /// </summary>
 /// <remarks>
-/// Eases a variable over time
+/// Eases a shader uniform over time
 /// </remarks>
-public record class Ease : BaseEvent , IEaseEvent
+public record class ShaderUniform : BaseEvent
 {
     /// <inheritdoc/>
-    public override EventType Type => EventType.Ease;
+    public override EventType Type => EventType.ShaderUniform;
     /// <summary>
-    /// Variable to ease (must be a child of cs)
+    /// Uniform to ease
     /// </summary>
     public string Var { get; set; } = string.Empty;
     /// <summary>
@@ -26,13 +26,11 @@ public record class Ease : BaseEvent , IEaseEvent
     /// <summary>
     /// Length of ease
     /// </summary>
-    [RDJsonCondition($"{nameof(Duration)} == 0")]
-    public float Duration { get; set; }
+    public float? Duration { get; set; }
     /// <summary>
     /// Ease function to use
     /// </summary>
-    [RDJsonAlias("ease")]
-    public EaseType EaseType { get; set; }
+    public EaseType? Ease { get; set; }
     /// <summary>
     /// Times to repeat
     /// </summary>
@@ -41,5 +39,4 @@ public record class Ease : BaseEvent , IEaseEvent
     /// Beats between repeats
     /// </summary>
     public float? RepeatDelay { get; set; }
-    EaseType IEaseEvent.Ease { get => EaseType; set => EaseType = value; }
 }
