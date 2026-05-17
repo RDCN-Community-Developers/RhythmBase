@@ -1,8 +1,9 @@
-﻿using System.Text.Json;
+﻿using RhythmBase.BeatBlock.Components;
+using System.Text.Json;
 
 namespace RhythmBase.BeatBlock.Events;
 
-public interface IBaseEvent
+public interface IBaseEvent : IEvent<EventType, BBBeat>
 {
     public EventType Type { get; }
     public float Time { get; set; }

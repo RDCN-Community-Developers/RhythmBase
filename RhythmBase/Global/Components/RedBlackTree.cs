@@ -9,7 +9,7 @@ internal class RedBlackNode<TKey, TValue>(TKey key, TValue value) where TKey : I
     public RedBlackNode<TKey, TValue>? Parent = null;
     public bool IsRed = true;
 }
-internal class RedBlackTree<TKey, TValue> : ICollection<KeyValuePair<TKey, TValue>> where TKey : IComparable<TKey>
+public class RedBlackTree<TKey, TValue> : ICollection<KeyValuePair<TKey, TValue>> where TKey : IComparable<TKey>
 {
     private RedBlackNode<TKey, TValue>? _root;
     private int _count;
@@ -19,7 +19,7 @@ internal class RedBlackTree<TKey, TValue> : ICollection<KeyValuePair<TKey, TValu
         return node != null;
     }
 
-    public RedBlackNode<TKey, TValue>? FindNode(TKey key)
+    internal RedBlackNode<TKey, TValue>? FindNode(TKey key)
     {
         RedBlackNode<TKey, TValue>? current = _root;
         while (current != null)
@@ -31,7 +31,7 @@ internal class RedBlackTree<TKey, TValue> : ICollection<KeyValuePair<TKey, TValu
         }
         return null;
     }
-    public RedBlackNode<TKey, TValue>? Floor(TKey key)
+    internal RedBlackNode<TKey, TValue>? Floor(TKey key)
     {
         RedBlackNode<TKey, TValue>? current = _root;
         RedBlackNode<TKey, TValue>? floor = null;
@@ -52,7 +52,7 @@ internal class RedBlackTree<TKey, TValue> : ICollection<KeyValuePair<TKey, TValu
         }
         return floor;
     }
-    public RedBlackNode<TKey, TValue>? Ceiling(TKey key)
+    internal RedBlackNode<TKey, TValue>? Ceiling(TKey key)
     {
         RedBlackNode<TKey, TValue>? current = _root;
         RedBlackNode<TKey, TValue>? ceiling = null;

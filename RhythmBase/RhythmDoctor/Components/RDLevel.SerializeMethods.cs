@@ -1,4 +1,6 @@
-﻿using System.IO.Compression;
+﻿using RhythmBase.RhythmDoctor.Events;
+using RhythmBase.RhythmDoctor.Settings;
+using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 
@@ -47,9 +49,9 @@ partial class RDLevel
         writer.Flush();
     }
     /// <inheritdoc/>
-    public static RDLevel FromFile(string filepath, LevelReadSettings? settings = null)
+    public static RDLevel FromFile(string filepath, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelReadSettings();
         string extension = Path.GetExtension(filepath);
         RDLevel? level;
         if (extension is not ".rdzip" and not ".zip")
@@ -130,9 +132,9 @@ partial class RDLevel
         return level;
     }
     /// <inheritdoc/>
-    public static async Task<RDLevel> FromFileAsync(string filepath, LevelReadSettings? settings = null, CancellationToken cancellationToken = default)
+    public static async Task<RDLevel> FromFileAsync(string filepath, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
     {
-        settings ??= new();
+        settings ??= new LevelReadSettings();
         string extension = Path.GetExtension(filepath);
         RDLevel? level;
         if (extension is not ".rdzip" and not ".zip")
@@ -207,9 +209,9 @@ partial class RDLevel
         return ConverterHub.Read<RDLevel>(ref reader, options) ?? [];
     }
     /// <inheritdoc/>
-    public static RDLevel FromStream(Stream rdlevelStream, LevelReadSettings? settings = null)
+    public static RDLevel FromStream(Stream rdlevelStream, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelReadSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         RDLevel? level;
         settings.OnBeforeReading();
@@ -217,9 +219,9 @@ partial class RDLevel
         settings.OnAfterReading();
         return level ?? [];
     }
-    private static RDLevel FromStream(Stream rdlevelStream, string dirPath, LevelReadSettings? settings = null)
+    private static RDLevel FromStream(Stream rdlevelStream, string dirPath, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelReadSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(dirPath, settings);
         RDLevel? level;
         settings.OnBeforeReading();
@@ -228,9 +230,9 @@ partial class RDLevel
         return level ?? [];
     }
     /// <inheritdoc/>
-    public static async Task<RDLevel> FromStreamAsync(Stream rdlevelStream, LevelReadSettings? settings = null, CancellationToken cancellationToken = default)
+    public static async Task<RDLevel> FromStreamAsync(Stream rdlevelStream, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
     {
-        settings ??= new();
+        settings ??= new LevelReadSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         RDLevel? level;
         settings.OnBeforeReading();
@@ -239,9 +241,9 @@ partial class RDLevel
         return level ?? [];
     }
     /// <inheritdoc/>
-    public static RDLevel FromJsonString(string json, LevelReadSettings? settings = null)
+    public static RDLevel FromJsonString(string json, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelReadSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         RDLevel? level;
         settings.OnBeforeReading();
@@ -250,9 +252,9 @@ partial class RDLevel
         return level ?? [];
     }
     /// <inheritdoc/>
-    public static RDLevel FromJsonDocument(JsonDocument jsonDocument, LevelReadSettings? settings = null)
+    public static RDLevel FromJsonDocument(JsonDocument jsonDocument, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelReadSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         RDLevel? level;
         settings.OnBeforeReading();
@@ -261,27 +263,27 @@ partial class RDLevel
         return level ?? [];
     }
     /// <inheritdoc/>
-    public void SaveToStream(Stream stream, LevelWriteSettings? settings = null)
+    public void SaveToStream(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         settings.OnBeforeWriting();
         WriteToStream(stream, this, options);
         settings.OnAfterWriting();
     }
     /// <inheritdoc/>
-    public async void SaveToStreamAsync(Stream stream, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
+    public async void SaveToStreamAsync(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
     {
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         settings.OnBeforeWriting();
         await Task.Run(() => WriteToStream(stream, this, options), cancellationToken);
         settings.OnAfterWriting();
     }
     /// <inheritdoc/>
-    public void SaveToFile(string filepath, LevelWriteSettings? settings = null)
+    public void SaveToFile(string filepath, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
         if (!directory.Exists)
             directory.Create();
@@ -294,9 +296,9 @@ partial class RDLevel
         settings.OnAfterWriting();
     }
     /// <inheritdoc/>
-    public async void SaveToFileAsync(string filepath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
+    public async void SaveToFileAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
     {
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(Path.GetDirectoryName(filepath) ?? "", settings);
         DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
         if (!directory.Exists)
@@ -310,11 +312,11 @@ partial class RDLevel
         settings.OnAfterWriting();
     }
     /// <inheritdoc/>
-    public void SaveToZip(string filepath, LevelWriteSettings? settings = null)
+    public void SaveToZip(string filepath, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
     {
         if (string.IsNullOrEmpty(this.ResolvedDirectory))
             throw new NotImplementedException();
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         settings.FileReferences.Clear();
         bool loadAssets = settings.LoadAssets;
         settings.LoadAssets = true;
@@ -338,11 +340,11 @@ partial class RDLevel
         settings.LoadAssets = loadAssets;
     }
     /// <inheritdoc/>
-    public async void SaveToZipAsync(string filepath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
+    public async void SaveToZipAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(this.ResolvedDirectory))
             throw new NotImplementedException();
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         settings.FileReferences.Clear();
         bool loadAssets = settings.LoadAssets;
         settings.LoadAssets = true;
@@ -371,9 +373,9 @@ partial class RDLevel
     /// </summary>
     /// <param name="settings">Optional settings for writing the level. If null, default settings are used.</param>
     /// <returns>A JSON string representing the current level.</returns>
-    public string ToJsonString(LevelWriteSettings? settings = null)
+    public string ToJsonString(ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         string json;
         settings.OnBeforeWriting();
@@ -395,9 +397,9 @@ partial class RDLevel
     /// <returns>
     /// A <see cref="JsonDocument"/> representing the current level in JSON format.
     /// </returns>
-    public JsonDocument ToJsonDocument(LevelWriteSettings? settings = null)
+    public JsonDocument ToJsonDocument(ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         string json;
         settings.OnBeforeWriting();
         MemoryStream stream = new();

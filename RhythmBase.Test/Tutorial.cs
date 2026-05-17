@@ -9,8 +9,10 @@ using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Extensions;
 using RhythmBase.RhythmDoctor.Utils;
 using System.Text.Json;
-using RhythmBase.RhythmDoctor.Components.Linq;
 using RhythmBase.RhythmDoctor;
+using RhythmBase.RhythmDoctor.Settings;
+using RhythmBase.RhythmDoctor.Linq;
+using RhythmBase.Global.Linq;
 
 namespace RhythmBase.Test
 {

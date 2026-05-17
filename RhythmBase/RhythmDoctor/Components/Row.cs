@@ -1,10 +1,13 @@
+using RhythmBase.Global.Linq;
 using RhythmBase.RhythmDoctor.Events;
+using RhythmBase.RhythmDoctor.Linq;
+using RhythmBase.RhythmDoctor.Utils;
 namespace RhythmBase.RhythmDoctor.Components;
 
 /// <summary>
 /// A collection of row events.
 /// </summary>
-public class Row : OrderedEventCollection<BaseRowAction>
+public class Row : OrderedEventCollection<BaseRowAction, EventType, RDBeat>, IEventEnumerable<BaseRowAction>
 {
 	/// <summary>
 	/// Gets or sets the character associated with the row.
@@ -84,11 +87,18 @@ public class Row : OrderedEventCollection<BaseRowAction>
 	/// Initializes a new instance of the <see cref="Row"/> class.
 	/// </summary>
 	public Row() { }
-	/// <summary>
-	/// Adds an item to the row.
-	/// </summary>
-	/// <param name="item">The row event to add.</param>
-	public override bool Add(BaseRowAction item)
+    internal override RDBeat CreateInstance(float beat) => new(beat);
+    internal override IBeatRange<RDBeat> CreateRange(float? start, float? end) => new RDRange(
+		start is float s ? new RDBeat(s) : null,
+		end is float e ? new RDBeat(e) : null
+		);
+	internal override ReadOnlyEnumCollection<EventType> Types => EventTypeUtils.ToEnums<BaseRowAction>();
+	internal override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => EventTypeUtils.ToEnums(typeof(TTarget));
+    /// <summary>
+    /// Adds an item to the row.
+    /// </summary>
+    /// <param name="item">The row event to add.</param>
+    public override bool Add(BaseRowAction item)
 	{
 		if (item._parent == this)
 			return false;
@@ -96,15 +106,19 @@ public class Row : OrderedEventCollection<BaseRowAction>
 		item._parent = this;
 		bool success = base.Add(item);
 		if (Parent is not null)
-			success &= Parent.AddInternal(item);
+			success &= Parent.AddDirectlyInternal(item);
 		return success;
 	}
-	/// <summary>
-	/// Removes an item from the row.
-	/// </summary>
-	/// <param name="item">The row event to remove.</param>
-	/// <returns>True if the item was successfully removed; otherwise, false.</returns>
-	public override bool Remove(BaseRowAction item) => Parent?.RemoveInternal(item) ?? false;
-	[RDJsonIgnore]
+    /// <summary>
+    /// Removes an item from the row.
+    /// </summary>
+    /// <param name="item">The row event to remove.</param>
+    /// <returns>True if the item was successfully removed; otherwise, false.</returns>
+    public override bool Remove(BaseRowAction item)
+    {
+        return (Parent?.RemoveDirectlyInternal(item) ?? true) && base.Remove(item);
+    }
+
+    [RDJsonIgnore]
 	internal RDLevel? Parent = null;
 }

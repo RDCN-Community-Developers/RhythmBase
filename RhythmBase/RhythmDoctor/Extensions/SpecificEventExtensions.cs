@@ -525,7 +525,10 @@ namespace RhythmBase.RhythmDoctor.Extensions
             }
         }
 
-        extension(OrderedEventCollection e)
+        extension<TEvent, TType, TBeat>(OrderedEventCollection<TEvent, TType, TBeat> e)
+            where TEvent : IEvent<TType, TBeat>
+            where TType : struct, Enum
+            where TBeat : struct, IBeat<TBeat>
         {
             /// <summary>
             /// Determine if <paramref name="item1" /> is after <paramref name="item2" />
@@ -534,8 +537,8 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// <item>If <paramref name="item1" /> is after <paramref name="item2" />, <see langword="true" /></item>
             /// <item>Else, <see langword="false" /></item>
             /// </list></returns>
-            public bool IsBehind(IBaseEvent item1, IBaseEvent item2) =>
-                item1.Beat > item2.Beat ||
+            public bool IsBehind(TEvent item1, TEvent item2) =>
+                item1.Beat.CompareTo(item2.Beat) > 0 ||
                 (item1.Beat.BeatOnly == item2.Beat.BeatOnly && e.eventsBeatOrder[item1.Beat].CompareTo(item2, item1));
             /// <summary>
             /// Determine if <paramref name="item1" /> is in front of <paramref name="item2" />
@@ -544,8 +547,8 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// <item>If <paramref name="item1" /> is in front of <paramref name="item2" />, <see langword="true" /></item>
             /// <item>Else, <see langword="false" /></item>
             /// </list></returns>
-            public bool IsInFrontOf(IBaseEvent item1, IBaseEvent item2) =>
-                item1.Beat < item2.Beat ||
+            public bool IsInFrontOf(TEvent item1, TEvent item2) =>
+                item1.Beat .CompareTo( item2.Beat)<0 ||
                 ((item1.Beat.BeatOnly == item2.Beat.BeatOnly) && e.eventsBeatOrder[item1.Beat].CompareTo(item1, item2));
         }
 

@@ -7,10 +7,11 @@ namespace RhythmBase.RhythmDoctor.Utils
 	/// </summary>  
 	public static partial class EventTypeUtils
 	{
-		/// <summary>  
-		/// Event types that inherit from <see cref="T:RhythmBase.Events.BaseRowAction" />.  
-		/// </summary>  
-		public static readonly ReadOnlyEnumCollection<EventType> RowTypes = ToEnums<BaseRowAction>();
+		public static readonly ReadOnlyEnumCollection<EventType> Types = ToEnums<IBaseEvent>();
+        /// <summary>  
+        /// Event types that inherit from <see cref="T:RhythmBase.Events.BaseRowAction" />.  
+        /// </summary>  
+        public static readonly ReadOnlyEnumCollection<EventType> RowTypes = ToEnums<BaseRowAction>();
 		/// <summary>  
 		/// Event types that inherit from <see cref="T:RhythmBase.Events.BaseDecorationAction" />.  
 		/// </summary>  

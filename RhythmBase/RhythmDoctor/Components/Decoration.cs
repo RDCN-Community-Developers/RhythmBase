@@ -1,10 +1,13 @@
+using RhythmBase.Global.Linq;
 using RhythmBase.RhythmDoctor.Events;
+using RhythmBase.RhythmDoctor.Linq;
+using RhythmBase.RhythmDoctor.Utils;
 namespace RhythmBase.RhythmDoctor.Components;
 
 /// <summary>
 /// A decoration.
 /// </summary>
-public class Decoration : OrderedEventCollection<BaseDecorationAction>
+public class Decoration : OrderedEventCollection<BaseDecorationAction, EventType, RDBeat>, IEventEnumerable<BaseDecorationAction>
 {
     /// <summary>
     /// Decorated ID.
@@ -77,6 +80,13 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction>
         Room = room;
         _id = GetHashCode().ToString();
     }
+    internal override RDBeat CreateInstance(float beat) => new RDBeat(beat);
+    internal override IBeatRange<RDBeat> CreateRange(float? start, float? end) => new RDRange(
+        start.HasValue ? new RDBeat(start.Value) : null,
+        end.HasValue ? new RDBeat(end.Value) : null
+    );
+    internal override ReadOnlyEnumCollection<EventType> Types => EventTypeUtils.ToEnums<BaseDecorationAction>();
+    internal override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => EventTypeUtils.ToEnums(typeof(TTarget));
     /// <summary>
     /// Add an event to decoration.
     /// </summary>
@@ -89,7 +99,7 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction>
         item._parent = this;
         bool success = base.Add(item);
         if (Parent is not null)
-            success &= Parent.AddInternal(item);
+            success &= Parent.AddDirectlyInternal(item);
         return success;
     }
 
@@ -99,7 +109,7 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction>
     /// <param name="item">A decoration event.</param>
     public override bool Remove(BaseDecorationAction item)
     {
-        return Parent?.RemoveInternal(item) ?? base.Remove(item);
+        return (Parent?.RemoveDirectlyInternal(item) ?? true) && base.Remove(item);
     }
     /// <inheritdoc/>
     public override string ToString() => string.Format("{0}, {1}, {2}, {3}",

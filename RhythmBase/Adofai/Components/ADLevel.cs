@@ -7,7 +7,7 @@ namespace RhythmBase.Adofai.Components
 	/// <summary>
 	/// Adofal level.
 	/// </summary>
-	public partial class ADLevel : TileCollection, IJsonLevel<ADLevel, BeatCalculator>
+	public partial class ADLevel : TileCollection, IJsonLevel<ADLevel, IBaseEvent, EventType, ADBeat>
 	{
 		/// <summary>
 		/// Level settings.
@@ -30,10 +30,11 @@ namespace RhythmBase.Adofai.Components
 					yield return tile2;
 			}
 		}
-		/// <summary>
-		/// The calculator that comes with the level.
-		/// </summary>
-		public BeatCalculator Calculator { get; }
+		IBeatCalculator<ADBeat> ILevel<ADLevel, IBaseEvent, EventType, ADBeat>.Calculator => Calculator;
+        /// <summary>
+        /// The calculator that comes with the level.
+        /// </summary>
+        public BeatCalculator Calculator { get; }
 		/// <summary>  
 		/// Initializes a new instance of the <see cref="ADLevel"/> class.  
 		/// </summary>  

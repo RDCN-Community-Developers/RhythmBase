@@ -7,7 +7,7 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// <summary>
 /// A beat.
 /// </summary>
-public struct RDBeat : IComparable<RDBeat>, IEquatable<RDBeat>
+public struct RDBeat :IBeat<RDBeat>
 #if NET7_0_OR_GREATER
 	, IComparisonOperators<RDBeat, RDBeat, bool>
 #endif
@@ -584,7 +584,19 @@ public struct RDBeat : IComparable<RDBeat>, IEquatable<RDBeat>
 #endif
 	///  <inheritdoc/>
 	public readonly int CompareTo(RDBeat other) => this > other ? 1 : this == other ? 0 : -1;
-	internal BeatCalculator? _calculator;
+//#if NET8_0_OR_GREATER
+//	static RDBeat IBeat<RDBeat>.FromBeatOnly(float beatOnly)
+//    {
+//		return new RDBeat(beatOnly);
+//    }
+
+//    static RDBeat IBeat<RDBeat>.FromTimeSpan(TimeSpan timeSpan)
+//    {
+//		return new RDBeat(timeSpan);
+//    }
+//#endif
+
+    internal BeatCalculator? _calculator;
 	private bool _isBeatLoaded;
 	private bool _isBarBeatLoaded;
 	private bool _isTimeSpanLoaded;

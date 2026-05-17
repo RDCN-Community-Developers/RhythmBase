@@ -1,3 +1,4 @@
+using RhythmBase.Adofai.Components;
 using System.Text.Json;
 
 namespace RhythmBase.Adofai.Events;
@@ -10,8 +11,9 @@ public abstract class BaseEvent : IBaseEvent
 {
 	/// <inheritdoc/>
 	public abstract EventType Type { get; }
+    public ADBeat Beat { get; }
 
-	internal Dictionary<string, JsonElement> _extraData = [];
+    internal Dictionary<string, JsonElement> _extraData = [];
 	/// <summary>
 	/// Returns a string representation of the event type.
 	/// </summary>

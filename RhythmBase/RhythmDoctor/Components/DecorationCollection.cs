@@ -9,7 +9,7 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// Initializes a new instance of the <see cref="DecorationCollection"/> class.
 /// </remarks>
 /// <param name="parent">The parent <see cref="RDLevel"/> instance associated with this collection.</param>
-public class DecorationCollection(RDLevel parent) : LevelElementCollection<Decoration>(parent, false)
+public class DecorationCollection(RDLevel parent) : LevelElementCollection<Decoration, BaseDecorationAction>(parent, false)
 {
 	internal readonly List<BaseDecorationAction> _unhandledRowEvents = [];
 	/// <summary>

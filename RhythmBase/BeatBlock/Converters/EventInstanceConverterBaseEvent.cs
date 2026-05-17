@@ -1,4 +1,5 @@
-﻿using RhythmBase.BeatBlock.Events;
+﻿using RhythmBase.BeatBlock.Components;
+using RhythmBase.BeatBlock.Events;
 using RhythmBase.RhythmDoctor.Extensions;
 using System;
 using System.Collections.Generic;
@@ -9,14 +10,14 @@ namespace RhythmBase.BeatBlock.Converters;
 
 internal abstract class EventInstanceConverterBase
 {
-    protected LevelReadSettings? _rs;
-    protected LevelWriteSettings? _ws;
-    internal EventInstanceConverterBase WithReadSettings(LevelReadSettings settings)
+    protected ILevelReadSettings<IBaseEvent, EventType, BBBeat>? _rs;
+    protected ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? _ws;
+    internal EventInstanceConverterBase WithReadSettings(ILevelReadSettings<IBaseEvent, EventType, BBBeat> settings)
     {
         _rs = settings;
         return this;
     }
-    internal EventInstanceConverterBase WithWriteSettings(LevelWriteSettings settings)
+    internal EventInstanceConverterBase WithWriteSettings(ILevelWriteSettings<IBaseEvent, EventType, BBBeat> settings)
     {
         _ws = settings;
         return this;

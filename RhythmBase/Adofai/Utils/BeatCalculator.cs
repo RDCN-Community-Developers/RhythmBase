@@ -5,7 +5,7 @@ namespace RhythmBase.Adofai.Utils
 	/// <summary>
 	/// Beat Calculator.
 	/// </summary>
-	public class BeatCalculator : IBeatCalculator<BeatCalculator, ADLevel>
+	public class BeatCalculator : IBeatCalculator<ADBeat>
 	{
 		internal BeatCalculator(ADLevel level)
 		{
@@ -80,8 +80,48 @@ namespace RhythmBase.Adofai.Utils
 			}
 			return tile._status._tick;
 		}
+
+        public ADBeat BeatOf(float beatOnly)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ADBeat BeatOf(TimeSpan timeSpan)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TimeSpan BeatOnlyToTimeSpan(float beat)
+        {
+            throw new NotImplementedException();
+        }
+
+        public float BeatsPerMinuteOf(ADBeat beat)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IBeatRange<ADBeat> IntervalOf(ADBeat beat1, ADBeat beat2)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IBeatRange<ADBeat> IntervalOf(TimeSpan timeSpan1, TimeSpan timeSpan2)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IBeatCalculator<ADBeat>.Refresh()
+        {
+            Refresh();
+        }
+
+        public float TimeSpanToBeatOnly(TimeSpan timeSpan)
+        {
+            throw new NotImplementedException();
+        }
 #pragma warning disable IDE0052 // 删除未读的私有成员
-		internal ADLevel Collection;
+        internal ADLevel Collection;
 		private float _DefaultBpm = 100;
 		private Tile? _cacheTile = null;
 #pragma warning restore IDE0052 // 删除未读的私有成员

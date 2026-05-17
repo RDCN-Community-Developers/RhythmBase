@@ -1,5 +1,6 @@
 using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Events;
+using RhythmBase.RhythmDoctor.Settings;
 using RhythmBase.RhythmDoctor.Utils;
 using System.Text;
 using System.Text.Json;
@@ -16,8 +17,8 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
     private static readonly BaseEventConverter baseEventConverter = new();
     private static readonly BookmarkConverter bookmarkConverter = new();
     private static readonly ConditionalConverter conditionalConverter = new();
-    internal LevelReadSettings ReadSettings { get; set; } = new();
-    internal LevelWriteSettings WriteSettings { get; set; } = new();
+    internal ILevelReadSettings<IBaseEvent, EventType, RDBeat> ReadSettings { get; set; } = new LevelReadSettings();
+    internal ILevelWriteSettings<IBaseEvent, EventType, RDBeat> WriteSettings { get; set; } = new LevelWriteSettings();
     internal string? DirectoryName { get; set; }
     public override RDLevel? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
@@ -42,7 +43,7 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
                 reader.Read();
                 if (reader.TokenType != JsonTokenType.StartObject)
                     throw new JsonException($"Expected StartObject token for 'settings', but got {reader.TokenType}.");
-                level.Settings = settingsConverter.Read(ref reader, typeof(Settings), options) ?? new();
+                level.Settings = settingsConverter.Read(ref reader, typeof(Components.Settings), options) ?? new();
                 if (ReadSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
                     foreach (FileReference file in level.Settings.GetAllFileReferences())
                         if (!file.IsEmpty && file.IsExist(DirectoryName!))

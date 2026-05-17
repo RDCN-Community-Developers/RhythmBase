@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using RhythmBase.BeatBlock.Components;
+using System.Text.Json;
 
 namespace RhythmBase.BeatBlock.Events;
 
@@ -9,6 +10,8 @@ public abstract record class BaseEvent : IBaseEvent
     public float Angle { get; set; }
     public string? Variant { get; set; }
     public int? Order { get; set; }
+    public BBBeat Beat { get; }
+
     public JsonElement this[string propertyName]
     {
         get => _extraData.TryGetValue(propertyName, out JsonElement value) ? value : default;

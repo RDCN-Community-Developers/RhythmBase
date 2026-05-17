@@ -1,5 +1,7 @@
+using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Converters;
 using RhythmBase.RhythmDoctor.Events;
+using RhythmBase.RhythmDoctor.Settings;
 using System.Collections.ObjectModel;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -48,9 +50,9 @@ namespace RhythmBase.RhythmDoctor.Utils
 		/// <returns>
 		/// A <see cref="JsonSerializerOptions"/> instance configured with converters, indentation settings, and file path.
 		/// </returns>
-		public static JsonSerializerOptions GetJsonSerializerOptions(string? dirPath = null, LevelReadSettings? settings = null)
+		public static JsonSerializerOptions GetJsonSerializerOptions(string? dirPath = null, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
 		{
-			settings ??= new();
+			settings ??= new LevelReadSettings();
 			JsonSerializerOptions options = new(Utils.options);
 			LevelConverter levelConverter = new()
 			{
@@ -72,9 +74,9 @@ namespace RhythmBase.RhythmDoctor.Utils
 		/// <returns>
 		/// A <see cref="JsonSerializerOptions"/> instance configured with converters, indentation settings, and file path.
 		/// </returns>
-		public static JsonSerializerOptions GetJsonSerializerOptions(string? dirPath = null, LevelWriteSettings? settings = null)
+		public static JsonSerializerOptions GetJsonSerializerOptions(string? dirPath = null, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
 		{
-			settings ??= new();
+			settings ??= new LevelWriteSettings();
 			JsonSerializerOptions options = new(Utils.options);
 			if (settings.Indented)
 				options.WriteIndented = true;

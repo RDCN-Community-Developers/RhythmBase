@@ -361,6 +361,17 @@ public struct ReadOnlyEnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : s
 		}
 		return result;
     }
+	public readonly ReadOnlyEnumCollection<TEnum2> Cast<TEnum2>() where TEnum2 : struct, Enum
+	{
+		if(typeof(TEnum) == typeof(TEnum2))
+			return Unsafe.As<ReadOnlyEnumCollection<TEnum>, ReadOnlyEnumCollection<TEnum2>>(ref Unsafe.AsRef(in this));
+		int byteWidth = Unsafe.SizeOf<TEnum2>();
+		ulong enumMask = (byteWidth * 8 >= 64) ? ulong.MaxValue : ((1ul << (byteWidth * 8)) - 1ul);
+		ReadOnlyEnumCollection<TEnum2> result = new(_bits.Length);
+		for (int i = 0; i < _bits.Length; i++)
+			result._bits[i] = _bits[i] & enumMask;
+		return result;
+    }
     /// <summary>
     /// Returns an enumerator that iterates through the set of values contained in the collection.
     /// </summary>

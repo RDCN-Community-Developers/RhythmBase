@@ -1,12 +1,14 @@
+using RhythmBase.Global.Linq;
 using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Extensions;
+using RhythmBase.RhythmDoctor.Linq;
 using RhythmBase.RhythmDoctor.Utils;
 namespace RhythmBase.RhythmDoctor.Components;
 
 /// <summary>
 /// Rhythm Doctor level.
 /// </summary>
-public partial class RDLevel : OrderedEventCollection<IBaseEvent>, IJsonLevel<RDLevel, BeatCalculator>
+public partial class RDLevel : OrderedEventCollection<IBaseEvent, EventType, RDBeat>, IJsonLevel<RDLevel, IBaseEvent, EventType, RDBeat>, IEventEnumerable<IBaseEvent>
 {
     private bool isZip = false;
     private bool isExtracted = false;
@@ -30,6 +32,7 @@ public partial class RDLevel : OrderedEventCollection<IBaseEvent>, IJsonLevel<RD
     public readonly RDVariables Variables;
     /// <inheritdoc/>
     public override int Count => base.Count;
+    IBeatCalculator<RDBeat> ILevel<RDLevel, IBaseEvent, EventType, RDBeat>.Calculator => Calculator;
     /// <summary>
     /// The calculator that comes with the level.
     /// </summary>
@@ -87,6 +90,14 @@ public partial class RDLevel : OrderedEventCollection<IBaseEvent>, IJsonLevel<RD
         Rows = new(this);
         Decorations = new(this);
     }
+    internal override RDBeat CreateInstance(float beat) => new RDBeat(beat);
+    internal override IBeatRange<RDBeat> CreateRange(float? start, float? end) => new RDRange(
+        start is float s ? Calculator.BeatOf(s) : null,
+        end is float e ? Calculator.BeatOf(e) : null
+        );
+    internal override ReadOnlyEnumCollection<EventType> Types => EventTypeUtils.Types;
+    internal override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => EventTypeUtils.ToEnums(typeof(TTarget));
+
     /// <summary>
     /// Initializes a new instance of the <see cref="RDLevel"/> class with the specified items.
     /// </summary>
@@ -262,7 +273,7 @@ public partial class RDLevel : OrderedEventCollection<IBaseEvent>, IJsonLevel<RD
         if (base.Contains(item)) return false;
         Decoration? parent = item.Parent ?? Decorations[item._decoId];
         if (parent == null) Decorations._unhandledRowEvents.Add(item);
-        else { ((OrderedEventCollection)parent).Add(item); item._parent = parent; }
+        else { parent.Add(item); item._parent = parent; }
         base.Add(item);
         return true;
     }
@@ -272,23 +283,38 @@ public partial class RDLevel : OrderedEventCollection<IBaseEvent>, IJsonLevel<RD
         if (base.Contains(item)) return false;
         Row? parent = item.Parent ?? (item.Index < Rows.Count ? Rows[item.Index] : null);
         if (parent == null) Rows._unhandledRowEvents.Add(item);
-        else { ((OrderedEventCollection)parent).Add(item); item._parent = parent; }
+        else { parent.Add(item); item._parent = parent; }
         base.Add(item);
+        return true;
+    }
+    internal bool AddDirectlyInternal(IBaseEvent item)
+    {
+        BaseEvent e = item as BaseEvent ?? throw new RhythmBaseException("Inner exception that shouldn't happen");
+        e._beat._calculator = Calculator;
+        if (base.Contains(e)) return false;
+        base.Add(e);
         return true;
     }
     internal bool RemoveInternal(BaseDecorationAction item)
     {
         Decoration? parent = item.Parent ?? Decorations[item._decoId];
         if (parent == null) Decorations._unhandledRowEvents.Remove(item);
-        else { ((OrderedEventCollection)parent).Remove(item); item._parent = parent; }
+        else { parent.Remove(item); item._parent = parent; }
         return base.Remove(item);
     }
     internal bool RemoveInternal(BaseRowAction item)
     {
         Row? parent = item.Parent ?? ((item.Index >= 0 && item.Index < Rows.Count) ? Rows[item.Index] : null);
         if (parent == null) Rows._unhandledRowEvents.Remove(item);
-        else ((OrderedEventCollection)parent).Remove(item);
+        else { parent.Remove(item); item._parent = parent; }
         return base.Remove(item);
+    }
+    internal bool RemoveDirectlyInternal(IBaseEvent item)
+    {
+        BaseEvent e = item as BaseEvent ?? throw new RhythmBaseException("Inner exception that shouldn't happen");
+        if (!base.Contains(e)) return false;
+        base.Remove(e);
+        return true;
     }
     private bool AddSetCrotchetsPerBarInternal(SetCrotchetsPerBar item, BeatChangeStrategy strategy)
     {

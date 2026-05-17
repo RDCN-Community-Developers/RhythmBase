@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RhythmBase.BeatBlock.Events;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
@@ -7,73 +8,106 @@ namespace RhythmBase.BeatBlock.Components;
 
 partial class BBLevel
 {
-    public static BBLevel FromFile(string filepath, LevelReadSettings? settings = null)
+    private static class Deserializer
+    {
+        public static BBLevel Deserialize(IJsonDataSource dataSource, JsonSerializerOptions options)
+        {
+            if (dataSource.CanGetMemoryDirectly)
+            {
+                ReadOnlyMemory<byte> jsonData = dataSource.GetMemory();
+                Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
+                return ConverterHub.Read<BBLevel>(ref reader, options) ?? [];
+            }
+            else
+            {
+                ReadOnlyMemory<byte> jsonData = dataSource.GetMemoryAsync().GetAwaiter().GetResult();
+                Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
+                return ConverterHub.Read<BBLevel>(ref reader, options) ?? [];
+            }
+        }
+        public static async Task<BBLevel> DeserializeAsync(IJsonDataSource dataSource, JsonSerializerOptions options, CancellationToken token = default)
+        {
+            if (dataSource.CanGetMemoryDirectly)
+            {
+                ReadOnlyMemory<byte> jsonData = dataSource.GetMemory();
+                Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
+                return ConverterHub.Read<BBLevel>(ref reader, options) ?? [];
+            }
+            else
+            {
+                ReadOnlyMemory<byte> jsonData = await dataSource.GetMemoryAsync(token);
+                Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
+                return ConverterHub.Read<BBLevel>(ref reader, options) ?? [];
+            }
+        }
+    }
+    public static BBLevel FromFile(string filepath, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
         throw new NotImplementedException();
     }
 
-    public static Task<BBLevel> FromFileAsync(string filepath, LevelReadSettings? settings = null, CancellationToken cancellationToken = default)
+    public static Task<BBLevel> FromFileAsync(string filepath, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
 
-    public static BBLevel FromJsonDocument(JsonDocument jsonDocument, LevelReadSettings? settings = null)
+    public static BBLevel FromJsonDocument(JsonDocument jsonDocument, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
         throw new NotImplementedException();
     }
 
-    public static BBLevel FromJsonString(string json, LevelReadSettings? settings = null)
+    public static BBLevel FromJsonString(string json, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
         throw new NotImplementedException();
     }
 
-    public static BBLevel FromStream(Stream stream, LevelReadSettings? settings = null)
+    public static BBLevel FromStream(Stream stream, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
         throw new NotImplementedException();
     }
 
-    public static Task<BBLevel> FromStreamAsync(Stream stream, LevelReadSettings? settings = null, CancellationToken cancellationToken = default)
+    public static Task<BBLevel> FromStreamAsync(Stream stream, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
 
 
-    public void SaveToFile(string filepath, LevelWriteSettings? settings = null)
+    public void SaveToFile(string filepath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
         throw new NotImplementedException();
     }
 
-    public void SaveToFileAsync(string filepath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
+    public void SaveToFileAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
 
-    public void SaveToStream(Stream stream, LevelWriteSettings? settings = null)
+    public void SaveToStream(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
         throw new NotImplementedException();
     }
 
-    public void SaveToStreamAsync(Stream stream, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
+    public void SaveToStreamAsync(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
 
-    public void SaveToZip(string filepath, LevelWriteSettings? settings = null)
+    public void SaveToZip(string filepath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
         throw new NotImplementedException();
     }
 
-    public void SaveToZipAsync(string filepath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
+    public void SaveToZipAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
 
-    public JsonDocument ToJsonDocument(LevelWriteSettings? settings = null)
+    public JsonDocument ToJsonDocument(ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
         throw new NotImplementedException();
     }
 
-    public string ToJsonString(LevelWriteSettings? settings = null)
+    public string ToJsonString(ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
         throw new NotImplementedException();
     }

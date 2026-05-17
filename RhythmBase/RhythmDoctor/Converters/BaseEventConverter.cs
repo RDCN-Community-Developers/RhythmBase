@@ -1,6 +1,8 @@
 using RhythmBase.Global.Extensions;
+using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Extensions;
+using RhythmBase.RhythmDoctor.Settings;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using static RhythmBase.RhythmDoctor.Utils.EventTypeUtils;
@@ -9,14 +11,14 @@ namespace RhythmBase.RhythmDoctor.Converters;
 
 internal class BaseEventConverter : JsonConverter<IBaseEvent>
 {
-	private LevelReadSettings _rs = new();
-	private LevelWriteSettings _ws = new();
-	public BaseEventConverter WithReadSettings(LevelReadSettings settings)
+	private ILevelReadSettings<IBaseEvent, EventType, RDBeat> _rs = new LevelReadSettings();
+	private ILevelWriteSettings<IBaseEvent, EventType, RDBeat> _ws = new LevelWriteSettings();
+	public BaseEventConverter WithReadSettings(ILevelReadSettings<IBaseEvent, EventType, RDBeat> settings)
 	{
 		_rs = settings;
 		return this;
 	}
-	public BaseEventConverter WithWriteSettings(LevelWriteSettings settings)
+	public BaseEventConverter WithWriteSettings(ILevelWriteSettings<IBaseEvent, EventType, RDBeat> settings)
 	{
 		_ws = settings;
 		return this;

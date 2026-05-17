@@ -52,7 +52,7 @@ namespace RhythmBase.RhythmDoctor.Utils
     /// <summary>
     /// Beat calculator that converts between absolute beats, bars, and time spans, while reacting to tempo and CPB changes.
     /// </summary>
-    public class BeatCalculator : IBeatCalculator<BeatCalculator, RDLevel>
+    public class BeatCalculator : IBeatCalculator<RDBeat>
     {
         internal readonly RDLevel Collection;
         private BpmCache[] _bpmCache = [];
@@ -204,14 +204,14 @@ namespace RhythmBase.RhythmDoctor.Utils
                                 CpbCache? nextCpbBeat,
                                 bool moveTrival)
         {
-            RedBlackTree<RDBeat, TypedEventCollection<IBaseEvent>> allEvents = Collection.eventsBeatOrder;
+            RedBlackTree<RDBeat, TypedEventCollection<EventType, RDBeat>> allEvents = Collection.eventsBeatOrder;
             OrderedCollection<RDBeat, Bookmark> allBookmarks = Collection.Bookmarks;
             int diffBeatPerBar = target.Cpb - previousCpb; // 每小节节拍数的变化量
             float st =
                 moveTrival && nextCpbBeat is CpbCache nextCpbNotNull1
                 ? nextCpbNotNull1.BeatOnly
                 : target.BeatOnly + int.Min(previousCpb, target.Cpb); // 需要迁移的组件的起始位置
-            KeyValuePair<RDBeat, TypedEventCollection<IBaseEvent>>[] nodes = [.. allEvents.Where(e => e.Key.BeatOnly >= st)];
+            KeyValuePair<RDBeat, TypedEventCollection<EventType, RDBeat>>[] nodes = [.. allEvents.Where(e => e.Key.BeatOnly >= st)];
             foreach (var node in nodes)
             {
                 (int bar, _) = node.Key;
@@ -230,7 +230,7 @@ namespace RhythmBase.RhythmDoctor.Utils
                 if (offset < 0 && // 只有 cpb 减少时才会出现事件重叠的情况，且是向前重叠，和遍历方向一致
                     allEvents.ContainsKey(newBeat)) // 如果目标位置有事件就合并
                 {
-                    TypedEventCollection<IBaseEvent> existing = allEvents[newBeat];
+                    TypedEventCollection<EventType, RDBeat> existing = allEvents[newBeat];
                     foreach (IBaseEvent e in node.Value)
                         existing.Add(e);
                 }
@@ -485,7 +485,7 @@ namespace RhythmBase.RhythmDoctor.Utils
         /// <param name="beat1">The starting beat.</param>
         /// <param name="beat2">The ending beat.</param>
         /// <returns>The resulting interval.</returns>
-        public RDRange IntervalOf(RDBeat beat1, RDBeat beat2) => new(new(this, beat1), new(this, beat2));
+        public RDRange IntervalOf(RDBeat beat1, RDBeat beat2) => new RDRange(new(this, beat1), new(this, beat2));
 
         /// <summary>
         /// Creates an <see cref="RDRange"/> representing the interval between two bar/beat pairs.
@@ -502,7 +502,8 @@ namespace RhythmBase.RhythmDoctor.Utils
         /// <param name="timeSpan2">The end time.</param>
         /// <returns>The resulting interval.</returns>
         public RDRange IntervalOf(TimeSpan timeSpan1, TimeSpan timeSpan2) => IntervalOf(BeatOf(timeSpan1), BeatOf(timeSpan2));
-
+        IBeatRange<RDBeat> IBeatCalculator<RDBeat>.IntervalOf(RDBeat beat1, RDBeat beat2) => IntervalOf(beat1, beat2);
+        IBeatRange<RDBeat> IBeatCalculator<RDBeat>.IntervalOf(TimeSpan timeSpan1, TimeSpan timeSpan2) => IntervalOf(timeSpan1, timeSpan2);
         /// <summary>
         /// Gets the BPM in effect at the specified beat.
         /// </summary>

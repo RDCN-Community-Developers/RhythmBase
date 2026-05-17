@@ -9,7 +9,7 @@ namespace RhythmBase.RhythmDoctor.Components
 	/// Initializes a new instance of the <see cref="RowCollection"/> class.
 	/// </remarks>
 	/// <param name="parent">The parent <see cref="RDLevel"/> instance associated with this collection.</param>
-	public class RowCollection(RDLevel parent) : LevelElementCollection<Row>(parent, true)
+	public class RowCollection(RDLevel parent) : LevelElementCollection<Row, BaseRowAction>(parent, true)
 	{
 		internal readonly List<BaseRowAction> _unhandledRowEvents = [];
 		/// <summary>
