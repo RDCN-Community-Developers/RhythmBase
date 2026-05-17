@@ -252,11 +252,21 @@ namespace RhythmBase.Adofai.Components
 		/// <inheritdoc/>
 		public readonly bool Equals([NotNull] ADBeat other) => this == other;
 
+        /// <summary>
+        /// Compares the current beat with the specified <see cref="RDBeat"/>.
+        /// </summary>
+        /// <param name="other">The <see cref="RDBeat"/> to compare with.</param>
+        /// <returns>A value indicating the relative order of the beats being compared.</returns>
         public int CompareTo(RDBeat other)
         {
 			return this.BeatOnly.CompareTo(other.BeatOnly);
         }
 
+        /// <summary>
+        /// Determines whether the current beat is equal to the specified <see cref="RDBeat"/>.
+        /// </summary>
+        /// <param name="other">The <see cref="RDBeat"/> to compare with.</param>
+        /// <returns><c>true</c> if the beats are equal; otherwise, <c>false</c>.</returns>
         public bool Equals(RDBeat other)
         {
 			return this.BeatOnly.Equals(other.BeatOnly);

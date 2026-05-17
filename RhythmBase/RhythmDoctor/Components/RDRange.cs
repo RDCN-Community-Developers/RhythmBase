@@ -148,6 +148,12 @@ public struct RDRange : IBeatRange<RDBeat>
     /// </summary>
     public static RDRange Empty => new(new(), new());
 #if NET8_0_OR_GREATER
+    /// <summary>
+    /// Creates a new <see cref="RDRange"/> from the specified start and end beats.
+    /// </summary>
+    /// <param name="start">The start beat.</param>
+    /// <param name="end">The end beat.</param>
+    /// <returns>A new <see cref="RDRange"/> instance.</returns>
     public static IBeatRange<RDBeat> CreateRange(RDBeat? start, RDBeat? end)
     {
         return new RDRange(start, end);

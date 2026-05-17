@@ -75,6 +75,11 @@ public record LevelReadSettings : ILevelReadSettings<IBaseEvent, EventType, ADBe
     /// </summary>
     /// <returns></returns>
     public List<(JsonElement item, string reason)> UnreadableEvents { get; set; } = [];
+    /// <summary>
+    /// Handles an inactive event based on the current <see cref="InactiveEventsHandling"/> setting.
+    /// </summary>
+    /// <param name="item">The inactive event to handle.</param>
+    /// <returns><c>true</c> if the event was handled and should be skipped; <c>false</c> if the event should be retained.</returns>
     public bool HandleInactiveEvent(IBaseEvent item)
     {
         switch (InactiveEventsHandling)
@@ -87,6 +92,11 @@ public record LevelReadSettings : ILevelReadSettings<IBaseEvent, EventType, ADBe
         }
         return true;
     }
+    /// <summary>
+    /// Handles an unreadable event based on the current <see cref="UnreadableEventsHandling"/> setting.
+    /// </summary>
+    /// <param name="item">The unreadable JSON element.</param>
+    /// <param name="reason">The reason why the event is unreadable.</param>
     public void HandleUnreadableEvent(JsonElement item, string reason)
     {
         switch (UnreadableEventsHandling)
@@ -98,10 +108,16 @@ public record LevelReadSettings : ILevelReadSettings<IBaseEvent, EventType, ADBe
                 break;
         }
     }
+    /// <summary>
+    /// Raises the <see cref="BeforeReading"/> event before reading begins.
+    /// </summary>
     public void OnBeforeReading()
     {
         BeforeReading?.Invoke(this, EventArgs.Empty);
     }
+    /// <summary>
+    /// Raises the <see cref="AfterReading"/> event after reading completes.
+    /// </summary>
     public void OnAfterReading()
     {
         AfterReading?.Invoke(this, EventArgs.Empty);

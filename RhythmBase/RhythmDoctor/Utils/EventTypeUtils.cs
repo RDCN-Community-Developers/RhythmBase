@@ -7,6 +7,9 @@ namespace RhythmBase.RhythmDoctor.Utils
 	/// </summary>  
 	public static partial class EventTypeUtils
 	{
+		/// <summary>
+		/// All event types.
+		/// </summary>
 		public static readonly ReadOnlyEnumCollection<EventType> Types = ToEnums<IBaseEvent>();
         /// <summary>  
         /// Event types that inherit from <see cref="T:RhythmBase.Events.BaseRowAction" />.  

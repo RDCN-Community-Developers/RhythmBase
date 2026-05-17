@@ -21,6 +21,11 @@ namespace RhythmBase.Adofai.Utils
 			////this._Holds = this.Collection.EventsWhere<ADHold>().ToList<ADHold>();
 			////this._Freeroams = this.Collection.EventsWhere<ADFreeRoam>().ToList<ADFreeRoam>();
 		}
+		/// <summary>
+		/// Calculates the total tick value for the specified tile.
+		/// </summary>
+		/// <param name="tile">The tile for which to calculate the tick.</param>
+		/// <returns>The total tick value of the tile.</returns>
 		public float TickOf(Tile tile)
 		{
 			float ticks = 0;
@@ -81,31 +86,63 @@ namespace RhythmBase.Adofai.Utils
 			return tile._status._tick;
 		}
 
+        /// <summary>
+        /// Creates an <see cref="ADBeat"/> from the specified beat-only value.
+        /// </summary>
+        /// <param name="beatOnly">The beat-only value.</param>
+        /// <returns>An <see cref="ADBeat"/> representing the specified beat.</returns>
         public ADBeat BeatOf(float beatOnly)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Creates an <see cref="ADBeat"/> from the specified time span.
+        /// </summary>
+        /// <param name="timeSpan">The time span.</param>
+        /// <returns>An <see cref="ADBeat"/> representing the specified time span.</returns>
         public ADBeat BeatOf(TimeSpan timeSpan)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Converts the specified beat-only value to a <see cref="TimeSpan"/>.
+        /// </summary>
+        /// <param name="beat">The beat-only value to convert.</param>
+        /// <returns>A <see cref="TimeSpan"/> representing the specified beat.</returns>
         public TimeSpan BeatOnlyToTimeSpan(float beat)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Gets the beats per minute (BPM) at the specified beat.
+        /// </summary>
+        /// <param name="beat">The beat for which to get the BPM.</param>
+        /// <returns>The beats per minute at the specified beat.</returns>
         public float BeatsPerMinuteOf(ADBeat beat)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Calculates the interval between two beats.
+        /// </summary>
+        /// <param name="beat1">The first beat.</param>
+        /// <param name="beat2">The second beat.</param>
+        /// <returns>An <see cref="IBeatRange{ADBeat}"/> representing the interval between the two beats.</returns>
         public IBeatRange<ADBeat> IntervalOf(ADBeat beat1, ADBeat beat2)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Calculates the interval between two time spans.
+        /// </summary>
+        /// <param name="timeSpan1">The first time span.</param>
+        /// <param name="timeSpan2">The second time span.</param>
+        /// <returns>An <see cref="IBeatRange{ADBeat}"/> representing the interval between the two time spans.</returns>
         public IBeatRange<ADBeat> IntervalOf(TimeSpan timeSpan1, TimeSpan timeSpan2)
         {
             throw new NotImplementedException();
@@ -116,6 +153,11 @@ namespace RhythmBase.Adofai.Utils
             Refresh();
         }
 
+        /// <summary>
+        /// Converts the specified time span to a beat-only value.
+        /// </summary>
+        /// <param name="timeSpan">The time span to convert.</param>
+        /// <returns>The beat-only value representing the specified time span.</returns>
         public float TimeSpanToBeatOnly(TimeSpan timeSpan)
         {
             throw new NotImplementedException();

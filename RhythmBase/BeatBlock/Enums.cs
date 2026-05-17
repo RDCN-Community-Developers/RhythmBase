@@ -1,5 +1,8 @@
 ﻿namespace RhythmBase.BeatBlock;
 
+/// <summary>
+/// Represents the types of events available in the BeatBlock editor.
+/// </summary>
 [RDJsonEnumSerializable(false)]
 public enum EventType
 {
@@ -62,7 +65,8 @@ public enum EventType
     /// <remarks>
     /// No description
     /// </remarks>
-    BgNoise,
+    [RDJsonAlias("bgNoise")]
+    BackgroundNoise,
     /// <summary>
     /// Multipulse
     /// </summary>
@@ -394,43 +398,97 @@ public enum EventType
     /// </remarks>
     ToggleParticles,
 }
+/// <summary>
+/// Specifies the rendering layer for decorations and text decorations.
+/// </summary>
 [RDJsonEnumSerializable(false)]
 public enum Layer
 {
+    /// <summary>
+    /// Background layer.
+    /// </summary>
     Bg,
 }
+/// <summary>
+/// Specifies the effect canvas type for shader backgrounds, including an option to disable it.
+/// </summary>
 [RDJsonEnumSerializable(false)]
 public enum EffectCanvasTypeWdisable
 {
+    /// <summary>
+    /// Disables the effect canvas.
+    /// </summary>
     Disable,
+    /// <summary>
+    /// Applies a halftone effect.
+    /// </summary>
     Halftone,
 }
+/// <summary>
+/// Specifies which directional indicators are shown for side notes.
+/// </summary>
 [RDJsonEnumSerializable(false)]
 public enum SideIndicatorTypes
 {
+    /// <summary>
+    /// Show indicators on both sides.
+    /// </summary>
     Both,
 }
+/// <summary>
+/// Specifies the source location of a shader.
+/// </summary>
 [RDJsonEnumSerializable(false)]
 public enum ShaderSource
 {
+    /// <summary>
+    /// The shader is loaded from an external file.
+    /// </summary>
     File,
 }
+/// <summary>
+/// Specifies which note types should be recolored.
+/// </summary>
 [RDJsonEnumSerializable(false)]
 public enum NoteRecolorTarget
 {
+    /// <summary>
+    /// Recolor all note types.
+    /// </summary>
     All,
 }
+/// <summary>
+/// Specifies the horizontal alignment of text in a text decoration.
+/// </summary>
 [RDJsonEnumSerializable(false)]
 public enum TextJustification
 {
+    /// <summary>
+    /// No justification.
+    /// </summary>
     None,
+    /// <summary>
+    /// Align text to the left.
+    /// </summary>
     Left,
+    /// <summary>
+    /// Center align text.
+    /// </summary>
     Center,
+    /// <summary>
+    /// Align text to the right.
+    /// </summary>
     Right,
 }
+/// <summary>
+/// Specifies how a decoration is mirrored.
+/// </summary>
 [RDJsonEnumSerializable(false)]
 public enum MirrorType
 {
+    /// <summary>
+    /// No mirroring is applied.
+    /// </summary>
     None,
 }
 //[RDJsonEnumSerializable]
@@ -438,9 +496,18 @@ public enum MirrorType
 //{
 //    None,
 //}
+/// <summary>
+/// Specifies the effect canvas type used when drawing decorations.
+/// </summary>
 [RDJsonEnumSerializable(false)]
 public enum EffectCanvasType
 {
+    /// <summary>
+    /// No effect canvas is used.
+    /// </summary>
     None,
+    /// <summary>
+    /// Apply a recolor effect on the canvas.
+    /// </summary>
     Recolor,
 }

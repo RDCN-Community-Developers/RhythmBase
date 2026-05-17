@@ -6,6 +6,9 @@ using System.Text.Json;
 
 namespace RhythmBase.RhythmDoctor.Extensions.Collaboration.RDEditorPlus;
 
+/// <summary>
+/// Provides extension methods for RDEditorPlus collaboration features.
+/// </summary>
 public static class RDEditorPlus
 {
     // https://github.com/9thCore/RDEditorPlus/blob/737c8df41b242125eed272d5876860b55ed38578/ExtraData/SubRowStorage.cs#L378

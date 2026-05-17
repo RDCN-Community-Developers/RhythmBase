@@ -25,9 +25,9 @@ public record class DecorationShader : BaseEvent
     /// <summary>
     /// shader code
     /// </summary>
-    public string ShaderCode { get; set; }
+    public string ShaderCode { get; set; } = string.Empty;
     /// <summary>
     /// Uniform Code
     /// </summary>
-    public string UniformCode { get; set; }
+    public string UniformCode { get; set; } = string.Empty;
 }

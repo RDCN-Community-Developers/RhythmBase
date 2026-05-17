@@ -15,7 +15,7 @@ public interface IBaseEvent : IEvent<EventType, RDBeat>
     /// <summary>
     /// Gets or sets the beat associated with the event.
     /// </summary>
-    RDBeat Beat { get; set; }
+    new RDBeat Beat { get; set; }
     /// <summary>
     /// Gets or sets the condition associated with the event.
     /// </summary>

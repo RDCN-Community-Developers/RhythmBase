@@ -1,5 +1,8 @@
 namespace RhythmBase.Global.Events;
 
+/// <summary>
+/// Represents a base interface for all events.
+/// </summary>
 public interface IEvent
 {
 }

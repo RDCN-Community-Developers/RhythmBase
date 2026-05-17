@@ -6,7 +6,8 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// <summary>  
 /// Represents a collection used to manage <see cref="Row"/> or <see cref="Decoration"/> elements.  
 /// </summary>  
-/// <typeparam name="T">The type of elements in the collection, constrained to <see cref="OrderedEventCollection"/>.</typeparam>  
+/// <typeparam name="T">The type of elements in the collection, constrained to <see cref="OrderedEventCollection{TEvent, EventType, RDBeat}"/>.</typeparam>
+/// <typeparam name="TEvent">The type of events contained in the element.</typeparam>  
 /// <remarks>  
 /// This abstract class provides a base implementation for managing a collection of elements  
 /// that are either rows or decorations within a rhythm level.  

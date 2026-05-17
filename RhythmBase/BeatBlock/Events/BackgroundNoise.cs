@@ -6,10 +6,10 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// No description
 /// </remarks>
-public record class BgNoise : BaseEvent
+public record class BackgroundNoise : BaseEvent
 {
     /// <inheritdoc/>
-    public override EventType Type => EventType.BgNoise;
+    public override EventType Type => EventType.BackgroundNoise;
     /// <summary>
     /// Use BG noise?
     /// </summary>

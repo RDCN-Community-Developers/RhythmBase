@@ -59,7 +59,6 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// <summary>
             /// Null or equal.
             /// </summary>
-            /// <param name="e">one item.</param>
             /// <param name="obj">another item.</param>
             /// <returns>
             /// <list type="table">
@@ -107,7 +106,6 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// </code>
             /// </example>
             /// </summary>
-            /// <param name="beat">The float number.</param>
             /// <param name="splitBase">Indicate what fraction this is.</param>
             public float QuantizeBeat(uint splitBase) => (float)(Math.Round(beat * splitBase) / splitBase);
         }
@@ -124,7 +122,6 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// </code>
             /// </example>
             /// </summary>
-            /// <param name="beat">The float number.</param>
             /// <param name="splitBase">Indicate what fraction this is.</param>
             public double QuantizeBeat(uint splitBase) => Math.Round(beat * splitBase) / splitBase;
         }
@@ -141,7 +138,6 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// </code>
             /// </example>
             /// </summary>
-            /// <param name="beat">The beat.</param>
             /// <param name="splitBase">Indicate what fraction this is.</param>
             public RDBeat QuantizeBeat(uint splitBase) => beat._calculator is BeatCalculator bc ? new(bc, beat.BeatOnly.QuantizeBeat(splitBase)) : new(beat.BeatOnly.QuantizeBeat(splitBase));
         }
@@ -151,7 +147,6 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// <summary>
             /// Converting enumeration constants to in-game colors。
             /// </summary>
-            /// <param name="e">Collection</param>
             /// <returns>The in-game color.</returns>
             public RDColor ToColor() => e switch
             {
@@ -168,8 +163,7 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// <summary>
             /// Add a range of events.
             /// </summary>
-            /// <param name="e">Collection</param>
-            /// <param name="items"></param>
+            /// <param name="items">The events to add.</param>
             public void AddRange(IEnumerable<TEvent> items)
             {
                 foreach (TEvent item in items)
@@ -179,7 +173,6 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// <summary>
             /// Remove a range of events.
             /// </summary>
-            /// <param name="e">Collection</param>
             /// <param name="items">A range of events.</param>
             /// <returns>The number of events successfully removed.</returns>
             public int RemoveRange(IEnumerable<TEvent> items)
@@ -192,7 +185,6 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// <summary>
             /// Get all events with the specified tag.
             /// </summary>
-            /// <param name="e">Collection</param>
             /// <param name="name">Tag name.</param>
             /// <param name="strict">Indicates whether the label is strictly matched.
             /// If <see langword="true" />, determine If it contains the specified tag.
@@ -213,11 +205,9 @@ namespace RhythmBase.RhythmDoctor.Extensions
             where TEvent : IBaseEvent
         {
             /// <summary>
-            /// Adds a range of items to the specified <see cref="LevelElementCollection{TCollection}"/>.  
-            /// </summary>  
-            /// <typeparam name="TCollection">The type of elements in the collection, constrained to <see cref="OrderedEventCollection{IBaseEvent, EventType, RDBeat}"/>.</typeparam>  
-            /// <param name="e">The <see cref="LevelElementCollection{TCollection}"/> to which the items will be added.</param>  
-            /// <param name="items">The range of items to add to the collection.</param>  
+            /// Adds a range of items to the specified <see cref="LevelElementCollection{TCollection, TEvent}"/>.
+            /// </summary>
+            /// <param name="items">The range of items to add to the collection.</param>
             public void AddRange(IEnumerable<TCollection> items)
             {
                 foreach (TCollection item in items)
@@ -239,7 +229,6 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// <summary>
             /// Gets the room index of the row at the specified beat.
             /// </summary>
-            /// <param name="e">The row instance.</param>
             /// <param name="beat">The beat to query.</param>
             /// <returns>
             /// The room index at the specified beat, or the row's default room if no <see cref="ReorderRow"/> event is found.
@@ -248,7 +237,6 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// <summary>
             /// Get the row beat status
             /// </summary>
-            /// <param name="e"></param>
             /// <returns></returns>
             /// <exception cref="NotImplementedException"></exception>
             /// <exception cref="RhythmBaseException"></exception>
@@ -314,20 +302,17 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// <summary>
             /// Get an instance of the beat associated with the level.
             /// </summary>
-            /// <param name="e">RDLevel</param>
             /// <param name="beatOnly">Total number of 1-based beats.</param>
             public RDBeat BeatOf(float beatOnly) => e.Calculator.BeatOf(beatOnly);
             /// <summary>
             /// Get an instance of the beat associated with the level.
             /// </summary>
-            /// <param name="e">RDLevel</param>
             /// <param name="bar">The 1-based bar.</param>
             /// <param name="beat">The 1-based beat of the bar.</param>
             public RDBeat BeatOf(int bar, float beat) => e.Calculator.BeatOf(bar, beat);
             /// <summary>
             /// Get an instance of the beat associated with the level.
             /// </summary>
-            /// <param name="e">RDLevel</param>
             /// <param name="timeSpan">Total time span of the beat.</param>
             public RDBeat BeatOf(TimeSpan timeSpan) => e.Calculator.BeatOf(timeSpan);
         }
@@ -337,7 +322,6 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// <summary>
             /// Gets the depth of the decoration at the specified beat.
             /// </summary>
-            /// <param name="e">The decoration instance.</param>
             /// <param name="beat">The beat to query.</param>
             /// <returns>
             /// The depth value at the specified beat, or the decoration's default depth if no <see cref="ReorderSprite"/> event is found.
@@ -347,7 +331,6 @@ namespace RhythmBase.RhythmDoctor.Extensions
             /// <summary>
             /// Gets the room index of the decoration at the specified beat.
             /// </summary>
-            /// <param name="e">The decoration instance.</param>
             /// <param name="beat">The beat to query.</param>
             /// <returns>
             /// The room index at the specified beat, or the decoration's default room if no <see cref="ReorderSprite"/> event is found.

@@ -11,6 +11,9 @@ public abstract class BaseEvent : IBaseEvent
 {
 	/// <inheritdoc/>
 	public abstract EventType Type { get; }
+    /// <summary>
+    /// Gets the beat at which the event occurs.
+    /// </summary>
     public ADBeat Beat { get; }
 
     internal Dictionary<string, JsonElement> _extraData = [];

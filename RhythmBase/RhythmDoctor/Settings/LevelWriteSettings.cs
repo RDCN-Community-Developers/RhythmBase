@@ -76,6 +76,11 @@ public record LevelWriteSettings : ILevelWriteSettings<IBaseEvent, EventType, RD
     /// </summary>
     /// <returns></returns>
     public List<(JsonElement item, string reason)> UnreadableEvents { get; set; } = [];
+    /// <summary>
+    /// Handles an inactive event based on the current <see cref="InactiveEventsHandling"/> setting.
+    /// </summary>
+    /// <param name="item">The inactive event to handle.</param>
+    /// <returns><see langword="true"/> if the event should be excluded from the level; otherwise, <see langword="false"/>.</returns>
     public bool HandleInactiveEvent(IBaseEvent item)
     {
         switch (InactiveEventsHandling)
@@ -88,6 +93,11 @@ public record LevelWriteSettings : ILevelWriteSettings<IBaseEvent, EventType, RD
         }
         return true;
     }
+    /// <summary>
+    /// Handles an unreadable event based on the current <see cref="UnreadableEventsHandling"/> setting.
+    /// </summary>
+    /// <param name="item">The unreadable event data.</param>
+    /// <param name="reason">The reason why the event is unreadable.</param>
     public void HandleUnreadableEvent(JsonElement item, string reason)
     {
         switch (UnreadableEventsHandling)
@@ -104,10 +114,16 @@ public record LevelWriteSettings : ILevelWriteSettings<IBaseEvent, EventType, RD
     /// Defaults to <see langword="true" />.
     /// </summary>
     public bool Indented { get; set; } = true;
+    /// <summary>
+    /// Raises the <see cref="BeforeWriting"/> event.
+    /// </summary>
     public void OnBeforeWriting()
     {
         BeforeWriting?.Invoke(this, EventArgs.Empty);
     }
+    /// <summary>
+    /// Raises the <see cref="AfterWriting"/> event.
+    /// </summary>
     public void OnAfterWriting()
     {
         AfterWriting?.Invoke(this, EventArgs.Empty);

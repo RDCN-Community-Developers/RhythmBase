@@ -68,7 +68,17 @@ public interface ILevelReadOrWriteSettings<TEvent, TType, TBeat>
     /// <returns></returns>
     List<(JsonElement item, string reason)> UnreadableEvents { get; set; }
 
+    /// <summary>
+    /// Handles an inactive event according to the current settings.
+    /// </summary>
+    /// <param name="item">The inactive event to handle.</param>
+    /// <returns>true if the event was handled; otherwise, false.</returns>
     bool HandleInactiveEvent(TEvent item);
+    /// <summary>
+    /// Handles an unreadable event by storing it or throwing an exception according to the current settings.
+    /// </summary>
+    /// <param name="item">The JSON element representing the unreadable event.</param>
+    /// <param name="reason">The reason why the event was unreadable.</param>
     void HandleUnreadableEvent(JsonElement item, string reason);
 }
 /// <summary>
