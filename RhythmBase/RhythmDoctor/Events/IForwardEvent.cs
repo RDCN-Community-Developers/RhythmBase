@@ -5,7 +5,7 @@ namespace RhythmBase.RhythmDoctor.Events;
 /// <summary>
 /// Represents a forward event that can store arbitrary key-value pairs and an actual type identifier.
 /// </summary>
-public interface IForwardEvent : IBaseEvent
+public interface IForwardEvent : IBaseEvent, Global.Events.IForwardEvent
 {
 	/// <summary>
 	/// Gets or sets the actual type of the forward event.

@@ -1,4 +1,6 @@
-﻿using RhythmBase.RhythmDoctor.Components;
+﻿using RhythmBase.Adofai.Events;
+using RhythmBase.Adofai.Settings;
+using RhythmBase.RhythmDoctor.Components;
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
@@ -47,9 +49,9 @@ partial class ADLevel
         writer.Flush();
     }
     /// <inheritdoc/>
-    public static ADLevel FromFile(string filepath, LevelReadSettings? settings = null)
+    public static ADLevel FromFile(string filepath, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelReadSettings();
         string extension = Path.GetExtension(filepath);
         ADLevel? level;
         if (extension != ".zip")
@@ -120,9 +122,9 @@ partial class ADLevel
         return level;
     }
     /// <inheritdoc/>
-    public static async Task<ADLevel> FromFileAsync(string filepath, LevelReadSettings? settings = null, CancellationToken cancellationToken = default)
+    public static async Task<ADLevel> FromFileAsync(string filepath, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null, CancellationToken cancellationToken = default)
     {
-        settings ??= new();
+        settings ??= new LevelReadSettings();
         string extension = Path.GetExtension(filepath);
         ADLevel? level;
         if (extension != ".zip")
@@ -193,9 +195,9 @@ partial class ADLevel
         return level;
     }
     /// <inheritdoc/>
-    public static ADLevel FromStream(Stream adlevelStream, LevelReadSettings? settings = null)
+    public static ADLevel FromStream(Stream adlevelStream, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelReadSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         ADLevel? level;
         settings.OnBeforeReading();
@@ -204,9 +206,9 @@ partial class ADLevel
         return level ?? [];
     }
     /// <inheritdoc/>
-    public static async Task<ADLevel> FromStreamAsync(Stream stream, LevelReadSettings? settings = null, CancellationToken cancellationToken = default)
+    public static async Task<ADLevel> FromStreamAsync(Stream stream, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null, CancellationToken cancellationToken = default)
     {
-        settings ??= new();
+        settings ??= new LevelReadSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         ADLevel? level;
         settings.OnBeforeReading();
@@ -215,9 +217,9 @@ partial class ADLevel
         return level ?? [];
     }
     /// <inheritdoc/>
-    public static ADLevel FromJsonString(string json, LevelReadSettings? settings = null)
+    public static ADLevel FromJsonString(string json, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelReadSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         ADLevel? level;
         settings.OnBeforeReading();
@@ -226,27 +228,27 @@ partial class ADLevel
         return level ?? [];
     }
     /// <inheritdoc/>
-    public void SaveToStream(Stream stream, LevelWriteSettings? settings = null)
+    public void SaveToStream(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         settings.OnBeforeWriting();
         WriteToStream(stream, this, options);
         settings.OnAfterWriting();
     }
     /// <inheritdoc/>
-    public async void SaveToStreamAsync(Stream stream, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
+    public async void SaveToStreamAsync(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null, CancellationToken cancellationToken = default)
     {
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         settings.OnBeforeWriting();
         await Task.Run(() => WriteToStream(stream, this, options), cancellationToken);
         settings.OnAfterWriting();
     }
     /// <inheritdoc/>
-    public void SaveToFile(string filepath, LevelWriteSettings? settings = null)
+    public void SaveToFile(string filepath, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(filepath, settings);
         settings.OnBeforeWriting();
         using (FileStream stream = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write))
@@ -257,9 +259,9 @@ partial class ADLevel
         settings.OnAfterWriting();
     }
     /// <inheritdoc/>
-    public async void SaveToFileAsync(string filepath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
+    public async void SaveToFileAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null, CancellationToken cancellationToken = default)
     {
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(filepath, settings);
         settings.OnBeforeWriting();
         using (FileStream stream = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write))
@@ -269,9 +271,9 @@ partial class ADLevel
         settings.OnAfterWriting();
     }
     /// <inheritdoc/>
-    public string ToJsonString(LevelWriteSettings? settings = null)
+    public string ToJsonString(ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         string json;
         settings.OnBeforeWriting();
@@ -285,9 +287,9 @@ partial class ADLevel
         return json;
     }
     /// <inheritdoc/>
-    public static ADLevel FromJsonDocument(JsonDocument jsonDocument, LevelReadSettings? settings = null)
+    public static ADLevel FromJsonDocument(JsonDocument jsonDocument, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelReadSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         ADLevel? level;
         settings.OnBeforeReading();
@@ -296,9 +298,9 @@ partial class ADLevel
         return level ?? [];
     }
     /// <inheritdoc/>
-    public JsonDocument ToJsonDocument(LevelWriteSettings? settings = null)
+    public JsonDocument ToJsonDocument(ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         string json;
         settings.OnBeforeWriting();
         MemoryStream stream = new();
@@ -309,11 +311,11 @@ partial class ADLevel
         return JsonDocument.Parse(json);
     }
     /// <inheritdoc/>
-    public void SaveToZip(string filepath, LevelWriteSettings? settings = null)
+    public void SaveToZip(string filepath, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
         if (string.IsNullOrEmpty(this.ResolvedDirectory))
             throw new NotImplementedException();
-        settings ??= new();
+        settings ??= new LevelWriteSettings();
         settings.FileReferences.Clear();
         bool loadAssets = settings.LoadAssets;
         settings.LoadAssets = true;
@@ -338,7 +340,7 @@ partial class ADLevel
         settings.LoadAssets = loadAssets;
     }
     /// <inheritdoc/>
-    public void SaveToZipAsync(string filepath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
+    public void SaveToZipAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

@@ -1,3 +1,4 @@
+using RhythmBase.RhythmDoctor.Events;
 using System.Collections;
 
 namespace RhythmBase.RhythmDoctor.Components;
@@ -5,14 +6,17 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// <summary>  
 /// Represents a collection used to manage <see cref="Row"/> or <see cref="Decoration"/> elements.  
 /// </summary>  
-/// <typeparam name="T">The type of elements in the collection, constrained to <see cref="OrderedEventCollection"/>.</typeparam>  
+/// <typeparam name="T">The type of elements in the collection, constrained to <see cref="OrderedEventCollection{TEvent, EventType, RDBeat}"/>.</typeparam>
+/// <typeparam name="TEvent">The type of events contained in the element.</typeparam>  
 /// <remarks>  
 /// This abstract class provides a base implementation for managing a collection of elements  
 /// that are either rows or decorations within a rhythm level.  
 /// </remarks>  
 /// <param name="parent">The parent <see cref="RDLevel"/> instance associated with this collection.</param>  
 /// <param name="limited">A boolean value indicating whether the collection has a fixed size limit.</param>  
-public abstract class LevelElementCollection<T>(RDLevel parent, bool limited) : ICollection<T> where T : OrderedEventCollection
+public abstract class LevelElementCollection<T, TEvent>(RDLevel parent, bool limited) : ICollection<T>
+	where T : OrderedEventCollection<TEvent, EventType, RDBeat>, new()
+	where TEvent : IEvent<EventType, RDBeat>
 {
 	/// <summary>  
 	/// The parent <see cref="RDLevel"/> instance associated with this collection.  

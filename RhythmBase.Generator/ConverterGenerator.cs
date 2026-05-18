@@ -68,6 +68,18 @@ public partial class ConverterGenerator : IIncrementalGenerator
 				ClassTypeEnumFullname = "RhythmBase.Adofai.FilterType",
 				ClassTypeEnumUnknownMemberName = "Unknown",
 			},
+			new()
+			{
+				Id = "BeatBlock",
+				SourceNamespace = "RhythmBase.BeatBlock.Events",
+				TargetConverterNamespace = "RhythmBase.BeatBlock.Converters",
+				TargetUtilsNamespace = "RhythmBase.BeatBlock.Utils",
+				TargetUtilsClassName = "EventTypeUtils",
+				BaseConverterClassName = "EventInstanceConverter",
+				BaseInterfaceFullName = "RhythmBase.BeatBlock.Events.IBaseEvent",
+				ClassTypeEnumFullname = "RhythmBase.BeatBlock.EventType",
+				ClassTypeEnumUnknownMemberName = "ForwardEvent",
+            }
 			];
 		foreach( var config in configs )
 		{
@@ -155,7 +167,8 @@ public partial class ConverterGenerator : IIncrementalGenerator
 	private record struct FieldName(string Name, string FullName, string? Alias = null);
 	private struct EnumInfo
 	{
-		public FieldName Symbol;
+		public bool PascalCase;
+        public FieldName Symbol;
 		public FieldName[] Fields;
 	}
 

@@ -1,9 +1,10 @@
 namespace RhythmBase.RhythmDoctor.Components;
 
+
 /// <summary>
 /// Beat range.
 /// </summary>
-public struct RDRange
+public struct RDRange : IBeatRange<RDBeat>
 {
     /// <summary>
     /// Start beat.
@@ -80,6 +81,8 @@ public struct RDRange
     /// <param name="b">The beat to check.</param>
     /// <returns>True if the beat is within the range; otherwise, false.</returns>
     public readonly bool Contains(RDBeat b) => (Start == null || Start <= b) && (End == null || b < End);
+    readonly IBeatRange<RDBeat> IBeatRange<RDBeat>.Intersect(IBeatRange<RDBeat> other) => Intersect((RDRange)other);
+    readonly IBeatRange<RDBeat> IBeatRange<RDBeat>.Union(IBeatRange<RDBeat> other) => Union((RDRange)other);
     /// <summary>
     /// Computes the intersection of the current range with another specified range.
     /// </summary>
@@ -144,4 +147,16 @@ public struct RDRange
     /// Gets an empty range with no defined start or end values.
     /// </summary>
     public static RDRange Empty => new(new(), new());
+#if NET8_0_OR_GREATER
+    /// <summary>
+    /// Creates a new <see cref="RDRange"/> from the specified start and end beats.
+    /// </summary>
+    /// <param name="start">The start beat.</param>
+    /// <param name="end">The end beat.</param>
+    /// <returns>A new <see cref="RDRange"/> instance.</returns>
+    public static IBeatRange<RDBeat> CreateRange(RDBeat? start, RDBeat? end)
+    {
+        return new RDRange(start, end);
+    }
+#endif
 }

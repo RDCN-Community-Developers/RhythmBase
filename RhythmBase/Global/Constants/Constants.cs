@@ -28,6 +28,16 @@ public static partial class Constants
 	public const int DefaultVersionRhythmDoctor = 67;
 
 	/// <summary>
+	/// Represents the minimum supported version of the Rhythm Doctor application required for compatibility.
+	/// </summary>
+	public const int MinimumSupportedVersionBeatBlock = 14;
+
+	/// <summary>
+	/// The default Rhythm Doctor version used when no explicit target version is specified.
+	/// </summary>
+	public const int DefaultVersionBeatBlock = 14;
+
+	/// <summary>
 	/// Represents the tolerance level used for floating-point comparisons.
 	/// </summary>
 	public const float Tolerance = 0.00001f;

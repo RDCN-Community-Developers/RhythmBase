@@ -1,5 +1,7 @@
+using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Converters;
 using RhythmBase.RhythmDoctor.Events;
+using RhythmBase.RhythmDoctor.Settings;
 using System.Collections.ObjectModel;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -20,19 +22,19 @@ namespace RhythmBase.RhythmDoctor.Utils
 				WriteIndented = true,
 				DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
 				AllowTrailingCommas = true,
-				Converters =
-				{
-					new AudioConverter(),
-					new PaletteColorConverter(),
-					new PaletteColorWithAlphaConverter(),
-					new DialogueExchangeConverter(),
-					new PatternConverter(),
-					new TabsConverter(),
-					new RoomConverter(),
-					new SingleRoomConverter(),
-					new ExpressionConverter(),
-					new FileReferenceConverter(),
-				}
+				//Converters =
+				//{
+				//	new AudioConverter(),
+				//	new PaletteColorConverter(),
+				//	new PaletteColorWithAlphaConverter(),
+				//	new DialogueExchangeConverter(),
+				//	new PatternConverter(),
+				//	new TabsConverter(),
+				//	new RoomConverter(),
+				//	new SingleRoomConverter(),
+				//	new ExpressionConverter(),
+				//	new FileReferenceConverter(),
+				//}
 			};
 		}
 
@@ -48,16 +50,16 @@ namespace RhythmBase.RhythmDoctor.Utils
 		/// <returns>
 		/// A <see cref="JsonSerializerOptions"/> instance configured with converters, indentation settings, and file path.
 		/// </returns>
-		public static JsonSerializerOptions GetJsonSerializerOptions(string? dirPath = null, LevelReadSettings? settings = null)
+		public static JsonSerializerOptions GetJsonSerializerOptions(string? dirPath = null, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
 		{
-			settings ??= new();
+			settings ??= new LevelReadSettings();
 			JsonSerializerOptions options = new(Utils.options);
-			LevelConverter levelConverter = new()
-			{
-				ReadSettings = settings,
-				DirectoryName = dirPath,
-			};
-			options.Converters.Add(levelConverter);
+			//LevelConverter levelConverter = new()
+			//{
+			//	ReadSettings = settings,
+			//	DirectoryName = dirPath,
+			//};
+			//options.Converters.Add(levelConverter);
 			return options;
 		}
 		/// <summary>
@@ -72,9 +74,9 @@ namespace RhythmBase.RhythmDoctor.Utils
 		/// <returns>
 		/// A <see cref="JsonSerializerOptions"/> instance configured with converters, indentation settings, and file path.
 		/// </returns>
-		public static JsonSerializerOptions GetJsonSerializerOptions(string? dirPath = null, LevelWriteSettings? settings = null)
+		public static JsonSerializerOptions GetJsonSerializerOptions(string? dirPath = null, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
 		{
-			settings ??= new();
+			settings ??= new LevelWriteSettings();
 			JsonSerializerOptions options = new(Utils.options);
 			if (settings.Indented)
 				options.WriteIndented = true;
@@ -82,12 +84,12 @@ namespace RhythmBase.RhythmDoctor.Utils
 				options.WriteIndented = false;
 			if(settings.EnableUnsafeRelaxedJsonEscaping)
 				options.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
-			LevelConverter levelConverter = new()
-			{
-				WriteSettings = settings,
-				DirectoryName = dirPath,
-			};
-			options.Converters.Add(levelConverter);
+			//LevelConverter levelConverter = new()
+			//{
+			//	WriteSettings = settings,
+			//	DirectoryName = dirPath,
+			//};
+			//options.Converters.Add(levelConverter);
 			return options;
 		}
 		/// <summary>

@@ -5,7 +5,7 @@ namespace RhythmBase.Adofai.Components
 	/// <summary>
 	/// Represents a tile in the ADOFAI level, containing events and properties related to the tile.
 	/// </summary>
-	public class Tile : TypedEventCollection<BaseTileEvent>
+	public class Tile : TypedEventCollection<EventType, ADBeat>
 	{
 		/// <summary>
 		/// Gets or sets the angle of the tile.
@@ -138,14 +138,19 @@ namespace RhythmBase.Adofai.Components
 			//}
 			return tile;
 		}
+		/// <summary>
+		/// Gets the event of the specified type associated with this tile.
+		/// </summary>
+		/// <typeparam name="T">The type of event to retrieve.</typeparam>
+		/// <returns>The event of type <typeparamref name="T"/> if found; otherwise, <c>null</c>.</returns>
 		public T? EventOf<T>() where T : ISingleEvent
 		{
 			//if(ContainsType(Utils.EventTypeUtils.<T>()))
 			//	return OfType<T>().SingleOrDefault();
 			throw new NotImplementedException();
 		}
-		/// <inheritdoc />
-		public override bool Add(BaseTileEvent item)
+        /// <inheritdoc />
+		public bool Add(BaseTileEvent item)
 		{
 			bool result = false;
 			if ((item is IBeginningEvent) || (Previous is not null))
@@ -174,7 +179,7 @@ namespace RhythmBase.Adofai.Components
 			return result;
 		}
 		/// <inheritdoc />
-		public override bool Remove(BaseTileEvent item)
+		public bool Remove(BaseTileEvent item)
 		{
 			if (base.Remove(item))
 			{

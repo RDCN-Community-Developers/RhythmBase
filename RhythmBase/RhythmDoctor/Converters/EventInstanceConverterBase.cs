@@ -2,6 +2,7 @@ using RhythmBase.Global.Extensions;
 using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Extensions;
+using RhythmBase.RhythmDoctor.Settings;
 using System.Text;
 using System.Text.Json;
 
@@ -9,14 +10,14 @@ namespace RhythmBase.RhythmDoctor.Converters;
 
 internal abstract class EventInstanceConverterBase
 {
-	protected LevelReadSettings? _rs;
-	protected LevelWriteSettings? _ws;
-	internal EventInstanceConverterBase WithReadSettings(LevelReadSettings settings)
+	protected ILevelReadSettings<IBaseEvent, EventType, RDBeat>? _rs;
+	protected ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? _ws;
+	internal EventInstanceConverterBase WithReadSettings(ILevelReadSettings<IBaseEvent, EventType, RDBeat> settings)
 	{
 		_rs = settings;
 		return this;
 	}
-	internal EventInstanceConverterBase WithWriteSettings(LevelWriteSettings settings)
+	internal EventInstanceConverterBase WithWriteSettings(ILevelWriteSettings<IBaseEvent, EventType, RDBeat> settings)
 	{
 		_ws = settings;
 		return this;

@@ -5,6 +5,7 @@ using RhythmBase.RhythmDoctor;
 using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Extensions;
+using RhythmBase.RhythmDoctor.Settings;
 using RhythmBase.RhythmDoctor.Utils;
 using System.Diagnostics;
 using System.Text;

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 
 #if NETSTANDARD2_0
@@ -175,18 +176,22 @@ namespace System
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     internal class NotNullWhenAttribute(bool returnValue) : Attribute
     {
         public bool ReturnValue { get; } = returnValue;
     }
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     internal sealed class NotNullAttribute : Attribute
     {
     }
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     internal sealed class AllowNullAttribute : Attribute
     { }
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     internal sealed class MemberNotNullAttribute : Attribute
     {
         public MemberNotNullAttribute(string member) => Members = [member];
@@ -194,6 +199,7 @@ namespace System.Diagnostics.CodeAnalysis
         public string[] Members { get; }
     }
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     internal
             sealed class MemberNotNullWhenAttribute : Attribute
     {
@@ -211,12 +217,14 @@ namespace System.Diagnostics.CodeAnalysis
         public string[] Members { get; }
     }
     [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     internal
             sealed class MaybeNullWhenAttribute(bool returnValue) : Attribute
     {
         public bool ReturnValue { get; } = returnValue;
     }
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     internal sealed class CallerArgumentExpressionAttribute : Attribute
     {
         public string ParameterName { get; }
@@ -226,9 +234,30 @@ namespace System.Diagnostics.CodeAnalysis
             ParameterName = parameterName;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
+    internal sealed class SetsRequiredMembersAttribute : Attribute
+    { }
 }
 namespace System.Runtime.CompilerServices
-{
+{ 
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    internal sealed class RequiredMemberAttribute : Attribute { }
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    internal sealed class CompilerFeatureRequiredAttribute : Attribute
+    {
+        public CompilerFeatureRequiredAttribute(string featureName)
+        {
+            FeatureName = featureName;
+        }
+        public string FeatureName { get; }
+        public bool IsOptional { get; init; }
+        public const string RefStructs = nameof(RefStructs);
+        public const string RequiredMembers = nameof(RequiredMembers);
+    }
+    [EditorBrowsable(EditorBrowsableState.Never)]
     internal static class IsExternalInit
     {
     }

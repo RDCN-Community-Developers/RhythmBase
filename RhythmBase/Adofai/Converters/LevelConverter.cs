@@ -1,5 +1,6 @@
 using RhythmBase.Adofai.Components;
 using RhythmBase.Adofai.Events;
+using RhythmBase.Adofai.Settings;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -10,8 +11,8 @@ internal class LevelConverter : JsonConverter<ADLevel>
 	private static readonly BaseEventConverter baseEventConverter = new();
 	private static readonly SettingsConverter settingsConverter = new();
 	internal string? Filepath { get; set; }
-	internal LevelReadSettings ReadSettings { get; set; } = new();
-	internal LevelWriteSettings WriteSettings { get; set; } = new();
+	internal ILevelReadSettings<IBaseEvent, EventType, ADBeat> ReadSettings { get; set; } = new LevelReadSettings();
+	internal ILevelWriteSettings<IBaseEvent, EventType, ADBeat> WriteSettings { get; set; } = new LevelWriteSettings();
 
 	public override ADLevel? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
@@ -52,7 +53,7 @@ internal class LevelConverter : JsonConverter<ADLevel>
 			else if (reader.ValueSpan.SequenceEqual("settings"u8))
 			{
 				reader.Read();
-				level.Settings = settingsConverter.Read(ref reader, typeof(Settings), options) ?? new();
+				level.Settings = settingsConverter.Read(ref reader, typeof(Components.Settings), options) ?? new();
 				if (level.Settings.Version < MinimumSupportedVersionAdofai)
 #if DEBUG
 					Console.WriteLine($"Current version {level.Settings.Version} is too low.");

@@ -3,7 +3,7 @@ namespace RhythmBase.Global.Converters;
 
 
 [AttributeUsage(AttributeTargets.Enum, AllowMultiple = false, Inherited = false)]
-internal sealed class RDJsonEnumSerializableAttribute : Attribute { }
+internal sealed class RDJsonEnumSerializableAttribute(bool pascalCase = true) : Attribute { }
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
 internal sealed class RDJsonObjectSerializableAttribute : Attribute { }
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]

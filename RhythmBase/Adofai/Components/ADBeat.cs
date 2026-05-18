@@ -1,4 +1,5 @@
 using RhythmBase.Adofai.Utils;
+using RhythmBase.RhythmDoctor.Components;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
@@ -7,7 +8,7 @@ namespace RhythmBase.Adofai.Components
 	/// <summary>
 	/// Represents a beat in the ADLevel.
 	/// </summary>
-	public struct ADBeat : IComparable<ADBeat>, IEquatable<ADBeat>
+	public struct ADBeat : IBeat<ADBeat>
 #if !NETSTANDARD
 		,
 		IAdditionOperators<ADBeat, float, ADBeat>,
@@ -250,6 +251,26 @@ namespace RhythmBase.Adofai.Components
 		public override readonly bool Equals(object? obj) => obj is ADBeat beat && Equals(beat);
 		/// <inheritdoc/>
 		public readonly bool Equals([NotNull] ADBeat other) => this == other;
+
+        /// <summary>
+        /// Compares the current beat with the specified <see cref="RDBeat"/>.
+        /// </summary>
+        /// <param name="other">The <see cref="RDBeat"/> to compare with.</param>
+        /// <returns>A value indicating the relative order of the beats being compared.</returns>
+        public int CompareTo(RDBeat other)
+        {
+			return this.BeatOnly.CompareTo(other.BeatOnly);
+        }
+
+        /// <summary>
+        /// Determines whether the current beat is equal to the specified <see cref="RDBeat"/>.
+        /// </summary>
+        /// <param name="other">The <see cref="RDBeat"/> to compare with.</param>
+        /// <returns><c>true</c> if the beats are equal; otherwise, <c>false</c>.</returns>
+        public bool Equals(RDBeat other)
+        {
+			return this.BeatOnly.Equals(other.BeatOnly);
+        }
 		/// <inheritdoc/>
 #if NETSTANDARD
 		public override readonly int GetHashCode()
@@ -262,7 +283,7 @@ namespace RhythmBase.Adofai.Components
 #else
 		public override readonly int GetHashCode() => HashCode.Combine(BeatOnly, _baseLevel);
 #endif
-		internal BeatCalculator? _calculator;
+        internal BeatCalculator? _calculator;
 		private bool _isBeatLoaded;
 		private bool _isTimeSpanLoaded;
 		private bool _isBpmLoaded;
