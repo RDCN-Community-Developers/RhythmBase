@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Plays a single MIDI note
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class ForceMidiNote : BaseEvent
 {
     /// <inheritdoc/>

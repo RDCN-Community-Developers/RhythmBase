@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Adds a new syllable to a targeted TextDeco object
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class AdvanceTextDecoration : BaseEvent
 {
     /// <inheritdoc/>

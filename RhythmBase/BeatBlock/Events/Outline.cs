@@ -7,6 +7,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Adds an outline to objects
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Outline : BaseEvent
 {
     /// <inheritdoc/>

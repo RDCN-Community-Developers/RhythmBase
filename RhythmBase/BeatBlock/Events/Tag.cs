@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Runs a tag, which is a collection of events
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Tag : BaseEvent, IPureEvent
 {
     /// <inheritdoc/>

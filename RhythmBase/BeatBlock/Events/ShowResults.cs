@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Shows the results screen, ending the level
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class ShowResults : BaseEvent, IPureEvent
 {
     /// <inheritdoc/>

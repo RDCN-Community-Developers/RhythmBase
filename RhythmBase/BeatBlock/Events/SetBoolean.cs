@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Sets a boolean variable
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class SetBoolean : BaseEvent
 {
     /// <inheritdoc/>

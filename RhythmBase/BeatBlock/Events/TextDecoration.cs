@@ -8,6 +8,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Draws a string on the screen, and allows updating its properties over time
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class TextDecoration : BaseEvent
 {
     /// <inheritdoc/>

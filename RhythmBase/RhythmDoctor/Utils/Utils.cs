@@ -22,19 +22,19 @@ namespace RhythmBase.RhythmDoctor.Utils
 				WriteIndented = true,
 				DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
 				AllowTrailingCommas = true,
-				Converters =
-				{
-					new AudioConverter(),
-					new PaletteColorConverter(),
-					new PaletteColorWithAlphaConverter(),
-					new DialogueExchangeConverter(),
-					new PatternConverter(),
-					new TabsConverter(),
-					new RoomConverter(),
-					new SingleRoomConverter(),
-					new ExpressionConverter(),
-					new FileReferenceConverter(),
-				}
+				//Converters =
+				//{
+				//	new AudioConverter(),
+				//	new PaletteColorConverter(),
+				//	new PaletteColorWithAlphaConverter(),
+				//	new DialogueExchangeConverter(),
+				//	new PatternConverter(),
+				//	new TabsConverter(),
+				//	new RoomConverter(),
+				//	new SingleRoomConverter(),
+				//	new ExpressionConverter(),
+				//	new FileReferenceConverter(),
+				//}
 			};
 		}
 
@@ -54,12 +54,12 @@ namespace RhythmBase.RhythmDoctor.Utils
 		{
 			settings ??= new LevelReadSettings();
 			JsonSerializerOptions options = new(Utils.options);
-			LevelConverter levelConverter = new()
-			{
-				ReadSettings = settings,
-				DirectoryName = dirPath,
-			};
-			options.Converters.Add(levelConverter);
+			//LevelConverter levelConverter = new()
+			//{
+			//	ReadSettings = settings,
+			//	DirectoryName = dirPath,
+			//};
+			//options.Converters.Add(levelConverter);
 			return options;
 		}
 		/// <summary>
@@ -84,12 +84,12 @@ namespace RhythmBase.RhythmDoctor.Utils
 				options.WriteIndented = false;
 			if(settings.EnableUnsafeRelaxedJsonEscaping)
 				options.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
-			LevelConverter levelConverter = new()
-			{
-				WriteSettings = settings,
-				DirectoryName = dirPath,
-			};
-			options.Converters.Add(levelConverter);
+			//LevelConverter levelConverter = new()
+			//{
+			//	WriteSettings = settings,
+			//	DirectoryName = dirPath,
+			//};
+			//options.Converters.Add(levelConverter);
 			return options;
 		}
 		/// <summary>

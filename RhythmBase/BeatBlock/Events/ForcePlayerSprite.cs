@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Forces the player to use a specific sprite
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class ForcePlayerSprite : BaseEvent
 {
     /// <inheritdoc/>

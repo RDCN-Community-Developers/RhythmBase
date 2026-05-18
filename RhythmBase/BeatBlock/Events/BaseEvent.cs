@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <summary>
 /// Represents the base class for all BeatBlock events.
 /// </summary>
+[RDJsonObjectSerializable]
 public abstract record class BaseEvent : IBaseEvent
 {
     /// <summary>

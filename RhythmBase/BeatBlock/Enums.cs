@@ -24,6 +24,7 @@ public enum EventType
     /// Plays a single MIDI note
     /// </remarks>
     ForceMidiNote,
+    ForwardEvent,
     /// <summary>
     /// Init Object
     /// </summary>
@@ -296,7 +297,7 @@ public enum EventType
     /// <remarks>
     /// When enabled, the screen will no longer be cleared between frames, creating a "hall of mirrors" effect
     /// </remarks>
-    Hom,
+    HallOfMirrors,
     /// <summary>
     /// Load Custom Font
     /// </summary>

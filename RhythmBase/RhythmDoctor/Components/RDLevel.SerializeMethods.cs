@@ -12,33 +12,21 @@ partial class RDLevel
     {
         public static RDLevel Deserialize(IJsonDataSource dataSource, JsonSerializerOptions options)
         {
-            if (dataSource.CanGetMemoryDirectly)
-            {
-                ReadOnlyMemory<byte> jsonData = dataSource.GetMemory();
-                Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
-                return ConverterHub.Read<RDLevel>(ref reader, options) ?? [];
-            }
-            else
-            {
-                ReadOnlyMemory<byte> jsonData = dataSource.GetMemoryAsync().GetAwaiter().GetResult();
-                Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
-                return ConverterHub.Read<RDLevel>(ref reader, options) ?? [];
-            }
+            ReadOnlyMemory<byte> jsonData =
+                dataSource.CanGetMemoryDirectly
+                ? dataSource.GetMemory()
+                : dataSource.GetMemoryAsync().GetAwaiter().GetResult();
+            Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
+            return ConverterHub.Read<RDLevel>(ref reader, options) ?? [];
         }
         public static async Task<RDLevel> DeserializeAsync(IJsonDataSource dataSource, JsonSerializerOptions options, CancellationToken token = default)
         {
-            if (dataSource.CanGetMemoryDirectly)
-            {
-                ReadOnlyMemory<byte> jsonData = dataSource.GetMemory();
-                Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
-                return ConverterHub.Read<RDLevel>(ref reader, options) ?? [];
-            }
-            else
-            {
-                ReadOnlyMemory<byte> jsonData = await dataSource.GetMemoryAsync(token);
-                Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
-                return ConverterHub.Read<RDLevel>(ref reader, options) ?? [];
-            }
+            ReadOnlyMemory<byte> jsonData =
+                 dataSource.CanGetMemoryDirectly
+                ? dataSource.GetMemory()
+                : await dataSource.GetMemoryAsync(token);
+            Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
+            return ConverterHub.Read<RDLevel>(ref reader, options) ?? [];
         }
     }
 

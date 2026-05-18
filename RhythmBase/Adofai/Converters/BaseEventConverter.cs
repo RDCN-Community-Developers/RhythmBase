@@ -42,14 +42,14 @@ namespace RhythmBase.Adofai.Converters
 		}
 		public override void Write(Utf8JsonWriter writer, IBaseEvent value, JsonSerializerOptions options)
 		{
-			if(value is IForwardEvent forwardEvent)
+			if(value is Events.IForwardEvent forwardEvent)
 			{
 				WriteForwardEvent(writer, forwardEvent);
 				return;
 			}
 			converters[value.Type].WriteProperties(writer, value, options);
 		}
-		public IForwardEvent? ReadForwardEvent(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+		public Events.IForwardEvent? ReadForwardEvent(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 		{
 			using JsonDocument doc = JsonDocument.ParseValue(ref reader);
 			JsonElement root = doc.RootElement;
@@ -63,7 +63,7 @@ namespace RhythmBase.Adofai.Converters
 			}
 			return isTile ? new ForwardTileEvent(doc) : new ForwardEvent(doc);
 		}
-		public static void WriteForwardEvent(Utf8JsonWriter writer, IForwardEvent value)
+		public static void WriteForwardEvent(Utf8JsonWriter writer, Events.IForwardEvent value)
 		{
 			writer.WriteStartObject();
 			writer.WriteString("eventType", value.ActureType);

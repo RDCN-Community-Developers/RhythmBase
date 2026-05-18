@@ -7,6 +7,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Eases a shader uniform over time
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class ShaderUniform : BaseEvent
 {
     /// <inheritdoc/>

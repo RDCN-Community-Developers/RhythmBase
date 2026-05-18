@@ -8,6 +8,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// No description
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Hold : BaseEvent, IChartEvent, IPureEvent
 {
     /// <inheritdoc/>

@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Initializes an object
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class ParallaxBackground : BaseEvent
 {
     /// <inheritdoc/>

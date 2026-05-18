@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Marks a section of the chart
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Bookmark : BaseEvent
 {
     /// <inheritdoc/>

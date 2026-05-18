@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Set how high bounces bounce based on delay
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class SetBounceHeight : BaseEvent, IChartEvent, IPureEvent
 {
     /// <inheritdoc/>

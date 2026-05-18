@@ -8,6 +8,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Draws a sprite on the screen, and allows updating its properties over time
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Decoration : BaseEvent , IEaseEvent
 {
     /// <inheritdoc/>
@@ -75,7 +76,7 @@ public record class Decoration : BaseEvent , IEaseEvent
     /// <summary>
     /// Only display the mirrored copies, and ignore the original?
     /// </summary>
-    [RDJsonCondition($"{nameof(Mirror)} != null")]
+    [RDJsonCondition($"$&.{nameof(Mirror)} != null")]
     public bool? ExclusiveMirror { get; set; }
     /// <summary>
     /// Layer to render on
@@ -108,22 +109,22 @@ public record class Decoration : BaseEvent , IEaseEvent
     /// <summary>
     /// UV X position
     /// </summary>
-    [RDJsonCondition($"{nameof(Tiling)} == true")]
+    [RDJsonCondition($"$&.{nameof(Tiling)} == true")]
     public float? Uvx { get; set; }
     /// <summary>
     /// UV Y position
     /// </summary>
-    [RDJsonCondition($"{nameof(Tiling)} == true")]
+    [RDJsonCondition($"$&.{nameof(Tiling)} == true")]
     public float? Uvy { get; set; }
     /// <summary>
     /// UV Delta X per second
     /// </summary>
-    [RDJsonCondition($"{nameof(Tiling)} == true")]
+    [RDJsonCondition($"$&.{nameof(Tiling)} == true")]
     public float? Uvdx { get; set; }
     /// <summary>
     /// UV Delta Y per second
     /// </summary>
-    [RDJsonCondition($"{nameof(Tiling)} == true")]
+    [RDJsonCondition($"$&.{nameof(Tiling)} == true")]
     public float? Uvdy { get; set; }
     /// <summary>
     /// Name of deco shader
@@ -140,17 +141,17 @@ public record class Decoration : BaseEvent , IEaseEvent
     /// <summary>
     /// Draw this deco on the effect canvas instead of the regular canvas
     /// </summary>
-    [RDJsonCondition($"{nameof(EffectCanvas)}")]
+    [RDJsonCondition($"$&.{nameof(EffectCanvas)}")]
     public bool EffectCanvas { get; set; }
     /// <summary>
     /// Which effect canvas to draw on
     /// </summary>
-    [RDJsonCondition($"{nameof(EffectCanvas)}")]
+    [RDJsonCondition($"$&.{nameof(EffectCanvas)}")]
     public EffectCanvasType EffectCanvasType { get; set; }
     /// <summary>
     /// Draw to the effect canvas without recoloring?
     /// </summary>
-    [RDJsonCondition($"{nameof(EffectCanvas)}")]
+    [RDJsonCondition($"$&.{nameof(EffectCanvas)}")]
     public bool? EffectCanvasRaw { get; set; }
     /// <summary>
     /// Length of ease (IGNORED IF DECO IS JUST BEING CREATED)

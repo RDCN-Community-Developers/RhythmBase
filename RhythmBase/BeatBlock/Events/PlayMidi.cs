@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Plays a MIDI file with a compatible object
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class PlayMidi : BaseEvent
 {
     /// <inheritdoc/>

@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Override the song name shown in the corner of the screen. leave empty to use the default song name.
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class SongNameOverride : BaseEvent
 {
     /// <inheritdoc/>

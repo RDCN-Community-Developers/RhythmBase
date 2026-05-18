@@ -1,13 +1,76 @@
 ﻿using RhythmBase.BeatBlock.Components;
 using RhythmBase.BeatBlock.Events;
-using RhythmBase.RhythmDoctor.Extensions;
-using System;
-using System.Collections.Generic;
+using RhythmBase.BeatBlock.Settings;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using static RhythmBase.BeatBlock.Utils.EventTypeUtils;
 
 namespace RhythmBase.BeatBlock.Converters;
 
+internal class BaseEventConverter : JsonConverter<IBaseEvent>
+{
+    private ILevelReadSettings<IBaseEvent, EventType, BBBeat> _rs = new LevelReadSettings();
+    private ILevelWriteSettings<IBaseEvent, EventType, BBBeat> _ws = new LevelWriteSettings();
+    public BaseEventConverter WithReadSettings(ILevelReadSettings<IBaseEvent, EventType, BBBeat> settings)
+    {
+        _rs = settings;
+        return this;
+    }
+    public BaseEventConverter WithWriteSettings(ILevelWriteSettings<IBaseEvent, EventType, BBBeat> settings)
+    {
+        _ws = settings;
+        return this;
+    }
+    public override bool CanConvert(Type typeToConvert)
+    {
+        return Type.IsAssignableFrom(typeToConvert);
+    }
+    public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+        ReadOnlySpan<byte> type = default;
+
+        Utf8JsonReader checkpoint = reader;
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndObject)
+                break;
+            if (reader.TokenType == JsonTokenType.PropertyName)
+            {
+                if (reader.ValueSpan.SequenceEqual("type"u8))
+                {
+                    reader.Read();
+                    type = reader.ValueSpan;
+                    break;
+                }
+                else
+                {
+                    reader.Skip();
+                }
+            }
+        }
+        reader = checkpoint; IBaseEvent e;
+        if (!EnumConverter.TryParse(type, out EventType typeEnum))
+            e = ReadForwardEvent(ref reader) ?? new ForwardEvent() { ActualType = type.ToString() ?? "" };
+        else
+            e = converters[typeEnum].WithReadSettings(_rs).ReadProperties(ref reader, options);
+        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndObject]);
+        return e;
+    }
+    public static Events.IForwardEvent? ReadForwardEvent(ref Utf8JsonReader reader)
+    {
+        using JsonDocument doc = JsonDocument.ParseValue(ref reader);
+        //JsonElement root = doc.RootElement;
+
+        return new ForwardEvent(doc);
+    }
+
+    public override void Write(Utf8JsonWriter writer, IBaseEvent value, JsonSerializerOptions options)
+    {
+        throw new NotImplementedException();
+    }
+}
 internal abstract class EventInstanceConverterBase
 {
     protected ILevelReadSettings<IBaseEvent, EventType, BBBeat>? _rs;

@@ -1,4 +1,6 @@
 ﻿using RhythmBase.RhythmDoctor.Components;
+using System.Text;
+using System.Text.Json;
 
 namespace RhythmBase.Global.Extensions;
 
@@ -7,6 +9,16 @@ namespace RhythmBase.Global.Extensions;
 /// </summary>
 public static class Extensions
 {
+    extension(JsonException)
+    {
+        internal static JsonTokenType ThrowIfNotMatch(Utf8JsonReader reader, JsonTokenType[] expectedTokenType)
+        {
+            if (expectedTokenType.Contains(reader.TokenType))
+                return reader.TokenType;
+            string message = $"Expected token {string.Join(", ", expectedTokenType)} but got {reader.TokenType} {(Encoding.UTF8.GetString(reader.ValueSpan.ToArray()))}, at byte position {reader.TokenStartIndex}.";
+            throw new JsonException(message);
+        }
+    }
     extension<TBeat>(IBeatRange<TBeat>)
         where TBeat : struct, IBeat<TBeat>
     {

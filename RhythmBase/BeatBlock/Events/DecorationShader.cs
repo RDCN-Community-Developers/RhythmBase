@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Create a new shader that can be applied to decorations
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class DecorationShader : BaseEvent
 {
     /// <inheritdoc/>

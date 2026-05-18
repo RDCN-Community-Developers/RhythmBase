@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Toggle whether various particle effects are spawned in by notes
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class ToggleParticles : BaseEvent
 {
     /// <inheritdoc/>

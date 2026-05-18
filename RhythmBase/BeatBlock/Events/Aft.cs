@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Freeze frames, feedback loops, and more!
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Aft : BaseEvent
 {
     /// <inheritdoc/>

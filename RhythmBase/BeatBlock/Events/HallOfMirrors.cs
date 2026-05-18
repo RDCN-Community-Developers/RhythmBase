@@ -6,10 +6,11 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// When enabled, the screen will no longer be cleared between frames, creating a "hall of mirrors" effect
 /// </remarks>
-public record class Hom : BaseEvent
+[RDJsonObjectSerializable]
+public record class HallOfMirrors : BaseEvent
 {
     /// <inheritdoc/>
-    public override EventType Type => EventType.Hom;
+    public override EventType Type => EventType.HallOfMirrors;
     /// <summary>
     /// Use HOM?
     /// </summary>

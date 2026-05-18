@@ -7,6 +7,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Change paddle properties
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Paddles : BaseEvent, IChartEvent, IPureEvent
 {
     /// <inheritdoc/>

@@ -8,8 +8,10 @@ namespace RhythmBase.BeatBlock.Events;
 /// <summary>
 /// Represents a character map for BeatBlock levels.
 /// </summary>
+[RDJsonObjectSerializable]
 public class CharacterMap
 {
+    public static CharacterMap Default { get; } = new CharacterMap();
     /// <summary>
     /// Gets the regular character map.
     /// </summary>
@@ -29,5 +31,8 @@ public class CharacterMap
     public CharacterMap(string map)
     {
         Map = map;
+    }
+    public CharacterMap() : this(string.Empty)
+    {
     }
 }

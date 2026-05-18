@@ -7,6 +7,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Enables a noise effect on the background
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Noise : BaseEvent
 {
     /// <inheritdoc/>

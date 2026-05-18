@@ -8,6 +8,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// A tap independent of other notes
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class ExtraTap : BaseEvent, IChartEvent, IPureEvent
 {
     /// <inheritdoc/>

@@ -8,6 +8,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// A note that must be hit from the side
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Side : BaseEvent, IChartEvent, IPureEvent
 {
     /// <inheritdoc/>

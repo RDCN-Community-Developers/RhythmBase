@@ -7,6 +7,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Sets the background color channel
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class SetBackgroundColor : BaseEvent
 {
     /// <inheritdoc/>

@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Define a new ease sequence
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class EaseSequence : BaseEvent, IPureEvent
 {
     /// <inheritdoc/>

@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Plays a sound effect
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class PlaySound : BaseEvent
 {
     /// <inheritdoc/>

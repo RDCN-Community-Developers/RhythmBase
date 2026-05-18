@@ -8,6 +8,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Changes a color in the palette
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class SetColor : BaseEvent
 {
     /// <inheritdoc/>

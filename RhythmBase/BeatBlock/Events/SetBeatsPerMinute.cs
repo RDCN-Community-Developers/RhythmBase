@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Change the BPM
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class SetBeatsPerMinute : BaseEvent, IPureEvent
 {
     /// <inheritdoc/>

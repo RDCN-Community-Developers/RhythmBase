@@ -2,6 +2,7 @@ using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Settings;
 using RhythmBase.RhythmDoctor.Utils;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -26,23 +27,18 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
         baseEventConverter.WithReadSettings(ReadSettings);
         RDLevel level = [];
         ReadSettings.FileReferences.Clear();
-        if (reader.TokenType != JsonTokenType.StartObject)
-            throw new JsonException($"Expected StartObject token, but got {reader.TokenType}.");
+        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
         reader.Read();
         while (true)
         {
 
             if (reader.TokenType == JsonTokenType.EndObject)
                 break;
-            if (reader.TokenType != JsonTokenType.PropertyName)
-            {
-                throw new JsonException($"Expected PropertyName token, but got {reader.TokenType}.");
-            }
+            JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
             if (reader.ValueSpan.SequenceEqual("settings"u8))
             {
                 reader.Read();
-                if (reader.TokenType != JsonTokenType.StartObject)
-                    throw new JsonException($"Expected StartObject token for 'settings', but got {reader.TokenType}.");
+                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
                 level.Settings = settingsConverter.Read(ref reader, typeof(Components.Settings), options) ?? new();
                 if (ReadSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
                     foreach (FileReference file in level.Settings.GetAllFileReferences())
@@ -58,8 +54,7 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
             else if (reader.ValueSpan.SequenceEqual("rows"u8))
             {
                 reader.Read();
-                if (reader.TokenType != JsonTokenType.StartArray)
-                    throw new JsonException($"Expected StartArray token for 'rows', but got {reader.TokenType}.");
+                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
                 while (reader.Read())
                 {
                     if (reader.TokenType == JsonTokenType.EndArray)
@@ -82,8 +77,7 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
             else if (reader.ValueSpan.SequenceEqual("decorations"u8))
             {
                 reader.Read();
-                if (reader.TokenType != JsonTokenType.StartArray)
-                    throw new JsonException($"Expected StartArray token for 'decorations', but got {reader.TokenType}.");
+                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
                 while (reader.Read())
                 {
                     if (reader.TokenType == JsonTokenType.EndArray)
@@ -106,13 +100,9 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
             else if (reader.ValueSpan.SequenceEqual("events"u8))
             {
                 reader.Read();
-                if (reader.TokenType != JsonTokenType.StartArray)
-                    throw new JsonException($"Expected StartArray token for 'events', but got {reader.TokenType}.");
+                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
                 Dictionary<int, FloatingText> floatingTexts = [];
                 List<AdvanceText> advanceTexts = [];
-                Dictionary<int, List<IBaseEvent>> maybeGeneratedEvents = [];
-                List<TagAction> maybeMacroEvents = [];
-                string[]? types = [];
                 JsonElement[]? data = [];
                 List<JsonDocument> maybeIllegalAt = [];
                 reader.Read();
@@ -130,7 +120,7 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
                     }
                     catch (Exception)
                     {
-                        Console.WriteLine($"Current index: {index}");
+                        Debug.Print($"Current index: {index}");
                         throw;
                     }
 #else
@@ -153,7 +143,7 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
 #endif
                     if (e == null)
                         continue;
-                        level.Add(e);
+                    level.Add(e);
                     if (e is FloatingText ft)
                     {
                         JsonElement v1 = ft["id"];
@@ -190,8 +180,7 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
             else if (reader.ValueSpan.SequenceEqual("bookmarks"u8))
             {
                 reader.Read();
-                if (reader.TokenType != JsonTokenType.StartArray)
-                    throw new JsonException($"Expected StartArray token for 'bookmarks', but got {reader.TokenType}.");
+                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
                 reader.Read();
                 while (true)
                 {
@@ -206,8 +195,7 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
             else if (reader.ValueSpan.SequenceEqual("colorPalette"u8))
             {
                 reader.Read();
-                if (reader.TokenType != JsonTokenType.StartArray)
-                    throw new JsonException($"Expected StartArray token for 'colorPalette', but got {reader.TokenType}.");
+                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
                 int colorIndex = 0;
                 while (reader.Read())
                 {
@@ -225,8 +213,7 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
             else if (reader.ValueSpan.SequenceEqual("conditionals"u8))
             {
                 reader.Read();
-                if (reader.TokenType != JsonTokenType.StartArray)
-                    throw new JsonException($"Expected StartArray token for 'conditionals', but got {reader.TokenType}.");
+                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
                 reader.Read();
                 while (true)
                 {

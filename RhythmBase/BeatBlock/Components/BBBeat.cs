@@ -25,7 +25,7 @@ namespace RhythmBase.BeatBlock.Components
         /// <returns>A value indicating the relative order of the instances.</returns>
         public int CompareTo(BBBeat other)
         {
-            throw new NotImplementedException();
+            return BeatOnly.CompareTo(other.BeatOnly);
         }
         /// <summary>
         /// Determines whether this instance equals another <see cref="BBBeat"/>.
@@ -34,7 +34,7 @@ namespace RhythmBase.BeatBlock.Components
         /// <returns><see langword="true"/> if the instances are equal; otherwise, <see langword="false"/>.</returns>
         public bool Equals(BBBeat other)
         {
-            throw new NotImplementedException();
+            return BeatOnly.Equals(other.BeatOnly);
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="BBBeat"/> struct.

@@ -676,16 +676,6 @@ namespace RhythmBase.RhythmDoctor.Extensions
         /// <param name="e">The RDRoomIndex enumeration value to convert.</param>
         /// <returns>A byte representing the value of the specified RDRoomIndex enumeration.</returns>
         public static byte ToIndex(this RDRoomIndex e) => new RDSingleRoom(e).Value;
-        extension(JsonException)
-        {
-            internal static void ThrowIfNotMatch(Utf8JsonReader reader, JsonTokenType[] expectedTokenType)
-            {
-                if (expectedTokenType.Contains(reader.TokenType))
-                    return;
-                string message = $"Expected token {string.Join(", ", expectedTokenType)} but got {reader.TokenType} {(Encoding.UTF8.GetString(reader.ValueSpan.ToArray()))}, at byte position {reader.TokenStartIndex}.";
-                throw new JsonException(message);
-            }
-        }
 #if NETSTANDARD
         extension<TStyle>(RDLine<TStyle>) where TStyle : IRDRichStringStyle<TStyle>, new()
         {

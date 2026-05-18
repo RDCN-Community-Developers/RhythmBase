@@ -8,6 +8,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Similar to a basic note, but must be hit with the back of the paddle
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Inverse : BaseEvent, IChartEvent, IPureEvent
 {
     /// <inheritdoc/>

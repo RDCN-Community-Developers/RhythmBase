@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Has a textbox to put text in, but does nothing to the level itself.
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Comment : BaseEvent
 {
     /// <inheritdoc/>

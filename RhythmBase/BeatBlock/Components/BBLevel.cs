@@ -1,11 +1,4 @@
-﻿using RhythmBase.Adofai.Components.Filters;
-using RhythmBase.BeatBlock.Events;
-using RhythmBase.RhythmDoctor.Components;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json;
+﻿using RhythmBase.BeatBlock.Events;
 
 namespace RhythmBase.BeatBlock.Components;
 
@@ -14,6 +7,8 @@ namespace RhythmBase.BeatBlock.Components;
 /// </summary>
 public partial class BBLevel : OrderedEventCollection<IBaseEvent, EventType, BBBeat>, IJsonLevel<BBLevel, IBaseEvent, EventType, BBBeat>, IDisposable
 {
+    internal bool isZip;
+    internal bool isExtracted;
     /// <summary>
     /// Gets the default empty <see cref="BBLevel"/>.
     /// </summary>
@@ -22,18 +17,21 @@ public partial class BBLevel : OrderedEventCollection<IBaseEvent, EventType, BBB
     /// Gets or sets the properties of the level.
     /// </summary>
     public Properties Properties { get; set; } = new Properties();
+    public string? DefaultVariant { get; set; }
+    public Metadata Metadata { get; set; } = new Metadata();
+    public VariantCollection Variants { get; } = new VariantCollection();
     /// <summary>
     /// Gets the resolved path of the level file.
     /// </summary>
-    public string ResolvedPath { get; } = string.Empty;
+    public string ResolvedPath { get; internal set; } = string.Empty;
     /// <summary>
     /// Gets the file path of the level.
     /// </summary>
-    public string? Filepath { get; }
+    public string? Filepath { get; internal set; }
     /// <summary>
     /// Gets the resolved directory of the level file.
     /// </summary>
-    public string? ResolvedDirectory { get; }
+    public string? ResolvedDirectory { get; internal set; }
     IBeatCalculator<BBBeat> ILevel<BBLevel, IBaseEvent, EventType, BBBeat>.Calculator => Calculator;
     /// <summary>
     /// Gets the beat calculator for the level.
@@ -56,7 +54,7 @@ public partial class BBLevel : OrderedEventCollection<IBaseEvent, EventType, BBB
     /// <returns><see langword="true"/> if the event was added; otherwise, <see langword="false"/>.</returns>
     public override bool Add(IBaseEvent e)
     {
-        throw new NotImplementedException();
+        base.Add(e); return true;
     }
     /// <summary>
     /// Removes an event from the level.

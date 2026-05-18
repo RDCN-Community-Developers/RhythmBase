@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Stamps an image onto an offscreen canvas, which can then be called as a deco.
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Stamp : BaseEvent
 {
     /// <inheritdoc/>

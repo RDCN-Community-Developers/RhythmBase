@@ -7,6 +7,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Eases a variable over time
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Ease : BaseEvent , IEaseEvent
 {
     /// <inheritdoc/>
@@ -26,7 +27,7 @@ public record class Ease : BaseEvent , IEaseEvent
     /// <summary>
     /// Length of ease
     /// </summary>
-    [RDJsonCondition($"{nameof(Duration)} == 0")]
+    [RDJsonCondition($"$&.{nameof(Duration)} == 0")]
     public float Duration { get; set; }
     /// <summary>
     /// Ease function to use

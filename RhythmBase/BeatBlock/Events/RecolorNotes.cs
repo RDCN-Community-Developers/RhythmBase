@@ -7,6 +7,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Sets note colors
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class RecolorNotes : BaseEvent
 {
     /// <inheritdoc/>

@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Plays a song
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Play : BaseEvent, IPureEvent
 {
     /// <inheritdoc/>

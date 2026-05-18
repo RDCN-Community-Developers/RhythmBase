@@ -8,6 +8,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Sets the Joystick LED to a color channel
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class SetJoystickColor : BaseEvent
 {
     /// <inheritdoc/>

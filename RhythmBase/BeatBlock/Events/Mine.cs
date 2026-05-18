@@ -8,6 +8,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Similar to a basic note, but must NOT be hit.
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Mine : BaseEvent, IChartEvent, IPureEvent
 {
     /// <inheritdoc/>

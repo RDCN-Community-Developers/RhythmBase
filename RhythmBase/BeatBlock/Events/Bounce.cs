@@ -9,6 +9,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// No description
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Bounce : BaseEvent, IChartEvent, IPureEvent
 {
     /// <inheritdoc/>

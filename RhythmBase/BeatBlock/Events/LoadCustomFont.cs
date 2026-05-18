@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Loads a custom font file from your custom level folder
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class LoadCustomFont : BaseEvent
 {
     /// <inheritdoc/>

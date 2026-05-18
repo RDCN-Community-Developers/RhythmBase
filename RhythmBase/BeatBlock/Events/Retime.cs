@@ -6,6 +6,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// <remarks>
 /// Skip a certain amount of time during playback
 /// </remarks>
+[RDJsonObjectSerializable]
 public record class Retime : BaseEvent, IPureEvent
 {
     /// <inheritdoc/>
