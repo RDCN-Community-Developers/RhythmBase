@@ -18,7 +18,7 @@ namespace RhythmBase.Global.Components
         /// </summary>
         string? Filepath { get; }
         /// <summary>
-        /// The directory containing the resolved file. Points to the temporary extraction directory if the source is an archive; otherwise the directory of <see cref="ResolvedPath"/>.
+        /// The directory containing the resolved file. Points to the temporary extraction directory if the source is an archive; otherwise the directory of <see cref="Filepath"/>.
         /// </summary>
         string? ResolvedDirectory { get; }
         IBeatCalculator<TBeat> Calculator { get; }
@@ -55,6 +55,29 @@ namespace RhythmBase.Global.Components
         /// <exception cref="RhythmBaseException">Thrown if the file format is unsupported, if no file is found in a compressed archive, or if an
         /// error occurs during extraction.</exception>
         static abstract Task<TSelf> FromFileAsync(string filepath, ILevelReadSettings<TEvent, TType, TBeat>? settings = null, CancellationToken cancellationToken = default);
+
+#endif
+        /// <summary>
+        /// Saves the current level to a file in JSON format.
+        /// </summary>
+        /// <param name="filepath">The file path where the level will be saved.</param>
+        /// <param name="settings">Optional settings for writing the level. If null, default settings are used.</param>
+        void SaveToFile(string filepath, ILevelWriteSettings<TEvent, TType, TBeat>? settings = null);
+        /// <summary>
+        /// Asynchronously saves the current level to a file in JSON format.
+        /// </summary>
+        /// <param name="filepath">The file path where the level will be saved.</param>
+        /// <param name="settings">Optional settings for writing the level. If null, default settings are used.</param>
+        /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+        void SaveToFileAsync(string filepath, ILevelWriteSettings<TEvent, TType, TBeat>? settings = null, CancellationToken cancellationToken = default);
+    }
+    internal interface ISingleFileLevel<TSelf, TEvent, TType, TBeat> : ILevel<TSelf, TEvent, TType, TBeat>
+        where TSelf : ILevel<TSelf, TEvent, TType, TBeat>
+        where TEvent : IEvent<TType, TBeat>
+        where TType : struct, Enum
+        where TBeat : struct, IBeat<TBeat>
+    {
+#if NET8_0_OR_GREATER
         /// <summary>
         /// Deserializes an <typeparamref name="TSelf"/> object from the specified stream using the provided settings.
         /// </summary>
@@ -76,19 +99,6 @@ namespace RhythmBase.Global.Components
         static abstract Task<TSelf> FromStreamAsync(Stream stream, ILevelReadSettings<TEvent, TType, TBeat>? settings = null, CancellationToken cancellationToken = default);
 #endif
         /// <summary>
-        /// Saves the current level to a file in JSON format.
-        /// </summary>
-        /// <param name="filepath">The file path where the level will be saved.</param>
-        /// <param name="settings">Optional settings for writing the level. If null, default settings are used.</param>
-        void SaveToFile(string filepath, ILevelWriteSettings<TEvent, TType, TBeat>? settings = null);
-        /// <summary>
-        /// Asynchronously saves the current level to a file in JSON format.
-        /// </summary>
-        /// <param name="filepath">The file path where the level will be saved.</param>
-        /// <param name="settings">Optional settings for writing the level. If null, default settings are used.</param>
-        /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
-        void SaveToFileAsync(string filepath, ILevelWriteSettings<TEvent, TType, TBeat>? settings = null, CancellationToken cancellationToken = default);
-        /// <summary>
         /// Saves the current level to the specified stream in JSON format.
         /// </summary>
         /// <param name="stream">The stream to which the level will be saved.</param>
@@ -101,6 +111,13 @@ namespace RhythmBase.Global.Components
         /// <param name="settings">Optional settings for writing the level. If null, default settings are used.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
         void SaveToStreamAsync(Stream stream, ILevelWriteSettings<TEvent, TType, TBeat>? settings = null, CancellationToken cancellationToken = default);
+    }
+    internal interface IArchiveLevel<TSelf, TEvent, TType, TBeat> : ILevel<TSelf, TEvent, TType, TBeat>
+        where TSelf : ILevel<TSelf, TEvent, TType, TBeat>
+        where TEvent : IEvent<TType, TBeat>
+        where TType : struct, Enum
+        where TBeat : struct, IBeat<TBeat>
+    {
         /// <summary>
         /// Saves the current level data to a file in packed (ZIP) format at the specified path. (This method is not fully implemented yet.)
         /// </summary>
@@ -119,8 +136,8 @@ namespace RhythmBase.Global.Components
         /// <exception cref="NotImplementedException">Thrown if the level's directory is not set.</exception>
         void SaveToZipAsync(string filepath, ILevelWriteSettings<TEvent, TType, TBeat>? settings = null, CancellationToken cancellationToken = default);
     }
-    internal interface IJsonLevel<TLevel, TEvent, TType, TBeat> : ILevel<TLevel, TEvent, TType, TBeat>
-        where TLevel : ILevel<TLevel, TEvent, TType, TBeat>
+    internal interface IJsonLevel<TSelf, TEvent, TType, TBeat> : ILevel<TSelf, TEvent, TType, TBeat>
+        where TSelf : ILevel<TSelf, TEvent, TType, TBeat>
         where TEvent : IEvent<TType, TBeat>
         where TType : struct, Enum
         where TBeat : struct, IBeat<TBeat>
@@ -134,16 +151,27 @@ namespace RhythmBase.Global.Components
         /// <param name="jsonDocument">The JSON document to deserialize. This parameter cannot be null.</param>
         /// <param name="settings">Optional settings that control the deserialization process. If not specified, default settings are used.</param>
         /// <returns>An instance of RDLevel representing the deserialized data. Returns an empty array if deserialization fails.</returns>
-        static abstract TLevel FromJsonDocument(JsonDocument jsonDocument, ILevelReadSettings<TEvent, TType, TBeat>? settings = null);
+        static abstract TSelf FromJsonDocument(JsonDocument jsonDocument, ILevelReadSettings<TEvent, TType, TBeat>? settings = null);
         /// <summary>
         /// Reads a level from a JSON string.
         /// </summary>
         /// <param name="json">The JSON string containing the level data.</param>
         /// <param name="settings">Optional settings for reading the level.</param>
-        /// <returns>An <typeparamref name="TLevel"/> instance loaded from the JSON string.</returns>
-        static abstract TLevel FromJsonString(string json, ILevelReadSettings<TEvent, TType, TBeat>? settings = null);
+        /// <returns>An <typeparamref name="TSelf"/> instance loaded from the JSON string.</returns>
+        static abstract TSelf FromJsonString(string json, ILevelReadSettings<TEvent, TType, TBeat>? settings = null);
 #endif
+        /// <summary>
+        /// Converts the current level instance into a <see cref="JsonDocument"/>.
+        /// </summary>
+        /// <param name="settings">Optional settings to control the JSON serialization process. If <see langword="null"/>, default settings are used.</param>
+        /// <returns>A <see cref="JsonDocument"/> representing the serialized level data.</returns>
         JsonDocument ToJsonDocument(ILevelWriteSettings<TEvent, TType, TBeat>? settings = null);
+
+        /// <summary>
+        /// Serializes the current level instance into a JSON formatted string.
+        /// </summary>
+        /// <param name="settings">Optional settings to control the JSON serialization process. If <see langword="null"/>, default settings are used.</param>
+        /// <returns>A string containing the JSON representation of the level.</returns>
         string ToJsonString(ILevelWriteSettings<TEvent, TType, TBeat>? settings = null);
     }
 }

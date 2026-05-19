@@ -120,6 +120,12 @@ partial class BBLevel
             return events;
         }
     }
+    private static void WriteToStream(Stream stream, BBLevel level, JsonSerializerOptions options)
+    {
+        using Utf8JsonWriter writer = new(stream, new() { Indented = options.WriteIndented });
+        ConverterHub.Write(writer, level, options);
+        writer.Flush();
+    }
     /// <summary>
     /// Loads a <see cref="BBLevel"/> from the specified file path.
     /// </summary>
@@ -288,7 +294,17 @@ partial class BBLevel
     /// <param name="settings">Optional write settings.</param>
     public void SaveToFile(string filepath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
-        throw new NotImplementedException();
+        settings ??= new LevelWriteSettings();
+        DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
+        if (!directory.Exists)
+            directory.Create();
+        settings.OnBeforeWriting();
+        using (FileStream fs = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write))
+        {
+            fs.SetLength(0);
+            SaveToStream(fs, settings);
+        }
+        settings.OnAfterWriting();
     }
     /// <summary>
     /// Asynchronously saves the level to the specified file path.
@@ -307,7 +323,11 @@ partial class BBLevel
     /// <param name="settings">Optional write settings.</param>
     public void SaveToStream(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
-        throw new NotImplementedException();
+        settings ??= new LevelWriteSettings();
+        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(dir: null, settings: settings);
+        settings.OnBeforeWriting();
+        WriteToStream(stream, this, options);
+        settings.OnAfterWriting();
     }
     /// <summary>
     /// Asynchronously saves the level to the specified stream.

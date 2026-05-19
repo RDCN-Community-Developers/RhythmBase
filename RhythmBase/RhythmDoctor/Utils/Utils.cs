@@ -50,7 +50,7 @@ namespace RhythmBase.RhythmDoctor.Utils
 		/// <returns>
 		/// A <see cref="JsonSerializerOptions"/> instance configured with converters, indentation settings, and file path.
 		/// </returns>
-		public static JsonSerializerOptions GetJsonSerializerOptions(string? dirPath = null, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
+		internal static JsonSerializerOptions GetJsonSerializerOptions(string? dirPath = null, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
 		{
 			settings ??= new LevelReadSettings();
 			JsonSerializerOptions options = new(Utils.options);
@@ -74,7 +74,7 @@ namespace RhythmBase.RhythmDoctor.Utils
 		/// <returns>
 		/// A <see cref="JsonSerializerOptions"/> instance configured with converters, indentation settings, and file path.
 		/// </returns>
-		public static JsonSerializerOptions GetJsonSerializerOptions(string? dirPath = null, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
+		internal static JsonSerializerOptions GetJsonSerializerOptions(string? dirPath = null, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
 		{
 			settings ??= new LevelWriteSettings();
 			JsonSerializerOptions options = new(Utils.options);

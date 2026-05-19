@@ -7,8 +7,12 @@ namespace RhythmBase.Adofai.Components
 	/// <summary>
 	/// Adofal level.
 	/// </summary>
-	public partial class ADLevel : TileCollection, IJsonLevel<ADLevel, IBaseEvent, EventType, ADBeat>
-	{
+	public partial class ADLevel :
+		TileCollection,
+		IJsonLevel<ADLevel, IBaseEvent, EventType, ADBeat>,
+		ISingleFileLevel<ADLevel, IBaseEvent, EventType, ADBeat>,
+		IArchiveLevel<ADLevel, IBaseEvent, EventType, ADBeat>
+    {
 		/// <summary>
 		/// Level settings.
 		/// </summary>

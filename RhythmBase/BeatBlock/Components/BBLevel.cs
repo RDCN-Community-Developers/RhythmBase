@@ -5,7 +5,11 @@ namespace RhythmBase.BeatBlock.Components;
 /// <summary>
 /// Represents a BeatBlock level.
 /// </summary>
-public partial class BBLevel : OrderedEventCollection<IBaseEvent, EventType, BBBeat>, IJsonLevel<BBLevel, IBaseEvent, EventType, BBBeat>, IDisposable
+public partial class BBLevel :
+    OrderedEventCollection<IBaseEvent, EventType, BBBeat>,
+    IJsonLevel<BBLevel, IBaseEvent, EventType, BBBeat>,
+    IArchiveLevel<BBLevel, IBaseEvent, EventType, BBBeat>,
+    IDisposable
 {
     internal bool isZip;
     internal bool isExtracted;

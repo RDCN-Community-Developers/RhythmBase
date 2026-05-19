@@ -4,6 +4,40 @@ using System.Text.Json.Serialization;
 
 namespace RhythmBase.Global.Converters;
 
+internal record class RDJsonSerializerOptions
+{
+    public JsonSerializerOptions JsonSerializerOptions { get; internal set; } = new JsonSerializerOptions
+    {
+        Converters =
+        {
+            new ColorConverter(),
+        },
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        WriteIndented = true,
+    };
+}
+internal abstract class RDJsonConverter<T> : JsonConverter<T>
+{
+    public RDJsonSerializerOptions JsonSerializerOptions { get; internal set; }
+    public RDJsonConverter<T> WithOptions(JsonSerializerOptions options)
+    {
+        this.JsonSerializerOptions.JsonSerializerOptions = options;
+        return this;
+    }
+    public RDJsonConverter<T> WithOptions(RDJsonSerializerOptions options)
+    {
+        this.JsonSerializerOptions = options;
+        return this;
+    }
+    public virtual T? Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
+    {
+        return Read(ref reader, typeToConvert, options.JsonSerializerOptions);
+    }
+    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+    { 
+    }
+}
+
 [RDJsonConverterFor(typeof(RDColor))]
 internal class ColorConverter : JsonConverter<RDColor>
 {

@@ -8,7 +8,12 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// <summary>
 /// Rhythm Doctor level.
 /// </summary>
-public partial class RDLevel : OrderedEventCollection<IBaseEvent, EventType, RDBeat>, IJsonLevel<RDLevel, IBaseEvent, EventType, RDBeat>, IEventEnumerable<IBaseEvent>
+public partial class RDLevel :
+    OrderedEventCollection<IBaseEvent, EventType, RDBeat>,
+    IJsonLevel<RDLevel, IBaseEvent, EventType, RDBeat>,
+    ISingleFileLevel<RDLevel, IBaseEvent, EventType, RDBeat>,
+    IArchiveLevel<RDLevel, IBaseEvent, EventType, RDBeat>,
+    IEventEnumerable<IBaseEvent>
 {
     private bool isZip = false;
     private bool isExtracted = false;

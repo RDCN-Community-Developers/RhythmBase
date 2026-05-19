@@ -178,6 +178,14 @@ internal class ManifestConverter : JsonConverter<BBLevel>
 
     public override void Write(Utf8JsonWriter writer, BBLevel value, JsonSerializerOptions options)
     {
-        throw new NotImplementedException();
+        writer.WriteStartObject();
+        writer.WriteString("defaultVariant", value.DefaultVariant);
+        writer.WriteStartObject("metadata");
+        writer.WriteString("artist", value.Metadata.Artist);
+        writer.WriteString("artistLink", value.Metadata.ArtistLink);
+        writer.WriteBoolean("bg", value.Metadata.IsBackgroundEnabled);
+        writer.WriteStartObject("bgData");
+        writer.WritePropertyName("redChannel");
+        ConverterHub.Write(writer, value.Metadata.BackgroundData.RedChannel, options);
     }
 }
