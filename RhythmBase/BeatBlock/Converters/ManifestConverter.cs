@@ -179,23 +179,23 @@ internal class ManifestConverter : RDJsonConverter<BBLevel>
     public override void Write(Utf8JsonWriter writer, BBLevel value, RDJsonSerializerOptions options)
     {
         writer.WriteStartObject();
-        writer.WriteString("defaultVariant", value.DefaultVariant);
+        writer.WriteString("defaultVariant"u8, value.DefaultVariant);
         #region metadata
-        writer.WriteStartObject("metadata");
-        writer.WriteString("songName", value.Metadata.SongName);
-        writer.WriteString("artist", value.Metadata.Artist);
-        writer.WriteString("artistLink", value.Metadata.ArtistLink);
-        writer.WriteNumber("bpm", value.Metadata.Bpm);
-        writer.WriteString("description", value.Metadata.Description);
-        writer.WriteString("charter", value.Metadata.Charter);
-        writer.WriteNumber("difficulty", value.Metadata.Difficulty);
-        writer.WriteBoolean("lightWarning", value.Metadata.LightWarning);
-        writer.WriteBoolean("lyricsWarning", value.Metadata.LyricsWarning);
-        writer.WriteBoolean("loopPointsEnable", value.Metadata.LoopPointsEnable);
-        writer.WriteString("source", value.Metadata.Source);
-        writer.WriteNumber("startLoop", value.Metadata.StartLoop);
-        writer.WriteNumber("endLoop", value.Metadata.EndLoop);
-        writer.WriteBoolean("bg", value.Metadata.IsBackgroundEnabled);
+        writer.WriteStartObject("metadata"u8);
+        writer.WriteString("songName"u8, value.Metadata.SongName);
+        writer.WriteString("artist"u8, value.Metadata.Artist);
+        writer.WriteString("artistLink"u8, value.Metadata.ArtistLink);
+        writer.WriteNumber("bpm"u8, value.Metadata.Bpm);
+        writer.WriteString("description"u8, value.Metadata.Description);
+        writer.WriteString("charter"u8, value.Metadata.Charter);
+        writer.WriteNumber("difficulty"u8, value.Metadata.Difficulty);
+        writer.WriteBoolean("lightWarning"u8, value.Metadata.LightWarning);
+        writer.WriteBoolean("lyricsWarning"u8, value.Metadata.LyricsWarning);
+        writer.WriteBoolean("loopPointsEnable"u8, value.Metadata.LoopPointsEnable);
+        writer.WriteString("source"u8, value.Metadata.Source);
+        writer.WriteNumber("startLoop"u8, value.Metadata.StartLoop);
+        writer.WriteNumber("endLoop"u8, value.Metadata.EndLoop);
+        writer.WriteBoolean("bg"u8, value.Metadata.IsBackgroundEnabled);
         writer.WriteEndObject();
         #region bgdata
         writer.WriteStartObject("bgData");
@@ -211,7 +211,7 @@ internal class ManifestConverter : RDJsonConverter<BBLevel>
         ConverterHub.Write(writer, value.Metadata.BackgroundData.CyanChannel, options);
         writer.WritePropertyName("magentaChannel");
         ConverterHub.Write(writer, value.Metadata.BackgroundData.MagentaChannel, options);
-        writer.WriteBoolean("hideCranky", value.Metadata.BackgroundData.HideCranky);
+        writer.WriteBoolean("hideCranky"u8, value.Metadata.BackgroundData.HideCranky);
         writer.WritePropertyName("image");
         ConverterHub.Write(writer, value.Metadata.BackgroundData.Image, options);
         writer.WritePropertyName("resultsImage");
@@ -221,7 +221,7 @@ internal class ManifestConverter : RDJsonConverter<BBLevel>
         #endregion
         #region properties
         writer.WriteStartObject("properties");
-        writer.WriteNumber("formatVersion", value.Properties.FormatVersion);
+        writer.WriteNumber("formatVersion"u8, value.Properties.FormatVersion);
         writer.WriteEndObject();
         #endregion
         #region variants
@@ -229,12 +229,12 @@ internal class ManifestConverter : RDJsonConverter<BBLevel>
         foreach (var variant in value.Variants)
         {
             writer.WriteStartObject();
-            writer.WriteString("name", variant.Name);
-            writer.WriteString("charter", variant.Charter);
-            writer.WriteNumber("difficulty", variant.Difficulty);
-            writer.WriteString("display", variant.Display);
-            writer.WriteBoolean("extra", variant.Extra);
-            writer.WriteBoolean("hidden", variant.Hidden);
+            writer.WriteString("name"u8, variant.Name);
+            writer.WriteString("charter"u8, variant.Charter);
+            writer.WriteNumber("difficulty"u8, variant.Difficulty);
+            writer.WriteString("display"u8, variant.Display);
+            writer.WriteBoolean("extra"u8, variant.Extra);
+            writer.WriteBoolean("hidden"u8, variant.Hidden);
             writer.WriteEndObject();
         }
         writer.WriteEndArray();
