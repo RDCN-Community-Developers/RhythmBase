@@ -10,9 +10,9 @@ using System.Text.Json.Serialization;
 namespace RhythmBase.BeatBlock.Converters;
 
 [RDJsonConverterFor(typeof(BBLevel))]
-internal class ManifestConverter : JsonConverter<BBLevel>
+internal class ManifestConverter : RDJsonConverter<BBLevel>
 {
-    public override BBLevel? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override BBLevel? Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
     {
         reader.Read();
         BBLevel level = [];
@@ -176,16 +176,69 @@ internal class ManifestConverter : JsonConverter<BBLevel>
         return level;
     }
 
-    public override void Write(Utf8JsonWriter writer, BBLevel value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, BBLevel value, RDJsonSerializerOptions options)
     {
         writer.WriteStartObject();
         writer.WriteString("defaultVariant", value.DefaultVariant);
+        #region metadata
         writer.WriteStartObject("metadata");
+        writer.WriteString("songName", value.Metadata.SongName);
         writer.WriteString("artist", value.Metadata.Artist);
         writer.WriteString("artistLink", value.Metadata.ArtistLink);
+        writer.WriteNumber("bpm", value.Metadata.Bpm);
+        writer.WriteString("description", value.Metadata.Description);
+        writer.WriteString("charter", value.Metadata.Charter);
+        writer.WriteNumber("difficulty", value.Metadata.Difficulty);
+        writer.WriteBoolean("lightWarning", value.Metadata.LightWarning);
+        writer.WriteBoolean("lyricsWarning", value.Metadata.LyricsWarning);
+        writer.WriteBoolean("loopPointsEnable", value.Metadata.LoopPointsEnable);
+        writer.WriteString("source", value.Metadata.Source);
+        writer.WriteNumber("startLoop", value.Metadata.StartLoop);
+        writer.WriteNumber("endLoop", value.Metadata.EndLoop);
         writer.WriteBoolean("bg", value.Metadata.IsBackgroundEnabled);
+        writer.WriteEndObject();
+        #region bgdata
         writer.WriteStartObject("bgData");
         writer.WritePropertyName("redChannel");
         ConverterHub.Write(writer, value.Metadata.BackgroundData.RedChannel, options);
+        writer.WritePropertyName("greenChannel");
+        ConverterHub.Write(writer, value.Metadata.BackgroundData.GreenChannel, options);
+        writer.WritePropertyName("blueChannel");
+        ConverterHub.Write(writer, value.Metadata.BackgroundData.BlueChannel, options);
+        writer.WritePropertyName("yellowChannel");
+        ConverterHub.Write(writer, value.Metadata.BackgroundData.YellowChannel, options);
+        writer.WritePropertyName("cyanChannel");
+        ConverterHub.Write(writer, value.Metadata.BackgroundData.CyanChannel, options);
+        writer.WritePropertyName("magentaChannel");
+        ConverterHub.Write(writer, value.Metadata.BackgroundData.MagentaChannel, options);
+        writer.WriteBoolean("hideCranky", value.Metadata.BackgroundData.HideCranky);
+        writer.WritePropertyName("image");
+        ConverterHub.Write(writer, value.Metadata.BackgroundData.Image, options);
+        writer.WritePropertyName("resultsImage");
+        ConverterHub.Write(writer, value.Metadata.BackgroundData.ResultsImage, options);
+        writer.WriteEndObject();
+        #endregion
+        #endregion
+        #region properties
+        writer.WriteStartObject("properties");
+        writer.WriteNumber("formatVersion", value.Properties.FormatVersion);
+        writer.WriteEndObject();
+        #endregion
+        #region variants
+        writer.WriteStartArray("variants");
+        foreach (var variant in value.Variants)
+        {
+            writer.WriteStartObject();
+            writer.WriteString("name", variant.Name);
+            writer.WriteString("charter", variant.Charter);
+            writer.WriteNumber("difficulty", variant.Difficulty);
+            writer.WriteString("display", variant.Display);
+            writer.WriteBoolean("extra", variant.Extra);
+            writer.WriteBoolean("hidden", variant.Hidden);
+            writer.WriteEndObject();
+        }
+        writer.WriteEndArray();
+        #endregion
+        writer.WriteEndObject();
     }
 }

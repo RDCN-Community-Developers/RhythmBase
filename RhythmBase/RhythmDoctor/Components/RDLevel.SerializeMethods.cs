@@ -8,6 +8,7 @@ namespace RhythmBase.RhythmDoctor.Components;
 
 partial class RDLevel
 {
+    public static LevelType LevelType => LevelType.RhythmDoctor;
     private static class Deserializer
     {
         public static RDLevel Deserialize(IJsonDataSource dataSource, JsonSerializerOptions options)
@@ -17,7 +18,11 @@ partial class RDLevel
                 ? dataSource.GetMemory()
                 : dataSource.GetMemoryAsync().GetAwaiter().GetResult();
             Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
-            return ConverterHub.Read<RDLevel>(ref reader, options) ?? [];
+            return ConverterHub.Read<RDLevel>(ref reader, new RDJsonSerializerOptions()
+            {
+                Type = LevelType,
+                JsonSerializerOptions = options
+            }) ?? [];
         }
         public static async Task<RDLevel> DeserializeAsync(IJsonDataSource dataSource, JsonSerializerOptions options, CancellationToken token = default)
         {
@@ -26,103 +31,42 @@ partial class RDLevel
                 ? dataSource.GetMemory()
                 : await dataSource.GetMemoryAsync(token);
             Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
-            return ConverterHub.Read<RDLevel>(ref reader, options) ?? [];
+            return ConverterHub.Read<RDLevel>(ref reader, new RDJsonSerializerOptions()
+            {
+                Type = LevelType,
+                JsonSerializerOptions = options
+            }) ?? [];
         }
     }
 
     private static void WriteToStream(Stream stream, RDLevel level, JsonSerializerOptions options)
     {
-        Utf8JsonWriter writer = new(stream, new JsonWriterOptions {
+        Utf8JsonWriter writer = new(stream, new JsonWriterOptions
+        {
             Indented = options.WriteIndented,
             Encoder = options.Encoder,
             IndentCharacter = ' ',
             IndentSize = options.IndentSize,
         });
-        ConverterHub.Write(writer, level, options);
+        ConverterHub.Write(writer, level, new RDJsonSerializerOptions
+        {
+            Type = RDLevel.LevelType,
+            JsonSerializerOptions = options
+        });
         writer.Flush();
     }
+    #region file
     /// <inheritdoc/>
     public static RDLevel FromFile(string filepath, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
     {
-        settings ??= new LevelReadSettings();
         string extension = Path.GetExtension(filepath);
-        RDLevel? level;
-        if (extension is not ".rdzip" and not ".zip")
+        if (extension is not ".rdlevel" and not ".json")
         {
-            if (extension is not ".rdlevel" and not ".json")
-                throw new RhythmBaseException("File not supported.");
-            using FileStream stream = File.Open(filepath, FileMode.Open, FileAccess.Read);
-            level = FromStream(stream, Path.GetDirectoryName(Path.GetFullPath(filepath)) ?? "", settings);
-            level.Filepath = level.ResolvedPath = Path.GetFullPath(filepath);
-            return level;
+            if (extension is ".rdzip" or ".zip")
+                throw new NotSupportedException($"File type '{extension}' is not supported. Use {nameof(FromZip)} instead.");
+            throw new NotSupportedException($"File type '{extension}' is not supported.");
         }
-        switch (settings.ZipFileProcessMethod)
-        {
-            case ZipFileProcessMethod.AllFiles:
-                DirectoryInfo tempDirectory = GlobalSettings.GetTempDirectory();
-                tempDirectory.Create();
-                try
-                {
-#if NET8_0_OR_GREATER
-                    using Stream stream = File.OpenRead(filepath);
-                    ZipFile.ExtractToDirectory(stream, tempDirectory.FullName, overwriteFiles: true);
-#elif NETSTANDARD2_0_OR_GREATER
-                    ZipFile.ExtractToDirectory(filepath, tempDirectory.FullName);
-#endif
-                    string? rdlevelPath = null;
-                    foreach (FileInfo? file in tempDirectory.GetFiles())
-                    {
-                        if (file.Extension == ".rdlevel")
-                        {
-                            rdlevelPath = file.FullName;
-                            break;
-                        }
-                    }
-                    if (rdlevelPath == null)
-                        throw new RhythmBaseException("No RDLevel file has been found.");
-                    level = FromFile(rdlevelPath, settings);
-                    level.ResolvedPath = Path.GetFullPath(rdlevelPath);
-                    level.Filepath = Path.GetFullPath(filepath);
-                    level.isZip = true;
-                    level.isExtracted = true;
-                }
-                catch (DirectoryNotFoundException)
-                {
-                    throw;
-                }
-                catch (FileNotFoundException)
-                {
-                    throw;
-                }
-#if !DEBUG
-                catch (Exception ex2)
-                {
-                    tempDirectory.Delete(true);
-                    throw new RhythmBaseException("Cannot extract the file.", ex2);
-                }
-#endif
-                break;
-            case ZipFileProcessMethod.LevelFileOnly:
-                try
-                {
-                    using FileStream zipStream = new(filepath, FileMode.Open, FileAccess.Read);
-                    using ZipArchive archive = new(zipStream, ZipArchiveMode.Read);
-                    ZipArchiveEntry? entry = archive.GetEntry("main.rdlevel") ?? throw new RhythmBaseException("Cannot find the level file.");
-                    using Stream stream = entry.Open();
-                    level = FromStream(stream, settings);
-                    level.Filepath = Path.GetFullPath(filepath);
-                    level.isZip = true;
-                    level.isExtracted = false;
-                }
-                catch (Exception ex2)
-                {
-                    throw new RhythmBaseException("Cannot extract the file.", ex2);
-                }
-                break;
-            default:
-                throw new RhythmBaseException($"{settings.ZipFileProcessMethod} is not supported.");
-        }
-        return level;
+        return FromFileAsync(filepath, settings).GetAwaiter().GetResult();
     }
     /// <inheritdoc/>
     public static async Task<RDLevel> FromFileAsync(string filepath, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
@@ -130,13 +74,99 @@ partial class RDLevel
         settings ??= new LevelReadSettings();
         string extension = Path.GetExtension(filepath);
         RDLevel? level;
+        if (extension is not ".rdlevel" and not ".json")
+        {
+            if (extension is ".rdzip" or ".zip")
+                throw new NotSupportedException($"File type '{extension}' is not supported. Use {nameof(FromZipAsync)} instead.");
+            throw new NotSupportedException($"File type '{extension}' is not supported.");
+        }
+        using FileStream stream = File.Open(filepath, FileMode.Open, FileAccess.Read);
+        level = await FromStreamAsync(stream, settings, cancellationToken);
+        level.Filepath = level.ResolvedPath = Path.GetFullPath(filepath);
+        return level;
+    }
+    /// <inheritdoc/>
+    public void SaveToFile(string filepath, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null) => SaveToFileAsync(filepath, settings).GetAwaiter().GetResult();
+    /// <inheritdoc/>
+    public async Task SaveToFileAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
+    {
+        settings ??= new LevelWriteSettings();
+        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(Path.GetDirectoryName(filepath) ?? "", settings);
+        DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
+        if (!directory.Exists)
+            directory.Create();
+        using FileStream stream = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write);
+        stream.SetLength(0);
+        await Task.Run(() => SaveToStream(stream, settings), cancellationToken);
+    }
+    #endregion
+    #region stream
+    /// <inheritdoc/>
+    public static RDLevel FromStream(Stream rdlevelStream, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
+    {
+        settings ??= new LevelReadSettings();
+        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
+        RDLevel? level;
+        level = Deserializer.Deserialize(new StreamDataSource(rdlevelStream), options);
+        return level ?? [];
+    }
+    /// <inheritdoc/>
+    public static async Task<RDLevel> FromStreamAsync(Stream rdlevelStream, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
+    {
+        settings ??= new LevelReadSettings();
+        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
+        RDLevel? level;
+        level = Deserializer.DeserializeAsync(new StreamDataSource(rdlevelStream), options, cancellationToken).GetAwaiter().GetResult();
+        return level ?? [];
+    }
+    private static RDLevel FromStream(Stream rdlevelStream, string dirPath, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
+    {
+        settings ??= new LevelReadSettings();
+        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(dirPath, settings);
+        RDLevel? level;
+        level = Deserializer.Deserialize(new StreamDataSource(rdlevelStream), options);
+        return level ?? [];
+    }
+    /// <inheritdoc/>
+    public void SaveToStream(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
+    {
+        settings ??= new LevelWriteSettings();
+        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
+        WriteToStream(stream, this, options);
+    }
+    /// <inheritdoc/>
+    public async Task SaveToStreamAsync(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
+    {
+        settings ??= new LevelWriteSettings();
+        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
+        await Task.Run(() => WriteToStream(stream, this, options), cancellationToken);
+    }
+    #endregion
+    #region zip
+    /// <inheritdoc/>
+    public static RDLevel FromZip(string filepath, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
+    {
+        string extension = Path.GetExtension(filepath);
         if (extension is not ".rdzip" and not ".zip")
         {
-            if (extension is not ".rdlevel" and not ".json")
-                throw new RhythmBaseException("File not supported.");
-            using FileStream stream = File.Open(filepath, FileMode.Open, FileAccess.Read);
-            level = await FromStreamAsync(stream, settings, cancellationToken);
-            level.Filepath = level.ResolvedPath = Path.GetFullPath(filepath);
+            if (extension is ".rdlevel" or ".json")
+                throw new NotSupportedException($"File type '{extension}' is not supported. Use {nameof(FromFile)} instead.");
+            throw new RhythmBaseException($"File type '{extension}' is not supported.");
+        }
+        return FromZipAsync(filepath, settings).GetAwaiter().GetResult();
+    }
+
+    /// <inheritdoc/>
+    public static async Task<RDLevel> FromZipAsync(string filepath, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
+    {
+        settings ??= new LevelReadSettings();
+        string extension = Path.GetExtension(filepath);
+        RDLevel? level;
+        if (extension is not ".rdzip" and not ".zip")
+        {
+            if (extension is ".rdlevel" or ".json")
+                throw new NotSupportedException($"File type '{extension}' is not supported. Use {nameof(FromFileAsync)} instead.");
+            throw new RhythmBaseException($"File type '{extension}' is not supported.");
         }
         switch (settings.ZipFileProcessMethod)
         {
@@ -163,15 +193,19 @@ partial class RDLevel
                     if (rdlevelPath == null)
                         throw new RhythmBaseException("No RDLevel file has been found.");
                     level = await FromFileAsync(rdlevelPath, settings, cancellationToken);
-                    level.ResolvedPath = Path.GetFullPath(filepath);
-                    level.Filepath = Path.GetFullPath(rdlevelPath);
+                    level.ResolvedPath = Path.GetFullPath(rdlevelPath);
+                    level.Filepath = Path.GetFullPath(filepath);
                     level.isZip = true;
                     level.isExtracted = true;
                 }
                 catch (Exception ex2)
                 {
                     tempDirectory.Delete(true);
+#if DEBUG
+                    throw;
+#else
                     throw new RhythmBaseException("Cannot extract the file.", ex2);
+#endif
                 }
                 break;
             case ZipFileProcessMethod.LevelFileOnly:
@@ -182,7 +216,7 @@ partial class RDLevel
                     ZipArchiveEntry? entry = archive.GetEntry("main.rdlevel") ?? throw new RhythmBaseException("Cannot find the level file.");
                     using Stream stream = entry.Open();
                     level = await FromStreamAsync(stream, settings, cancellationToken);
-                    level.ResolvedPath = Path.GetFullPath(filepath);
+                    level.Filepath = Path.GetFullPath(filepath);
                     level.isZip = true;
                     level.isExtracted = false;
                 }
@@ -196,124 +230,13 @@ partial class RDLevel
         }
         return level;
     }
-    private static async Task<RDLevel> DeserializeAsync(ReadOnlyMemory<byte> rdlevelJson, JsonSerializerOptions options, CancellationToken token = default)
-    {
-        Utf8JsonReader reader = new(rdlevelJson.Span, new() { AllowTrailingCommas = true });
-        return ConverterHub.Read<RDLevel>(ref reader, options) ?? [];
-    }
-    /// <inheritdoc/>
-    public static RDLevel FromStream(Stream rdlevelStream, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
-    {
-        settings ??= new LevelReadSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
-        RDLevel? level;
-        level = Deserializer.Deserialize(new StreamDataSource(rdlevelStream), options);
-        return level ?? [];
-    }
-    private static RDLevel FromStream(Stream rdlevelStream, string dirPath, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
-    {
-        settings ??= new LevelReadSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(dirPath, settings);
-        RDLevel? level;
-        level = Deserializer.Deserialize(new StreamDataSource(rdlevelStream), options);
-        return level ?? [];
-    }
-    /// <inheritdoc/>
-    public static async Task<RDLevel> FromStreamAsync(Stream rdlevelStream, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
-    {
-        settings ??= new LevelReadSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
-        RDLevel? level;
-        level = Deserializer.DeserializeAsync(new StreamDataSource(rdlevelStream), options, cancellationToken).GetAwaiter().GetResult();
-        return level ?? [];
-    }
-    /// <inheritdoc/>
-    public static RDLevel FromJsonString(string json, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
-    {
-        settings ??= new LevelReadSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
-        RDLevel? level;
-        level = Deserializer.Deserialize(new ReadOnlyMemoryDataSource(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(json))), options);
-        return level ?? [];
-    }
-    /// <inheritdoc/>
-    public static RDLevel FromJsonDocument(JsonDocument jsonDocument, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
-    {
-        settings ??= new LevelReadSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
-        RDLevel? level;
-        level = Deserializer.Deserialize(new JsonDocumentDataSource(jsonDocument), options);
-        return level ?? [];
-    }
-    /// <inheritdoc/>
-    public void SaveToStream(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
-    {
-        settings ??= new LevelWriteSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
-        WriteToStream(stream, this, options);
-    }
-    /// <inheritdoc/>
-    public async void SaveToStreamAsync(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
-    {
-        settings ??= new LevelWriteSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
-        await Task.Run(() => WriteToStream(stream, this, options), cancellationToken);
-    }
-    /// <inheritdoc/>
-    public void SaveToFile(string filepath, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
-    {
-        settings ??= new LevelWriteSettings();
-        DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
-        if (!directory.Exists)
-            directory.Create();
-        using (FileStream stream = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write))
-        {
-            stream.SetLength(0);
-            SaveToStream(stream, settings);
-        }
-    }
-    /// <inheritdoc/>
-    public async void SaveToFileAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
-    {
-        settings ??= new LevelWriteSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(Path.GetDirectoryName(filepath) ?? "", settings);
-        DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
-        if (!directory.Exists)
-            directory.Create();
-        using (FileStream stream = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write))
-        {
-            stream.SetLength(0);
-            await Task.Run(() => SaveToStream(stream, settings), cancellationToken);
-        }
-    }
     /// <inheritdoc/>
     public void SaveToZip(string filepath, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
     {
-        if (string.IsNullOrEmpty(this.ResolvedDirectory))
-            throw new NotImplementedException();
-        settings ??= new LevelWriteSettings();
-        settings.FileReferences.Clear();
-        bool loadAssets = settings.LoadAssets;
-        settings.LoadAssets = true;
-        DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
-        if (!directory.Exists)
-            directory.Create();
-        using Stream stream = new FileStream(filepath, FileMode.Create, FileAccess.Write);
-        ZipArchive archive = new(stream, ZipArchiveMode.Create);
-        ZipArchiveEntry entry = archive.CreateEntry("main.rdlevel");
-        using (Stream rdlevelStream = entry.Open())
-        {
-            SaveToStream(rdlevelStream, settings);
-        }
-        foreach (var file in settings.FileReferences)
-        {
-            archive.CreateEntryFromFile(Path.Combine(ResolvedDirectory, file.Path), Path.GetFileName(file.Path));
-        }
-        archive.Dispose();
-        settings.LoadAssets = loadAssets;
+        SaveToZipAsync(filepath, settings).GetAwaiter().GetResult();
     }
     /// <inheritdoc/>
-    public async void SaveToZipAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
+    public async Task SaveToZipAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(this.ResolvedDirectory))
             throw new NotImplementedException();
@@ -338,6 +261,26 @@ partial class RDLevel
         }
         archive.Dispose();
         settings.LoadAssets = loadAssets;
+    }
+#endregion zip
+    #region json
+    /// <inheritdoc/>
+    public static RDLevel FromJsonString(string json, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
+    {
+        settings ??= new LevelReadSettings();
+        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
+        RDLevel? level;
+        level = Deserializer.Deserialize(new ReadOnlyMemoryDataSource(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(json))), options);
+        return level ?? [];
+    }
+    /// <inheritdoc/>
+    public static RDLevel FromJsonDocument(JsonDocument jsonDocument, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
+    {
+        settings ??= new LevelReadSettings();
+        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
+        RDLevel? level;
+        level = Deserializer.Deserialize(new JsonDocumentDataSource(jsonDocument), options);
+        return level ?? [];
     }
     /// <summary>
     /// Serializes the current level to a JSON string.
@@ -376,4 +319,5 @@ partial class RDLevel
         json = Encoding.UTF8.GetString(stream.ToArray());
         return JsonDocument.Parse(json);
     }
+    #endregion
 }

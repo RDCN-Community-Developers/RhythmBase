@@ -8,7 +8,7 @@ using static RhythmBase.BeatBlock.Utils.EventTypeUtils;
 
 namespace RhythmBase.BeatBlock.Converters;
 
-internal class BaseEventConverter : JsonConverter<IBaseEvent>
+internal class BaseEventConverter : RDJsonConverter<IBaseEvent>
 {
     private ILevelReadSettings<IBaseEvent, EventType, BBBeat> _rs = new LevelReadSettings();
     private ILevelWriteSettings<IBaseEvent, EventType, BBBeat> _ws = new LevelWriteSettings();
@@ -26,7 +26,7 @@ internal class BaseEventConverter : JsonConverter<IBaseEvent>
     {
         return Type.IsAssignableFrom(typeToConvert);
     }
-    public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
     {
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
         ReadOnlySpan<byte> type = default;
@@ -66,10 +66,34 @@ internal class BaseEventConverter : JsonConverter<IBaseEvent>
         return new ForwardEvent(doc);
     }
 
-    public override void Write(Utf8JsonWriter writer, IBaseEvent value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, IBaseEvent value, RDJsonSerializerOptions options)
     {
-        throw new NotImplementedException();
+        if (value is Events.IForwardEvent ce)
+        {
+            WriteForwardEvent(writer, ce);
+            return;
+        }
+        else
+        {
+            converters[value.Type].WithWriteSettings(_ws).WriteProperties(writer, value, options);
+        }
     }
+
+    private void WriteForwardEvent(Utf8JsonWriter writer, Events.IForwardEvent value)
+    {
+        writer.WriteStartObject();
+        if (!string.IsNullOrEmpty(value.ActualType))
+            writer.WriteString("type"u8, value.ActualType);
+        foreach (KeyValuePair<string, JsonElement> kv in ((BaseEvent)(IBaseEvent)value)._extraData)
+        {
+            {
+                writer.WritePropertyName(kv.Key);
+                kv.Value.WriteTo(writer);
+            }
+            writer.WriteEndObject();
+        }
+    }
+
 }
 internal abstract class EventInstanceConverterBase
 {
@@ -85,12 +109,12 @@ internal abstract class EventInstanceConverterBase
         _ws = settings;
         return this;
     }
-    public abstract IBaseEvent ReadProperties(ref Utf8JsonReader reader, JsonSerializerOptions options);
-    public abstract void WriteProperties(Utf8JsonWriter writer, IBaseEvent value, JsonSerializerOptions options);
+    public abstract IBaseEvent ReadProperties(ref Utf8JsonReader reader, RDJsonSerializerOptions options);
+    public abstract void WriteProperties(Utf8JsonWriter writer, IBaseEvent value, RDJsonSerializerOptions options);
 }
 internal abstract class EventInstanceConverterBaseEvent<TEvent> : EventInstanceConverterBase where TEvent : IBaseEvent, new()
 {
-    public override sealed IBaseEvent ReadProperties(ref Utf8JsonReader reader, JsonSerializerOptions options)
+    public override sealed IBaseEvent ReadProperties(ref Utf8JsonReader reader, RDJsonSerializerOptions options)
     {
         TEvent value = new();
         float time = 0;
@@ -131,7 +155,7 @@ internal abstract class EventInstanceConverterBaseEvent<TEvent> : EventInstanceC
         }
         return value;
     }
-    public override sealed void WriteProperties(Utf8JsonWriter writer, IBaseEvent value, JsonSerializerOptions options)
+    public override sealed void WriteProperties(Utf8JsonWriter writer, IBaseEvent value, RDJsonSerializerOptions options)
     {
         TEvent v = (TEvent)value;
         writer.WriteStartObject();
@@ -143,7 +167,7 @@ internal abstract class EventInstanceConverterBaseEvent<TEvent> : EventInstanceC
         }
         writer.WriteEndObject();
     }
-    protected virtual bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, JsonSerializerOptions options)
+    protected virtual bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, RDJsonSerializerOptions options)
     {
         bool result = true;
         if (propertyName.SequenceEqual("angle"u8))
@@ -158,7 +182,7 @@ internal abstract class EventInstanceConverterBaseEvent<TEvent> : EventInstanceC
             result = false;
         return result;
     }
-    protected virtual void Write(Utf8JsonWriter writer, ref TEvent value, JsonSerializerOptions options)
+    protected virtual void Write(Utf8JsonWriter writer, ref TEvent value, RDJsonSerializerOptions options)
     {
         writer.WriteNumber("angle"u8, value.Angle);
         writer.WriteNumber("time"u8, value.Time);

@@ -379,7 +379,7 @@ namespace {config.TargetConverterNamespace};
                     sb.AppendLine($$"""
 internal class {{config.BaseConverterClassName}}{{ToShorter(ci.Name)}} : {{config.BaseConverterClassName}}{{ToShorter(ci.BaseTypeName)}}<{{ci.Name}}>
 {
-	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref {{ci.Name}} value, JsonSerializerOptions options)
+	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref {{ci.Name}} value, RDJsonSerializerOptions options)
 	{
 """);
                     ci.Properties = ci.Properties.OrderBy(i => i.Symbol.Name).ToArray();
@@ -515,7 +515,7 @@ internal class {{config.BaseConverterClassName}}{{ToShorter(ci.Name)}} : {{confi
                     }
                     sb.AppendLine($$"""
 	}
-	protected override void Write(Utf8JsonWriter writer, ref {{ci.Name}} value, JsonSerializerOptions options)
+	protected override void Write(Utf8JsonWriter writer, ref {{ci.Name}} value, RDJsonSerializerOptions options)
 	{
 		base.Write(writer, ref value, options);
 """);

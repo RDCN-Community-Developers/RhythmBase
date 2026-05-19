@@ -33,35 +33,35 @@ namespace RhythmBase.Adofai.Utils
 		/// <summary>
 		/// Creates and configures a <see cref="JsonSerializerOptions"/> instance for serializing and deserializing JSON data.
 		/// </summary>
-		public static JsonSerializerOptions GetJsonSerializerOptions(string? filepath = null, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null)
+		internal static RDJsonSerializerOptions GetJsonSerializerOptions(string? filepath = null, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null)
 		{
 			settings ??= new LevelReadSettings();
-			JsonSerializerOptions options = new(Utils.options);
+			RDJsonSerializerOptions options = new() { Type = LevelType.Adofai, JsonSerializerOptions = new(Utils.options) };
 			LevelConverter levelConverter = new()
 			{
 				ReadSettings = settings,
 				Filepath = filepath
 			};
-			options.Converters.Add(levelConverter);
+			options.JsonSerializerOptions.Converters.Add(levelConverter);
 			return options;
 		}
 		/// <summary>
 		/// Creates and configures a <see cref="JsonSerializerOptions"/> instance for serializing and deserializing JSON data.
 		/// </summary>
-		public static JsonSerializerOptions GetJsonSerializerOptions(string? filepath = null, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null)
+		internal static RDJsonSerializerOptions GetJsonSerializerOptions(string? filepath = null, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null)
 		{
 			settings ??= new LevelWriteSettings();
-			JsonSerializerOptions options = new(Utils.options);
+			RDJsonSerializerOptions options = new() { Type = LevelType.Adofai, JsonSerializerOptions = new(Utils.options) };
 			if (settings.Indented)
-				options.WriteIndented = true;
+				options.JsonSerializerOptions.WriteIndented = true;
 			else
-				options.WriteIndented = false;
+				options.JsonSerializerOptions.WriteIndented = false;
 			LevelConverter levelConverter = new()
 			{
 				WriteSettings = settings,
 				Filepath = filepath
 			};
-			options.Converters.Add(levelConverter);
+			options.JsonSerializerOptions.Converters.Add(levelConverter);
 			return options;
 		}
 	}

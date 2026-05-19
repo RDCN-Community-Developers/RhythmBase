@@ -8,9 +8,9 @@ using static System.Text.EncodingExtensions;
 namespace RhythmBase.RhythmDoctor.Converters;
 
 [RDJsonConverterFor(typeof(Components.Settings))]
-internal class SettingsConverter : JsonConverter<Components.Settings>
+internal class SettingsConverter : RDJsonConverter<Components.Settings>
 {
-    public override Components.Settings? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override Components.Settings? Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
     {
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
         Components.Settings settings = new();
@@ -139,11 +139,7 @@ internal class SettingsConverter : JsonConverter<Components.Settings>
         }
         throw new JsonException("Unexpected end of JSON.");
     }
-    public override Components.Settings ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        return base.ReadAsPropertyName(ref reader, typeToConvert, options);
-    }
-    public override void Write(Utf8JsonWriter writer, Components.Settings value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, Components.Settings value, RDJsonSerializerOptions options)
     {
         writer.WriteStartObject();
 

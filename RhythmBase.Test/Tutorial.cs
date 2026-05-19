@@ -4,7 +4,7 @@ using RhythmBase.Global.Components.RichText;
 using RhythmBase.Global.Components.Vector;
 using RhythmBase.Global.Settings;
 using RhythmBase.RhythmDoctor.Components;
-using RhythmBase.RhythmDoctor.Components.RDLang;
+//using RhythmBase.RhythmDoctor.Components.RDLang;
 using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Extensions;
 using RhythmBase.RhythmDoctor.Utils;
@@ -45,10 +45,10 @@ namespace RhythmBase.Test
                 using RDLevel rdlevel1 = RDLevel.FromFile(@"your\level.rdlevel");
 
                 // Read a level pack file
-                using RDLevel rdlevel2 = RDLevel.FromFile(@"your\level.rdzip");
+                using RDLevel rdlevel2 = RDLevel.FromZip(@"your\level.rdzip");
 
                 // Read a compressed level pack
-                using RDLevel rdlevel3 = RDLevel.FromFile(@"your\level.zip");
+                using RDLevel rdlevel3 = RDLevel.FromZip(@"your\level.zip");
 
                 // Write a level file
                 rdlevel1.SaveToFile(@"your\outLevel.rdlevel");
@@ -224,7 +224,7 @@ namespace RhythmBase.Test
         {
             MyEvent myEvent = new();
 
-            myEvent.MyProperty = new(2, "i3+1");
+            myEvent.MyProperty = (2, 1);
 
             _rdlevel.Add(myEvent);
 
@@ -355,18 +355,18 @@ namespace RhythmBase.Test
             Console.WriteLine(var1); // 0.07612046748871326
             Console.WriteLine(var2); // 6.5
         }
-        [TestMethod]
-        public void RDCode()
-        {
-            RDLang.Variables.i[1] = 9;
+        //[TestMethod]
+        //public void RDCode()
+        //{
+        //    RDLang.Variables.i[1] = 9;
 
-            RDLang.TryRun("numMistakesP2 = 3", out float result); // 3
-            Console.WriteLine(result);
-            RDLang.TryRun("numMistakesP2+i1", out result); // 12
-            Console.WriteLine(result);
-            RDLang.TryRun("atLeastRank(A)", out result); // 1
-            Console.WriteLine(result);
-        }
+        //    RDLang.TryRun("numMistakesP2 = 3", out float result); // 3
+        //    Console.WriteLine(result);
+        //    RDLang.TryRun("numMistakesP2+i1", out result); // 12
+        //    Console.WriteLine(result);
+        //    RDLang.TryRun("atLeastRank(A)", out result); // 1
+        //    Console.WriteLine(result);
+        //}
         public void Example_01()
         {
 
@@ -422,13 +422,15 @@ namespace RhythmBase.Test
             // All implemented properties need to be bound to and checked for null in the ForwardEvent.ExtraData field.  
 
             // Implement an RDPointE type property  
-            public RDPointE? MyProperty
+            public RDPointN? MyProperty
             {
                 get
                 {
                     // Get the required content from the Data field and check for null  
                     return ExtraData.TryGetValue("myProperty", out JsonElement jsonElement)
-                        ? jsonElement.Deserialize<RDPointE>()
+                        && jsonElement.GetProperty("x").GetSingle() is float x
+                        && jsonElement.GetProperty("y").GetSingle() is float y
+                        ? (x, y)
                         : null;
                 }
                 set
@@ -436,7 +438,7 @@ namespace RhythmBase.Test
                     // Save the content in the Data field  
                     ExtraData["myProperty"] =
                         value.HasValue ?
-                        JsonSerializer.SerializeToElement(value, Utils.GetJsonSerializerOptions(settings: null as LevelWriteSettings)) :
+                        JsonElement.Parse($$"""{"x": {{value.Value.X}}, "y": {{value.Value.Y}}}""") :
                         default;
                 }
             }
@@ -447,11 +449,6 @@ namespace RhythmBase.Test
                 // Initialize the ActualType property.
                 ActualType = nameof(MyEvent);
             }
-        }
-        public class GroupData1
-        {
-            public RDSize Size { get; set; }
-            public int RowIndex { get; set; }
         }
     }
 }

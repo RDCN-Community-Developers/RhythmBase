@@ -4,6 +4,7 @@ using RhythmBase.BeatBlock.Settings;
 using RhythmBase.Global.Extensions;
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Text;
 using System.Text.Json;
 using static RhythmBase.BeatBlock.Utils.EventTypeUtils;
 
@@ -14,7 +15,7 @@ partial class BBLevel
     private static class Deserializer
     {
         private static readonly BaseEventConverter baseEventConverter = new();
-        public static BBLevel DeserializeLevel(IJsonDataSource dataSource, JsonSerializerOptions options)
+        public static BBLevel DeserializeManifest(IJsonDataSource dataSource, RDJsonSerializerOptions options)
         {
             ReadOnlyMemory<byte> jsonData =
                 dataSource.CanGetMemoryDirectly
@@ -23,7 +24,7 @@ partial class BBLevel
             Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
             return ConverterHub.Read<BBLevel>(ref reader, options) ?? [];
         }
-        public static async Task<BBLevel> DeserializeLevelAsync(IJsonDataSource dataSource, JsonSerializerOptions options, CancellationToken token = default)
+        public static async Task<BBLevel> DeserializeLevelAsync(IJsonDataSource dataSource, RDJsonSerializerOptions options, CancellationToken token = default)
         {
             ReadOnlyMemory<byte> jsonData =
                  dataSource.CanGetMemoryDirectly
@@ -32,7 +33,7 @@ partial class BBLevel
             Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
             return ConverterHub.Read<BBLevel>(ref reader, options) ?? [];
         }
-        public static void DeserializeLevel(IJsonDataSource dataSource, JsonSerializerOptions options, BBLevel level, ILevelReadSettings<IBaseEvent, EventType, BBBeat> settings)
+        public static void DeserializeLevel(IJsonDataSource dataSource, RDJsonSerializerOptions options, BBLevel level, ILevelReadSettings<IBaseEvent, EventType, BBBeat> settings)
         {
             ReadOnlyMemory<byte> jsonData =
                 dataSource.CanGetMemoryDirectly
@@ -47,19 +48,16 @@ partial class BBLevel
                     break;
                 ReadOnlySpan<byte> propertyName = reader.ValueSpan;
                 reader.Read();
-                if (reader.TokenType == JsonTokenType.PropertyName)
+                if (propertyName.SequenceEqual("events"u8))
+                    foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
+                        level.Add(e);
+                else
                 {
-                    if (propertyName.SequenceEqual("events"u8))
-                        foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
-                            level.Add(e);
-                    else
-                    {
-                        reader.Skip();
-                    }
+                    reader.Skip();
                 }
             }
         }
-        public static void DeserializeEvents(IJsonDataSource dataSource, JsonSerializerOptions options, BBLevel level, ILevelReadSettings<IBaseEvent, EventType, BBBeat> settings)
+        public static void DeserializeEvents(IJsonDataSource dataSource, string variantName, RDJsonSerializerOptions options, BBLevel level, ILevelReadSettings<IBaseEvent, EventType, BBBeat> settings)
         {
             ReadOnlyMemory<byte> jsonData =
                 dataSource.CanGetMemoryDirectly
@@ -70,11 +68,12 @@ partial class BBLevel
             JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
             foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
             {
+                e.Variant = variantName;
                 level.Add(e);
             }
             reader.Read();
         }
-        private static List<IBaseEvent> DeserializeEvents(ref Utf8JsonReader reader, JsonSerializerOptions options, ILevelReadSettings<IBaseEvent, EventType, BBBeat> settings)
+        private static List<IBaseEvent> DeserializeEvents(ref Utf8JsonReader reader, RDJsonSerializerOptions options, ILevelReadSettings<IBaseEvent, EventType, BBBeat> settings)
         {
             List<IBaseEvent> events = new();
             JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
@@ -119,255 +118,121 @@ partial class BBLevel
             }
             return events;
         }
+        public static void WriteManifestToStream(Stream stream, BBLevel level, RDJsonSerializerOptions options)
+        {
+            using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
+            ConverterHub.Write(writer, level, options);
+            writer.Flush();
+        }
+        public static void WriteLevelToStream(Stream stream, BBLevel level, RDJsonSerializerOptions options)
+        {
+            using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
+            writer.WriteStartObject();
+            writer.WriteStartArray("events"u8);
+            foreach (var e in level.Where(i => i is not IPureEvent))
+                baseEventConverter.Write(writer, e, options);
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+            writer.Flush();
+        }
+        public static void WriteEventsToStream(Stream stream, BBLevel level, string variantName, RDJsonSerializerOptions options)
+        {
+            using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
+            writer.WriteStartArray();
+            foreach (IBaseEvent e in level.Where(e => e.Variant == variantName))
+                baseEventConverter.Write(writer, e, options);
+            writer.WriteEndArray();
+            writer.Flush();
+        }
     }
-    private static void WriteToStream(Stream stream, BBLevel level, JsonSerializerOptions options)
-    {
-        using Utf8JsonWriter writer = new(stream, new() { Indented = options.WriteIndented });
-        ConverterHub.Write(writer, level, options);
-        writer.Flush();
-    }
-    /// <summary>
-    /// Loads a <see cref="BBLevel"/> from the specified file path.
-    /// </summary>
-    /// <param name="filepath">The file path to load from.</param>
-    /// <param name="settings">Optional read settings.</param>
-    /// <returns>The loaded <see cref="BBLevel"/>.</returns>
-    public static BBLevel FromFile(string filepath, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null)
+    #region dir
+    /// <inheritdoc/>
+    public static BBLevel FromDirectory(string directoryPath, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null) => FromDirectoryAsync(directoryPath, settings).GetAwaiter().GetResult();
+    /// <inheritdoc/>
+    public static async Task<BBLevel> FromDirectoryAsync(string directoryPath, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         settings ??= new LevelReadSettings();
-        string extension = Path.GetExtension(filepath);
+        RDJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(directoryPath, settings);
         BBLevel? level;
-        if (extension is not ".zip")
+        string manifestFilePath = Path.Combine(directoryPath, "manifest.json");
+        using FileStream manifestFs = File.Open(manifestFilePath, FileMode.Open, FileAccess.Read);
+        level = Deserializer.DeserializeManifest(new StreamDataSource(manifestFs), options);
+        string levelFile = Path.Combine(directoryPath, "level.json");
+        using FileStream levelFs = File.Open(levelFile, FileMode.Open, FileAccess.Read);
+        Deserializer.DeserializeLevel(new StreamDataSource(levelFs), options, level, settings);
+        foreach (Variant variant in level.Variants)
         {
-            if (extension is not ".json")
-                throw new NotSupportedException($"Unsupported file extension: {extension}");
-            string dir = Path.GetDirectoryName(filepath) ?? "";
-            string manifestFilePath = Path.Combine(dir, "manifest.json");
-            using FileStream manifestFs = File.Open(manifestFilePath, FileMode.Open, FileAccess.Read);
-            level = FromStream(manifestFs, dir, settings);
-            string levelFile = Path.Combine(dir, "level.json");
-            string[] chartFiles = [.. level.Variants.Select(v => Path.Combine(dir, $"chart-{v.Name}.json"))];
-            JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(dir, settings);
-            using FileStream levelFs = File.Open(levelFile, FileMode.Open, FileAccess.Read);
-            Deserializer.DeserializeLevel(new StreamDataSource(levelFs), options, level, settings);
-            foreach (string chartFile in chartFiles)
-            {
-                using FileStream chartFs = File.Open(chartFile, FileMode.Open, FileAccess.Read);
-                Deserializer.DeserializeEvents(new StreamDataSource(chartFs), options, level, settings);
-            }
-            return level;
-        }
-        switch (settings.ZipFileProcessMethod)
-        {
-            case ZipFileProcessMethod.AllFiles:
-                DirectoryInfo tempDirectory = GlobalSettings.GetTempDirectory();
-                tempDirectory.Create();
-                try
-                {
-#if NET8_0_OR_GREATER
-                    using Stream stream = File.OpenRead(filepath);
-                    ZipFile.ExtractToDirectory(stream, tempDirectory.FullName, overwriteFiles: true);
-#elif NETSTANDARD2_0_OR_GREATER
-                    ZipFile.ExtractToDirectory(filepath, tempDirectory.FullName);
-#endif
-                    string? rdlevelPath = null;
-                    foreach (FileInfo? file in tempDirectory.GetFiles())
-                    {
-                        if (file.Extension == ".rdlevel")
-                        {
-                            rdlevelPath = file.FullName;
-                            break;
-                        }
-                    }
-                    if (rdlevelPath == null)
-                        throw new RhythmBaseException("No RDLevel file has been found.");
-                    level = FromFile(rdlevelPath, settings);
-                    level.ResolvedPath = Path.GetFullPath(rdlevelPath);
-                    level.Filepath = Path.GetFullPath(filepath);
-                    level.isZip = true;
-                    level.isExtracted = true;
-                }
-                catch (DirectoryNotFoundException)
-                {
-                    throw;
-                }
-                catch (FileNotFoundException)
-                {
-                    throw;
-                }
-#if !DEBUG
-                catch (Exception ex2)
-                {
-                    tempDirectory.Delete(true);
-                    throw new RhythmBaseException("Cannot extract the file.", ex2);
-                }
-#endif
-                break;
-            case ZipFileProcessMethod.LevelFileOnly:
-                try
-                {
-                    using FileStream zipStream = new(filepath, FileMode.Open, FileAccess.Read);
-                    using ZipArchive archive = new(zipStream, ZipArchiveMode.Read);
-                    ZipArchiveEntry? entry = archive.GetEntry("main.rdlevel") ?? throw new RhythmBaseException("Cannot find the level file.");
-                    using Stream stream = entry.Open();
-                    level = FromStream(stream, settings);
-                    level.Filepath = Path.GetFullPath(filepath);
-                    level.isZip = true;
-                    level.isExtracted = false;
-                }
-                catch (Exception ex2)
-                {
-                    throw new RhythmBaseException("Cannot extract the file.", ex2);
-                }
-                break;
-            default:
-                throw new RhythmBaseException($"{settings.ZipFileProcessMethod} is not supported.");
+            string chartFile = Path.Combine(directoryPath, $"chart-{variant.Name}.json");
+            using FileStream chartFs = File.Open(chartFile, FileMode.Open, FileAccess.Read);
+            Deserializer.DeserializeEvents(new StreamDataSource(chartFs), variant.Name, options, level, settings);
         }
         return level;
     }
-    /// <summary>
-    /// Asynchronously loads a <see cref="BBLevel"/> from the specified file path.
-    /// </summary>
-    /// <param name="filepath">The file path to load from.</param>
-    /// <param name="settings">Optional read settings.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>A task representing the asynchronous operation, containing the loaded <see cref="BBLevel"/>.</returns>
-    public static Task<BBLevel> FromFileAsync(string filepath, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
-    /// <summary>
-    /// Loads a <see cref="BBLevel"/> from a <see cref="JsonDocument"/>.
-    /// </summary>
-    /// <param name="jsonDocument">The JSON document to load from.</param>
-    /// <param name="settings">Optional read settings.</param>
-    /// <returns>The loaded <see cref="BBLevel"/>.</returns>
-    public static BBLevel FromJsonDocument(JsonDocument jsonDocument, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null)
-    {
-        throw new NotImplementedException();
-    }
-    /// <summary>
-    /// Loads a <see cref="BBLevel"/> from a JSON string.
-    /// </summary>
-    /// <param name="json">The JSON string to load from.</param>
-    /// <param name="settings">Optional read settings.</param>
-    /// <returns>The loaded <see cref="BBLevel"/>.</returns>
-    public static BBLevel FromJsonString(string json, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null)
-    {
-        throw new NotImplementedException();
-    }
-    /// <summary>
-    /// Loads a <see cref="BBLevel"/> from a <see cref="Stream"/>.
-    /// </summary>
-    /// <param name="stream">The stream to load from.</param>
-    /// <param name="settings">Optional read settings.</param>
-    /// <returns>The loaded <see cref="BBLevel"/>.</returns>
-    public static BBLevel FromStream(Stream stream, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null)
-    {
-        throw new NotImplementedException();
-    }
-    private static BBLevel FromStream(Stream stream, string? dir, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null)
-    {
-        settings ??= new LevelReadSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(dir, settings);
-        BBLevel? level;
-        level = Deserializer.DeserializeLevel(new StreamDataSource(stream), options);
-        return level ?? [];
-    }
-    /// <summary>
-    /// Asynchronously loads a <see cref="BBLevel"/> from a <see cref="Stream"/>.
-    /// </summary>
-    /// <param name="stream">The stream to load from.</param>
-    /// <param name="settings">Optional read settings.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>A task representing the asynchronous operation, containing the loaded <see cref="BBLevel"/>.</returns>
-    public static Task<BBLevel> FromStreamAsync(Stream stream, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
-    /// <summary>
-    /// Saves the level to the specified file path.
-    /// </summary>
-    /// <param name="filepath">The file path to save to.</param>
-    /// <param name="settings">Optional write settings.</param>
-    public void SaveToFile(string filepath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null)
+    /// <inheritdoc/>
+    public void SaveToDirectory(string directoryPath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null) => SaveToDirectoryAsync(directoryPath, settings).GetAwaiter().GetResult();
+    /// <inheritdoc/>
+    public Task SaveToDirectoryAsync(string directoryPath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         settings ??= new LevelWriteSettings();
-        DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
-        if (!directory.Exists)
-            directory.Create();
-        using (FileStream fs = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write))
+        RDJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(directoryPath, settings);
+        string manifestFilePath = Path.Combine(directoryPath, "manifest.json");
+        using FileStream manifestFs = File.Open(manifestFilePath, FileMode.Create, FileAccess.Write);
+        Deserializer.WriteManifestToStream(manifestFs, this, options);
+        string levelFile = Path.Combine(directoryPath, "level.json");
+        using FileStream levelFs = File.Open(levelFile, FileMode.Create, FileAccess.Write);
+        Deserializer.WriteLevelToStream(levelFs, this, options);
+        foreach (Variant variant in Variants)
         {
-            fs.SetLength(0);
-            SaveToStream(fs, settings);
+            string chartFile = Path.Combine(directoryPath, $"chart-{variant.Name}.json");
+            using FileStream chartFs = File.Open(chartFile, FileMode.Create, FileAccess.Write);
+            Deserializer.WriteEventsToStream(chartFs, this, variant.Name, options);
         }
+        return Task.CompletedTask;
     }
-    /// <summary>
-    /// Asynchronously saves the level to the specified file path.
-    /// </summary>
-    /// <param name="filepath">The file path to save to.</param>
-    /// <param name="settings">Optional write settings.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    public void SaveToFileAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
+    #endregion
+    #region zip
+    /// <inheritdoc/>
+    public static BBLevel FromZip(string filepath, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
         throw new NotImplementedException();
     }
-    /// <summary>
-    /// Saves the level to the specified stream.
-    /// </summary>
-    /// <param name="stream">The stream to save to.</param>
-    /// <param name="settings">Optional write settings.</param>
-    public void SaveToStream(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null)
-    {
-        settings ??= new LevelWriteSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(dir: null, settings: settings);
-        WriteToStream(stream, this, options);
-    }
-    /// <summary>
-    /// Asynchronously saves the level to the specified stream.
-    /// </summary>
-    /// <param name="stream">The stream to save to.</param>
-    /// <param name="settings">Optional write settings.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    public void SaveToStreamAsync(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
+
+    /// <inheritdoc/>
+    public static Task<BBLevel> FromZipAsync(string filepath, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
-    /// <summary>
-    /// Saves the level to a zip file at the specified path.
-    /// </summary>
-    /// <param name="filepath">The file path of the zip file to save to.</param>
-    /// <param name="settings">Optional write settings.</param>
+    /// <inheritdoc/>
     public void SaveToZip(string filepath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
         throw new NotImplementedException();
     }
-    /// <summary>
-    /// Asynchronously saves the level to a zip file at the specified path.
-    /// </summary>
-    /// <param name="filepath">The file path of the zip file to save to.</param>
-    /// <param name="settings">Optional write settings.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    public void SaveToZipAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public Task SaveToZipAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
-    /// <summary>
-    /// Converts the level to a <see cref="JsonDocument"/>.
-    /// </summary>
-    /// <param name="settings">Optional write settings.</param>
-    /// <returns>A <see cref="JsonDocument"/> representing the level.</returns>
+    #endregion
+    #region json
+    /// <inheritdoc/>
+    public static BBLevel FromJsonDocument(JsonDocument jsonDocument, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null)
+    {
+        throw new NotImplementedException();
+    }
+    /// <inheritdoc/>
+    public static BBLevel FromJsonString(string json, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings = null)
+    {
+        throw new NotImplementedException();
+    }
+    /// <inheritdoc/>
     public JsonDocument ToJsonDocument(ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
         throw new NotImplementedException();
     }
-    /// <summary>
-    /// Converts the level to a JSON string.
-    /// </summary>
-    /// <param name="settings">Optional write settings.</param>
-    /// <returns>A JSON string representing the level.</returns>
+    /// <inheritdoc/>
     public string ToJsonString(ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null)
     {
         throw new NotImplementedException();
     }
+    #endregion
 }

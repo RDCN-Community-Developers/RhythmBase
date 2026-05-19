@@ -8,9 +8,9 @@ using static RhythmBase.Global.Extensions.EnumConverter;
 namespace RhythmBase.RhythmDoctor.Converters;
 
 [RDJsonConverterFor(typeof(BaseConditional))]
-internal class ConditionalConverter : JsonConverter<BaseConditional>
+internal class ConditionalConverter : RDJsonConverter<BaseConditional>
 {
-	public override void Write(Utf8JsonWriter writer, BaseConditional? value, JsonSerializerOptions serializer)
+	public override void Write(Utf8JsonWriter writer, BaseConditional? value, RDJsonSerializerOptions serializer)
 	{
 		if (value is null)
 			return;
@@ -48,7 +48,7 @@ internal class ConditionalConverter : JsonConverter<BaseConditional>
 		}
 		writer.WriteEndObject();
 	}
-	public override BaseConditional? Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
+	public override BaseConditional? Read(ref Utf8JsonReader reader, Type objectType, RDJsonSerializerOptions serializer)
 	{
 		if (reader.TokenType != JsonTokenType.StartObject)
 			throw new JsonException($"Expected StartObject token, but got {reader.TokenType}.");
@@ -109,7 +109,7 @@ internal class ConditionalConverter : JsonConverter<BaseConditional>
 		conditional.Tag = tag;
 		return conditional;
 	}
-	private static CustomCondition ReadCustom(ref Utf8JsonReader reader, JsonSerializerOptions _)
+	private static CustomCondition ReadCustom(ref Utf8JsonReader reader, RDJsonSerializerOptions _)
 	{
 		CustomCondition condition = new();
 		while (reader.Read())
@@ -126,7 +126,7 @@ internal class ConditionalConverter : JsonConverter<BaseConditional>
 		}
 		return condition;
 	}
-	private static LanguageCondition ReadLanguage(ref Utf8JsonReader reader, JsonSerializerOptions _)
+	private static LanguageCondition ReadLanguage(ref Utf8JsonReader reader, RDJsonSerializerOptions _)
 	{
 		LanguageCondition condition = new();
 		while (reader.Read())
@@ -143,7 +143,7 @@ internal class ConditionalConverter : JsonConverter<BaseConditional>
 		}
 		return condition;
 	}
-	private static LastHitCondition ReadLastHit(ref Utf8JsonReader reader, JsonSerializerOptions _)
+	private static LastHitCondition ReadLastHit(ref Utf8JsonReader reader, RDJsonSerializerOptions _)
 	{
 		LastHitCondition condition = new();
 		while (reader.Read())
@@ -162,7 +162,7 @@ internal class ConditionalConverter : JsonConverter<BaseConditional>
 		}
 		return condition;
 	}
-	private static PlayerModeCondition ReadPlayerMode(ref Utf8JsonReader reader, JsonSerializerOptions _)
+	private static PlayerModeCondition ReadPlayerMode(ref Utf8JsonReader reader, RDJsonSerializerOptions _)
 	{
 		PlayerModeCondition condition = new();
 		while (reader.Read())
@@ -179,7 +179,7 @@ internal class ConditionalConverter : JsonConverter<BaseConditional>
 		}
 		return condition;
 	}
-	private static TimesExecutedCondition ReadTimesExecuted(ref Utf8JsonReader reader, JsonSerializerOptions _)
+	private static TimesExecutedCondition ReadTimesExecuted(ref Utf8JsonReader reader, RDJsonSerializerOptions _)
 	{
 		TimesExecutedCondition condition = new();
 		while (reader.Read())
@@ -196,7 +196,7 @@ internal class ConditionalConverter : JsonConverter<BaseConditional>
 		}
 		return condition;
 	}
-	private static NarrationCondition ReadNarration(ref Utf8JsonReader reader, JsonSerializerOptions _)
+	private static NarrationCondition ReadNarration(ref Utf8JsonReader reader, RDJsonSerializerOptions _)
 	{
 		NarrationCondition condition = new();
 		while (reader.Read())
@@ -213,7 +213,7 @@ internal class ConditionalConverter : JsonConverter<BaseConditional>
 		}
 		return condition;
 	}
-	private static AccessibilityCondition ReadAccessibility(ref Utf8JsonReader reader, JsonSerializerOptions _)
+	private static AccessibilityCondition ReadAccessibility(ref Utf8JsonReader reader, RDJsonSerializerOptions _)
 	{
 		AccessibilityCondition condition = new();
 		while (reader.Read())

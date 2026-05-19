@@ -8,7 +8,7 @@ namespace RhythmBase.Adofai.Converters;
 
 internal class EventInstanceConverterBaseTileEvent<TEvent> : EventInstanceConverterBaseEvent<TEvent> where TEvent : BaseTileEvent, new()
 {
-    protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, JsonSerializerOptions options)
+    protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, RDJsonSerializerOptions options)
     {
         if (base.Read(ref reader, propertyName, ref value, options))
             return true;
@@ -21,7 +21,7 @@ internal class EventInstanceConverterBaseTileEvent<TEvent> : EventInstanceConver
 }
 internal class EventInstanceConverterBaseTaggedTileEvent<TEvent> : EventInstanceConverterBaseTileEvent<TEvent> where TEvent : BaseTaggedTileEvent, new()
 {
-    protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, JsonSerializerOptions options)
+    protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, RDJsonSerializerOptions options)
     {
         if (base.Read(ref reader, propertyName, ref value, options))
             return true;
@@ -33,7 +33,7 @@ internal class EventInstanceConverterBaseTaggedTileEvent<TEvent> : EventInstance
             return false;
         return true;
     }
-    protected override void Write(Utf8JsonWriter writer, ref TEvent value, JsonSerializerOptions options)
+    protected override void Write(Utf8JsonWriter writer, ref TEvent value, RDJsonSerializerOptions options)
     {
         base.Write(writer, ref value, options);
         writer.WriteString("eventTag"u8, value.EventTag);
@@ -42,7 +42,7 @@ internal class EventInstanceConverterBaseTaggedTileEvent<TEvent> : EventInstance
 }
 internal class EventInstanceConverterSetFilterAdvanced : EventInstanceConverterBaseTaggedTileEvent<SetFilterAdvanced>
 {
-    protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref SetFilterAdvanced value, JsonSerializerOptions options)
+    protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref SetFilterAdvanced value, RDJsonSerializerOptions options)
     {
         string filter = "";
         FilterType filterType = default;
@@ -79,7 +79,7 @@ internal class EventInstanceConverterSetFilterAdvanced : EventInstanceConverterB
             return false;
         return true;
     }
-    protected override void Write(Utf8JsonWriter writer, ref SetFilterAdvanced value, JsonSerializerOptions options)
+    protected override void Write(Utf8JsonWriter writer, ref SetFilterAdvanced value, RDJsonSerializerOptions options)
     {
         base.Write(writer, ref value, options);
         writer.WriteString("filter"u8, FilterTypeUtils._enum2string[value.FilterProperties.Type]);

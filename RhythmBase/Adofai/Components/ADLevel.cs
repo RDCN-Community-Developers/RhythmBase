@@ -4,77 +4,78 @@ using RhythmBase.Adofai.Utils;
 
 namespace RhythmBase.Adofai.Components
 {
-	/// <summary>
-	/// Adofal level.
-	/// </summary>
-	public partial class ADLevel :
-		TileCollection,
-		IJsonLevel<ADLevel, IBaseEvent, EventType, ADBeat>,
-		ISingleFileLevel<ADLevel, IBaseEvent, EventType, ADBeat>,
-		IArchiveLevel<ADLevel, IBaseEvent, EventType, ADBeat>
+    /// <summary>
+    /// Adofal level.
+    /// </summary>
+    public partial class ADLevel :
+      TileCollection,
+      IJsonLevel<ADLevel, IBaseEvent, EventType, ADBeat>,
+      ISingleFileLevel<ADLevel, IBaseEvent, EventType, ADBeat>,
+      IArchiveLevel<ADLevel, IBaseEvent, EventType, ADBeat>
     {
-		/// <summary>
-		/// Level settings.
-		/// </summary>
-		public Settings Settings { get; set; }
-		/// <summary>
-		/// Level decoration collection.
-		/// </summary>
-		public List<IBaseEvent> Decorations { get; set; }
-		/// <summary>
-		/// Get all the events of the level.
-		/// </summary>
-		public override IEnumerable<IBaseEvent> Events
-		{
-			get
-			{
-				foreach (IBaseEvent tile in base.Events)
-					yield return tile;
-				foreach (IBaseEvent tile2 in Decorations)
-					yield return tile2;
-			}
-		}
-		IBeatCalculator<ADBeat> ILevel<ADLevel, IBaseEvent, EventType, ADBeat>.Calculator => Calculator;
+        public static LevelType LevelType => LevelType.Adofai;
+        /// <summary>
+        /// Level settings.
+        /// </summary>
+        public Settings Settings { get; set; }
+        /// <summary>
+        /// Level decoration collection.
+        /// </summary>
+        public List<IBaseEvent> Decorations { get; set; }
+        /// <summary>
+        /// Get all the events of the level.
+        /// </summary>
+        public override IEnumerable<IBaseEvent> Events
+        {
+            get
+            {
+                foreach (IBaseEvent tile in base.Events)
+                    yield return tile;
+                foreach (IBaseEvent tile2 in Decorations)
+                    yield return tile2;
+            }
+        }
+        IBeatCalculator<ADBeat> ILevel<ADLevel, IBaseEvent, EventType, ADBeat>.Calculator => Calculator;
         /// <summary>
         /// The calculator that comes with the level.
         /// </summary>
         public BeatCalculator Calculator { get; }
-		/// <summary>  
-		/// Initializes a new instance of the <see cref="ADLevel"/> class.  
-		/// </summary>  
-		public ADLevel()
-		{
-			Settings = new Settings();
-			Decorations = [];
-			Calculator = new BeatCalculator(this);
-			End.Parent = this;
-		}
-		/// <summary>  
-		/// Initializes a new instance of the <see cref="ADLevel"/> class with a collection of tiles.  
-		/// </summary>  
-		/// <param name="items">The collection of tiles to initialize the level with.</param>  
-		public ADLevel(IEnumerable<Tile> items)
-		{
-			Settings = new Settings();
-			Decorations = [];
-			Calculator = new BeatCalculator(this);
-			End.Parent = this;
-			this.InsertRange(0, items);
-		}
-		/// <summary>
-		/// Gets the default level, which consists of 10 repeated tiles.
-		/// </summary>
-		public static ADLevel Default
-		{
-			get
-			{
-				ADLevel level = [.. new Tile().Repeat(10)];
-				level.Settings = new()
-				{
-					Version = DefaultVersionAdofai,
-				};
-				return level;
-			}
+        /// <summary>  
+        /// Initializes a new instance of the <see cref="ADLevel"/> class.  
+        /// </summary>  
+        public ADLevel()
+        {
+            Settings = new Settings();
+            Decorations = [];
+            Calculator = new BeatCalculator(this);
+            End.Parent = this;
+        }
+        /// <summary>  
+        /// Initializes a new instance of the <see cref="ADLevel"/> class with a collection of tiles.  
+        /// </summary>  
+        /// <param name="items">The collection of tiles to initialize the level with.</param>  
+        public ADLevel(IEnumerable<Tile> items)
+        {
+            Settings = new Settings();
+            Decorations = [];
+            Calculator = new BeatCalculator(this);
+            End.Parent = this;
+            this.InsertRange(0, items);
+        }
+        /// <summary>
+        /// Gets the default level, which consists of 10 repeated tiles.
+        /// </summary>
+        public static ADLevel Default
+        {
+            get
+            {
+                ADLevel level = [.. new Tile().Repeat(10)];
+                level.Settings = new()
+                {
+                    Version = DefaultVersionAdofai,
+                };
+                return level;
+            }
         }
         /// <inheritdoc/>
         public string ResolvedPath { get; internal set; } = string.Empty;
@@ -88,57 +89,57 @@ namespace RhythmBase.Adofai.Components
         /// </summary>  
         /// <param name="item">The tile to add to the level.</param>  
         public override void Add(Tile item) => Insert(Count, item);
-		/// <summary>  
-		/// Inserts a tile into the level at the specified index.  
-		/// Sets the parent of the tile to this level before inserting it into the base collection.  
-		/// </summary>  
-		/// <param name="index">The zero-based index at which the tile should be inserted.</param>  
-		/// <param name="item">The tile to insert into the level.</param>  
-		public override void Insert(int index, Tile item)
-		{
-			item.Parent = this;
-			base.Insert(index, item);
-		}
-		/// <summary>
-		/// Removes the tile at the specified index from the collection.
-		/// </summary>
-		/// <remarks>After removal, the tile's <see cref="Tile.Parent"/>, <see cref="Tile.Previous"/>, and <see
-		/// cref="Tile.Next"/> properties are set to <see langword="null"/>.</remarks>
-		/// <param name="index">The zero-based index of the tile to remove.</param>
-		public void RemoveAt(int index)
-		{
-			Tile tile = this[index];
-			tile.Parent = null!;
-			tile.Previous = null;
-			tile.Next = null!;
-			tileOrder.RemoveAt(index);
-		}
-		/// <summary>  
-		/// Removes all tiles from the level.  
-		/// Sets the parent of each tile to null before clearing the base collection.  
-		/// </summary>  
-		public override void Clear()
-		{
-			foreach (Tile item in tileOrder)
-			{
-				item.Parent = null;
-			}
-			base.Clear();
-		}
-		/// <inheritdoc/>
-		public void Dispose()
-		{
-			if (isZip)
-			{
-				System.IO.Directory.Delete(ResolvedDirectory, true);
-			}
-			GC.SuppressFinalize(this);
-		}
+        /// <summary>  
+        /// Inserts a tile into the level at the specified index.  
+        /// Sets the parent of the tile to this level before inserting it into the base collection.  
+        /// </summary>  
+        /// <param name="index">The zero-based index at which the tile should be inserted.</param>  
+        /// <param name="item">The tile to insert into the level.</param>  
+        public override void Insert(int index, Tile item)
+        {
+            item.Parent = this;
+            base.Insert(index, item);
+        }
+        /// <summary>
+        /// Removes the tile at the specified index from the collection.
+        /// </summary>
+        /// <remarks>After removal, the tile's <see cref="Tile.Parent"/>, <see cref="Tile.Previous"/>, and <see
+        /// cref="Tile.Next"/> properties are set to <see langword="null"/>.</remarks>
+        /// <param name="index">The zero-based index of the tile to remove.</param>
+        public void RemoveAt(int index)
+        {
+            Tile tile = this[index];
+            tile.Parent = null!;
+            tile.Previous = null;
+            tile.Next = null!;
+            tileOrder.RemoveAt(index);
+        }
+        /// <summary>  
+        /// Removes all tiles from the level.  
+        /// Sets the parent of each tile to null before clearing the base collection.  
+        /// </summary>  
+        public override void Clear()
+        {
+            foreach (Tile item in tileOrder)
+            {
+                item.Parent = null;
+            }
+            base.Clear();
+        }
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            if (isZip)
+            {
+                System.IO.Directory.Delete(ResolvedDirectory, true);
+            }
+            GC.SuppressFinalize(this);
+        }
 
-		/// <inheritdoc/>
-		public override string ToString() => $"\"{Settings.Song}\" Count = {Count}";
+        /// <inheritdoc/>
+        public override string ToString() => $"\"{Settings.Song}\" Count = {Count}";
 
-		private bool isZip = false;
-		private bool isExtracted = false;
-	}
+        private bool isZip = false;
+        private bool isExtracted = false;
+    }
 }

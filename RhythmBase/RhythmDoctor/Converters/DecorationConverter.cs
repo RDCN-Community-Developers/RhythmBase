@@ -6,9 +6,9 @@ using System.Text.Json.Serialization;
 namespace RhythmBase.RhythmDoctor.Converters;
 
 [RDJsonConverterFor(typeof(Decoration))]
-internal class DecorationConverter : JsonConverter<Decoration>
+internal class DecorationConverter : RDJsonConverter<Decoration>
 {
-	public override Decoration? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+	public override Decoration? Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
 	{
 		if (reader.TokenType != JsonTokenType.StartObject)
 			throw new JsonException($"Expected StartObject token, but got {reader.TokenType}.");
@@ -69,7 +69,7 @@ internal class DecorationConverter : JsonConverter<Decoration>
 		return decoration;
 	}
 
-	public override void Write(Utf8JsonWriter writer, Decoration value, JsonSerializerOptions options)
+	public override void Write(Utf8JsonWriter writer, Decoration value, RDJsonSerializerOptions options)
 	{
 		writer.WriteStartObject();
 		writer.WriteString("id"u8, value.Id);

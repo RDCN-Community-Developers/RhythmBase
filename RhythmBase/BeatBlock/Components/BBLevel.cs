@@ -9,14 +9,15 @@ public partial class BBLevel :
     OrderedEventCollection<IBaseEvent, EventType, BBBeat>,
     IJsonLevel<BBLevel, IBaseEvent, EventType, BBBeat>,
     IArchiveLevel<BBLevel, IBaseEvent, EventType, BBBeat>,
+    IMultiFileLevel<BBLevel, IBaseEvent, EventType, BBBeat>,
     IDisposable
 {
     internal bool isZip;
     internal bool isExtracted;
-    /// <summary>
-    /// Gets the default empty <see cref="BBLevel"/>.
-    /// </summary>
+    ///<inheritdoc/>
     public static BBLevel Default => new BBLevel();
+    ///<inheritdoc/>
+    public static LevelType LevelType => LevelType.BeatBlock;
     /// <summary>
     /// Gets or sets the properties of the level.
     /// </summary>

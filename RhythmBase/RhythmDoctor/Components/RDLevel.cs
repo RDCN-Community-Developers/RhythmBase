@@ -373,7 +373,7 @@ public partial class RDLevel :
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (isZip && isExtracted && !string.IsNullOrEmpty(ResolvedDirectory))
+        if (isZip && isExtracted && Directory.Exists(ResolvedDirectory))
         {
             System.IO.Directory.Delete(ResolvedDirectory, true);
         }

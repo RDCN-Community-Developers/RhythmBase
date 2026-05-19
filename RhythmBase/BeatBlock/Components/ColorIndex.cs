@@ -13,7 +13,7 @@ public struct ColorIndex
     public ColorIndex(byte value)
     {
         if (value >= 8)
-            throw new ArgumentOutOfRangeException("value");
+            throw new ArgumentOutOfRangeException(nameof(value));
         Value = value;
     }
     /// <summary>
@@ -32,4 +32,8 @@ public struct ColorIndex
     /// Gets or sets the index value.
     /// </summary>
     public byte Value { get; set; }
+    public override string ToString()
+    {
+        return Value.ToString();
+    }
 }

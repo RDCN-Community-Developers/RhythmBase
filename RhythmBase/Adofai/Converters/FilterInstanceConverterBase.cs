@@ -6,12 +6,12 @@ namespace RhythmBase.Adofai.Converters;
 
 internal abstract class FilterInstanceConverterBase
 {
-	public abstract IFilter ReadProperties(ref Utf8JsonReader reader, JsonSerializerOptions options);
-	public abstract void WriteProperties(Utf8JsonWriter writer, IFilter value, JsonSerializerOptions options);
+	public abstract IFilter ReadProperties(ref Utf8JsonReader reader, RDJsonSerializerOptions options);
+	public abstract void WriteProperties(Utf8JsonWriter writer, IFilter value, RDJsonSerializerOptions options);
 }
 internal abstract class FilterInstanceConverterBase<TFilter> : FilterInstanceConverterBase where TFilter : struct, IFilter
 {
-	public sealed override IFilter ReadProperties(ref Utf8JsonReader reader, JsonSerializerOptions options)
+	public sealed override IFilter ReadProperties(ref Utf8JsonReader reader, RDJsonSerializerOptions options)
 	{
 		TFilter value = new();
 		while (reader.TokenType is JsonTokenType.PropertyName)
@@ -31,11 +31,11 @@ internal abstract class FilterInstanceConverterBase<TFilter> : FilterInstanceCon
 		}
 		return value;
 	}
-	public sealed override void WriteProperties(Utf8JsonWriter writer, IFilter value, JsonSerializerOptions options)
+	public sealed override void WriteProperties(Utf8JsonWriter writer, IFilter value, RDJsonSerializerOptions options)
 	{
 		TFilter f = (TFilter)value;
 		Write(writer, ref f, options);
 	}
-	protected virtual bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TFilter value, JsonSerializerOptions options) { return false; }
-	protected virtual void Write(Utf8JsonWriter writer, ref TFilter value, JsonSerializerOptions options) { }
+	protected virtual bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TFilter value, RDJsonSerializerOptions options) { return false; }
+	protected virtual void Write(Utf8JsonWriter writer, ref TFilter value, RDJsonSerializerOptions options) { }
 }

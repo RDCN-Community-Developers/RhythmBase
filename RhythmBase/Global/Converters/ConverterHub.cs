@@ -7,9 +7,9 @@ namespace RhythmBase.Global.Converters;
 
 internal static partial class ConverterHub
 {
-    private class ListConverter<T> : JsonConverter<List<T>>
+    private class ListConverter<T> : RDJsonConverter<List<T>>
     {
-        public override List<T> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override List<T> Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
         {
             List<T> result = new();
             JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
@@ -23,7 +23,7 @@ internal static partial class ConverterHub
             JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
             return result;
         }
-        public override void Write(Utf8JsonWriter writer, List<T> value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, List<T> value, RDJsonSerializerOptions options)
         {
             writer.WriteStartArray();
             foreach (T item in value)
@@ -43,10 +43,12 @@ internal static partial class ConverterHub
         ConverterCache<RDLine<RDRichStringStyle>>.Converter = new RichTextConverter<RDRichStringStyle>();
     }
 
-    public static T Read<T>(ref Utf8JsonReader reader, JsonSerializerOptions options)
+    public static T Read<T>(ref Utf8JsonReader reader, RDJsonSerializerOptions options)
     {
+        if (ConverterCache<T>.Converter is RDJsonConverter<T> rdconverter)
+            return rdconverter.Read(ref reader, typeof(T), options) ?? default!;
         if (ConverterCache<T>.Converter is JsonConverter<T> converter)
-            return converter.Read(ref reader, typeof(T), options) ?? default!;
+            return converter.Read(ref reader, typeof(T), options.JsonSerializerOptions) ?? default!;
         else
         {
             Console.WriteLine((typeof(T)));
@@ -54,10 +56,14 @@ internal static partial class ConverterHub
             return default!;
         }
     }
-    public static void Write<T>(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+    public static void Write<T>(Utf8JsonWriter writer, T value, RDJsonSerializerOptions options)
     {
-        if (ConverterCache<T>.Converter is JsonConverter<T> converter)
-            converter.Write(writer, value, options);
+        if (ConverterCache<T>.Converter is RDJsonConverter<T> rdconverter)
+        {
+            rdconverter.Write(writer, value, options);
+        }
+        else if (ConverterCache<T>.Converter is JsonConverter<T> converter)
+            converter.Write(writer, value, options.JsonSerializerOptions);
         else
         //JsonSerializer.Serialize(writer, value, options);
 #if DEBUG

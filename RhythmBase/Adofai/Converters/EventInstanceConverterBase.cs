@@ -6,12 +6,12 @@ using System.Text.Json;
 namespace RhythmBase.Adofai.Converters;
 internal abstract class EventInstanceConverterBase
 {
-	public abstract IBaseEvent ReadProperties(ref Utf8JsonReader reader, JsonSerializerOptions options);
-	public abstract void WriteProperties(Utf8JsonWriter writer, IBaseEvent value, JsonSerializerOptions options);
+	public abstract IBaseEvent ReadProperties(ref Utf8JsonReader reader, RDJsonSerializerOptions options);
+	public abstract void WriteProperties(Utf8JsonWriter writer, IBaseEvent value, RDJsonSerializerOptions options);
 }
 internal abstract class EventInstanceConverterBaseEvent<TEvent> : EventInstanceConverterBase where TEvent : IBaseEvent, new()
 {
-	public override sealed IBaseEvent ReadProperties(ref Utf8JsonReader reader, JsonSerializerOptions options)
+	public override sealed IBaseEvent ReadProperties(ref Utf8JsonReader reader, RDJsonSerializerOptions options)
 	{
 		TEvent value = new();
 		while (reader.Read())
@@ -42,7 +42,7 @@ internal abstract class EventInstanceConverterBaseEvent<TEvent> : EventInstanceC
 		}
 		return value;
 	}
-	public override sealed void WriteProperties(Utf8JsonWriter writer, IBaseEvent value, JsonSerializerOptions options)
+	public override sealed void WriteProperties(Utf8JsonWriter writer, IBaseEvent value, RDJsonSerializerOptions options)
 	{
 		TEvent v = (TEvent)value;
 		writer.WriteStartObject();
@@ -54,12 +54,12 @@ internal abstract class EventInstanceConverterBaseEvent<TEvent> : EventInstanceC
 		}
 		writer.WriteEndObject();
 	}
-	protected virtual bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, JsonSerializerOptions options)
+	protected virtual bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, RDJsonSerializerOptions options)
 	{
 		bool result = false;
 		return result;
 	}
-	protected virtual void Write(Utf8JsonWriter writer, ref TEvent value, JsonSerializerOptions options)
+	protected virtual void Write(Utf8JsonWriter writer, ref TEvent value, RDJsonSerializerOptions options)
 	{
 		if (value is BaseTileEvent bte && bte._floor >= 0)
 			writer.WriteNumber("floor"u8, bte._floor);

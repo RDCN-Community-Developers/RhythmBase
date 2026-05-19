@@ -11,7 +11,7 @@ partial class ADLevel
 {
     internal static class Deserializer
     {
-        public static ADLevel Deserialize(IJsonDataSource dataSource, JsonSerializerOptions options)
+        public static ADLevel Deserialize(IJsonDataSource dataSource, RDJsonSerializerOptions options)
         {
             if (dataSource.CanGetMemoryDirectly)
             {
@@ -26,7 +26,7 @@ partial class ADLevel
                 return ConverterHub.Read<ADLevel>(ref reader, options) ?? [];
             }
         }
-        public static async Task<ADLevel> DeserializeAsync(IJsonDataSource dataSource, JsonSerializerOptions options, CancellationToken token = default)
+        public static async Task<ADLevel> DeserializeAsync(IJsonDataSource dataSource, RDJsonSerializerOptions options, CancellationToken token = default)
         {
             if (dataSource.CanGetMemoryDirectly)
             {
@@ -42,12 +42,57 @@ partial class ADLevel
             }
         }
     }
-    private static void WriteToStream(Stream stream, ADLevel level, JsonSerializerOptions options)
+    #region zip
+    private static void WriteToStream(Stream stream, ADLevel level, RDJsonSerializerOptions options)
     {
-        Utf8JsonWriter writer = new(stream, new JsonWriterOptions { Indented = options.WriteIndented });
+        Utf8JsonWriter writer = new(stream, new JsonWriterOptions { Indented = options.JsonSerializerOptions.WriteIndented });
         ConverterHub.Write(writer, level, options);
         writer.Flush();
     }
+    /// <inheritdoc/>
+    public static ADLevel FromZip(string filepath, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null)
+    {
+        throw new NotImplementedException();
+    }
+    /// <inheritdoc/>
+    public static Task<ADLevel> FromZipAsync(string filepath, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+    /// <inheritdoc/>
+    public void SaveToZip(string filepath, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null)
+    {
+        if (string.IsNullOrEmpty(this.ResolvedDirectory))
+            throw new NotImplementedException();
+        settings ??= new LevelWriteSettings();
+        settings.FileReferences.Clear();
+        bool loadAssets = settings.LoadAssets;
+        settings.LoadAssets = true;
+        RDJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(Path.GetDirectoryName(Filepath) ?? "", settings);
+        DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
+        if (!directory.Exists)
+            directory.Create();
+        using Stream stream = new FileStream(filepath, FileMode.Create, FileAccess.Write);
+        ZipArchive archive = new(stream, ZipArchiveMode.Create);
+        ZipArchiveEntry entry = archive.CreateEntry("main.adofai");
+        using (Stream rdlevelStream = entry.Open())
+        {
+            SaveToStream(rdlevelStream, settings);
+        }
+        foreach (var file in settings.FileReferences)
+        {
+            archive.CreateEntryFromFile(Path.Combine(ResolvedDirectory, file.Path), Path.GetFileName(file.Path));
+        }
+        archive.Dispose();
+        settings.LoadAssets = loadAssets;
+    }
+    /// <inheritdoc/>
+    public Task SaveToZipAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
+    #region file
     /// <inheritdoc/>
     public static ADLevel FromFile(string filepath, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
@@ -195,10 +240,33 @@ partial class ADLevel
         return level;
     }
     /// <inheritdoc/>
+    public void SaveToFile(string filepath, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null)
+    {
+        settings ??= new LevelWriteSettings();
+        RDJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(filepath, settings);
+        using (FileStream stream = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write))
+        {
+            stream.SetLength(0);
+            WriteToStream(stream, this, options);
+        }
+    }
+    /// <inheritdoc/>
+    public async Task SaveToFileAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null, CancellationToken cancellationToken = default)
+    {
+        settings ??= new LevelWriteSettings();
+        RDJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(filepath, settings);
+        using (FileStream stream = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write))
+        {
+            await Task.Run(() => WriteToStream(stream, this, options), cancellationToken);
+        }
+    }
+    #endregion
+    #region stream
+    /// <inheritdoc/>
     public static ADLevel FromStream(Stream adlevelStream, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
         settings ??= new LevelReadSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
+        RDJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         ADLevel? level;
         level = Deserializer.Deserialize(new StreamDataSource(adlevelStream), options);
         return level ?? [];
@@ -207,60 +275,41 @@ partial class ADLevel
     public static async Task<ADLevel> FromStreamAsync(Stream stream, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         settings ??= new LevelReadSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
+        RDJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         ADLevel? level;
         level = await Deserializer.DeserializeAsync(new StreamDataSource(stream), options, cancellationToken);
-        return level ?? [];
-    }
-    /// <inheritdoc/>
-    public static ADLevel FromJsonString(string json, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null)
-    {
-        settings ??= new LevelReadSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
-        ADLevel? level;
-        level = Deserializer.Deserialize(new ReadOnlyMemoryDataSource(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(json))), options);
         return level ?? [];
     }
     /// <inheritdoc/>
     public void SaveToStream(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
         settings ??= new LevelWriteSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
+        RDJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         WriteToStream(stream, this, options);
     }
     /// <inheritdoc/>
-    public async void SaveToStreamAsync(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null, CancellationToken cancellationToken = default)
+    public async Task SaveToStreamAsync(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         settings ??= new LevelWriteSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
+        RDJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         await Task.Run(() => WriteToStream(stream, this, options), cancellationToken);
     }
+    #endregion
+    #region json
     /// <inheritdoc/>
-    public void SaveToFile(string filepath, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null)
+    public static ADLevel FromJsonString(string json, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
-        settings ??= new LevelWriteSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(filepath, settings);
-        using (FileStream stream = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write))
-        {
-            stream.SetLength(0);
-            WriteToStream(stream, this, options);
-        }
-    }
-    /// <inheritdoc/>
-    public async void SaveToFileAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null, CancellationToken cancellationToken = default)
-    {
-        settings ??= new LevelWriteSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(filepath, settings);
-        using (FileStream stream = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write))
-        {
-            await Task.Run(() => WriteToStream(stream, this, options), cancellationToken);
-        }
+        settings ??= new LevelReadSettings();
+        RDJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
+        ADLevel? level;
+        level = Deserializer.Deserialize(new ReadOnlyMemoryDataSource(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(json))), options);
+        return level ?? [];
     }
     /// <inheritdoc/>
     public string ToJsonString(ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
         settings ??= new LevelWriteSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
+        RDJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         string json;
         using (MemoryStream stream = new())
         {
@@ -274,7 +323,7 @@ partial class ADLevel
     public static ADLevel FromJsonDocument(JsonDocument jsonDocument, ILevelReadSettings<IBaseEvent, EventType, ADBeat>? settings = null)
     {
         settings ??= new LevelReadSettings();
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
+        RDJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         ADLevel? level;
         level = Deserializer.Deserialize(new JsonDocumentDataSource(jsonDocument), options);
         return level ?? [];
@@ -290,37 +339,5 @@ partial class ADLevel
         json = Encoding.UTF8.GetString(stream.ToArray());
         return JsonDocument.Parse(json);
     }
-    /// <inheritdoc/>
-    public void SaveToZip(string filepath, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null)
-    {
-        if (string.IsNullOrEmpty(this.ResolvedDirectory))
-            throw new NotImplementedException();
-        settings ??= new LevelWriteSettings();
-        settings.FileReferences.Clear();
-        bool loadAssets = settings.LoadAssets;
-        settings.LoadAssets = true;
-        JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(Path.GetDirectoryName(Filepath) ?? "", settings);
-        DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
-        if (!directory.Exists)
-            directory.Create();
-        using Stream stream = new FileStream(filepath, FileMode.Create, FileAccess.Write);
-        ZipArchive archive = new(stream, ZipArchiveMode.Create);
-        ZipArchiveEntry entry = archive.CreateEntry("main.adofai");
-        using (Stream rdlevelStream = entry.Open())
-        {
-            SaveToStream(rdlevelStream, settings);
-        }
-        foreach (var file in settings.FileReferences)
-        {
-            archive.CreateEntryFromFile(Path.Combine(ResolvedDirectory, file.Path), Path.GetFileName(file.Path));
-        }
-        archive.Dispose();
-        settings.LoadAssets = loadAssets;
-    }
-    /// <inheritdoc/>
-    public void SaveToZipAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, ADBeat>? settings = null, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
-
+    #endregion
 }

@@ -32,7 +32,7 @@ namespace RhythmBase.Global.Converters.JsonSerialization
                 // bom
                 await stream.ReadAsync(buffer, 0, 3, cancellationToken);
                 if (buffer is [0xEF, 0xBB, 0xBF, ..])
-                    bytesRead = await stream.ReadAsync(buffer, 3, buffer.Length - 3, cancellationToken);
+                    bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length - 3, cancellationToken);
                 else
                     bytesRead += await stream.ReadAsync(buffer, 3, buffer.Length - 3, cancellationToken);
                 return new ReadOnlyMemory<byte>(buffer, 0, bytesRead);

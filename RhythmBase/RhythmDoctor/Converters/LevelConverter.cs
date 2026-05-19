@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 namespace RhythmBase.RhythmDoctor.Converters;
 
 [RDJsonConverterFor(typeof(RDLevel))]
-internal sealed class LevelConverter : JsonConverter<RDLevel>
+internal sealed class LevelConverter : RDJsonConverter<RDLevel>
 {
     private static readonly SettingsConverter settingsConverter = new();
     private static readonly RowConverter rowConverter = new();
@@ -21,7 +21,7 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
     internal ILevelReadSettings<IBaseEvent, EventType, RDBeat> ReadSettings { get; set; } = new LevelReadSettings();
     internal ILevelWriteSettings<IBaseEvent, EventType, RDBeat> WriteSettings { get; set; } = new LevelWriteSettings();
     internal string? DirectoryName { get; set; }
-    public override RDLevel? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override RDLevel? Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
     {
         reader.Read();
         baseEventConverter.WithReadSettings(ReadSettings);
@@ -232,16 +232,20 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
         }
         return level;
     }
-    public override void Write(Utf8JsonWriter writer, RDLevel value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, RDLevel value, RDJsonSerializerOptions options)
     {
         baseEventConverter.WithWriteSettings(WriteSettings);
         using MemoryStream stream = new();
         WriteSettings.FileReferences.Clear();
-        JsonSerializerOptions localOptions = new(options)
+        RDJsonSerializerOptions localOptions = new()
         {
-            WriteIndented = false,
+            Type = RDLevel.LevelType,
+            JsonSerializerOptions = new(options.JsonSerializerOptions)
+            {
+                WriteIndented = false,
+            }
         };
-        byte[] bytes = GetIndentByte(writer, options.IndentCharacter, 2);
+        byte[] bytes = GetIndentByte(writer, options.JsonSerializerOptions.IndentCharacter, 2);
         ReadOnlySpan<byte> sl;
         writer.WriteStartObject();
         writer.WritePropertyName("settings");
@@ -253,11 +257,11 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
 
         writer.WritePropertyName("rows");
         writer.WriteStartArray();
-        using Utf8JsonWriter noIndentWriter = new(stream, new JsonWriterOptions { Indented = false, Encoder = options.Encoder });
+        using Utf8JsonWriter noIndentWriter = new(stream, new JsonWriterOptions { Indented = false, Encoder = options.JsonSerializerOptions.Encoder });
         foreach (Row row in value.Rows)
         {
             stream.SetLength(0);
-            if (options.WriteIndented)
+            if (options.JsonSerializerOptions.WriteIndented)
                 stream.Write(bytes, 0, bytes.Length);
             rowConverter.Write(noIndentWriter, row, localOptions);
             noIndentWriter.Flush();
@@ -278,7 +282,7 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
         foreach (Decoration decoration in value.Decorations)
         {
             stream.SetLength(0);
-            if (options.WriteIndented)
+            if (options.JsonSerializerOptions.WriteIndented)
                 stream.Write(bytes, 0, bytes.Length);
             decorationConverter.Write(noIndentWriter, decoration, localOptions);
             noIndentWriter.Flush();
@@ -301,7 +305,7 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
             {
                 {
                     stream.SetLength(0);
-                    if (options.WriteIndented)
+                    if (options.JsonSerializerOptions.WriteIndented)
                         stream.Write(bytes, 0, bytes.Length);
                     baseEventConverter.Write(noIndentWriter, e, localOptions);
                     noIndentWriter.Flush();
@@ -321,7 +325,7 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
         foreach (Bookmark bookmark in value.Bookmarks)
         {
             stream.SetLength(0);
-            if (options.WriteIndented)
+            if (options.JsonSerializerOptions.WriteIndented)
                 stream.Write(bytes, 0, bytes.Length);
             bookmarkConverter.Write(noIndentWriter, bookmark, localOptions);
             noIndentWriter.Flush();
@@ -340,7 +344,7 @@ internal sealed class LevelConverter : JsonConverter<RDLevel>
         foreach (BaseConditional conditional in value.Conditionals)
         {
             stream.SetLength(0);
-            if (options.WriteIndented)
+            if (options.JsonSerializerOptions.WriteIndented)
                 stream.Write(bytes, 0, bytes.Length);
             conditionalConverter.Write(noIndentWriter, conditional, localOptions);
             noIndentWriter.Flush();

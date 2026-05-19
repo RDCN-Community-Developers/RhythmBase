@@ -37,6 +37,10 @@
 						<Pack>True</Pack>
 						<PackagePath>\</PackagePath>
 				</None>
+				<None Include="../CONTRIBUTION.zh-cn.md">
+						<Pack>False</Pack>
+						<PackagePath>\</PackagePath>
+				</None>
 				<None Include="../RhythmBase_logo_small.png">
 						<Pack>True</Pack>
 						<PackagePath>\</PackagePath>

@@ -7,9 +7,9 @@ using System.Text.Json.Serialization;
 namespace RhythmBase.RhythmDoctor.Converters;
 
 [global::RhythmBase.Global.Converters.RDJsonConverterFor(typeof(Corner))]
-internal class RDCornerConverter : JsonConverter<Corner>
+internal class RDCornerConverter : RDJsonConverter<Corner>
 {
-    public override Corner Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override Corner Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
     {
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray, JsonTokenType.Null]);
         reader.Read();
@@ -24,7 +24,7 @@ internal class RDCornerConverter : JsonConverter<Corner>
             JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
         return corner;
     }
-    private static RDPoint? ReadOneCorner(ref Utf8JsonReader reader, JsonSerializerOptions options)
+    private static RDPoint? ReadOneCorner(ref Utf8JsonReader reader, RDJsonSerializerOptions options)
     {
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray, JsonTokenType.Null]);
         if (reader.TokenType == JsonTokenType.Null)
@@ -40,7 +40,7 @@ internal class RDCornerConverter : JsonConverter<Corner>
         }
         else { return null; }
     }
-    public override void Write(Utf8JsonWriter writer, Corner value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, Corner value, RDJsonSerializerOptions options)
     {
         writer.WriteStartArray();
         WriteOneCorner(writer, value.LeftBottom, options);
@@ -49,7 +49,7 @@ internal class RDCornerConverter : JsonConverter<Corner>
         WriteOneCorner(writer, value.RightTop, options);
         writer.WriteEndArray();
     }
-    private static void WriteOneCorner(Utf8JsonWriter writer, RDPoint? point, JsonSerializerOptions options)
+    private static void WriteOneCorner(Utf8JsonWriter writer, RDPoint? point, RDJsonSerializerOptions options)
     {
         if (point is RDPoint p)
             ConverterHub.Write(writer, p, options);

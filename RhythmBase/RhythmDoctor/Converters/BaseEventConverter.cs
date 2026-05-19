@@ -9,7 +9,7 @@ using static RhythmBase.RhythmDoctor.Utils.EventTypeUtils;
 
 namespace RhythmBase.RhythmDoctor.Converters;
 
-internal class BaseEventConverter : JsonConverter<IBaseEvent>
+internal class BaseEventConverter : RDJsonConverter<IBaseEvent>
 {
     private ILevelReadSettings<IBaseEvent, EventType, RDBeat> _rs = new LevelReadSettings();
     private ILevelWriteSettings<IBaseEvent, EventType, RDBeat> _ws = new LevelWriteSettings();
@@ -27,7 +27,7 @@ internal class BaseEventConverter : JsonConverter<IBaseEvent>
     {
         return Type.IsAssignableFrom(typeToConvert);
     }
-    public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
     {
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
         ReadOnlySpan<byte> type = default;
@@ -60,7 +60,7 @@ internal class BaseEventConverter : JsonConverter<IBaseEvent>
         reader.Read();
         return e;
     }
-    public override void Write(Utf8JsonWriter writer, IBaseEvent value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, IBaseEvent value, RDJsonSerializerOptions options)
     {
         if (value is Events.IForwardEvent ce)
         {

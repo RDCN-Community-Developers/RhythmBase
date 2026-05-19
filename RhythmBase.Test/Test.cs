@@ -103,7 +103,7 @@ namespace RhythmBase.Test
 				{
 					double readTime, writeTime;
 					sw.Restart();
-					using RDLevel level = RDLevel.FromFile("the-powe-S7V1kg9RWYK.rdzip", settings);
+					using RDLevel level = RDLevel.FromZip("the-powe-S7V1kg9RWYK.rdzip", settings);
 					readTime = sw.Elapsed.TotalMilliseconds;
 					Console.Write($"|{i}\t|{readTime,10} ms\t|");
 					sw.Restart();

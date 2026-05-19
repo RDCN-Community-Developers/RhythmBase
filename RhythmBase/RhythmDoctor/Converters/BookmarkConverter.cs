@@ -5,9 +5,9 @@ using System.Text.Json.Serialization;
 namespace RhythmBase.RhythmDoctor.Converters;
 
 [RDJsonConverterFor(typeof(Bookmark))]
-internal class BookmarkConverter() : JsonConverter<Bookmark>
+internal class BookmarkConverter() : RDJsonConverter<Bookmark>
 {
-	public override void Write(Utf8JsonWriter writer, Bookmark value, JsonSerializerOptions serializer)
+	public override void Write(Utf8JsonWriter writer, Bookmark value, RDJsonSerializerOptions serializer)
 	{
 		(int bar, float beat) = value.Beat;
 		writer.WriteStartObject();
@@ -16,7 +16,7 @@ internal class BookmarkConverter() : JsonConverter<Bookmark>
 		writer.WriteNumber("color", (int)value.Color);
 		writer.WriteEndObject();
 	}
-	public override Bookmark Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
+	public override Bookmark Read(ref Utf8JsonReader reader, Type objectType, RDJsonSerializerOptions serializer)
 	{
 		int bar = 1;
 		float beat = 1;

@@ -7,9 +7,9 @@ using System.Text.Json.Serialization;
 namespace RhythmBase.RhythmDoctor.Converters;
 
 [global::RhythmBase.Global.Converters.RDJsonConverterFor(typeof(Row))]
-internal class RowConverter : JsonConverter<Row>
+internal class RowConverter : RDJsonConverter<Row>
 {
-	public override Row? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+	public override Row? Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
 	{
 		Row result = [];
 		while (reader.Read())
@@ -55,7 +55,7 @@ internal class RowConverter : JsonConverter<Row>
 		return result;
 	}
 
-	public override void Write(Utf8JsonWriter writer, Row value, JsonSerializerOptions options)
+	public override void Write(Utf8JsonWriter writer, Row value, RDJsonSerializerOptions options)
 	{
 		writer.WriteStartObject();
 

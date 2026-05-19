@@ -9,7 +9,7 @@ namespace RhythmBase.RhythmDoctor.Converters;
 
 internal abstract class EventInstanceConverterBaseRowAction<TEvent> : EventInstanceConverterBaseEvent<TEvent> where TEvent : BaseRowAction, new()
 {
-	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, JsonSerializerOptions options)
+	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, RDJsonSerializerOptions options)
 	{
 		if (base.Read(ref reader, propertyName, ref value, options))
 			return true;
@@ -19,7 +19,7 @@ internal abstract class EventInstanceConverterBaseRowAction<TEvent> : EventInsta
 			return false;
 		return true;
 	}
-	protected override void Write(Utf8JsonWriter writer, ref TEvent value, JsonSerializerOptions options)
+	protected override void Write(Utf8JsonWriter writer, ref TEvent value, RDJsonSerializerOptions options)
 	{
 		base.Write(writer, ref value, options);
 		writer.WriteNumber("row"u8, value.Parent?.Index ?? value._row);
@@ -30,7 +30,7 @@ internal abstract class EventInstanceConverterBaseBeat<TEvent> : EventInstanceCo
 }
 internal abstract class EventInstanceConverterBaseDecorationAction<TEvent> : EventInstanceConverterBaseEvent<TEvent> where TEvent : BaseDecorationAction, new()
 {
-	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, JsonSerializerOptions options)
+	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, RDJsonSerializerOptions options)
 	{
 		if (base.Read(ref reader, propertyName, ref value, options))
 			return true;
@@ -40,7 +40,7 @@ internal abstract class EventInstanceConverterBaseDecorationAction<TEvent> : Eve
 			return false;
 		return true;
 	}
-	protected override void Write(Utf8JsonWriter writer, ref TEvent value, JsonSerializerOptions options)
+	protected override void Write(Utf8JsonWriter writer, ref TEvent value, RDJsonSerializerOptions options)
 	{
 		base.Write(writer, ref value, options);
 		if (value is not Comment cmt || cmt.CustomTab == Tab.Decorations)
@@ -49,40 +49,40 @@ internal abstract class EventInstanceConverterBaseDecorationAction<TEvent> : Eve
 }
 internal abstract class EventInstanceConverterBaseRowAnimation<TEvent> : EventInstanceConverterBaseRowAction<TEvent> where TEvent : BaseRowAnimation, new()
 {
-	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, JsonSerializerOptions options)
+	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, RDJsonSerializerOptions options)
 	{
 		return base.Read(ref reader, propertyName, ref value, options);
 	}
-	protected override void Write(Utf8JsonWriter writer, ref TEvent value, JsonSerializerOptions options)
+	protected override void Write(Utf8JsonWriter writer, ref TEvent value, RDJsonSerializerOptions options)
 	{
 		base.Write(writer, ref value, options);
 	}
 }
 internal abstract class EventInstanceConverterBaseBeatsPerMinute<TEvent> : EventInstanceConverterBaseEvent<TEvent> where TEvent : BaseBeatsPerMinute, new()
 {
-	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, JsonSerializerOptions options)
+	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, RDJsonSerializerOptions options)
 	{
 		return base.Read(ref reader, propertyName, ref value, options);
 	}
-	protected override void Write(Utf8JsonWriter writer, ref TEvent value, JsonSerializerOptions options)
+	protected override void Write(Utf8JsonWriter writer, ref TEvent value, RDJsonSerializerOptions options)
 	{
 		base.Write(writer, ref value, options);
 	}
 }
 internal abstract class EventInstanceConverterBaseWindowEvent<TEvent> : EventInstanceConverterBaseEvent<TEvent> where TEvent : BaseWindowEvent, new()
 {
-	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, JsonSerializerOptions options)
+	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, RDJsonSerializerOptions options)
 	{
 		return base.Read(ref reader, propertyName, ref value, options);
 	}
-	protected override void Write(Utf8JsonWriter writer, ref TEvent value, JsonSerializerOptions options)
+	protected override void Write(Utf8JsonWriter writer, ref TEvent value, RDJsonSerializerOptions options)
 	{
 		base.Write(writer, ref value, options);
 	}
 }
 internal class EventInstanceConverterSetVFXPreset : EventInstanceConverterBaseEvent<SetVFXPreset>
 {
-	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref SetVFXPreset value, JsonSerializerOptions options)
+	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref SetVFXPreset value, RDJsonSerializerOptions options)
 	{
 		if (base.Read(ref reader, propertyName, ref value, options))
 			return true;
@@ -142,7 +142,7 @@ internal class EventInstanceConverterSetVFXPreset : EventInstanceConverterBaseEv
 		else return false;
 		return true;
 	}
-	protected override void Write(Utf8JsonWriter writer, ref SetVFXPreset value, JsonSerializerOptions options)
+	protected override void Write(Utf8JsonWriter writer, ref SetVFXPreset value, RDJsonSerializerOptions options)
 	{
 		base.Write(writer, ref value, options);
 		{ writer.WritePropertyName("rooms"u8); ConverterHub.Write(writer, value.Rooms, options); }

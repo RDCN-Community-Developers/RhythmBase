@@ -18,22 +18,22 @@ namespace RhythmBase.BeatBlock.Utils
                 //AllowTrailingCommas = true,
             };
         }
-        internal static JsonSerializerOptions GetJsonSerializerOptions(string? dir, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings)
+        internal static RDJsonSerializerOptions GetJsonSerializerOptions(string? dir, ILevelReadSettings<IBaseEvent, EventType, BBBeat>? settings)
         {
             settings??=new LevelReadSettings();
-            JsonSerializerOptions options = new(Utils.options);
+            RDJsonSerializerOptions options = new() { JsonSerializerOptions = new(Utils.options), Type = LevelType.BeatBlock };
             return options; 
         }
-        internal static JsonSerializerOptions GetJsonSerializerOptions(string? dir, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings)
+        internal static RDJsonSerializerOptions GetJsonSerializerOptions(string? dir, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings)
         {
             settings??=new LevelWriteSettings();
-            JsonSerializerOptions options = new(Utils.options);
-            if(settings.Indented)
-                options.WriteIndented = true;
+            RDJsonSerializerOptions options = new() { JsonSerializerOptions = (Utils.options), Type = LevelType.BeatBlock };
+            if (settings.Indented)
+                options.JsonSerializerOptions.WriteIndented = true;
             else
-                options.WriteIndented = false;
-            if(settings.EnableUnsafeRelaxedJsonEscaping)
-                options.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+                options.JsonSerializerOptions.WriteIndented = false;
+            if (settings.EnableUnsafeRelaxedJsonEscaping)
+                options.JsonSerializerOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
             return options;
         }
 

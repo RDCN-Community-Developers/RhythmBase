@@ -6,9 +6,9 @@ using System.Text.Json.Serialization;
 using static RhythmBase.Adofai.Utils.EventTypeUtils;
 namespace RhythmBase.Adofai.Converters
 {
-	internal class BaseEventConverter : JsonConverter<IBaseEvent>
+	internal class BaseEventConverter : RDJsonConverter<IBaseEvent>
 	{
-		public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+		public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
 		{
 			JsonException.ThrowIfNotMatch(reader,	[JsonTokenType.StartObject]);
 			ReadOnlySpan<byte> type = default;
@@ -40,7 +40,7 @@ namespace RhythmBase.Adofai.Converters
 			reader.Read();
 			return e;
 		}
-		public override void Write(Utf8JsonWriter writer, IBaseEvent value, JsonSerializerOptions options)
+		public override void Write(Utf8JsonWriter writer, IBaseEvent value, RDJsonSerializerOptions options)
 		{
 			if(value is Events.IForwardEvent forwardEvent)
 			{
@@ -49,7 +49,7 @@ namespace RhythmBase.Adofai.Converters
 			}
 			converters[value.Type].WriteProperties(writer, value, options);
 		}
-		public Events.IForwardEvent? ReadForwardEvent(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+		public Events.IForwardEvent? ReadForwardEvent(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
 		{
 			using JsonDocument doc = JsonDocument.ParseValue(ref reader);
 			JsonElement root = doc.RootElement;

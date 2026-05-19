@@ -31,6 +31,7 @@
     - [0x4D2](https://github.com/0x4D25F2) 提供了大量测试和反馈。
     - [mfgujhgh](https://github.com/mfgujhgh) 提供了算法指导。
 - 赞助
+    - [NTide](https://space.bilibili.com/351700081)
     - [来因洛特 | layinloty](https://space.bilibili.com/406743035)
     - [狗小白 | Dogbai](https://space.bilibili.com/1129425006)
     - [只能用宽判的屑 | kuanpan](https://space.bilibili.com/1928620300)

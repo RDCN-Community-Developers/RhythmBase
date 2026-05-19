@@ -6,7 +6,7 @@ namespace RhythmBase.Global.Converters;
 
 internal record class RDJsonSerializerOptions
 {
-    public JsonSerializerOptions JsonSerializerOptions { get; internal set; } = new JsonSerializerOptions
+    public required JsonSerializerOptions JsonSerializerOptions { get; internal set; } = new JsonSerializerOptions
     {
         Converters =
         {
@@ -15,13 +15,14 @@ internal record class RDJsonSerializerOptions
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         WriteIndented = true,
     };
+    public required LevelType Type { get; internal init; }
 }
 internal abstract class RDJsonConverter<T> : JsonConverter<T>
 {
-    public RDJsonSerializerOptions JsonSerializerOptions { get; internal set; }
+    public RDJsonSerializerOptions? JsonSerializerOptions { get; internal set; }
     public RDJsonConverter<T> WithOptions(JsonSerializerOptions options)
     {
-        this.JsonSerializerOptions.JsonSerializerOptions = options;
+        this.JsonSerializerOptions ??= new RDJsonSerializerOptions { Type = LevelType.Unknown, JsonSerializerOptions = options };
         return this;
     }
     public RDJsonConverter<T> WithOptions(RDJsonSerializerOptions options)
@@ -29,34 +30,39 @@ internal abstract class RDJsonConverter<T> : JsonConverter<T>
         this.JsonSerializerOptions = options;
         return this;
     }
-    public virtual T? Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
+    public abstract T? Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options);
+    public abstract void Write(Utf8JsonWriter writer, T value, RDJsonSerializerOptions options);
+    public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return Read(ref reader, typeToConvert, options.JsonSerializerOptions);
+        throw new NotSupportedException();
+        return Read(ref reader, typeToConvert, this.JsonSerializerOptions ?? new RDJsonSerializerOptions { Type = LevelType.Unknown, JsonSerializerOptions = options });
     }
     public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
-    { 
+    {
+        throw new NotSupportedException();
+        Write(writer, value, this.JsonSerializerOptions ?? new RDJsonSerializerOptions { Type = LevelType.Unknown, JsonSerializerOptions = options });
     }
 }
 
 [RDJsonConverterFor(typeof(RDColor))]
-internal class ColorConverter : JsonConverter<RDColor>
+internal class ColorConverter : RDJsonConverter<RDColor>
 {
-    public override RDColor Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override RDColor Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
     {
         var tokenType = JsonException.ThrowIfNotMatch(reader, [JsonTokenType.String, JsonTokenType.Null, JsonTokenType.StartObject]);
-        switch (tokenType)
+        switch (options.Type)
         {
-            case JsonTokenType.String:
-            case JsonTokenType.Null:
+            case LevelType.RhythmDoctor:
+            case LevelType.Adofai:
                 string? s = reader.GetString();
                 if (string.IsNullOrEmpty(s)) return default;
                 return RDColor.TryFromRgba(s!, out RDColor c) ? c : default;
-            case JsonTokenType.StartObject:
+            case LevelType.BeatBlock:
                 RDColor color = default;
                 while (reader.Read())
                 {
                     if (reader.TokenType == JsonTokenType.EndObject)
-                    {  return default; }
+                    { return default; }
                     JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
                     reader.Read();
                     if (reader.ValueSpan.SequenceEqual("r"u8) || reader.ValueSpan.SequenceEqual("red"u8))
@@ -76,7 +82,7 @@ internal class ColorConverter : JsonConverter<RDColor>
         }
     }
 
-    public override void Write(Utf8JsonWriter writer, RDColor value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, RDColor value, RDJsonSerializerOptions options)
     {
         writer.WriteStringValue(value.ToString("rrggbbaa"));
     }
