@@ -18,13 +18,7 @@ public record LevelWriteSettings : ILevelWriteSettings<IBaseEvent, EventType, AD
     /// Event triggered after writing.
     /// </summary>
     public event EventHandler? AfterWriting;
-    /// <summary>
-    /// Gets or sets the value associated with the specified key in the custom data dictionary.
-    /// </summary>
-    /// <remarks>If the key does not exist in the dictionary, the getter returns null. The setter will overwrite any
-    /// existing value associated with the key.</remarks>
-    /// <param name="key">The key used to access the value in the custom data dictionary. Must not be null.</param>
-    /// <returns>The value associated with the specified key if it exists; otherwise, null.</returns>
+    /// <inheritdoc/>
     public object? this[string key]
     {
         get => CustomData.TryGetValue(key, out var value) ? value : null;
@@ -36,51 +30,21 @@ public record LevelWriteSettings : ILevelWriteSettings<IBaseEvent, EventType, AD
     public LevelWriteSettings()
     {
     }
-    /// <summary>
-    /// Enable resource preloading. This may grow read times. 
-    /// Defaults to <see langword="false" />.
-    /// </summary>
+    /// <inheritdoc/>
     public bool LoadAssets { get; set; } = false;
-    /// <summary>
-    /// Gets or sets a value indicating whether to enable unsafe relaxed JSON escaping during serialization.
-    /// </summary>
-    /// <remarks>When set to <see langword="true"/>, this property allows certain characters in JSON strings to be
-    /// serialized without escaping, which may improve readability or compatibility with some consumers. However, enabling
-    /// this option can introduce security risks, such as cross-site scripting (XSS) vulnerabilities, if untrusted data is
-    /// serialized. Use with caution and ensure that all data is properly validated and sanitized before
-    /// serialization.</remarks>
+    /// <inheritdoc/>
     public bool EnableUnsafeRelaxedJsonEscaping { get; set; } = true;
-    /// <summary>
-    /// Action on inactive items on reads or writes.
-    /// Defaults to <see cref="F:RhythmBase.Global.Settings.InactiveEventsHandling.Retain" />.
-    /// </summary>
+    /// <inheritdoc/>
     public InactiveEventsHandling InactiveEventsHandling { get; set; } = InactiveEventsHandling.Retain;
-    /// <summary>
-    /// Stores unreadable event data when the <see cref="P:RhythmBase.Global.Settings.LevelReadOrWriteSettings.InactiveEventsHandling" /> is <see cref="F:RhythmBase.Global.Settings.InactiveEventsHandling.Store" />.
-    /// </summary>
+    /// <inheritdoc/>
     public List<IBaseEvent> InactiveEvents { get; set; } = [];
-    /// <summary>
-    /// Action on unreadable events.
-    /// Defaults to <see cref="F:RhythmBase.Global.Settings.UnreadableEventHandling.ThrowException" />.
-    /// </summary>
+    /// <inheritdoc/>
     public UnreadableEventHandling UnreadableEventsHandling { get; set; } = UnreadableEventHandling.ThrowException;
-    /// <summary>
-    /// Gets the collection of file references associated with this instance.
-    /// </summary>
-    /// <remarks>The returned collection is read-only and reflects the current set of file references.
-    /// Modifications to the collection itself are not supported; to update the set of file references, use the
-    /// appropriate methods provided by the class.</remarks>
+    /// <inheritdoc/>
     public HashSet<FileReference> FileReferences { get; } = [];
-    /// <summary>
-    /// Stores unreadable event data when the <see cref="P:RhythmBase.Global.Settings.LevelReadOrWriteSettings.UnreadableEventsHandling" /> is <see cref="F:RhythmBase.Global.Settings.UnreadableEventHandling.Store" />.
-    /// </summary>
-    /// <returns></returns>
+    /// <inheritdoc/>
     public List<(JsonElement item, string reason)> UnreadableEvents { get; set; } = [];
-    /// <summary>
-    /// Handles an inactive event based on the current <see cref="InactiveEventsHandling"/> setting.
-    /// </summary>
-    /// <param name="item">The inactive event to handle.</param>
-    /// <returns><c>true</c> if the event was handled and should be skipped; <c>false</c> if the event should be retained.</returns>
+    /// <inheritdoc/>
     public bool HandleInactiveEvent(IBaseEvent item)
     {
         switch (InactiveEventsHandling)
@@ -93,11 +57,7 @@ public record LevelWriteSettings : ILevelWriteSettings<IBaseEvent, EventType, AD
         }
         return true;
     }
-    /// <summary>
-    /// Handles an unreadable event based on the current <see cref="UnreadableEventsHandling"/> setting.
-    /// </summary>
-    /// <param name="item">The unreadable JSON element.</param>
-    /// <param name="reason">The reason why the event is unreadable.</param>
+    /// <inheritdoc/>
     public void HandleUnreadableEvent(JsonElement item, string reason)
     {
         switch (UnreadableEventsHandling)
@@ -109,23 +69,20 @@ public record LevelWriteSettings : ILevelWriteSettings<IBaseEvent, EventType, AD
                 break;
         }
     }
-    /// <summary>
-    /// Use indentation. 
-    /// Defaults to <see langword="true" />.
-    /// </summary>
+    /// <inheritdoc/>
     public bool Indented { get; set; } = true;
-    /// <summary>
-    /// Raises the <see cref="BeforeWriting"/> event before writing begins.
-    /// </summary>
-    public void OnBeforeWriting()
-    {
-        BeforeWriting?.Invoke(this, EventArgs.Empty);
-    }
-    /// <summary>
-    /// Raises the <see cref="AfterWriting"/> event after writing completes.
-    /// </summary>
-    public void OnAfterWriting()
-    {
-        AfterWriting?.Invoke(this, EventArgs.Empty);
-    }
+    ///// <summary>
+    ///// Raises the <see cref="BeforeWriting"/> event before writing begins.
+    ///// </summary>
+    //public void OnBeforeWriting()
+    //{
+    //    BeforeWriting?.Invoke(this, EventArgs.Empty);
+    //}
+    ///// <summary>
+    ///// Raises the <see cref="AfterWriting"/> event after writing completes.
+    ///// </summary>
+    //public void OnAfterWriting()
+    //{
+    //    AfterWriting?.Invoke(this, EventArgs.Empty);
+    //}
 }

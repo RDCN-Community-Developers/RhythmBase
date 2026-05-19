@@ -103,14 +103,14 @@ public interface ILevelWriteSettings<TEvent, TType, TBeat> : ILevelReadOrWriteSe
     /// Defaults to <see langword="true" />.
     /// </summary>
     bool Indented { get; set; }
-    /// <summary>
-    /// Invoked after writing is complete. This method can be used to perform any necessary post-processing or cleanup after the writing process has finished.
-    /// </summary>
-    void OnAfterWriting();
-    /// <summary>
-    /// Invoked before writing begins. This method can be used to perform any necessary setup or initialization before the writing process starts.
-    /// </summary>
-    void OnBeforeWriting();
+    ///// <summary>
+    ///// Invoked after writing is complete. This method can be used to perform any necessary post-processing or cleanup after the writing process has finished.
+    ///// </summary>
+    //void OnAfterWriting();
+    ///// <summary>
+    ///// Invoked before writing begins. This method can be used to perform any necessary setup or initialization before the writing process starts.
+    ///// </summary>
+    //void OnBeforeWriting();
 }
 /// <summary>
 /// Level import settings.
@@ -132,12 +132,12 @@ public interface ILevelReadSettings<TEvent, TType, TBeat> : ILevelReadOrWriteSet
 	/// Event triggered after reading.
 	/// </summary>
 	event EventHandler? AfterReading;
-    /// <summary>
-    /// Invoked after reading is complete. This method can be used to perform any necessary post-processing or cleanup after the reading process has finished.
-    /// </summary>
-    void OnAfterReading();
-    /// <summary>
-    /// Invoked before reading begins. This method can be used to perform any necessary setup or initialization before the reading process starts.
-    /// </summary>
-    void OnBeforeReading();
+    ///// <summary>
+    ///// Invoked after reading is complete. This method can be used to perform any necessary post-processing or cleanup after the reading process has finished.
+    ///// </summary>
+    //void OnAfterReading();
+    ///// <summary>
+    ///// Invoked before reading begins. This method can be used to perform any necessary setup or initialization before the reading process starts.
+    ///// </summary>
+    //void OnBeforeReading();
 }

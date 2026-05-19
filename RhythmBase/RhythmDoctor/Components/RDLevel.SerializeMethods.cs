@@ -207,9 +207,7 @@ partial class RDLevel
         settings ??= new LevelReadSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         RDLevel? level;
-        settings.OnBeforeReading();
         level = Deserializer.Deserialize(new StreamDataSource(rdlevelStream), options);
-        settings.OnAfterReading();
         return level ?? [];
     }
     private static RDLevel FromStream(Stream rdlevelStream, string dirPath, ILevelReadSettings<IBaseEvent, EventType, RDBeat>? settings = null)
@@ -217,9 +215,7 @@ partial class RDLevel
         settings ??= new LevelReadSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(dirPath, settings);
         RDLevel? level;
-        settings.OnBeforeReading();
         level = Deserializer.Deserialize(new StreamDataSource(rdlevelStream), options);
-        settings.OnAfterReading();
         return level ?? [];
     }
     /// <inheritdoc/>
@@ -228,9 +224,7 @@ partial class RDLevel
         settings ??= new LevelReadSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         RDLevel? level;
-        settings.OnBeforeReading();
         level = Deserializer.DeserializeAsync(new StreamDataSource(rdlevelStream), options, cancellationToken).GetAwaiter().GetResult();
-        settings.OnAfterReading();
         return level ?? [];
     }
     /// <inheritdoc/>
@@ -239,9 +233,7 @@ partial class RDLevel
         settings ??= new LevelReadSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         RDLevel? level;
-        settings.OnBeforeReading();
         level = Deserializer.Deserialize(new ReadOnlyMemoryDataSource(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(json))), options);
-        settings.OnAfterReading();
         return level ?? [];
     }
     /// <inheritdoc/>
@@ -250,9 +242,7 @@ partial class RDLevel
         settings ??= new LevelReadSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         RDLevel? level;
-        settings.OnBeforeReading();
         level = Deserializer.Deserialize(new JsonDocumentDataSource(jsonDocument), options);
-        settings.OnAfterReading();
         return level ?? [];
     }
     /// <inheritdoc/>
@@ -260,18 +250,14 @@ partial class RDLevel
     {
         settings ??= new LevelWriteSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
-        settings.OnBeforeWriting();
         WriteToStream(stream, this, options);
-        settings.OnAfterWriting();
     }
     /// <inheritdoc/>
     public async void SaveToStreamAsync(Stream stream, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         settings ??= new LevelWriteSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
-        settings.OnBeforeWriting();
         await Task.Run(() => WriteToStream(stream, this, options), cancellationToken);
-        settings.OnAfterWriting();
     }
     /// <inheritdoc/>
     public void SaveToFile(string filepath, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
@@ -280,13 +266,11 @@ partial class RDLevel
         DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
         if (!directory.Exists)
             directory.Create();
-        settings.OnBeforeWriting();
         using (FileStream stream = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write))
         {
             stream.SetLength(0);
             SaveToStream(stream, settings);
         }
-        settings.OnAfterWriting();
     }
     /// <inheritdoc/>
     public async void SaveToFileAsync(string filepath, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null, CancellationToken cancellationToken = default)
@@ -296,13 +280,11 @@ partial class RDLevel
         DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
         if (!directory.Exists)
             directory.Create();
-        settings.OnBeforeWriting();
         using (FileStream stream = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write))
         {
             stream.SetLength(0);
             await Task.Run(() => SaveToStream(stream, settings), cancellationToken);
         }
-        settings.OnAfterWriting();
     }
     /// <inheritdoc/>
     public void SaveToZip(string filepath, ILevelWriteSettings<IBaseEvent, EventType, RDBeat>? settings = null)
@@ -316,7 +298,6 @@ partial class RDLevel
         DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
         if (!directory.Exists)
             directory.Create();
-        settings.OnBeforeWriting();
         using Stream stream = new FileStream(filepath, FileMode.Create, FileAccess.Write);
         ZipArchive archive = new(stream, ZipArchiveMode.Create);
         ZipArchiveEntry entry = archive.CreateEntry("main.rdlevel");
@@ -329,7 +310,6 @@ partial class RDLevel
             archive.CreateEntryFromFile(Path.Combine(ResolvedDirectory, file.Path), Path.GetFileName(file.Path));
         }
         archive.Dispose();
-        settings.OnAfterWriting();
         settings.LoadAssets = loadAssets;
     }
     /// <inheritdoc/>
@@ -345,7 +325,6 @@ partial class RDLevel
         DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
         if (!directory.Exists)
             directory.Create();
-        settings.OnBeforeWriting();
         using Stream stream = new FileStream(filepath, FileMode.Create, FileAccess.Write);
         ZipArchive archive = new(stream, ZipArchiveMode.Create);
         ZipArchiveEntry entry = archive.CreateEntry("main.rdlevel");
@@ -358,7 +337,6 @@ partial class RDLevel
             archive.CreateEntryFromFile(Path.Combine(ResolvedDirectory, file.Path), Path.GetFileName(file.Path));
         }
         archive.Dispose();
-        settings.OnAfterWriting();
         settings.LoadAssets = loadAssets;
     }
     /// <summary>
@@ -371,14 +349,12 @@ partial class RDLevel
         settings ??= new LevelWriteSettings();
         JsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
         string json;
-        settings.OnBeforeWriting();
         using (MemoryStream stream = new())
         {
             SaveToStream(stream, settings);
             stream.Seek(0, SeekOrigin.Begin);
             json = Encoding.UTF8.GetString(stream.ToArray());
         }
-        settings.OnAfterWriting();
         return json;
     }
     /// <summary>
@@ -394,12 +370,10 @@ partial class RDLevel
     {
         settings ??= new LevelWriteSettings();
         string json;
-        settings.OnBeforeWriting();
         MemoryStream stream = new();
         SaveToStream(stream, settings);
         stream.Seek(0, SeekOrigin.Begin);
         json = Encoding.UTF8.GetString(stream.ToArray());
-        settings.OnAfterWriting();
         return JsonDocument.Parse(json);
     }
 }
