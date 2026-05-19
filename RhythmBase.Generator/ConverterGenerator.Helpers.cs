@@ -95,7 +95,7 @@ public partial class ConverterGenerator
                     registrations.Add((targetType, result.ConverterType, result.Location));
             }
 
-            foreach (var group in registrations.GroupBy(i => i.TargetType, SymbolEqualityComparer.Default))
+            foreach (var group in registrations.GroupBy(i => i.TargetType, SymbolEqualityComparer.Default).Distinct())
             {
                 if (group.Count() <= 1)
                     continue;
