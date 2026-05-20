@@ -15,7 +15,6 @@ namespace RhythmBase.Global.Components
         where TType : struct, Enum
         where TBeat : struct, IBeat<TBeat>
     {
-        public int Count { get; }
         /// <summary>
         /// The original file path as provided (e.g., archive path or direct file path).
         /// </summary>

@@ -1,9 +1,9 @@
-﻿using System.Collections;
+﻿using RhythmBase.BeatBlock.Events;
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace RhythmBase.BeatBlock.Components;
-
 public record class Metadata
 {
     public string SongName { get; set; } = string.Empty;
@@ -42,8 +42,9 @@ public record class BackgroundData
     {
     }
 }
-public record class Variant
+public class Variant : OrderedEventCollection<IBaseEvent, EventType, BBBeat>
 {
+    internal bool isDefault = false;
     public string Charter { get; set; } = string.Empty;
     public int Difficulty { get; set; }
     public string Display { get; set; } = string.Empty;
@@ -51,10 +52,64 @@ public record class Variant
     public bool Hidden { get; set; } = false;
     public string Name { get; set; }
     public int Slot => _parent?._variants.IndexOf(this) ?? -1;
+    [MemberNotNullWhen(false, nameof(LevelFile))]
+    public bool IsUsingDefaultLevel { get; private set; } = true;
+    public int FormatVersion => DefaultVersionBeatBlock;
+    public string? LevelFile { get; set; }
+    internal Variant() { }
+    public Variant(string name)
+    {
+        Name = name;
+    }
+    internal override ReadOnlyEnumCollection<EventType> Types => Utils.EventTypeUtils.ToEnums<IChartEvent>();
+
     internal VariantCollection? _parent;
+    internal override BBBeat CreateInstance(float beat) => new BBBeat(beat);
+
+    internal override IBeatRange<BBBeat> CreateRange(float? start, float? end) => new BBRange(start, end);
+
+    internal override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>()
+    {
+        return Utils.EventTypeUtils.ToEnums(typeof(TTarget));
+    }
+    [MemberNotNull(nameof(LevelFile))]
+    public void SeparateFromDefaultLevel()
+    {
+        if (_parent == null)
+            throw new InvalidOperationException($"Variant '{Name}' is not associated with any level.");
+        if (!IsUsingDefaultLevel)
+            throw new InvalidOperationException($"Variant '{Name}' is already separated from the default level.");
+        foreach(var e in _parent.Default)
+        {
+            if (!Contains(e) && e is not IChartEvent && e is BaseEvent eb)
+                Add(eb with { });
+        }
+        IsUsingDefaultLevel = false;
+        LevelFile = $"level-{Name}.json";
+    }
+    public override bool Add(IBaseEvent item)
+    {
+        if (isDefault && item is IChartEvent)
+            return false;
+        return base.Add(item);
+    }
+    public override bool Remove(IBaseEvent item)
+    {        
+        if (isDefault && item is IChartEvent)
+            return false;
+        return base.Remove(item);
+    }
+    public override bool Contains(IBaseEvent item)
+    {
+        if (isDefault && item is IChartEvent) 
+            return false;
+        return base.Contains(item);
+    }
 }
 public class VariantCollection : ICollection<Variant>
 {
+    internal BBLevel _parent;
+    public Variant Default { get; private set; } = new() { isDefault = true };
     internal readonly List<Variant> _variants = [];
     /// <inheritdoc/>
     public int Count => _variants.Count;
@@ -89,8 +144,9 @@ public class VariantCollection : ICollection<Variant>
         return variant != null;
     }
     /// <inheritdoc/>
-    public VariantCollection()
+    public VariantCollection(BBLevel level)
     {
+        _parent = level;
     }
 
     /// <inheritdoc/>

@@ -6,7 +6,7 @@ namespace RhythmBase.BeatBlock.Components;
 /// Represents a BeatBlock level.
 /// </summary>
 public partial class BBLevel :
-    OrderedEventCollection<IBaseEvent, EventType, BBBeat>,
+    //OrderedEventCollection<IBaseEvent, EventType, BBBeat>,
     IJsonLevel<BBLevel, IBaseEvent, EventType, BBBeat>,
     IArchiveLevel<BBLevel, IBaseEvent, EventType, BBBeat>,
     IMultiFileLevel<BBLevel, IBaseEvent, EventType, BBBeat>,
@@ -22,9 +22,19 @@ public partial class BBLevel :
     /// Gets or sets the properties of the level.
     /// </summary>
     public Properties Properties { get; set; } = new Properties();
+    /// <summary>
+    /// Gets or sets the default variant of the level.
+    /// </summary>
     public string? DefaultVariant { get; set; }
+    /// <summary>
+    /// Gets or sets the metadata of the level.
+    /// </summary>
     public Metadata Metadata { get; set; } = new Metadata();
-    public VariantCollection Variants { get; } = new VariantCollection();
+    public Dictionary<string, TagEventCollection> TagEvents { get; } = [];
+    /// <summary>
+    /// Gets the collection of variants for the level.
+    /// </summary>
+    public VariantCollection Variants { get; }
     /// <summary>
     /// Gets the resolved path of the level file.
     /// </summary>
@@ -42,33 +52,9 @@ public partial class BBLevel :
     /// Gets the beat calculator for the level.
     /// </summary>
     public BeatCalculator Calculator { get; } = new BeatCalculator();
-    internal override BBBeat CreateInstance(float beat) => new BBBeat(beat);
-    internal override IBeatRange<BBBeat> CreateRange(float? start, float? end)
+    public BBLevel()
     {
-        throw new NotImplementedException();
-    }
-    internal override ReadOnlyEnumCollection<EventType> Types => throw new NotImplementedException();
-    internal override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>()
-    {
-        throw new NotImplementedException();
-    }
-    /// <summary>
-    /// Adds an event to the level.
-    /// </summary>
-    /// <param name="e">The event to add.</param>
-    /// <returns><see langword="true"/> if the event was added; otherwise, <see langword="false"/>.</returns>
-    public override bool Add(IBaseEvent e)
-    {
-        base.Add(e); return true;
-    }
-    /// <summary>
-    /// Removes an event from the level.
-    /// </summary>
-    /// <param name="e">The event to remove.</param>
-    /// <returns><see langword="true"/> if the event was removed; otherwise, <see langword="false"/>.</returns>
-    public override bool Remove(IBaseEvent e)
-    {
-        throw new NotImplementedException();
+        Variants = new VariantCollection(this);
     }
     /// <summary>
     /// Releases all resources used by the <see cref="BBLevel"/>.

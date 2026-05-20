@@ -15,7 +15,7 @@ internal class ManifestConverter : RDJsonConverter<BBLevel>
     public override BBLevel? Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
     {
         reader.Read();
-        BBLevel level = [];
+        BBLevel level = new();
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
         while (reader.Read())
         {
@@ -155,6 +155,8 @@ internal class ManifestConverter : RDJsonConverter<BBLevel>
                             variant.Name = reader.GetString() ?? "";
                         else if (variantPropertyName.SequenceEqual("slot"u8))
                             index = reader.GetInt32();
+                        else if (variantPropertyName.SequenceEqual("levelFile"u8))
+                            variant.LevelFile = reader.GetString();
                         else
                             reader.Skip();
                     }

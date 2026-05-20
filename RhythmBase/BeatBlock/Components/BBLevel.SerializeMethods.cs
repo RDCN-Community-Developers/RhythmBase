@@ -22,18 +22,18 @@ partial class BBLevel
                 ? dataSource.GetMemory()
                 : dataSource.GetMemoryAsync().GetAwaiter().GetResult();
             Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
-            return ConverterHub.Read<BBLevel>(ref reader, options) ?? [];
+            return ConverterHub.Read<BBLevel>(ref reader, options) ?? new();
         }
-        public static async Task<BBLevel> DeserializeLevelAsync(IJsonDataSource dataSource, RDJsonSerializerOptions options, CancellationToken token = default)
+        public static async Task<BBLevel> DeserializeManifestAsync(IJsonDataSource dataSource, RDJsonSerializerOptions options, CancellationToken token = default)
         {
             ReadOnlyMemory<byte> jsonData =
                  dataSource.CanGetMemoryDirectly
                 ? dataSource.GetMemory()
                 : await dataSource.GetMemoryAsync(token);
             Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
-            return ConverterHub.Read<BBLevel>(ref reader, options) ?? [];
+            return ConverterHub.Read<BBLevel>(ref reader, options) ?? new();
         }
-        public static void DeserializeLevel(IJsonDataSource dataSource, RDJsonSerializerOptions options, BBLevel level, ILevelReadSettings<IBaseEvent, EventType, BBBeat> settings)
+        public static void DeserializeLevel(IJsonDataSource dataSource, RDJsonSerializerOptions options, Variant variant, ILevelReadSettings<IBaseEvent, EventType, BBBeat> settings)
         {
             ReadOnlyMemory<byte> jsonData =
                 dataSource.CanGetMemoryDirectly
@@ -50,14 +50,14 @@ partial class BBLevel
                 reader.Read();
                 if (propertyName.SequenceEqual("events"u8))
                     foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
-                        level.Add(e);
+                        variant.Add(e);
                 else
                 {
                     reader.Skip();
                 }
             }
         }
-        public static void DeserializeEvents(IJsonDataSource dataSource, string variantName, RDJsonSerializerOptions options, BBLevel level, ILevelReadSettings<IBaseEvent, EventType, BBBeat> settings)
+        public static void DeserializeChart(IJsonDataSource dataSource, RDJsonSerializerOptions options, Variant variant, ILevelReadSettings<IBaseEvent, EventType, BBBeat> settings)
         {
             ReadOnlyMemory<byte> jsonData =
                 dataSource.CanGetMemoryDirectly
@@ -68,8 +68,22 @@ partial class BBLevel
             JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
             foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
             {
-                e.Variant = variantName;
-                level.Add(e);
+                variant.Add(e);
+            }
+            reader.Read();
+        }
+        public static void DeserializeTag(IJsonDataSource dataSource, RDJsonSerializerOptions options, TagEventCollection collection, ILevelReadSettings<IBaseEvent, EventType, BBBeat> settings)
+        {
+            ReadOnlyMemory<byte> jsonData =
+                dataSource.CanGetMemoryDirectly
+                ? dataSource.GetMemory()
+                : dataSource.GetMemoryAsync().GetAwaiter().GetResult();
+            Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
+            reader.Read();
+            JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+            foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
+            {
+                collection.Add(e);
             }
             reader.Read();
         }
@@ -124,22 +138,31 @@ partial class BBLevel
             ConverterHub.Write(writer, level, options);
             writer.Flush();
         }
-        public static void WriteLevelToStream(Stream stream, BBLevel level, RDJsonSerializerOptions options)
+        public static void WriteVariantLevelToStream(Stream stream, Variant level, RDJsonSerializerOptions options)
         {
             using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
             writer.WriteStartObject();
             writer.WriteStartArray("events"u8);
-            foreach (var e in level.Where(i => i is not IPureEvent))
+            foreach (var e in level.Where(i => i is not IChartEvent))
                 baseEventConverter.Write(writer, e, options);
             writer.WriteEndArray();
             writer.WriteEndObject();
             writer.Flush();
         }
-        public static void WriteEventsToStream(Stream stream, BBLevel level, string variantName, RDJsonSerializerOptions options)
+        public static void WriteVariantChartsToStream(Stream stream, Variant variant, RDJsonSerializerOptions options)
         {
             using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
             writer.WriteStartArray();
-            foreach (IBaseEvent e in level.Where(e => e.Variant == variantName))
+            foreach (IBaseEvent e in variant.Where(i => i is IChartEvent))
+                baseEventConverter.Write(writer, e, options);
+            writer.WriteEndArray();
+            writer.Flush();
+        }
+        public static void WriteTagEventsToStream(Stream stream, TagEventCollection collection, RDJsonSerializerOptions options)
+        {
+            using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
+            writer.WriteStartArray();
+            foreach (IBaseEvent e in collection)
                 baseEventConverter.Write(writer, e, options);
             writer.WriteEndArray();
             writer.Flush();
@@ -157,37 +180,78 @@ partial class BBLevel
         string manifestFilePath = Path.Combine(directoryPath, "manifest.json");
         using FileStream manifestFs = File.Open(manifestFilePath, FileMode.Open, FileAccess.Read);
         level = Deserializer.DeserializeManifest(new StreamDataSource(manifestFs), options);
-        string levelFile = Path.Combine(directoryPath, "level.json");
-        using FileStream levelFs = File.Open(levelFile, FileMode.Open, FileAccess.Read);
-        Deserializer.DeserializeLevel(new StreamDataSource(levelFs), options, level, settings);
+        string defaultLevelFile = Path.Combine(directoryPath, "level.json");
+        if (File.Exists(defaultLevelFile))
+        {
+            using FileStream levelFs = File.Open(defaultLevelFile, FileMode.Open, FileAccess.Read);
+            Deserializer.DeserializeLevel(new StreamDataSource(levelFs), options, level.Variants.Default, settings);
+        }
         foreach (Variant variant in level.Variants)
         {
+            if (!string.IsNullOrEmpty(variant.LevelFile))
+            {
+                string levelFile = Path.Combine(directoryPath, variant.LevelFile);
+                if (File.Exists(levelFile))
+                {
+                    using FileStream levelFsVariant = File.Open(levelFile, FileMode.Open, FileAccess.Read);
+                    Deserializer.DeserializeLevel(new StreamDataSource(levelFsVariant), options, variant, settings);
+                }
+            }
             string chartFile = Path.Combine(directoryPath, $"chart-{variant.Name}.json");
             using FileStream chartFs = File.Open(chartFile, FileMode.Open, FileAccess.Read);
-            Deserializer.DeserializeEvents(new StreamDataSource(chartFs), variant.Name, options, level, settings);
+            Deserializer.DeserializeChart(new StreamDataSource(chartFs), options, variant, settings);
+        }
+        if(Directory.Exists(Path.Combine(directoryPath, "tags")))
+        {
+            string[] tags = Directory.GetFiles(Path.Combine(directoryPath, "tags"), "*.json");
+            foreach(string tagFile in tags)
+            {
+                TagEventCollection collection = [];
+                using FileStream tagFs = File.Open(tagFile, FileMode.Open, FileAccess.Read);
+                Deserializer.DeserializeTag(new StreamDataSource(tagFs), options, collection, settings);
+                string tagName = Path.GetFileNameWithoutExtension(tagFile);
+                level.TagEvents[tagName] = collection;
+            }
         }
         return level;
     }
     /// <inheritdoc/>
     public void SaveToDirectory(string directoryPath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null) => SaveToDirectoryAsync(directoryPath, settings).GetAwaiter().GetResult();
     /// <inheritdoc/>
-    public Task SaveToDirectoryAsync(string directoryPath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
+    public async Task SaveToDirectoryAsync(string directoryPath, ILevelWriteSettings<IBaseEvent, EventType, BBBeat>? settings = null, CancellationToken cancellationToken = default)
     {
         settings ??= new LevelWriteSettings();
         RDJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(directoryPath, settings);
         string manifestFilePath = Path.Combine(directoryPath, "manifest.json");
         using FileStream manifestFs = File.Open(manifestFilePath, FileMode.Create, FileAccess.Write);
         Deserializer.WriteManifestToStream(manifestFs, this, options);
-        string levelFile = Path.Combine(directoryPath, "level.json");
-        using FileStream levelFs = File.Open(levelFile, FileMode.Create, FileAccess.Write);
-        Deserializer.WriteLevelToStream(levelFs, this, options);
+        string defaultLevelFile = Path.Combine(directoryPath, "level.json");
+        using FileStream levelFs = File.Open(defaultLevelFile, FileMode.Create, FileAccess.Write);
+        if (this.Variants.Any(i => i.IsUsingDefaultLevel))
+            Deserializer.WriteVariantLevelToStream(levelFs, this.Variants.Default, options);
         foreach (Variant variant in Variants)
         {
+            if (!variant.IsUsingDefaultLevel)
+            {
+                string levelFile = Path.Combine(directoryPath, variant.LevelFile);
+                using FileStream levelFsVariant = File.Open(levelFile, FileMode.Create, FileAccess.Write);
+                Deserializer.WriteVariantLevelToStream(levelFsVariant, variant, options);
+            }
             string chartFile = Path.Combine(directoryPath, $"chart-{variant.Name}.json");
             using FileStream chartFs = File.Open(chartFile, FileMode.Create, FileAccess.Write);
-            Deserializer.WriteEventsToStream(chartFs, this, variant.Name, options);
+            Deserializer.WriteVariantChartsToStream(chartFs, variant, options);
         }
-        return Task.CompletedTask;
+        if(this.TagEvents.Count > 0) 
+        {
+            string tagsDir = Path.Combine(directoryPath, "tags");
+            Directory.CreateDirectory(tagsDir);
+            foreach (var tag in TagEvents)
+            {
+                string tagFile = Path.Combine(tagsDir, $"{tag.Key}.json");
+                using FileStream tagFs = File.Open(tagFile, FileMode.Create, FileAccess.Write);
+                Deserializer.WriteTagEventsToStream(tagFs, tag.Value, options);
+            }
+        }
     }
     #endregion
     #region zip
