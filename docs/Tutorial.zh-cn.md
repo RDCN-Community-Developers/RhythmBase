@@ -41,6 +41,7 @@
   - `Global`：公共组件。
   - `RhythmDoctor`：节奏医生专用组件。
   - `Adofai`：冰与火之舞专用组件。
+	- `BeatBlock`：节奏方块专用组件。
 - **综合类型**：对各分支组件的进一步归类。
   - `Components`：基本数据模型。
   - `Constants`：预定义常量。
