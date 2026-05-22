@@ -28,7 +28,7 @@ namespace RhythmBase.BeatBlock.Utils
         {
             settings??=new LevelWriteSettings();
             RDJsonSerializerOptions options = new() { JsonSerializerOptions = (Utils.options), Type = LevelType.BeatBlock };
-            if (settings.Indented)
+            if (settings.AlignIndented)
                 options.JsonSerializerOptions.WriteIndented = true;
             else
                 options.JsonSerializerOptions.WriteIndented = false;

@@ -18,12 +18,12 @@ namespace RhythmBase.Adofai.Utils
 				WriteIndented = true,
 				DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
 				AllowTrailingCommas = true,
-				Converters =
-				{
-					new LevelConverter(),
-					new TileReferenceConverter(),
-					new FileReferenceConverter(),
-				}
+				//Converters =
+				//{
+				//	new LevelConverter(),
+				//	new TileReferenceConverter(),
+				//	new FileReferenceConverter(),
+				//}
 			};
 		}
 		/// <summary>  
@@ -42,7 +42,7 @@ namespace RhythmBase.Adofai.Utils
 				ReadSettings = settings,
 				Filepath = filepath
 			};
-			options.JsonSerializerOptions.Converters.Add(levelConverter);
+			//options.JsonSerializerOptions.Converters.Add(levelConverter);
 			return options;
 		}
 		/// <summary>
@@ -52,7 +52,7 @@ namespace RhythmBase.Adofai.Utils
 		{
 			settings ??= new LevelWriteSettings();
 			RDJsonSerializerOptions options = new() { Type = LevelType.Adofai, JsonSerializerOptions = new(Utils.options) };
-			if (settings.Indented)
+			if (settings.AlignIndented)
 				options.JsonSerializerOptions.WriteIndented = true;
 			else
 				options.JsonSerializerOptions.WriteIndented = false;
@@ -61,7 +61,7 @@ namespace RhythmBase.Adofai.Utils
 				WriteSettings = settings,
 				Filepath = filepath
 			};
-			options.JsonSerializerOptions.Converters.Add(levelConverter);
+			//options.JsonSerializerOptions.Converters.Add(levelConverter);
 			return options;
 		}
 	}

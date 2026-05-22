@@ -241,9 +241,7 @@ internal sealed class LevelConverter : RDJsonConverter<RDLevel>
         {
             Type = RDLevel.LevelType,
             JsonSerializerOptions = new(options.JsonSerializerOptions)
-            {
-                WriteIndented = false,
-            }
+            { WriteIndented = false, }
         };
         byte[] bytes = GetIndentByte(writer, options.JsonSerializerOptions.IndentCharacter, 2);
         ReadOnlySpan<byte> sl;
@@ -258,16 +256,10 @@ internal sealed class LevelConverter : RDJsonConverter<RDLevel>
         writer.WritePropertyName("rows");
         writer.WriteStartArray();
         using Utf8JsonWriter noIndentWriter = new(stream, new JsonWriterOptions { Indented = false, Encoder = options.JsonSerializerOptions.Encoder });
-        foreach (Row row in value.Rows)
+        using NoIndentScope noIndentScope = new(options.JsonSerializerOptions.Encoder, localOptions);
+        noIndentScope.WriteNoIndentTo(options.JsonSerializerOptions.WriteIndented, writer, value.Rows, (writer, row, options) =>
         {
-            stream.SetLength(0);
-            if (options.JsonSerializerOptions.WriteIndented)
-                stream.Write(bytes, 0, bytes.Length);
-            rowConverter.Write(noIndentWriter, row, localOptions);
-            noIndentWriter.Flush();
-            sl = stream.GetBuffer().AsSpan(0, (int)stream.Position);
-            writer.WriteRawValue(sl);
-            noIndentWriter.Reset();
+            rowConverter.Write(writer, row, options);
             string assPath = Path.Combine(DirectoryName ?? "", row.Character.CustomCharacter ?? "");
             if (WriteSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
                 foreach (FileReference file in row.Character.GetAllPossibleFileReferences())
@@ -275,20 +267,13 @@ internal sealed class LevelConverter : RDJsonConverter<RDLevel>
                         WriteSettings.FileReferences.Add(file);
                     else if (file.IsExist(assPath))
                         WriteSettings.FileReferences.Add(DirectoryName + Path.DirectorySeparatorChar + file);
-        }
+        });
         writer.WriteEndArray();
         writer.WritePropertyName("decorations");
         writer.WriteStartArray();
-        foreach (Decoration decoration in value.Decorations)
+        noIndentScope.WriteNoIndentTo(options.JsonSerializerOptions.WriteIndented, writer, value.Decorations, (writer, decoration, options) =>
         {
-            stream.SetLength(0);
-            if (options.JsonSerializerOptions.WriteIndented)
-                stream.Write(bytes, 0, bytes.Length);
-            decorationConverter.Write(noIndentWriter, decoration, localOptions);
-            noIndentWriter.Flush();
-            sl = stream.GetBuffer().AsSpan(0, (int)stream.Position);
-            writer.WriteRawValue(sl);
-            noIndentWriter.Reset();
+            decorationConverter.Write(writer, decoration, options);
             string assPath = Path.Combine(DirectoryName ?? "", decoration.Character.CustomCharacter ?? "");
             if (WriteSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
                 foreach (FileReference file in decoration.Character.GetAllPossibleFileReferences())
@@ -296,43 +281,23 @@ internal sealed class LevelConverter : RDJsonConverter<RDLevel>
                         WriteSettings.FileReferences.Add(file);
                     else if (file.IsExist(assPath))
                         WriteSettings.FileReferences.Add(DirectoryName + Path.DirectorySeparatorChar + file);
-        }
+        });
         writer.WriteEndArray();
         writer.WritePropertyName("events");
         writer.WriteStartArray();
+        noIndentScope.WriteNoIndentTo(false, writer, value, (writer, e, options) =>
         {
-            foreach (IBaseEvent e in value)
-            {
-                {
-                    stream.SetLength(0);
-                    if (options.JsonSerializerOptions.WriteIndented)
-                        stream.Write(bytes, 0, bytes.Length);
-                    baseEventConverter.Write(noIndentWriter, e, localOptions);
-                    noIndentWriter.Flush();
-                    sl = stream.GetBuffer().AsSpan(0, (int)stream.Position);
-                    writer.WriteRawValue(sl);
-                    noIndentWriter.Reset();
-                }
-                if (WriteSettings.LoadAssets && e is IFileEvent fe && !string.IsNullOrEmpty(DirectoryName))
-                    foreach (FileReference file in fe.Files)
-                        if (!file.IsEmpty && file.IsExist(DirectoryName!))
-                            WriteSettings.FileReferences.Add(file);
-            }
-        }
+            baseEventConverter.Write(writer, e, options);
+            if (WriteSettings.LoadAssets && e is IFileEvent fe && !string.IsNullOrEmpty(DirectoryName))
+                foreach (FileReference file in fe.Files)
+                    if (!file.IsEmpty && file.IsExist(DirectoryName!))
+                        WriteSettings.FileReferences.Add(file);
+        });
         writer.WriteEndArray();
         writer.WritePropertyName("bookmarks");
         writer.WriteStartArray();
         foreach (Bookmark bookmark in value.Bookmarks)
-        {
-            stream.SetLength(0);
-            if (options.JsonSerializerOptions.WriteIndented)
-                stream.Write(bytes, 0, bytes.Length);
-            bookmarkConverter.Write(noIndentWriter, bookmark, localOptions);
-            noIndentWriter.Flush();
-            sl = stream.GetBuffer().AsSpan(0, (int)stream.Position);
-            writer.WriteRawValue(sl);
-            noIndentWriter.Reset();
-        }
+            bookmarkConverter.Write(writer, bookmark, localOptions);
         writer.WriteEndArray();
         writer.WritePropertyName("colorPalette");
         writer.WriteStartArray();
@@ -341,17 +306,7 @@ internal sealed class LevelConverter : RDJsonConverter<RDLevel>
         writer.WriteEndArray();
         writer.WritePropertyName("conditionals");
         writer.WriteStartArray();
-        foreach (BaseConditional conditional in value.Conditionals)
-        {
-            stream.SetLength(0);
-            if (options.JsonSerializerOptions.WriteIndented)
-                stream.Write(bytes, 0, bytes.Length);
-            conditionalConverter.Write(noIndentWriter, conditional, localOptions);
-            noIndentWriter.Flush();
-            sl = stream.GetBuffer().AsSpan(0, (int)stream.Position);
-            writer.WriteRawValue(sl);
-            noIndentWriter.Reset();
-        }
+        noIndentScope.WriteNoIndentTo(options.JsonSerializerOptions.WriteIndented, writer, value.Conditionals, conditionalConverter.Write);
         writer.WriteEndArray();
         writer.WriteEndObject();
     }

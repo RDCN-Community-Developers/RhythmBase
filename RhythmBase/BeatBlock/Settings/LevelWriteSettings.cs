@@ -70,7 +70,7 @@ public record LevelWriteSettings : ILevelWriteSettings<IBaseEvent, EventType, BB
         }
     }
     /// <inheritdoc/>
-    public bool Indented { get; set; } = true;
+    public bool AlignIndented { get; set; } = true;
     ///// <summary>
     ///// Called before writing begins.
     ///// </summary>

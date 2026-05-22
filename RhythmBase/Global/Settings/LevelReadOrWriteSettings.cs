@@ -99,10 +99,10 @@ public interface ILevelWriteSettings<TEvent, TType, TBeat> : ILevelReadOrWriteSe
     /// serialization.</remarks>
     bool EnableUnsafeRelaxedJsonEscaping { get; set; }
     /// <summary>
-    /// Use indentation. 
+    /// Use aligned indentation for better readability. This may grow file sizes. 
     /// Defaults to <see langword="true" />.
     /// </summary>
-    bool Indented { get; set; }
+    bool AlignIndented { get; set; }
     ///// <summary>
     ///// Invoked after writing is complete. This method can be used to perform any necessary post-processing or cleanup after the writing process has finished.
     ///// </summary>

@@ -2,6 +2,8 @@
 using RhythmBase.BeatBlock.Events;
 using RhythmBase.BeatBlock.Settings;
 using RhythmBase.Global.Extensions;
+using System.Collections;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Text;
@@ -138,32 +140,29 @@ partial class BBLevel
             ConverterHub.Write(writer, level, options);
             writer.Flush();
         }
-        public static void WriteVariantLevelToStream(Stream stream, Variant level, RDJsonSerializerOptions options)
+        public static void WriteVariantLevelToStream(Stream stream, NoIndentScope noIndentScope, Variant level, RDJsonSerializerOptions options)
         {
             using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
             writer.WriteStartObject();
             writer.WriteStartArray("events"u8);
-            foreach (var e in level.Where(i => i is not IChartEvent))
-                baseEventConverter.Write(writer, e, options);
+            noIndentScope.WriteNoIndentTo(false, writer, level, baseEventConverter.Write);
             writer.WriteEndArray();
             writer.WriteEndObject();
             writer.Flush();
         }
-        public static void WriteVariantChartsToStream(Stream stream, Variant variant, RDJsonSerializerOptions options)
+        public static void WriteVariantChartsToStream(Stream stream, NoIndentScope noIndentScope, Variant variant, RDJsonSerializerOptions options)
         {
             using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
             writer.WriteStartArray();
-            foreach (IBaseEvent e in variant.Where(i => i is IChartEvent))
-                baseEventConverter.Write(writer, e, options);
+            noIndentScope.WriteNoIndentTo(false, writer, variant, baseEventConverter.Write);
             writer.WriteEndArray();
             writer.Flush();
         }
-        public static void WriteTagEventsToStream(Stream stream, TagEventCollection collection, RDJsonSerializerOptions options)
+        public static void WriteTagEventsToStream(Stream stream, NoIndentScope noIndentScope, TagEventCollection collection, RDJsonSerializerOptions options)
         {
             using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
             writer.WriteStartArray();
-            foreach (IBaseEvent e in collection)
-                baseEventConverter.Write(writer, e, options);
+            noIndentScope.WriteNoIndentTo(false, writer, collection, baseEventConverter.Write);
             writer.WriteEndArray();
             writer.Flush();
         }
@@ -201,10 +200,10 @@ partial class BBLevel
             using FileStream chartFs = File.Open(chartFile, FileMode.Open, FileAccess.Read);
             Deserializer.DeserializeChart(new StreamDataSource(chartFs), options, variant, settings);
         }
-        if(Directory.Exists(Path.Combine(directoryPath, "tags")))
+        if (Directory.Exists(Path.Combine(directoryPath, "tags")))
         {
             string[] tags = Directory.GetFiles(Path.Combine(directoryPath, "tags"), "*.json");
-            foreach(string tagFile in tags)
+            foreach (string tagFile in tags)
             {
                 TagEventCollection collection = [];
                 using FileStream tagFs = File.Open(tagFile, FileMode.Open, FileAccess.Read);
@@ -222,26 +221,33 @@ partial class BBLevel
     {
         settings ??= new LevelWriteSettings();
         RDJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(directoryPath, settings);
+        RDJsonSerializerOptions localOptions = new()
+        {
+            Type = LevelType.BeatBlock,
+            JsonSerializerOptions = new JsonSerializerOptions(options.JsonSerializerOptions)
+            { WriteIndented = false }
+        };
+        using NoIndentScope noIndentScope = new(options.JsonSerializerOptions.Encoder, localOptions);
         string manifestFilePath = Path.Combine(directoryPath, "manifest.json");
         using FileStream manifestFs = File.Open(manifestFilePath, FileMode.Create, FileAccess.Write);
         Deserializer.WriteManifestToStream(manifestFs, this, options);
         string defaultLevelFile = Path.Combine(directoryPath, "level.json");
         using FileStream levelFs = File.Open(defaultLevelFile, FileMode.Create, FileAccess.Write);
         if (this.Variants.Any(i => i.IsUsingDefaultLevel))
-            Deserializer.WriteVariantLevelToStream(levelFs, this.Variants.Default, options);
+            Deserializer.WriteVariantLevelToStream(levelFs, noIndentScope,  this.Variants.Default, options);
         foreach (Variant variant in Variants)
         {
             if (!variant.IsUsingDefaultLevel)
             {
                 string levelFile = Path.Combine(directoryPath, variant.LevelFile);
                 using FileStream levelFsVariant = File.Open(levelFile, FileMode.Create, FileAccess.Write);
-                Deserializer.WriteVariantLevelToStream(levelFsVariant, variant, options);
+                Deserializer.WriteVariantLevelToStream(levelFsVariant,noIndentScope, variant, options);
             }
             string chartFile = Path.Combine(directoryPath, $"chart-{variant.Name}.json");
             using FileStream chartFs = File.Open(chartFile, FileMode.Create, FileAccess.Write);
-            Deserializer.WriteVariantChartsToStream(chartFs, variant, options);
+            Deserializer.WriteVariantChartsToStream(chartFs,noIndentScope, variant, options);
         }
-        if(this.TagEvents.Count > 0) 
+        if (this.TagEvents.Count > 0)
         {
             string tagsDir = Path.Combine(directoryPath, "tags");
             Directory.CreateDirectory(tagsDir);
@@ -249,7 +255,7 @@ partial class BBLevel
             {
                 string tagFile = Path.Combine(tagsDir, $"{tag.Key}.json");
                 using FileStream tagFs = File.Open(tagFile, FileMode.Create, FileAccess.Write);
-                Deserializer.WriteTagEventsToStream(tagFs, tag.Value, options);
+                Deserializer.WriteTagEventsToStream(tagFs,noIndentScope, tag.Value, options);
             }
         }
     }

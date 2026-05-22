@@ -20,8 +20,7 @@ internal abstract class EventInstanceConverterBaseEvent<TEvent> : EventInstanceC
 			{
 				return value;
 			}
-			if (reader.TokenType != JsonTokenType.PropertyName)
-				throw new JsonException("Expected property name");
+			JsonException.ThrowIfNotMatch	(reader, [JsonTokenType.PropertyName]);
 			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
 			if (propertyName.IsEmpty)
 				throw new JsonException("Property name cannot be null");
