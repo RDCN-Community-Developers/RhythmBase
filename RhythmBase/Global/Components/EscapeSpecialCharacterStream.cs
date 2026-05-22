@@ -1,4 +1,4 @@
-namespace RhythmBase.RhythmDoctor.Components;
+namespace RhythmBase.Global.Components;
 
 internal class EscapeSpecialCharacterStream(Stream inner) : Stream
 {

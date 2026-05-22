@@ -1,4 +1,6 @@
-﻿using System.Buffers;
+﻿using RhythmBase.RhythmDoctor.Components;
+using System.Buffers;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 
@@ -16,7 +18,11 @@ namespace RhythmBase.Global.Converters.JsonSerialization
         private readonly Stream stream;
         public StreamDataSource(Stream stream)
         {
-            this.stream = stream;
+            MemoryStream ms = new MemoryStream();
+            using EscapeSpecialCharacterStream escStream = new EscapeSpecialCharacterStream(stream);
+            escStream.CopyTo(ms);
+            ms.Position = 0;
+            this.stream = ms;
         }
         public bool CanGetMemoryDirectly => false;
         public ReadOnlyMemory<byte> GetMemory()
@@ -44,38 +50,38 @@ namespace RhythmBase.Global.Converters.JsonSerialization
             }
         }
     }
-    internal readonly struct JsonDocumentDataSource : IJsonDataSource
+}
+internal readonly struct JsonDocumentDataSource : IJsonDataSource
+{
+    private readonly JsonDocument jsonDocument;
+    public JsonDocumentDataSource(JsonDocument jsonDocument)
     {
-        private readonly JsonDocument jsonDocument;
-        public JsonDocumentDataSource(JsonDocument jsonDocument)
-        {
-            this.jsonDocument = jsonDocument;
-        }
-        public bool CanGetMemoryDirectly => true;
-        public ReadOnlyMemory<byte> GetMemory()
-        {
-            return Encoding.UTF8.GetBytes(jsonDocument.RootElement.GetRawText());
-        }
-        public ValueTask<ReadOnlyMemory<byte>> GetMemoryAsync(CancellationToken cancellationToken = default)
-        {
-            return new(GetMemory());
-        }
+        this.jsonDocument = jsonDocument;
     }
-    internal readonly struct ReadOnlyMemoryDataSource : IJsonDataSource
+    public bool CanGetMemoryDirectly => true;
+    public ReadOnlyMemory<byte> GetMemory()
     {
-        private readonly ReadOnlyMemory<byte> jsonData;
-        public ReadOnlyMemoryDataSource(ReadOnlyMemory<byte> jsonData)
-        {
-            this.jsonData = jsonData;
-        }
-        public bool CanGetMemoryDirectly => true;
-        public ReadOnlyMemory<byte> GetMemory()
-        {
-            return jsonData;
-        }
-        public ValueTask<ReadOnlyMemory<byte>> GetMemoryAsync(CancellationToken cancellationToken = default)
-        {
-            return new(jsonData);
-        }
+        return Encoding.UTF8.GetBytes(jsonDocument.RootElement.GetRawText());
+    }
+    public ValueTask<ReadOnlyMemory<byte>> GetMemoryAsync(CancellationToken cancellationToken = default)
+    {
+        return new(GetMemory());
+    }
+}
+internal readonly struct ReadOnlyMemoryDataSource : IJsonDataSource
+{
+    private readonly ReadOnlyMemory<byte> jsonData;
+    public ReadOnlyMemoryDataSource(ReadOnlyMemory<byte> jsonData)
+    {
+        this.jsonData = jsonData;
+    }
+    public bool CanGetMemoryDirectly => true;
+    public ReadOnlyMemory<byte> GetMemory()
+    {
+        return jsonData;
+    }
+    public ValueTask<ReadOnlyMemory<byte>> GetMemoryAsync(CancellationToken cancellationToken = default)
+    {
+        return new(jsonData);
     }
 }

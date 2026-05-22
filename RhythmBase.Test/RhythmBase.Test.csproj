@@ -22,6 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="kikuo - Sight, Noise, Life and the Earth_v3_out.rdzip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="the-powe-S7V1kg9RWYK.rdzip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
