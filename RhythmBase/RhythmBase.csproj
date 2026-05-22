@@ -11,6 +11,10 @@
 				<Authors>obugs</Authors>
 				<Description>A package that can be used to help with the development of support tools for the Rhythm Doctor game levels.</Description>
 				<PackageProjectUrl>https://github.com/RDCN-Community-Developers/RhythmToolkit</PackageProjectUrl>
+				<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+				<PackageReadmeFile>README.md</PackageReadmeFile>
+				<PackageTags>Rhythm Doctor;Adofai;BeatBlock;Rhythm Game</PackageTags>
+				<PackageReleaseNotes>VERSION.md</PackageReleaseNotes>
 				<PackageIcon>RhythmBase_logo_small.png</PackageIcon>
 				<RepositoryUrl>https://github.com/RDCN-Community-Developers/RhythmToolkit.git</RepositoryUrl>
 				<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -29,40 +33,24 @@
 		<ItemGroup>
 				<PackageReference Include="System.Text.Json" Version="10.0.5" />
 				<ProjectReference Include="..\RhythmBase.Generator\RhythmBase.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-				<None Include="../README.md">
-						<Pack>True</Pack>
-						<PackagePath>\</PackagePath>
-				</None>	
-				<None Include="../README.zh-cn.md">
-						<Pack>True</Pack>
-						<PackagePath>\</PackagePath>
-				</None>
 				<None Include="../CONTRIBUTION.zh-cn.md">
 						<Pack>False</Pack>
 						<PackagePath>\</PackagePath>
 				</None>
-				<None Include="../RhythmBase_logo_small.png">
+				<None Include="
+							../README.md;
+							../README.zh-cn.md;
+							../VERSION.md;
+							../VERSION.zh-cn.md;
+							../RhythmBase_logo_small.png;
+							../RhythmBase_logo.png;
+							../RhythmBase_logo_clean.png;
+							../RhythmBase_banner.png;
+							../RhythmBase_banner_clean.png;
+							../LICENSE.txt
+							">
 						<Pack>True</Pack>
 						<PackagePath>\</PackagePath>
 				</None>
-				<None Include="../RhythmBase_logo.png">
-						<Pack>True</Pack>
-						<PackagePath>\</PackagePath>
-				</None>
-				<None Include="../RhythmBase_logo_clean.png">
-						<Pack>True</Pack>
-						<PackagePath>\</PackagePath>
-				</None>
-				<None Include="../RhythmBase_banner.png">
-						<Pack>True</Pack>
-						<PackagePath>\</PackagePath>
-				</None>
-				<None Include="../RhythmBase_banner_clean.png">
-						<Pack>True</Pack>
-						<PackagePath>\</PackagePath>
-				</None>
-		</ItemGroup>
-		<ItemGroup>
-		  <Folder Include="RhythmDoctor\Components\RDLang\" />
 		</ItemGroup>
 </Project>

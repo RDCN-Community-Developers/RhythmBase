@@ -23,13 +23,13 @@
 | 律动轨迹（Rizline）                   | Rizline      | 计划中 | RL      |
 | Rhythm Quest                          | RhythmQuest  | 计划中 | RQ      |
 
-感谢节奏医生玩家社区对本项目的支持。\
 您可以在[这里](/RhythmBase.Test/Tutorial.cs)查看示例。
 
 ## 特别感谢
 - 项目维护
     - [0x4D2](https://github.com/0x4D25F2) 提供了大量测试和反馈。
     - [mfgujhgh](https://github.com/mfgujhgh) 提供了算法指导。
+    - **节奏医生玩家社区** 对本项目的大力支持。
 - 赞助
     - [NTide](https://space.bilibili.com/351700081)
     - [来因洛特 | layinloty](https://space.bilibili.com/406743035)
