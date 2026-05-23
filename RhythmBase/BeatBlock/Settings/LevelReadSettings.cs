@@ -15,10 +15,6 @@ public record LevelReadSettings : ILevelReadSettings<IBaseEvent, EventType, BBBe
 {
     private readonly Dictionary<string, object> CustomData = [];
     /// <inheritdoc/>
-    public event EventHandler? BeforeReading;
-    /// <inheritdoc/>
-    public event EventHandler? AfterReading;
-    /// <inheritdoc/>
     public object? this[string key]
     {
         get => CustomData.TryGetValue(key, out var value) ? value : null;
@@ -69,18 +65,4 @@ public record LevelReadSettings : ILevelReadSettings<IBaseEvent, EventType, BBBe
                 break;
         }
     }
-    ///// <summary>
-    ///// Called before reading begins.
-    ///// </summary>
-    //public void OnBeforeReading()
-    //{
-    //    BeforeReading?.Invoke(this, EventArgs.Empty);
-    //}
-    ///// <summary>
-    ///// Called after reading completes.
-    ///// </summary>
-    //public void OnAfterReading()
-    //{
-    //    AfterReading?.Invoke(this, EventArgs.Empty);
-    //}
 }

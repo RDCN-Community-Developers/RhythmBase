@@ -136,10 +136,10 @@ internal class LevelConverter : RDJsonConverter<ADLevel>
         writer.WritePropertyName("settings");
         settingsConverter.Write(writer, value.Settings, options.JsonSerializerOptions);
         writer.WriteStartArray("actions");
-        noIndentScope.WriteNoIndentTo(false, writer, value.SelectMany(i => i.Cast<IBaseEvent>()), baseEventConverter.Write);
+        noIndentScope.WriteNoIndentArrayTo(false, writer, value.SelectMany(i => i.Cast<IBaseEvent>()), baseEventConverter.Write);
         writer.WriteEndArray();
         writer.WriteStartArray("decorations");
-        noIndentScope.WriteNoIndentTo(false, writer, value.Decorations, baseEventConverter.Write);
+        noIndentScope.WriteNoIndentArrayTo(false, writer, value.Decorations, baseEventConverter.Write);
         writer.WriteEndArray();
         writer.WriteEndObject();
     }

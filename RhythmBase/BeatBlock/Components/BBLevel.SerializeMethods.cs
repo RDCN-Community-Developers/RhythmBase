@@ -145,7 +145,7 @@ partial class BBLevel
             using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
             writer.WriteStartObject();
             writer.WriteStartArray("events"u8);
-            noIndentScope.WriteNoIndentTo(false, writer, level, baseEventConverter.Write);
+            noIndentScope.WriteNoIndentArrayTo(false, writer, level, baseEventConverter.Write);
             writer.WriteEndArray();
             writer.WriteEndObject();
             writer.Flush();
@@ -154,7 +154,7 @@ partial class BBLevel
         {
             using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
             writer.WriteStartArray();
-            noIndentScope.WriteNoIndentTo(false, writer, variant, baseEventConverter.Write);
+            noIndentScope.WriteNoIndentArrayTo(false, writer, variant, baseEventConverter.Write);
             writer.WriteEndArray();
             writer.Flush();
         }
@@ -162,7 +162,7 @@ partial class BBLevel
         {
             using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
             writer.WriteStartArray();
-            noIndentScope.WriteNoIndentTo(false, writer, collection, baseEventConverter.Write);
+            noIndentScope.WriteNoIndentArrayTo(false, writer, collection, baseEventConverter.Write);
             writer.WriteEndArray();
             writer.Flush();
         }

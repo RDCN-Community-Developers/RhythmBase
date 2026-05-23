@@ -257,7 +257,7 @@ internal sealed class LevelConverter : RDJsonConverter<RDLevel>
         writer.WriteStartArray();
         using Utf8JsonWriter noIndentWriter = new(stream, new JsonWriterOptions { Indented = false, Encoder = options.JsonSerializerOptions.Encoder });
         using NoIndentScope noIndentScope = new(options.JsonSerializerOptions.Encoder, localOptions);
-        noIndentScope.WriteNoIndentTo(options.WriteAligned, writer, value.Rows, (writer, row, options) =>
+        noIndentScope.WriteNoIndentArrayTo(options.WriteAligned, writer, value.Rows, (writer, row, options) =>
         {
             rowConverter.Write(writer, row, options);
             string assPath = Path.Combine(DirectoryName ?? "", row.Character.CustomCharacter ?? "");
@@ -271,7 +271,7 @@ internal sealed class LevelConverter : RDJsonConverter<RDLevel>
         writer.WriteEndArray();
         writer.WritePropertyName("decorations");
         writer.WriteStartArray();
-        noIndentScope.WriteNoIndentTo(options.WriteAligned, writer, value.Decorations, (writer, decoration, options) =>
+        noIndentScope.WriteNoIndentArrayTo(options.WriteAligned, writer, value.Decorations, (writer, decoration, options) =>
         {
             decorationConverter.Write(writer, decoration, options);
             string assPath = Path.Combine(DirectoryName ?? "", decoration.Character.CustomCharacter ?? "");
@@ -285,7 +285,7 @@ internal sealed class LevelConverter : RDJsonConverter<RDLevel>
         writer.WriteEndArray();
         writer.WritePropertyName("events");
         writer.WriteStartArray();
-        noIndentScope.WriteNoIndentTo(false, writer, value, (writer, e, options) =>
+        noIndentScope.WriteNoIndentArrayTo(false, writer, value, (writer, e, options) =>
         {
             baseEventConverter.Write(writer, e, options);
             if (WriteSettings.LoadAssets && e is IFileEvent fe && !string.IsNullOrEmpty(DirectoryName))
@@ -306,7 +306,7 @@ internal sealed class LevelConverter : RDJsonConverter<RDLevel>
         writer.WriteEndArray();
         writer.WritePropertyName("conditionals");
         writer.WriteStartArray();
-        noIndentScope.WriteNoIndentTo(options.WriteAligned, writer, value.Conditionals, conditionalConverter.Write);
+        noIndentScope.WriteNoIndentArrayTo(options.WriteAligned, writer, value.Conditionals, conditionalConverter.Write);
         writer.WriteEndArray();
         writer.WriteEndObject();
     }

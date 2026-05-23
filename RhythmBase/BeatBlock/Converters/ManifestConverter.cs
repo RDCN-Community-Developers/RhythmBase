@@ -131,7 +131,7 @@ internal class ManifestConverter : RDJsonConverter<BBLevel>
                     if (reader.TokenType == JsonTokenType.EndArray)
                         break;
                     JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
-                    Variant variant = new();
+                    Variant variant = [];
                     int index = 0;
                     while (reader.Read())
                     {
@@ -139,7 +139,6 @@ internal class ManifestConverter : RDJsonConverter<BBLevel>
                             break;
                         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
                         ReadOnlySpan<byte> variantPropertyName = reader.ValueSpan;
-                        string variantPropertyNameString = Encoding.UTF8.GetString(variantPropertyName);
                         reader.Read();
                         if (variantPropertyName.SequenceEqual("charter"u8))
                             variant.Charter = reader.GetString() ?? "";
@@ -163,7 +162,7 @@ internal class ManifestConverter : RDJsonConverter<BBLevel>
                     variants.Add(variant);
                     slotIndex.Add(index);
                 }
-                Variant[] variants1 = variants.ToArray();
+                Variant[] variants1 = [.. variants];
                 Array.Sort(slotIndex.ToArray(), variants1);
                 foreach (var variant in variants1)
                 {
@@ -180,6 +179,12 @@ internal class ManifestConverter : RDJsonConverter<BBLevel>
 
     public override void Write(Utf8JsonWriter writer, BBLevel value, RDJsonSerializerOptions options)
     {
+        RDJsonSerializerOptions localOptions = new() {
+            JsonSerializerOptions = options.JsonSerializerOptions,
+            Type = options.Type,
+            WriteAligned = false 
+        };
+        using NoIndentScope noIndentScope = new(options.JsonSerializerOptions.Encoder, localOptions);
         writer.WriteStartObject();
         writer.WriteString("defaultVariant"u8, value.DefaultVariant);
         #region metadata
@@ -202,17 +207,17 @@ internal class ManifestConverter : RDJsonConverter<BBLevel>
         #region bgdata
         writer.WriteStartObject("bgData");
         writer.WritePropertyName("redChannel");
-        ConverterHub.Write(writer, value.Metadata.BackgroundData.RedChannel, options);
+        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.RedChannel, ConverterHub.Write);
         writer.WritePropertyName("greenChannel");
-        ConverterHub.Write(writer, value.Metadata.BackgroundData.GreenChannel, options);
+        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.GreenChannel, ConverterHub.Write);
         writer.WritePropertyName("blueChannel");
-        ConverterHub.Write(writer, value.Metadata.BackgroundData.BlueChannel, options);
+        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.BlueChannel, ConverterHub.Write);
         writer.WritePropertyName("yellowChannel");
-        ConverterHub.Write(writer, value.Metadata.BackgroundData.YellowChannel, options);
+        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.YellowChannel, ConverterHub.Write);
         writer.WritePropertyName("cyanChannel");
-        ConverterHub.Write(writer, value.Metadata.BackgroundData.CyanChannel, options);
+        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.CyanChannel, ConverterHub.Write);
         writer.WritePropertyName("magentaChannel");
-        ConverterHub.Write(writer, value.Metadata.BackgroundData.MagentaChannel, options);
+        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.MagentaChannel, ConverterHub.Write);
         writer.WriteBoolean("hideCranky"u8, value.Metadata.BackgroundData.HideCranky);
         writer.WritePropertyName("image");
         ConverterHub.Write(writer, value.Metadata.BackgroundData.Image, options);
@@ -228,13 +233,7 @@ internal class ManifestConverter : RDJsonConverter<BBLevel>
         #endregion
         #region variants
         writer.WriteStartArray("variants");
-        RDJsonSerializerOptions localOptions = new() {
-            JsonSerializerOptions = options.JsonSerializerOptions,
-            Type = options.Type,
-            WriteAligned = false 
-        };
-        using NoIndentScope noIndentScope = new(options.JsonSerializerOptions.Encoder, localOptions);
-        noIndentScope.WriteNoIndentTo(options.WriteAligned, writer, value.Variants, (w, v, o) => {
+        noIndentScope.WriteNoIndentArrayTo(options.WriteAligned, writer, value.Variants, (w, v, o) => {
             w.WriteStartObject();
             w.WriteString("name"u8, v.Name);
             w.WriteString("charter"u8, v.Charter);
@@ -244,17 +243,6 @@ internal class ManifestConverter : RDJsonConverter<BBLevel>
             w.WriteBoolean("hidden"u8, v.Hidden);
             w.WriteEndObject();
         });
-        //foreach (var variant in value.Variants)
-        //{
-        //    writer.WriteStartObject();
-        //    writer.WriteString("name"u8, variant.Name);
-        //    writer.WriteString("charter"u8, variant.Charter);
-        //    writer.WriteNumber("difficulty"u8, variant.Difficulty);
-        //    writer.WriteString("display"u8, variant.Display);
-        //    writer.WriteBoolean("extra"u8, variant.Extra);
-        //    writer.WriteBoolean("hidden"u8, variant.Hidden);
-        //    writer.WriteEndObject();
-        //}
         writer.WriteEndArray();
         #endregion
         writer.WriteEndObject();

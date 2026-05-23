@@ -117,10 +117,13 @@ public interface ILevelWriteSettings<TEvent, TType, TBeat> : ILevelReadOrWriteSe
     /// </remarks>
     bool EnableUnsafeRelaxedJsonEscaping { get; set; }
     /// <summary>
-    /// When <c>true</c>, JSON is written with standard indentation (line breaks and spaces) for readability.
+    /// When <c>true</c>, JSON is written with human-friendly line breaks and spacing.
     /// </summary>
     /// <remarks>
-    /// Indentation increases file size. This flag controls the serializer's Indented option.
+    /// Improves readability for most structures. Small inline values and very large lists/arrays
+    /// may be left compact (no per-item indentation) to avoid excessive whitespace and keep
+    /// compact data readable; this option focuses on human-friendly output rather than forcing
+    /// uniform indentation for every tiny or very large element.
     /// </remarks>
     bool WriteIndented { get; set; }
     /// <summary>

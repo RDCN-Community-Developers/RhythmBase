@@ -16,7 +16,16 @@ internal class NoIndentScope : IDisposable
         writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = false, Encoder = encoder });
         this.options = options;
     }
-    public void WriteNoIndentTo<T>(bool align, Utf8JsonWriter instance, IEnumerable<T> values, Action<Utf8JsonWriter, T, RDJsonSerializerOptions> writeValue)
+    public void WriteNoIndentObjectTo<T>(Utf8JsonWriter instance, T value, Action<Utf8JsonWriter, T, RDJsonSerializerOptions> writeValue)
+    {
+        stream.SetLength(0);
+        writeValue(writer, value, options);
+        writer.Flush();
+        ReadOnlySpan<byte> buffer = stream.GetBuffer().AsSpan(0, (int)stream.Position);
+        instance.WriteRawValue(buffer);
+        writer.Reset();
+    }
+    public void WriteNoIndentArrayTo<T>(bool align, Utf8JsonWriter instance, IEnumerable<T> values, Action<Utf8JsonWriter, T, RDJsonSerializerOptions> writeValue)
     {
         stream.SetLength(0);
         byte[] indent = Encoding.UTF8.GetBytes(Environment.NewLine + new string(' ', instance.CurrentDepth * options.JsonSerializerOptions.IndentSize));

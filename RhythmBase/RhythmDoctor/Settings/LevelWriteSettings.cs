@@ -10,14 +10,6 @@ namespace RhythmBase.RhythmDoctor.Settings;
 public record LevelWriteSettings : ILevelWriteSettings<IBaseEvent, EventType, RDBeat>
 {
     private readonly Dictionary<string, object> CustomData = [];
-    /// <summary>
-    /// Event triggered before writing.
-    /// </summary>
-    public event EventHandler? BeforeWriting;
-    /// <summary>
-    /// Event triggered after writing.
-    /// </summary>
-    public event EventHandler? AfterWriting;
     /// <inheritdoc/>
     public object? this[string key]
     {
@@ -71,19 +63,6 @@ public record LevelWriteSettings : ILevelWriteSettings<IBaseEvent, EventType, RD
     }
     /// <inheritdoc/>
     public bool WriteIndented { get; set; } = true;
+    /// <inheritdoc/>
     public bool WriteAligned { get; set; } = false;
-    ///// <summary>
-    ///// Raises the <see cref="BeforeWriting"/> event.
-    ///// </summary>
-    //public void OnBeforeWriting()
-    //{
-    //    BeforeWriting?.Invoke(this, EventArgs.Empty);
-    //}
-    ///// <summary>
-    ///// Raises the <see cref="AfterWriting"/> event.
-    ///// </summary>
-    //public void OnAfterWriting()
-    //{
-    //    AfterWriting?.Invoke(this, EventArgs.Empty);
-    //}
 }
