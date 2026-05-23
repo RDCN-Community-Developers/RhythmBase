@@ -3,141 +3,147 @@ using System.Text.Json;
 namespace RhythmBase.Global.Settings;
 
 /// <summary>
-/// Specifies the method used to process files within a ZIP archive.
+/// Controls how ZIP archives are processed during import.
 /// </summary>
-/// <remarks>This enumeration defines the scope of file processing when working with ZIP archives.  Use <see
-/// cref="LevelFileOnly"/> to process only the top-level file, or <see cref="AllFiles"/>  to process all files within
-/// the archive, including nested files.</remarks>
 public enum ZipFileProcessMethod
 {
-	/// <summary>
-	/// Specifies that logging should be restricted to level-specific files only,  without writing to a general 
-	/// file.
-	/// </summary>
-	LevelFileOnly,
-	/// <summary>
-	/// Represents a collection of all files in the current context.
-	/// </summary>
-	AllFiles,
+    /// <summary>
+    /// Only process the primary level file inside the archive.
+    /// </summary>
+    LevelFileOnly,
+    /// <summary>
+    /// Process all files contained in the archive (including nested files).
+    /// </summary>
+    AllFiles,
 }
 /// <summary>
-/// Level import or export settings.
+/// Settings used when reading or writing level data.
 /// </summary>
+/// <remarks>
+/// Controls JSON formatting, asset preloading, handling of inactive or unreadable events,
+/// collection of file references, and arbitrary custom data. Implementations are expected
+/// to honor these settings during import/export operations.
+/// </remarks>
+/// <typeparam name="TEvent">Event type stored in the level (implements <see cref="IEvent{TType, TBeat}"/>).</typeparam>
+/// <typeparam name="TType">Enum type that identifies event kinds.</typeparam>
+/// <typeparam name="TBeat">Beat type used by events (implements <see cref="IBeat{TBeat}"/>).</typeparam>
 public interface ILevelReadOrWriteSettings<TEvent, TType, TBeat>
-	where TEvent : IEvent<TType, TBeat>
-	where TType : struct, Enum
-	where TBeat : struct, IBeat<TBeat>
+  where TEvent : IEvent<TType, TBeat>
+  where TType : struct, Enum
+  where TBeat : struct, IBeat<TBeat>
 {
-	/// <summary>
-	/// Gets or sets the value associated with the specified key in the custom data dictionary.
-	/// </summary>
-	/// <remarks>If the key does not exist in the dictionary, the getter returns null. The setter will overwrite any
-	/// existing value associated with the key.</remarks>
-	/// <param name="key">The key used to access the value in the custom data dictionary. Must not be null.</param>
-	/// <returns>The value associated with the specified key if it exists; otherwise, null.</returns>
-    object? this[string key] { get; set; }
-	/// <summary>
-	/// Enable resource preloading. This may grow read times. 
-	/// Defaults to <see langword="false" />.
-	/// </summary>
-    bool LoadAssets { get; set; }
-	/// <summary>
-	/// Action on inactive items on reads or writes.
-	/// Defaults to <see cref="F:RhythmBase.Global.Settings.InactiveEventsHandling.Retain" />.
-	/// </summary>
-	InactiveEventsHandling InactiveEventsHandling { get; set; }
     /// <summary>
-    /// Stores unreadable event data when the <see cref="P:RhythmBase.Global.Settings.LevelReadOrWriteSettings.InactiveEventsHandling" /> is <see cref="F:RhythmBase.Global.Settings.InactiveEventsHandling.Store" />.
+    /// Gets or sets a custom data value by key.
     /// </summary>
+    /// <remarks>
+    /// Returns <c>null</c> when the key does not exist. Set operations overwrite any existing value.
+    /// Implementations may use this indexer to expose additional per-operation metadata.
+    /// </remarks>
+    /// <param name="key">Custom data key. Must not be <c>null</c>.</param>
+    object? this[string key] { get; set; }
+    /// <summary>
+    /// When <c>true</c>, referenced resources (images, audio, etc.) will be preloaded during read operations.
+    /// </summary>
+    /// <remarks>
+    /// Enabling this may increase read time and memory usage but ensures assets are available immediately
+    /// after import for consumers that require them.
+    /// </remarks>
+    bool LoadAssets { get; set; }
+    /// <summary>
+    /// Specifies how inactive events should be treated during read/write operations.
+    /// </summary>
+    /// <remarks>
+    /// Typical values include retaining inactive events, discarding them, or storing them for later inspection.
+    /// Default behavior is to retain them unless otherwise configured.
+    /// </remarks>
+    InactiveEventsHandling InactiveEventsHandling { get; set; }
+    /// <summary>
+    /// When <see cref="InactiveEventsHandling"/> is set to store, unreadable or inactive events are added here.
+    /// </summary>
+    /// <remarks>
+    /// Implementations should populate this list only when configured to store such events; otherwise it may remain empty.
+    /// </remarks>
     List<TEvent> InactiveEvents { get; set; }
     /// <summary>
-    /// Action on unreadable events.
-    /// Defaults to <see cref="F:RhythmBase.Global.Settings.UnreadableEventHandling.ThrowException" />.
+    /// Defines how unreadable events (malformed or unknown data) are handled.
     /// </summary>
+    /// <remarks>
+    /// Common behaviors are to throw an exception, ignore the event, or store the raw JSON for later analysis.
+    /// Default is to throw an exception unless configured otherwise.
+    /// </remarks>
     UnreadableEventHandling UnreadableEventsHandling { get; set; }
     /// <summary>
-    /// Gets the collection of file references associated with this instance.
+    /// Read-only collection of file references gathered during read/write operations.
     /// </summary>
-    /// <remarks>The returned collection is read-only and reflects the current set of file references.
-    /// Modifications to the collection itself are not supported; to update the set of file references, use the
-    /// appropriate methods provided by the class.</remarks>
+    /// <remarks>
+    /// The collection reflects the files observed or written for this operation. To modify the set, use the
+    /// appropriate APIs on the concrete implementation rather than mutating this collection directly.
+    /// </remarks>
     HashSet<FileReference> FileReferences { get; }
     /// <summary>
-    /// Stores unreadable event data when the <see cref="P:RhythmBase.Global.Settings.LevelReadOrWriteSettings.UnreadableEventsHandling" /> is <see cref="F:RhythmBase.Global.Settings.UnreadableEventHandling.Store" />.
+    /// When <see cref="UnreadableEventsHandling"/> is set to store, this collection holds the raw JSON elements
+    /// together with a human-readable reason explaining why each item was unreadable.
     /// </summary>
-    /// <returns></returns>
     List<(JsonElement item, string reason)> UnreadableEvents { get; set; }
-
     /// <summary>
-    /// Handles an inactive event according to the current settings.
+    /// Apply handling logic for a single inactive event according to <see cref="InactiveEventsHandling"/>.
     /// </summary>
-    /// <param name="item">The inactive event to handle.</param>
-    /// <returns>true if the event was handled; otherwise, false.</returns>
+    /// <param name="item">The inactive event to process.</param>
+    /// <returns><c>true</c> if the event was handled (stored, removed, or otherwise processed); otherwise <c>false</c>.</returns>
     bool HandleInactiveEvent(TEvent item);
     /// <summary>
-    /// Handles an unreadable event by storing it or throwing an exception according to the current settings.
+    /// Handle a single unreadable JSON event according to <see cref="UnreadableEventsHandling"/>.
     /// </summary>
     /// <param name="item">The JSON element representing the unreadable event.</param>
-    /// <param name="reason">The reason why the event was unreadable.</param>
+    /// <param name="reason">A short explanation why the event could not be parsed.</param>
+    /// <remarks>
+    /// When configured to store unreadable events, implementations should add an entry to <see cref="UnreadableEvents"/>.
     void HandleUnreadableEvent(JsonElement item, string reason);
 }
 /// <summary>
 /// Level export settings.
 /// </summary>
 public interface ILevelWriteSettings<TEvent, TType, TBeat> : ILevelReadOrWriteSettings<TEvent, TType, TBeat>
-	where TEvent : IEvent<TType, TBeat>
-	where TType : struct, Enum
-	where TBeat : struct, IBeat<TBeat>
+  where TEvent : IEvent<TType, TBeat>
+  where TType : struct, Enum
+  where TBeat : struct, IBeat<TBeat>
 {
     /// <summary>
-    /// Gets or sets a value indicating whether to enable unsafe relaxed JSON escaping during serialization.
+    /// When <c>true</c>, JSON serialization will allow certain characters to remain unescaped (unsafe relaxed escaping).
     /// </summary>
-    /// <remarks>When set to <see langword="true"/>, this property allows certain characters in JSON strings to be
-    /// serialized without escaping, which may improve readability or compatibility with some consumers. However, enabling
-    /// this option can introduce security risks, such as cross-site scripting (XSS) vulnerabilities, if untrusted data is
-    /// serialized. Use with caution and ensure that all data is properly validated and sanitized before
-    /// serialization.</remarks>
+    /// <remarks>
+    /// This may improve human readability and compatibility with some consumers but can introduce security risks
+    /// (for example XSS) if untrusted data is serialized. Validate and sanitize input when enabling this flag.
+    /// </remarks>
     bool EnableUnsafeRelaxedJsonEscaping { get; set; }
     /// <summary>
-    /// Use aligned indentation for better readability. This may grow file sizes. 
-    /// Defaults to <see langword="true" />.
+    /// When <c>true</c>, JSON is written with standard indentation (line breaks and spaces) for readability.
     /// </summary>
-    bool AlignIndented { get; set; }
-    ///// <summary>
-    ///// Invoked after writing is complete. This method can be used to perform any necessary post-processing or cleanup after the writing process has finished.
-    ///// </summary>
-    //void OnAfterWriting();
-    ///// <summary>
-    ///// Invoked before writing begins. This method can be used to perform any necessary setup or initialization before the writing process starts.
-    ///// </summary>
-    //void OnBeforeWriting();
+    /// <remarks>
+    /// Indentation increases file size. This flag controls the serializer's Indented option.
+    /// </remarks>
+    bool WriteIndented { get; set; }
+    /// <summary>
+    /// When <c>true</c>, property values within arrays/objects are aligned for improved human readability.
+    /// </summary>
+    /// <remarks>
+    /// Alignment attempts to line up numeric and string values across elements (column-style alignment).
+    /// The concrete serializer uses a custom no-indent writer (see <see cref="RhythmBase.Global.Converters.NoIndentScope"/>)
+    /// to produce aligned output without losing control of structural formatting. Enabling alignment may increase
+    /// output size and complexity of the write operation.
+    /// </remarks>
+    bool WriteAligned { get; set; }
 }
 /// <summary>
 /// Level import settings.
 /// </summary>
 public interface ILevelReadSettings<TEvent, TType, TBeat> : ILevelReadOrWriteSettings<TEvent, TType, TBeat>
-	where TEvent : IEvent<TType, TBeat>
-	where TType : struct, Enum
-	where TBeat : struct, IBeat<TBeat>
+  where TEvent : IEvent<TType, TBeat>
+  where TType : struct, Enum
+  where TBeat : struct, IBeat<TBeat>
 {
     /// <summary>
     /// Gets or sets the method used to process zip files.
     /// </summary>
     ZipFileProcessMethod ZipFileProcessMethod { get; set; }
-	/// <summary>
-	/// Event triggered before reading.
-	/// </summary>
-	event EventHandler? BeforeReading;
-	/// <summary>
-	/// Event triggered after reading.
-	/// </summary>
-	event EventHandler? AfterReading;
-    ///// <summary>
-    ///// Invoked after reading is complete. This method can be used to perform any necessary post-processing or cleanup after the reading process has finished.
-    ///// </summary>
-    //void OnAfterReading();
-    ///// <summary>
-    ///// Invoked before reading begins. This method can be used to perform any necessary setup or initialization before the reading process starts.
-    ///// </summary>
-    //void OnBeforeReading();
 }

@@ -52,7 +52,7 @@ namespace RhythmBase.Adofai.Utils
 		{
 			settings ??= new LevelWriteSettings();
 			RDJsonSerializerOptions options = new() { Type = LevelType.Adofai, JsonSerializerOptions = new(Utils.options) };
-			if (settings.AlignIndented)
+			if (settings.WriteIndented)
 				options.JsonSerializerOptions.WriteIndented = true;
 			else
 				options.JsonSerializerOptions.WriteIndented = false;

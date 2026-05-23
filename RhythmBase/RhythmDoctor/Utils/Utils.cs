@@ -78,7 +78,7 @@ namespace RhythmBase.RhythmDoctor.Utils
 		{
 			settings ??= new LevelWriteSettings();
 			JsonSerializerOptions options = new(Utils.options);
-			if (settings.AlignIndented)
+			if (settings.WriteIndented)
 				options.WriteIndented = true;
 			else
 				options.WriteIndented = false;

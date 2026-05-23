@@ -228,17 +228,33 @@ internal class ManifestConverter : RDJsonConverter<BBLevel>
         #endregion
         #region variants
         writer.WriteStartArray("variants");
-        foreach (var variant in value.Variants)
-        {
-            writer.WriteStartObject();
-            writer.WriteString("name"u8, variant.Name);
-            writer.WriteString("charter"u8, variant.Charter);
-            writer.WriteNumber("difficulty"u8, variant.Difficulty);
-            writer.WriteString("display"u8, variant.Display);
-            writer.WriteBoolean("extra"u8, variant.Extra);
-            writer.WriteBoolean("hidden"u8, variant.Hidden);
-            writer.WriteEndObject();
-        }
+        RDJsonSerializerOptions localOptions = new() {
+            JsonSerializerOptions = options.JsonSerializerOptions,
+            Type = options.Type,
+            WriteAligned = false 
+        };
+        using NoIndentScope noIndentScope = new(options.JsonSerializerOptions.Encoder, localOptions);
+        noIndentScope.WriteNoIndentTo(options.WriteAligned, writer, value.Variants, (w, v, o) => {
+            w.WriteStartObject();
+            w.WriteString("name"u8, v.Name);
+            w.WriteString("charter"u8, v.Charter);
+            w.WriteNumber("difficulty"u8, v.Difficulty);
+            w.WriteString("display"u8, v.Display);
+            w.WriteBoolean("extra"u8, v.Extra);
+            w.WriteBoolean("hidden"u8, v.Hidden);
+            w.WriteEndObject();
+        });
+        //foreach (var variant in value.Variants)
+        //{
+        //    writer.WriteStartObject();
+        //    writer.WriteString("name"u8, variant.Name);
+        //    writer.WriteString("charter"u8, variant.Charter);
+        //    writer.WriteNumber("difficulty"u8, variant.Difficulty);
+        //    writer.WriteString("display"u8, variant.Display);
+        //    writer.WriteBoolean("extra"u8, variant.Extra);
+        //    writer.WriteBoolean("hidden"u8, variant.Hidden);
+        //    writer.WriteEndObject();
+        //}
         writer.WriteEndArray();
         #endregion
         writer.WriteEndObject();
