@@ -3,7 +3,7 @@ namespace RhythmBase.Global.Components;
 /// <summary>
 /// Enum representing special types of artists.
 /// </summary>
-[RDJsonEnumSerializable]
+[JsonEnumSerializable]
 public enum SpecialArtistTypes
 {
 	/// <summary>

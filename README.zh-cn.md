@@ -6,7 +6,8 @@
   <img src="https://img.shields.io/nuget/dt/RhythmBase" alt="Downloads"/>
 </p>
 
-> 如果您觉得这个项目对您有帮助，可以考虑通过[爱发电（中国大陆）](https://afdian.com/a/obugs)或 [Ko-fi（国际）](https://ko-fi.com/obugs)进行赞助！
+> 如果您觉得这个项目对您有帮助，可以考虑通过[爱发电（中国大陆）](https://afdian.com/a/obugs)或
+> [Ko-fi（国际）](https://ko-fi.com/obugs)进行赞助！
 
 # RhythmBase
 
@@ -14,38 +15,39 @@
 
 本项目面向音乐游戏的关卡开发者，旨在为开发者提供独立于游戏引擎的、更高性能、系统化、直观的关卡编辑代理开发库。\
 目前计划或已完成对以下音乐游戏的文件格式兼容：
-          
-| 游戏                                  | ID           | 状态   | 简短 ID |
-| ------------------------------------- | ------------ | ------ | ------- |
-| 节奏医生（Rhythm Doctor）             | RhythmDoctor | 维护中 | RD      |
-| 冰与火之舞（A Dance of Fire and Ice） | Adofai       | 维护中 | AD      |
-| 节奏方块（BeatBlock）                 | BeatBlock    | 开发中 | BB      |
-| 律动轨迹（Rizline）                   | Rizline      | 计划中 | RL      |
-| Rhythm Quest                          | RhythmQuest  | 计划中 | RQ      |
+
+- [x] 节奏医生（Rhythm Doctor）
+- [x] 冰与火之舞（A Dance of Fire and Ice）
+- [x] 节奏方块（BeatBlock）
+- [ ] 律动轨迹（Rizline）
+- [ ] Rhythm Quest
+
+开发进度详见[此处](./TODO.zh-cn.md)。
 
 您可以在[这里](/RhythmBase.Test/Tutorial.cs)查看示例。
 
 ## 特别感谢
-- 项目维护
-    - [0x4D2](https://github.com/0x4D25F2) 提供了大量测试和反馈。
-    - [mfgujhgh](https://github.com/mfgujhgh) 提供了算法指导。
-    - **节奏医生玩家社区** 对本项目的大力支持。
-- 赞助
-    - [NTide](https://space.bilibili.com/351700081)
-    - [来因洛特 | layinloty](https://space.bilibili.com/406743035)
-    - [狗小白 | Dogbai](https://space.bilibili.com/1129425006)
-    - [只能用宽判的屑 | kuanpan](https://space.bilibili.com/1928620300)
-    - [mfgujhgh](https://space.bilibili.com/1369651)
 
-| 项目                | 描述                                              | 状态     | 链接                                                                     | 
-|---------------------|---------------------------------------------------|----------|:-------------------------------------------------------------------------|
-| RhythmBase          | 关卡编辑代理核心库。                              | 维护中   | **您在这里**                                                             |
-| RhythmBase.View     | 绘制所有节奏医生事件。（包括 TypeScript DOM 版本）| 开发中   | [前往](https://github.com/OLDRedstone/RhythmBase.View)                   |
-| RhythmBase.Addition | 为核心库扩展功能。                                | 开发中   | [前往](https://github.com/RDCN-Community-Developers/RhythmBase.Addition) |
-| RhythmBase.Interact | 与游戏关卡编辑器交互。                            | *未公开* | -                                                                        |
-| RhythmBase.Hospital | 关卡的审核、提示、辅助等功能。                    | *未公开* | -                                                                        |
-| RhythmBase.Lite     | RhythmBase 的轻量版本。                           | 开发中   | [前往](https://github.com/RDCN-Community-Developers/RhythmToolkitLite)   |
-| RhythmBase.Control  | 关卡代理 UI 控件库。                              | *未公开* | -                                                                        |
+- 项目维护
+  - [0x4D2](https://github.com/0x4D25F2) 提供了大量测试和反馈。
+  - [mfgujhgh](https://github.com/mfgujhgh) 提供了算法指导。
+  - **节奏医生玩家社区** 对本项目的大力支持。
+- 赞助
+  - [NTide](https://space.bilibili.com/351700081)
+  - [来因洛特 | layinloty](https://space.bilibili.com/406743035)
+  - [狗小白 | Dogbai](https://space.bilibili.com/1129425006)
+  - [只能用宽判的屑 | kuanpan](https://space.bilibili.com/1928620300)
+  - [mfgujhgh](https://space.bilibili.com/1369651)
+
+| 项目                | 描述                                               | 状态     | 链接                                                                     |
+| ------------------- | -------------------------------------------------- | -------- | :----------------------------------------------------------------------- |
+| RhythmBase          | 关卡编辑代理核心库。                               | 维护中   | **您在这里**                                                             |
+| RhythmBase.View     | 绘制所有节奏医生事件。（包括 TypeScript DOM 版本） | 开发中   | [前往](https://github.com/OLDRedstone/RhythmBase.View)                   |
+| RhythmBase.Addition | 为核心库扩展功能。                                 | 开发中   | [前往](https://github.com/RDCN-Community-Developers/RhythmBase.Addition) |
+| RhythmBase.Interact | 与游戏关卡编辑器交互。                             | _未公开_ | -                                                                        |
+| RhythmBase.Hospital | 关卡的审核、提示、辅助等功能。                     | _未公开_ | -                                                                        |
+| RhythmBase.Lite     | RhythmBase 的轻量版本。                            | 开发中   | [前往](https://github.com/RDCN-Community-Developers/RhythmToolkitLite)   |
+| RhythmBase.Control  | 关卡代理 UI 控件库。                               | _未公开_ | -                                                                        |
 
 ```mermaid
 flowchart RL
@@ -83,12 +85,15 @@ RBV <-.-> RBVts
 
 ## 核心特性
 
-- **完整的事件系统支持** — 为《节奏医生》和《冰与火之舞》提供强类型事件模型，涵盖所有官方事件类型及 Adofai 高级滤镜系统，兼容未来新事件模型。
+- **完整的事件系统支持** —
+  为《节奏医生》和《冰与火之舞》提供强类型事件模型，涵盖所有官方事件类型及
+  Adofai 高级滤镜系统，兼容未来新事件模型。
 - **智能事件处理** — 灵活的 LINQ 查询、自动关系管理、内置时间线生成工具。
 - **RichText 与对话组件** — 完整的富文本语法解析和代码生成，用于对话和标题事件。
 - **缓动函数库** — 包含游戏全部缓动曲线，支持自定义插值与曲线拟合。
 - **跨平台** — 基于 .NET Standard 2.0 / .NET 8.0，支持 Windows、Linux、macOS。
-- **多语言调用** — 除 C#/F#/VB.NET 外，可通过 [pythonnet](https://github.com/pythonnet/pythonnet) 在 Python 中调用。
+- **多语言调用** — 除 C#/F#/VB.NET 外，可通过
+  [pythonnet](https://github.com/pythonnet/pythonnet) 在 Python 中调用。
 
 ## 快速开始
 
@@ -112,7 +117,9 @@ level.SaveToFile("out.rdlevel");
 
 ## 性能
 
-以关卡 *The Power of Terry* (`the-powe-S7V1kg9RWYK.rdzip`) 为基准，在 .NET 8.0 环境下 RhythmBase 的读写速度可达官方关卡编辑器的数倍。  
+以关卡 _The Power of Terry_ (`the-powe-S7V1kg9RWYK.rdzip`) 为基准，在 .NET 8.0
+环境下 RhythmBase 的读写速度可达官方关卡编辑器的数倍。
+
 - :red_square: 游戏编辑器
 - :green_square: .NET framework 4.8 下运行 .NET standard 2.0
 - :blue_square: .NET 8.0 下运行 .NET 8.0
@@ -144,6 +151,7 @@ xychart
     %% RDTK .NET 8.0 v1.3.10
     line [1365.457,1017.3662,753.053,615.3958,620.0609,617.4589,635.7308,612.3335,661.5626,605.837]
 ```
+
 ```mermaid
 ---
 config:
@@ -179,7 +187,9 @@ xychart
 
 ## AI 辅助
 
-本项目在开发过程中的以下内容使用了 AI 辅助工具（如 GitHub Copilot、ChatGPT 等）。
+本项目在开发过程中的以下内容使用了 AI 辅助工具（如 GitHub Copilot、ChatGPT
+等）。
+
 - 代码补全
 - Source Generator 代码重构（#6bdbc108）
 - API 文档查询
@@ -189,6 +199,8 @@ xychart
 
 ## 关于这个项目
 
-这个项目最初命名为 `RhythmToolkit`，目标是为《节奏医生》开发一些简化关卡处理的小工具。\
+这个项目最初命名为
+`RhythmToolkit`，目标是为《节奏医生》开发一些简化关卡处理的小工具。\
 随着项目逐渐完善，发展方向逐步偏向成为其他工具的基础框架，并扩展支持了《冰与火之舞》（Adofai）的关卡模型。\
-基于以上原因，项目更名为 `RhythmBase`，工具性质的内容迁移至其他仓库。当然，你也可以简称它为 `RDTK`！
+基于以上原因，项目更名为
+`RhythmBase`，工具性质的内容迁移至其他仓库。当然，你也可以简称它为 `RDTK`！

@@ -4,14 +4,12 @@ using RhythmBase.Global.Components.RichText;
 using RhythmBase.Global.Components.Vector;
 using RhythmBase.Global.Settings;
 using RhythmBase.RhythmDoctor.Components;
-//using RhythmBase.RhythmDoctor.Components.RDLang;
 using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Extensions;
 using RhythmBase.RhythmDoctor.Utils;
+using RhythmBase.RhythmDoctor.Settings;
 using System.Text.Json;
 using RhythmBase.RhythmDoctor;
-using RhythmBase.RhythmDoctor.Settings;
-using RhythmBase.RhythmDoctor.Linq;
 using RhythmBase.Global.Linq;
 
 namespace RhythmBase.Test
@@ -21,19 +19,19 @@ namespace RhythmBase.Test
     {
         static Tutorial()
         {
-            _rdlevel = RDLevel.Default;
+            _rdlevel = Level.Default;
         }
-        private static RDLevel _rdlevel;
+        private static Level _rdlevel;
         [TestMethod]
         public void CreateAnEmptyLevel()
         {
-            using RDLevel emptyLevel = [];
+            using Level emptyLevel = [];
             Console.WriteLine(emptyLevel); // "" Count = 0
         }
         [TestMethod]
         public void CreateADefaultLevel()
         {
-            using RDLevel defaultLevel = RDLevel.Default;
+            using Level defaultLevel = Level.Default;
             Console.WriteLine(defaultLevel); // "" Count = 3
         }
         [TestMethod]
@@ -42,13 +40,13 @@ namespace RhythmBase.Test
             lock (this)
             {
                 // Directly read a level file
-                using RDLevel rdlevel1 = RDLevel.FromFile(@"your\level.rdlevel");
+                using Level rdlevel1 = Level.FromFile(@"your\level.rdlevel");
 
                 // Read a level pack file
-                using RDLevel rdlevel2 = RDLevel.FromZip(@"your\level.rdzip");
+                using Level rdlevel2 = Level.FromZip(@"your\level.rdzip");
 
                 // Read a compressed level pack
-                using RDLevel rdlevel3 = RDLevel.FromZip(@"your\level.zip");
+                using Level rdlevel3 = Level.FromZip(@"your\level.zip");
 
                 // Write a level file
                 rdlevel1.SaveToFile(@"your\outLevel.rdlevel");
@@ -58,7 +56,7 @@ namespace RhythmBase.Test
         public void ReadOrWriteLevelWithSettings()
         {
             // Create custom read settings
-            LevelReadSettings settings = new()
+          LevelReadSettings settings = new()
             {
                 // Handling of inactive events
                 InactiveEventsHandling = InactiveEventsHandling.Store,
@@ -76,7 +74,7 @@ namespace RhythmBase.Test
             GlobalSettings.CachePath = @"your\cache\path";
 
             lock (this)
-            { using RDLevel _rdlevel1 = RDLevel.FromFile(@"your\level.rdlevel", settings); }
+            { using Level _rdlevel1 = Level.FromFile(@"your\level.rdlevel", settings); }
         }
         [TestMethod]
         public void ConvertLevelToJsonDocument()
@@ -87,20 +85,6 @@ namespace RhythmBase.Test
             string json = _rdlevel.ToJsonString(settings);
             Console.WriteLine(jdoc);
             Console.WriteLine(json);
-        }
-        [TestMethod]
-        public void ReadOrWriteEventHandling()
-        {
-            LevelWriteSettings settings = new();
-            settings.AfterWriting += Settings_AfterReading;
-
-            // This will be triggered after writing is finished
-            void Settings_AfterReading(object? sender, EventArgs e)
-            {
-                Console.WriteLine("After writing");
-            }
-
-            _rdlevel.SaveToFile(@"your\outLevel.rdlevel", settings);
         }
         [TestMethod]
         public void FindEventsInLevel()
@@ -116,21 +100,21 @@ namespace RhythmBase.Test
         {
             _rdlevel.Decorations.Add([]);
             // Find the AddClassicBeat event in the row decoration between beat (11,1) and (13,1)
-            IEventEnumerable<AddClassicBeat> list = _rdlevel.Decorations[0]
+            IEnumerable<AddClassicBeat> list = _rdlevel.Decorations[0]
                 .OfEvent<AddClassicBeat>()
                 .InRange(
-                    new RDBeat(11, 1), // Start searching from bar 11, beat 1
-                    new RDBeat(13, 1)  // End searching at bar 13, beat 1
+                    new TickTime(11, 1), // Start searching from bar 11, beat 1
+                    new TickTime(13, 1)  // End searching at bar 13, beat 1
                 );
         }
         [TestMethod]
         public void CreateBeatWithoutBinding()
         {
             // Create a beat not associated with a level
-            RDBeat beat1 = new(11);
-            RDBeat beat2 = new(2, 3);
-            RDBeat beat3 = (2, 3);
-            RDBeat beat4 = new(TimeSpan.FromSeconds(11.45));
+            TickTime beat1 = new(11);
+            TickTime beat2 = new(2, 3);
+            TickTime beat3 = (2, 3);
+            TickTime beat4 = new(TimeSpan.FromSeconds(11.45));
 
             Console.WriteLine(beat1); // [10,?,?]
             Console.WriteLine(beat2); // [?,(2, 3),?]
@@ -143,9 +127,9 @@ namespace RhythmBase.Test
         public void CreateBeatWithBinding()
         {
             // Create a beat associated with a level
-            RDBeat beat1 = _rdlevel.BeatOf(11);
-            RDBeat beat2 = _rdlevel.Calculator.BeatOf(2, 3);
-            RDBeat beat3 = beat1 - 10 + TimeSpan.FromSeconds(11.45);
+            TickTime beat1 = _rdlevel.BeatOf(11);
+            TickTime beat2 = _rdlevel.Calculator.BeatOf(2, 3);
+            TickTime beat3 = beat1 - 10 + TimeSpan.FromSeconds(11.45);
 
             Console.WriteLine(beat1); // [2,3]
             Console.WriteLine(beat2); // [2,3]
@@ -154,13 +138,13 @@ namespace RhythmBase.Test
         [TestMethod]
         public void LinkBeats()
         {
-            RDBeat beat1 = _rdlevel.BeatOf(1);
-            RDBeat beat2 = beat1.WithoutLink();
+            TickTime beat1 = _rdlevel.BeatOf(1);
+            TickTime beat2 = beat1.WithoutLink();
 
             Console.WriteLine(beat1.FromSameLevel(beat2));       // False
             Console.WriteLine(beat1.FromSameLevelOrNull(beat2)); // True
 
-            RDBeat beat3 = beat2.WithLink(_rdlevel.Calculator);
+            TickTime beat3 = beat2.WithLink(_rdlevel.Calculator);
 
             (int bar, float beat) = beat3; // (1, 1)
         }
@@ -173,24 +157,24 @@ namespace RhythmBase.Test
         [TestMethod]
         public void RangeUsage()
         {
-            IEventEnumerable<IBaseEvent> result = _rdlevel.InRange(new RDRange(_rdlevel.DefaultBeat + 10, null));
+            IEnumerable<IBaseEvent> result = _rdlevel.InRange(new RhythmDoctor.Components.Range(_rdlevel.DefaultBeat + 10, null));
         }
         [TestMethod]
         public void ExpressionUsage()
         {
 
-            RDExpression exp1 = new("i2+1");
-            RDExpression exp2 = new(30);
-            RDExpression exp3 = new("25.5");
+            Expression exp1 = new("i2+1");
+            Expression exp2 = new(30);
+            Expression exp3 = new("25.5");
 
-            RDExpression result = exp1 - exp2 * exp3;
+            Expression result = exp1 - exp2 * exp3;
 
             Console.WriteLine(result.ExpressionValue); // i2+1-765
         }
         [TestMethod]
         public void AddAndRemoveEvent()
         {
-            Comment comment = new() { Beat = new(12), Text = "My_comment." };
+            Comment comment = new() { TickTime = new(12), Text = "My_comment." };
             Console.WriteLine(comment); // [11,?,?] Comment My_comment.
 
             _rdlevel.Add(comment);
@@ -202,21 +186,21 @@ namespace RhythmBase.Test
         [TestMethod]
         public void AddAndRemoveCpbEvent()
         {
-            RDLevel level = [];
-            Comment temp = new() { Beat = (5, 3) };
+            Level level = [];
+            Comment temp = new() { TickTime = (5, 3) };
             level.Add(temp);
-            Console.WriteLine(temp.Beat);               // [5,3]
-            Console.WriteLine(temp.Beat.BeatOnly);      // 35
-            SetCrotchetsPerBar cpb = new() { Beat = (3, 1), CrotchetsPerBar = 6 };
+            Console.WriteLine(temp.TickTime);               // [5,3]
+            Console.WriteLine(temp.TickTime.Tick);      // 35
+            SetCrotchetsPerBar cpb = new() { TickTime = (3, 1), CrotchetsPerBar = 6 };
 
             level.Add(cpb, BeatChangeStrategy.Default);
-            Console.WriteLine(temp.Beat);               // [6,1]
-            Console.WriteLine(temp.Beat.BeatOnly);      // 35 (unchanged due to Default strategy)
+            Console.WriteLine(temp.TickTime);               // [6,1]
+            Console.WriteLine(temp.TickTime.Tick);      // 35 (unchanged due to Default strategy)
             level.Remove(cpb, BeatChangeStrategy.Default);
 
             level.Add(cpb, BeatChangeStrategy.RDLE);
-            Console.WriteLine(temp.Beat);               // [5,3] (unchanged due to RDLE strategy)
-            Console.WriteLine(temp.Beat.BeatOnly);      // 31
+            Console.WriteLine(temp.TickTime);               // [5,3] (unchanged due to RDLE strategy)
+            Console.WriteLine(temp.TickTime.Tick);      // 31
             level.Remove(cpb, BeatChangeStrategy.RDLE);
         }
         [TestMethod]
@@ -228,7 +212,7 @@ namespace RhythmBase.Test
 
             _rdlevel.Add(myEvent);
 
-            myEvent.Beat = new(8);
+            myEvent.TickTime = new(8);
 
             Console.WriteLine(myEvent.Type);        // ForwardEvent  
             Console.WriteLine(myEvent.ActualType);  // MyEvent  
@@ -269,17 +253,17 @@ namespace RhythmBase.Test
         [TestMethod]
         public void RichTextUsage()
         {
-            RDLine<RDRichStringStyle> line = RDLine<RDRichStringStyle>.Deserialize("Hel<color=#00FF00>lo");
+            RichLine<RichStringStyle> line = RichLine<RichStringStyle>.Deserialize("Hel<color=#00FF00>lo");
 
             Console.WriteLine(line.ToString()); // Hello
             Console.WriteLine(line.Serialize()); // Hel<color=lime>lo</color>
 
             line +=
-                new RDPhrase<RDRichStringStyle>(" Rhythm")
+                new Phrase<RichStringStyle>(" Rhythm")
                 {
                     Style = new()
                     {
-                        Color = RDColor.Lime
+                        Color = Color.Lime
                     }
                 };
 
@@ -291,7 +275,7 @@ namespace RhythmBase.Test
         [TestMethod]
         public void RichTextModify()
         {
-            RDLine<RDRichStringStyle> line = RDLine<RDRichStringStyle>.Deserialize("Hel<color=#00FF00>lo Rhythm</color> Doctor!");
+            RichLine<RichStringStyle> line = RichLine<RichStringStyle>.Deserialize("Hel<color=#00FF00>lo Rhythm</color> Doctor!");
 
 #if NETCOREAPP
             Console.WriteLine(line[6..].ToString()); // Rhythm Doctor!
@@ -308,31 +292,31 @@ namespace RhythmBase.Test
         [TestMethod]
         public void RichTextBuild()
         {
-            RDDialogueExchange exchange =
+            DialogueExchange exchange =
             [
-                new RDDialogueBlock()
+                new DialogueBlock()
                 {
                     Character = "Paige",
                     Expression = "neutral",
-                    Content = RDLine<RDDialoguePhraseStyle>.Deserialize("Hel<color=#00FF00>lo [2]<shake>Rhythm</color> Doctor</shake>!"),
+                    Content = RichLine<DialoguePhraseStyle>.Deserialize("Hel<color=#00FF00>lo [2]<shake>Rhythm</color> Doctor</shake>!"),
                 },
-                new RDDialogueBlock()
+                new DialogueBlock()
                 {
                     Character = "Ian",
                     Content = "Hello Paige!",
                 },
-                new RDDialogueBlock()
+                new DialogueBlock()
                 {
                     Character = "Paige",
                     Expression = "happy",
-                    Content = new RDPhrase<RDDialoguePhraseStyle>("What a good day!")
+                    Content = new Phrase<DialoguePhraseStyle>("What a good day!")
                     {
                         Events =
                         [
-                            new RDDialogueTone(RDDialogueToneType.VerySlow,6),
-                            new RDDialogueTone(RDDialogueToneType.Static,11),
+                            new DialogueTone(DialogueToneType.VerySlow,6),
+                            new DialogueTone(DialogueToneType.Static,11),
                         ],
-                        Style = new RDDialoguePhraseStyle()
+                        Style = new DialoguePhraseStyle()
                         {
                             Volume = 0.5f,
                             Bold = true,
@@ -371,9 +355,9 @@ namespace RhythmBase.Test
         {
 
             // Read the visual effects level file
-            using RDLevel vfxLevel = RDLevel.FromFile(@"vfx.rdlevel");
+            using Level vfxLevel = Level.FromFile(@"vfx.rdlevel");
             // Read the audio level file
-            using RDLevel audioLevel = RDLevel.FromFile(@"beat.rdlevel");
+            using Level audioLevel = Level.FromFile(@"beat.rdlevel");
 
             // Remove all rows from the visual effects level
             Row[] vfxrows = [.. vfxLevel.Rows];
@@ -422,7 +406,7 @@ namespace RhythmBase.Test
             // All implemented properties need to be bound to and checked for null in the ForwardEvent.ExtraData field.  
 
             // Implement an RDPointE type property  
-            public RDPointN? MyProperty
+            public PointN? MyProperty
             {
                 get
                 {

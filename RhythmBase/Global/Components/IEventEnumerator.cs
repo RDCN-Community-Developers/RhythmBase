@@ -1,25 +1,24 @@
-using RhythmBase.Global.Extensions;
 using System.Collections;
 using RhythmBase.Global.Linq;
 
 namespace RhythmBase.Global.Components;
 
-internal class EventEnumerator<TEvent, TType, TBeat>(RedBlackTree<TBeat, TypedEventCollection<TType, TBeat>> collection, ReadOnlyEnumCollection<TType> types, IBeatRange<TBeat> range)
+public class EventEnumerator<TEvent, TType, TBeat>(RedBlackTree<TBeat, TypedEventCollection<TType, TBeat>> collection, ReadOnlyEnumCollection<TType> types, ITickRange<TBeat> range)
     : IEventEnumerable<TEvent, TType, TBeat>, IEnumerator<TEvent>
     where TEvent : IEvent<TType, TBeat>
     where TType : struct, Enum
-    where TBeat : struct, IBeat<TBeat>
+    where TBeat : struct, ITickTime<TBeat>
 {
     protected readonly IEnumerator<KeyValuePair<TBeat, TypedEventCollection<TType, TBeat>>> beats = collection.GetEnumerator();
     protected IEnumerator<IEvent>? events;
     protected readonly RedBlackTree<TBeat, TypedEventCollection<TType, TBeat>> collection = collection;
     private ReadOnlyEnumCollection<TType> types = types;
-    private IBeatRange<TBeat> range = range;
+    private ITickRange<TBeat> range = range;
     public TEvent Current => ((TEvent?)events?.Current) ?? throw new InvalidOperationException();
     object IEnumerator.Current => Current;
     RedBlackTree<TBeat, TypedEventCollection<TType, TBeat>> IEventEnumerable<TEvent, TType, TBeat>.EventsBeatOrder => collection;
     ReadOnlyEnumCollection<TType> IEventEnumerable<TEvent, TType, TBeat>.Types => types;
-    IBeatRange<TBeat> IEventEnumerable<TEvent, TType, TBeat>.Range => range;
+    ITickRange<TBeat> IEventEnumerable<TEvent, TType, TBeat>.Range => range;
     public bool MoveNext()
     {
         if (events != null)
@@ -66,7 +65,7 @@ internal class EventEnumerator<TEvent, TType, TBeat>(RedBlackTree<TBeat, TypedEv
         this.types = types;
         return this;
     }
-    public EventEnumerator<TEvent, TType, TBeat> InRange(IBeatRange<TBeat> range)
+    public EventEnumerator<TEvent, TType, TBeat> InRange(ITickRange<TBeat> range)
     {
         this.range = this.range.Intersect(range);
         return this;

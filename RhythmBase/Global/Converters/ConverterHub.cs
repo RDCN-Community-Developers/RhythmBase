@@ -1,77 +1,70 @@
 ﻿using RhythmBase.Global.Components.RichText;
-using RhythmBase.RhythmDoctor.Extensions;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace RhythmBase.Global.Converters;
 
-internal static partial class ConverterHub
+public class ListConverter<T> : MetadataJsonConverter<List<T>>
 {
-    private class ListConverter<T> : RDJsonConverter<List<T>>
+    public override List<T> Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
     {
-        public override List<T> Read(ref Utf8JsonReader reader, Type typeToConvert, RDJsonSerializerOptions options)
+        List<T> result = new();
+        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+        while (reader.Read())
         {
-            List<T> result = new();
-            JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
-            while (reader.Read())
-            {
-                if (reader.TokenType == JsonTokenType.EndArray)
-                    break;
-                else
-                    result.Add(Read<T>(ref reader, options));
-            }
-            JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
-            return result;
+            if (reader.TokenType == JsonTokenType.EndArray)
+                break;
+            else
+                result.Add(ConverterHub.Read<T>(ref reader, options));
         }
-        public override void Write(Utf8JsonWriter writer, List<T> value, RDJsonSerializerOptions options)
-        {
-            writer.WriteStartArray();
-            foreach (T item in value)
-                writer.WriteStringValue(item?.ToString() ?? "");
-            writer.WriteEndArray();
-        }
+        return result;
     }
-    private static class ConverterCache<T>
+    public override void Write(Utf8JsonWriter writer, List<T> value, MetadataJsonSerializerOptions options)
     {
-        public static JsonConverter? Converter;
-    }
-    static ConverterHub()
-    {
-        InitializeConverters();
-        ConverterCache<List<string>>.Converter = new ListConverter<string>();
-        ConverterCache<List<FileReference>>.Converter = new ListConverter<FileReference>();
-        ConverterCache<RDLine<RDRichStringStyle>>.Converter = new RichTextConverter<RDRichStringStyle>();
-    }
-
-    public static T Read<T>(ref Utf8JsonReader reader, RDJsonSerializerOptions options)
-    {
-        if (ConverterCache<T>.Converter is RDJsonConverter<T> rdconverter)
-            return rdconverter.Read(ref reader, typeof(T), options) ?? default!;
-        if (ConverterCache<T>.Converter is JsonConverter<T> converter)
-            return converter.Read(ref reader, typeof(T), options.JsonSerializerOptions) ?? default!;
-        else
-        {
-            Console.WriteLine((typeof(T)));
-            //value = JsonSerializer.Deserialize<T>(ref reader, options) ?? default!;
-            return default!;
-        }
-    }
-    public static void Write<T>(Utf8JsonWriter writer, T value, RDJsonSerializerOptions options)
-    {
-        if (ConverterCache<T>.Converter is RDJsonConverter<T> rdconverter)
-        {
-            rdconverter.Write(writer, value, options);
-        }
-        else if (ConverterCache<T>.Converter is JsonConverter<T> converter)
-            converter.Write(writer, value, options.JsonSerializerOptions);
-        else
-        //JsonSerializer.Serialize(writer, value, options);
-#if DEBUG
-        {
-            throw new NotImplementedException($"No converter found for type {typeof(T)}");
-        }
-#else
-        writer.WriteNullValue();
-#endif
+        writer.WriteStartArray();
+        foreach (T item in value)
+            ConverterHub.Write(writer, item, options);
+        writer.WriteEndArray();
     }
 }
+//internal static partial class ConverterHub
+//{
+//    private static class ConverterCache<T>
+//    {
+//        public static JsonConverter? Converter;
+//    }
+//    static ConverterHub()
+//    {
+//        //InitializeConverters();
+//        //ConverterCache<List<string>>.Converter = new ListConverter<string>();
+//        //ConverterCache<List<FileReference>>.Converter = new ListConverter<FileReference>();
+//        //ConverterCache<RichLine<RichStringStyle>>.Converter = new RichTextConverter<RichStringStyle>();
+//    }
+
+//    public static T Read<T>(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options)
+//    {
+//        if (ConverterCache<T>.Converter is MetadataJsonConverter<T> rdconverter)
+//            return rdconverter.Read(ref reader, typeof(T), options) ?? default!;
+//        if (ConverterCache<T>.Converter is JsonConverter<T> converter)
+//            return converter.Read(ref reader, typeof(T), options.JsonSerializerOptions) ?? default!;
+//        else
+//#if DEBUG
+//            throw new NotImplementedException($"No converter found for type {typeof(T)}");
+//#else
+//            return default!;
+//#endif
+//    }
+//    public static void Write<T>(Utf8JsonWriter writer, T value, MetadataJsonSerializerOptions options)
+//    {
+//        if (ConverterCache<T>.Converter is MetadataJsonConverter<T> rdconverter)
+//            rdconverter.Write(writer, value, options);
+//        else if (ConverterCache<T>.Converter is JsonConverter<T> converter)
+//            converter.Write(writer, value, options.JsonSerializerOptions);
+//        else
+//#if DEBUG
+//            throw new NotImplementedException($"No converter found for type {typeof(T)}");
+//#else
+//            writer.WriteNullValue();
+//#endif
+//    }
+//}

@@ -1,28 +1,27 @@
 using RhythmBase.Global.Components.Vector;
-using RhythmBase.RhythmDoctor.Components;
-using RhythmBase.RhythmDoctor.Extensions;
+using RhythmBase.Global.Components;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 namespace RhythmBase.Global.Converters;
 
-internal abstract class RDPointsConverter<T> : JsonConverter<T> where T : struct, IRDVector
+public abstract class RDPointsConverter<T> : JsonConverter<T> where T : struct, IVector
 {
-    public override bool CanConvert(Type objectType) => typeof(IRDVector).IsAssignableFrom(objectType);
+    public override bool CanConvert(Type objectType) => typeof(IVector).IsAssignableFrom(objectType);
 }
-[RDJsonConverterFor(typeof(RDPoint))]
-internal class RDPointConverter : JsonConverter<RDPoint>
+[JsonConverterFor(typeof(Point))]
+public class RDPointConverter : JsonConverter<Point>
 {
-    public override RDPoint Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
+    public override Point Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
-        var value = new RDPoint(
+        var value = new Point(
                 reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetSingle() : null,
                 reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetSingle() : null);
         reader.Read();
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
         return value;
     }
-    public override void Write(Utf8JsonWriter writer, RDPoint value, JsonSerializerOptions serializer)
+    public override void Write(Utf8JsonWriter writer, Point value, JsonSerializerOptions serializer)
     {
         writer.WriteStartArray();
         if (value.X is null)
@@ -36,20 +35,20 @@ internal class RDPointConverter : JsonConverter<RDPoint>
         writer.WriteEndArray();
     }
 }
-[RDJsonConverterFor(typeof(RDPointNI))]
-internal class RDPointNIConverter : JsonConverter<RDPointNI>
+[JsonConverterFor(typeof(PointNI))]
+public class RDPointNIConverter : JsonConverter<PointNI>
 {
-    public override RDPointNI Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
+    public override PointNI Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
-        var value = new RDPointNI(
+        var value = new PointNI(
             reader.Read() ? reader.GetInt32() : 0,
             reader.Read() ? reader.GetInt32() : 0);
         reader.Read();
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
         return value;
     }
-    public override void Write(Utf8JsonWriter writer, RDPointNI value, JsonSerializerOptions serializer)
+    public override void Write(Utf8JsonWriter writer, PointNI value, JsonSerializerOptions serializer)
     {
         writer.WriteStartArray();
         writer.WriteNumberValue(value.X);
@@ -57,20 +56,20 @@ internal class RDPointNIConverter : JsonConverter<RDPointNI>
         writer.WriteEndArray();
     }
 }
-[RDJsonConverterFor(typeof(RDPointN))]
-internal class RDPointNConverter : JsonConverter<RDPointN>
+[JsonConverterFor(typeof(PointN))]
+public class RDPointNConverter : JsonConverter<PointN>
 {
-    public override RDPointN Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
+    public override PointN Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
-        var value = new RDPointN(
+        var value = new PointN(
             reader.Read() ? reader.GetSingle() : 0,
             reader.Read() ? reader.GetSingle() : 0);
         reader.Read();
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
         return value;
     }
-    public override void Write(Utf8JsonWriter writer, RDPointN value, JsonSerializerOptions serializer)
+    public override void Write(Utf8JsonWriter writer, PointN value, JsonSerializerOptions serializer)
     {
         writer.WriteStartArray();
         writer.WriteNumberValue(value.X);
@@ -78,20 +77,20 @@ internal class RDPointNConverter : JsonConverter<RDPointN>
         writer.WriteEndArray();
     }
 }
-[RDJsonConverterFor(typeof(RDPointI))]
-internal class RDPointIConverter : JsonConverter<RDPointI>
+[JsonConverterFor(typeof(PointI))]
+public class RDPointIConverter : JsonConverter<PointI>
 {
-    public override RDPointI Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
+    public override PointI Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
-        var value = new RDPointI(
+        var value = new PointI(
             reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetInt32() : null,
             reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetInt32() : null);
         reader.Read();
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
         return value;
     }
-    public override void Write(Utf8JsonWriter writer, RDPointI value, JsonSerializerOptions serializer)
+    public override void Write(Utf8JsonWriter writer, PointI value, JsonSerializerOptions serializer)
     {
         writer.WriteStartArray();
         if (value.X is null)
@@ -105,62 +104,20 @@ internal class RDPointIConverter : JsonConverter<RDPointI>
         writer.WriteEndArray();
     }
 }
-[RDJsonConverterFor(typeof(RDPointE))]
-internal class RDPointEConverter : JsonConverter<RDPointE>
+[JsonConverterFor(typeof(SizeNI))]
+public class RDSizeNIConverter : JsonConverter<SizeNI>
 {
-    public override RDPointE Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
+    public override SizeNI Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
-        var value = new RDPointE(
-            reader.Read() ?
-            reader.TokenType == JsonTokenType.Number ? new RDExpression(reader.GetSingle()) :
-            reader.TokenType == JsonTokenType.String ? new RDExpression(reader.GetString() ?? string.Empty) :
-            (RDExpression?)null :
-            null,
-            reader.Read() ?
-            reader.TokenType == JsonTokenType.Number ? new RDExpression(reader.GetSingle()) :
-            reader.TokenType == JsonTokenType.String ? new RDExpression(reader.GetString() ?? string.Empty) :
-            (RDExpression?)null :
-            null
-            );
-        reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
-        return value;
-    }
-    public override void Write(Utf8JsonWriter writer, RDPointE value, JsonSerializerOptions serializer)
-    {
-        writer.WriteStartArray();
-        if (value.X != null)
-            if (value.X.Value.IsNumeric)
-                writer.WriteNumberValue(value.X.Value.NumericValue);
-            else
-                writer.WriteStringValue(value.X.Value.ExpressionValue);
-        else
-            writer.WriteNullValue();
-        if (value.Y != null)
-            if (value.Y.Value.IsNumeric)
-                writer.WriteNumberValue(value.Y.Value.NumericValue);
-            else
-                writer.WriteStringValue(value.Y.Value.ExpressionValue);
-        else
-            writer.WriteNullValue();
-        writer.WriteEndArray();
-    }
-}
-[RDJsonConverterFor(typeof(RDSizeNI))]
-internal class RDSizeNIConverter : JsonConverter<RDSizeNI>
-{
-    public override RDSizeNI Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
-    {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
-        var value = new RDSizeNI(
+        var value = new SizeNI(
             reader.Read() ? reader.GetInt32() : 0,
             reader.Read() ? reader.GetInt32() : 0);
         reader.Read();
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
         return value;
     }
-    public override void Write(Utf8JsonWriter writer, RDSizeNI value, JsonSerializerOptions serializer)
+    public override void Write(Utf8JsonWriter writer, SizeNI value, JsonSerializerOptions serializer)
     {
         writer.WriteStartArray();
         writer.WriteNumberValue(value.Width);
@@ -168,20 +125,20 @@ internal class RDSizeNIConverter : JsonConverter<RDSizeNI>
         writer.WriteEndArray();
     }
 }
-[RDJsonConverterFor(typeof(RDSizeN))]
-internal class RDSizeNConverter : JsonConverter<RDSizeN>
+[JsonConverterFor(typeof(SizeN))]
+public class RDSizeNConverter : JsonConverter<SizeN>
 {
-    public override RDSizeN Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
+    public override SizeN Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
-        var value = new RDSizeN(
+        var value = new SizeN(
             reader.Read() ? reader.GetSingle() : 0,
             reader.Read() ? reader.GetSingle() : 0);
         reader.Read();
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
         return value;
     }
-    public override void Write(Utf8JsonWriter writer, RDSizeN value, JsonSerializerOptions serializer)
+    public override void Write(Utf8JsonWriter writer, SizeN value, JsonSerializerOptions serializer)
     {
         writer.WriteStartArray();
         writer.WriteNumberValue(value.Width);
@@ -189,20 +146,20 @@ internal class RDSizeNConverter : JsonConverter<RDSizeN>
         writer.WriteEndArray();
     }
 }
-[RDJsonConverterFor(typeof(RDSizeI))]
-internal class RDSizeIConverter : JsonConverter<RDSizeI>
+[JsonConverterFor(typeof(SizeI))]
+public class RDSizeIConverter : JsonConverter<SizeI>
 {
-    public override RDSizeI Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
+    public override SizeI Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
-        var value = new RDSizeI(
+        var value = new SizeI(
             reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetInt32() : null,
             reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetInt32() : null);
         reader.Read();
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
         return value;
     }
-    public override void Write(Utf8JsonWriter writer, RDSizeI value, JsonSerializerOptions serializer)
+    public override void Write(Utf8JsonWriter writer, SizeI value, JsonSerializerOptions serializer)
     {
         writer.WriteStartArray();
         if (value.Width is null)
@@ -216,20 +173,20 @@ internal class RDSizeIConverter : JsonConverter<RDSizeI>
         writer.WriteEndArray();
     }
 }
-[RDJsonConverterFor(typeof(RDSize))]
-internal class RDSizeConverter : JsonConverter<RDSize>
+[JsonConverterFor(typeof(Size))]
+public class RDSizeConverter : JsonConverter<Size>
 {
-    public override RDSize Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
+    public override Size Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
-        var value = new RDSize(
+        var value = new Size(
             reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetSingle() : null,
             reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetSingle() : null);
         reader.Read();
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
         return value;
     }
-    public override void Write(Utf8JsonWriter writer, RDSize value, JsonSerializerOptions serializer)
+    public override void Write(Utf8JsonWriter writer, Size value, JsonSerializerOptions serializer)
     {
         writer.WriteStartArray();
         if (value.Width is null)
@@ -240,47 +197,6 @@ internal class RDSizeConverter : JsonConverter<RDSize>
             writer.WriteNullValue();
         else
             writer.WriteNumberValue(value.Height.Value);
-        writer.WriteEndArray();
-    }
-}
-[RDJsonConverterFor(typeof(RDSizeE))]
-internal class RDSizeEConverter : JsonConverter<RDSizeE>
-{
-    public override RDSizeE Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
-    {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
-        var value = new RDSizeE(
-            reader.Read() ?
-            reader.TokenType == JsonTokenType.Number ? new RDExpression(reader.GetSingle()) :
-            reader.TokenType == JsonTokenType.String ? new RDExpression(reader.GetString() ?? string.Empty) :
-            (RDExpression?)null :
-            null,
-            reader.Read() ?
-            reader.TokenType == JsonTokenType.Number ? new RDExpression(reader.GetSingle()) :
-            reader.TokenType == JsonTokenType.String ? new RDExpression(reader.GetString() ?? string.Empty) :
-            (RDExpression?)null :
-            null);
-        reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
-        return value;
-    }
-    public override void Write(Utf8JsonWriter writer, RDSizeE value, JsonSerializerOptions serializer)
-    {
-        writer.WriteStartArray();
-        if (value.Width != null)
-            if (value.Width.Value.IsNumeric)
-                writer.WriteNumberValue(value.Width.Value.NumericValue);
-            else
-                writer.WriteStringValue(value.Width.Value.ExpressionValue);
-        else
-            writer.WriteNullValue();
-        if (value.Height != null)
-            if (value.Height.Value.IsNumeric)
-                writer.WriteNumberValue(value.Height.Value.NumericValue);
-            else
-                writer.WriteStringValue(value.Height.Value.ExpressionValue);
-        else
-            writer.WriteNullValue();
         writer.WriteEndArray();
     }
 }

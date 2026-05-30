@@ -14,6 +14,7 @@
 		关卡为多文件。
 	- `IArchiveLevel<TSelf, TEvent, TType, TBeat>`\
 		关卡存在压缩包形式。	
+1. 定义谱面模型，实现 `RhythmBase.Clobal.IChart<TBeat>` 接口。
 4. 定义事件模型，实现 `IEvent<TType，TBeat>` 接口。
    建议编写一个命名空间限定接口用于事件模型实现。\
 	依据事件功能，可以选择实现这些接口：

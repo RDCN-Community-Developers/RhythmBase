@@ -1,27 +1,14 @@
 #### \[ [English](./TODO.md) | 中文 \]
 
-### RhythmDoctor
-- [x] 事件模型
-- [x] 事件容器
-- [x] 时间转换
-- [x] 序列化器
-- [x] 辅助组件
-- [ ] 快照功能
-- [ ] 表达式解析
+:blue_square: 已验证\
+:green_square: 已完成\
+:yellow_square: 编写中\
+:orange_square: 计划中\
+:red_square: 未计划
 
-### Adofai
-- [x] 事件模型
-- [x] 事件容器
-- [ ] 时间转换
-- [x] 序列化器
-- [x] 辅助组件
-
-### BeatBlock
-- [ ] 事件模型
-- [ ] 事件容器
-- [ ] 时间转换
-- [ ] 序列化器
-- [ ] 辅助组件
-
-### 其他
-- [ ] 序列化特性：成员对象展开
+|          | Rhythm Doctor | Adofai          | BeatBlock       | Rizline         | ... |
+| -------- | ------------- | --------------- | --------------- | --------------- | --- |
+| 数据模型 | :blue_square: | :blue_square:   | :blue_square:   | :green_square:  |     |
+| 序列化   | :blue_square: | :blue_square:   | :blue_square:   | :yellow_square: |     |
+| 时间转换 | :blue_square: | :yellow_square: | :orange_square: | :orange_square: |     |
+| 辅助功能 | :blue_square: | :green_square:  | :green_square:  | :orange_square: |     |

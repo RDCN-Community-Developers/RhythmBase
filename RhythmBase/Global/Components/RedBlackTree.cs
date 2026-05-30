@@ -1,6 +1,6 @@
 namespace RhythmBase.Global.Components;
 
-internal class RedBlackNode<TKey, TValue>(TKey key, TValue value) where TKey : IComparable<TKey>
+public class RedBlackNode<TKey, TValue>(TKey key, TValue value) where TKey : IComparable<TKey>
 {
     public TKey Key = key;
     public TValue Value = value;
@@ -29,7 +29,7 @@ public class RedBlackTree<TKey, TValue> : ICollection<KeyValuePair<TKey, TValue>
         return node != null;
     }
 
-    internal RedBlackNode<TKey, TValue>? FindNode(TKey key)
+    public RedBlackNode<TKey, TValue>? FindNode(TKey key)
     {
         RedBlackNode<TKey, TValue>? current = _root;
         while (current != null)
@@ -376,10 +376,7 @@ public class RedBlackTree<TKey, TValue> : ICollection<KeyValuePair<TKey, TValue>
             RedBlackNode<TKey, TValue>? node = FindNode(key);
             return node == null ? throw new KeyNotFoundException() : node.Value;
         }
-        set
-        {
-            Insert(key, value);
-        }
+        set => Insert(key, value);
     }
 
     /// <summary>

@@ -9,9 +9,9 @@ public interface IEvent
 /// <summary>
 /// Represents a marker interface for event types in an event-driven architecture.
 /// </summary>
-public interface IEvent<TType, TBeat> : IEvent
+public interface IEvent<TType, TTick> : IEvent
     where TType : struct, Enum
-    where TBeat : struct, IBeat<TBeat>
+    where TTick : struct, ITickTime<TTick>
 {
     /// <summary>
     /// Gets the type of the event.
@@ -21,5 +21,5 @@ public interface IEvent<TType, TBeat> : IEvent
     /// <summary>
     /// Gets the beat of the event.
     /// </summary>
-    TBeat Beat { get; }
+    TTick TickTime { get; }
 }

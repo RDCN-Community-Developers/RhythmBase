@@ -1,8 +1,5 @@
-using RhythmBase.Global.Extensions;
-using RhythmBase.Global.Events;
-using static RhythmBase.Global.Extensions.Extensions;
 using System.Collections;
-using RhythmBase.RhythmDoctor.Linq;
+using System.ComponentModel;
 using RhythmBase.Global.Linq;
 namespace RhythmBase.Global.Components;
 
@@ -11,19 +8,19 @@ namespace RhythmBase.Global.Components;
 /// </summary>  
 /// <typeparam name="TEvent">The type of event.</typeparam>  
 /// <typeparam name="TType">The type of event type.</typeparam>
-/// <typeparam name="TBeat">The type of beat.</typeparam>
+/// <typeparam name="TTickTime">The type of beat.</typeparam>
 /// 
-public abstract class OrderedEventCollection<TEvent, TType, TBeat> : ICollection<TEvent>, IEventEnumerable<TEvent, TType, TBeat>
-    where TEvent : IEvent<TType, TBeat>
+public abstract class OrderedEventCollection<TEvent, TType, TTickTime> : ICollection<TEvent>, IEventEnumerable<TEvent, TType, TTickTime>
+    where TEvent : IEvent<TType, TTickTime>
     where TType : struct, Enum
-    where TBeat : struct, IBeat<TBeat>
+    where TTickTime : struct, ITickTime<TTickTime>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="OrderedEventCollection{TEvent, TType, TBeat}"/> class.
     /// </summary>
     public OrderedEventCollection()
     {
-        eventsBeatOrder = [];
+        EventsBeatOrder = [];
         IsReadOnly = false;
     }
     ///// <summary>  
@@ -39,7 +36,7 @@ public abstract class OrderedEventCollection<TEvent, TType, TBeat> : ICollection
     /// Concatenates all events in the collection.  
     /// </summary>  
     /// <returns>An <see cref="IEnumerable{TEvent}"/> that contains all events in the collection.</returns>  
-    public IEnumerable<TEvent> ConcatAll() => eventsBeatOrder.SelectMany(i => i.Value).Cast<TEvent>();
+    public IEnumerable<TEvent> ConcatAll() => EventsBeatOrder.SelectMany(i => i.Value).Cast<TEvent>();
     ///// <summary>  
     ///// Adds an event to the collection.  
     ///// </summary>  
@@ -59,14 +56,14 @@ public abstract class OrderedEventCollection<TEvent, TType, TBeat> : ICollection
     /// <inheritdoc/>  
     public IEnumerator<TEvent> GetEnumerator()
     {
-        foreach (KeyValuePair<TBeat, TypedEventCollection<TType, TBeat>> pair in eventsBeatOrder)
+        foreach (KeyValuePair<TTickTime, TypedEventCollection<TType, TTickTime>> pair in EventsBeatOrder)
             foreach (TEvent item in pair.Value.Select(v => v))
                 yield return item;
     }
     /// <summary>
     /// Gets the total count of events in the collection.
     /// </summary>
-    public virtual int Count => eventsBeatOrder.Sum(i => i.Value.Count);
+    public virtual int Count => EventsBeatOrder.Sum(i => i.Value.Count);
     /// <summary>
     /// Gets a value indicating whether the collection is read-only.
     /// </summary>
@@ -75,7 +72,7 @@ public abstract class OrderedEventCollection<TEvent, TType, TBeat> : ICollection
     /// Returns the beat of the last event.
     /// </summary>
     /// <returns>The beat of the last event.</returns>
-    public TBeat Duration => eventsBeatOrder.LastOrDefault().Key;
+    public TTickTime Duration => EventsBeatOrder.LastOrDefault().Key;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrderedEventCollection{TEvent, TType, TBeat}"/> class with the specified items.
@@ -83,7 +80,7 @@ public abstract class OrderedEventCollection<TEvent, TType, TBeat> : ICollection
     /// <param name="items">The items to add to the collection.</param>
     public OrderedEventCollection(IEnumerable<TEvent> items)
     {
-        eventsBeatOrder = [];
+        EventsBeatOrder = [];
         IsReadOnly = false;
         foreach (TEvent item in items)
             Add(item);
@@ -94,22 +91,22 @@ public abstract class OrderedEventCollection<TEvent, TType, TBeat> : ICollection
     /// <param name="item">The event to add.</param>
     public virtual bool Add(TEvent item)
     {
-        if (eventsBeatOrder.TryGetValue(item.Beat, out TypedEventCollection<TType, TBeat>? value))
+        if (EventsBeatOrder.TryGetValue(item.TickTime, out TypedEventCollection<TType, TTickTime>? value))
             return value.Add(item);
-        eventsBeatOrder.Insert(item.Beat, [item]);
+        EventsBeatOrder.Insert(item.TickTime, [item]);
         return true;
     }
     //void ICollection<TEvent>.Add(TEvent item) => Add(item);
     /// <summary>
     /// Clears all events from the collection.
     /// </summary>
-    public void Clear() => eventsBeatOrder.Clear();
+    public void Clear() => EventsBeatOrder.Clear();
     /// <summary>
     /// Determines whether the collection contains a specific event.
     /// </summary>
     /// <param name="item">The event to locate in the collection.</param>
     /// <returns>true if the event is found in the collection; otherwise, false.</returns>
-    public virtual bool Contains(TEvent item) => eventsBeatOrder.FindNode(item.Beat)?.Value.Contains(item) ?? false;
+    public virtual bool Contains(TEvent item) => EventsBeatOrder.FindNode(item.TickTime)?.Value.Contains(item) ?? false;
     /// <summary>
     /// Copies the elements of the collection to an array, starting at a particular array index.
     /// </summary>
@@ -121,7 +118,7 @@ public abstract class OrderedEventCollection<TEvent, TType, TBeat> : ICollection
             throw new ArgumentOutOfRangeException(nameof(arrayIndex));
         if (array.Length - arrayIndex < Count)
             throw new ArgumentException("The number of elements in the source collection is greater than the available space from arrayIndex to the end of the destination array.");
-        foreach (KeyValuePair<TBeat, TypedEventCollection<TType, TBeat>> pair in eventsBeatOrder)
+        foreach (KeyValuePair<TTickTime, TypedEventCollection<TType, TTickTime>> pair in EventsBeatOrder)
         {
             foreach (TEvent item in pair.Value)
             {
@@ -139,16 +136,16 @@ public abstract class OrderedEventCollection<TEvent, TType, TBeat> : ICollection
         bool Remove;
         if (Contains(item))
         {
-            bool result = eventsBeatOrder[item.Beat].Remove(item);
-            if (eventsBeatOrder[item.Beat].Count == 0)
-                eventsBeatOrder.Remove(item.Beat);
+            bool result = EventsBeatOrder[item.TickTime].Remove(item);
+            if (EventsBeatOrder[item.TickTime].Count == 0)
+                EventsBeatOrder.Remove(item.TickTime);
             Remove = result;
         }
         else
             Remove = false;
         return Remove;
     }
-    internal IEnumerator<TEvent> GetEnumerator(float? start, float? end) => new EventEnumerator<TEvent, TType, TBeat>(eventsBeatOrder, Types, CreateRange(
+    internal IEnumerator<TEvent> GetEnumerator(float? start, float? end) => new EventEnumerator<TEvent, TType, TTickTime>(EventsBeatOrder, Types, CreateRange(
         start, end));
     /// <summary>
     /// Returns an enumerator that iterates through the collection.
@@ -164,13 +161,14 @@ public abstract class OrderedEventCollection<TEvent, TType, TBeat> : ICollection
     /// <summary>
     /// The dictionary that maintains the order of events based on their beats.
     /// </summary>
-    internal RedBlackTree<TBeat, TypedEventCollection<TType, TBeat>> eventsBeatOrder = [];
-    RedBlackTree<TBeat, TypedEventCollection<TType, TBeat>> IEventEnumerable<TEvent, TType, TBeat>.EventsBeatOrder => eventsBeatOrder;
-    internal abstract TBeat CreateInstance(float beat);
-    internal abstract IBeatRange<TBeat> CreateRange(float? start, float? end);
-    internal abstract ReadOnlyEnumCollection<TType> Types { get; }
-    ReadOnlyEnumCollection<TType> IEventEnumerable<TEvent, TType, TBeat>.Types => Types;
-    IBeatRange<TBeat> IEventEnumerable<TEvent, TType, TBeat>.Range => CreateRange(null, null);
+    [EditorBrowsable(EditorBrowsableState.Advanced)]
+    public RedBlackTree<TTickTime, TypedEventCollection<TType, TTickTime>> EventsBeatOrder = [];
+    RedBlackTree<TTickTime, TypedEventCollection<TType, TTickTime>> IEventEnumerable<TEvent, TType, TTickTime>.EventsBeatOrder => EventsBeatOrder;
+    internal protected abstract TTickTime CreateInstance(float beat);
+    internal protected abstract ITickRange<TTickTime> CreateRange(float? start, float? end);
+    internal protected abstract ReadOnlyEnumCollection<TType> Types { get; }
+    ReadOnlyEnumCollection<TType> IEventEnumerable<TEvent, TType, TTickTime>.Types => Types;
+    ITickRange<TTickTime> IEventEnumerable<TEvent, TType, TTickTime>.Range => CreateRange(null, null);
 
-    internal abstract ReadOnlyEnumCollection<TType> TypesOf<TTarget>() where TTarget : IEvent<TType, TBeat>;
+    internal protected abstract ReadOnlyEnumCollection<TType> TypesOf<TTarget>() where TTarget : IEvent<TType, TTickTime>;
 }

@@ -20,7 +20,7 @@ public readonly struct EaseInfo
 	/// </summary>
 	/// <param name="type">The type of easing function.</param>
 	/// <param name="duration">The duration of the easing.</param>
-	internal EaseInfo(EaseType type, float duration)
+	public EaseInfo(EaseType type, float duration)
 	{
 		Type = type;
 		Duration = duration;
@@ -52,12 +52,12 @@ public readonly struct CurveNode<T> : INode
 	/// </summary>
 	public T Value { get; }
 
-	/// <summary>
-	/// Initializes a new instance of the <see cref="CurveNode{T}"/> struct.
-	/// </summary>
-	/// <param name="time">The time value.</param>
-	/// <param name="value">The value at the specified time.</param>
-	internal CurveNode(float time, T value)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CurveNode{T}"/> struct.
+    /// </summary>
+    /// <param name="time">The time value.</param>
+    /// <param name="value">The value at the specified time.</param>
+    public CurveNode(float time, T value)
 	{
 		Time = time;
 		Value = value;
@@ -84,13 +84,13 @@ public readonly struct TweenCurveNode<T> : INode
 	/// </summary>
 	public EaseInfo EaseInfo { get; }
 
-	/// <summary>
-	/// Initializes a new instance of the <see cref="TweenCurveNode{T}"/> struct.
-	/// </summary>
-	/// <param name="time">The time value.</param>
-	/// <param name="target">The target value.</param>
-	/// <param name="easeInfo">The easing information.</param>
-	internal TweenCurveNode(float time, T target, EaseInfo easeInfo)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TweenCurveNode{T}"/> struct.
+    /// </summary>
+    /// <param name="time">The time value.</param>
+    /// <param name="target">The target value.</param>
+    /// <param name="easeInfo">The easing information.</param>
+    public TweenCurveNode(float time, T target, EaseInfo easeInfo)
 	{
 		Time = time;
 		Target = target;
@@ -106,12 +106,12 @@ public readonly struct Curve<T>
 	private readonly T _default;
 	private readonly CurveNode<T>[] _nodes = [];
 
-	/// <summary>
-	/// Initializes a new instance of the <see cref="Curve{T}"/> struct.
-	/// </summary>
-	/// <param name="values">The curve nodes.</param>
-	/// <param name="defaultValue">The default value to use when no nodes are present or time is out of range.</param>
-	internal Curve(CurveNode<T>[] values, T defaultValue)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Curve{T}"/> struct.
+    /// </summary>
+    /// <param name="values">The curve nodes.</param>
+    /// <param name="defaultValue">The default value to use when no nodes are present or time is out of range.</param>
+    public Curve(CurveNode<T>[] values, T defaultValue)
 	{
 		_nodes = [.. values.OrderBy(i => i.Time)];
 		_default = defaultValue;
@@ -158,13 +158,13 @@ public readonly struct TweenCurve<T>
 	private readonly TweenCurveNode<T>[] _nodes = [];
 	private readonly Func<T, T, double, T> _interpolator;
 
-	/// <summary>
-	/// Initializes a new instance of the <see cref="TweenCurve{T}"/> struct.
-	/// </summary>
-	/// <param name="values">The tween curve nodes.</param>
-	/// <param name="defaultValue">The default value to use when no nodes are present or time is out of range.</param>
-	/// <param name="interpolator">The interpolation function to use between values.</param>
-	internal TweenCurve(TweenCurveNode<T>[] values, T defaultValue, Func<T, T, double, T> interpolator)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TweenCurve{T}"/> struct.
+    /// </summary>
+    /// <param name="values">The tween curve nodes.</param>
+    /// <param name="defaultValue">The default value to use when no nodes are present or time is out of range.</param>
+    /// <param name="interpolator">The interpolation function to use between values.</param>
+    public TweenCurve(TweenCurveNode<T>[] values, T defaultValue, Func<T, T, double, T> interpolator)
 	{
 		_nodes = [.. values.OrderBy(i => i.Time)];
 		_default = defaultValue;
@@ -234,15 +234,15 @@ public readonly struct VectorTweenCurve<T>
 	private readonly Func<float, float, double, float> _interpolator;
 	private readonly Func<float[], T> _fromArray;
 
-	/// <summary>
-	/// Initializes a new instance of the <see cref="VectorTweenCurve{T}"/> struct.
-	/// </summary>
-	/// <param name="values">The array of tween curve nodes for each vector component.</param>
-	/// <param name="defaultValue">The default vector value to use when no nodes are present or time is out of range.</param>
-	/// <param name="interpolator">The interpolation function to use between values.</param>
-	/// <param name="toArray">Function to convert the vector value to an array of floats.</param>
-	/// <param name="fromArray">Function to convert an array of floats to the vector value.</param>
-	internal VectorTweenCurve(
+    /// <summary>
+    /// Initializes a new instance of the <see cref="VectorTweenCurve{T}"/> struct.
+    /// </summary>
+    /// <param name="values">The array of tween curve nodes for each vector component.</param>
+    /// <param name="defaultValue">The default vector value to use when no nodes are present or time is out of range.</param>
+    /// <param name="interpolator">The interpolation function to use between values.</param>
+    /// <param name="toArray">Function to convert the vector value to an array of floats.</param>
+    /// <param name="fromArray">Function to convert an array of floats to the vector value.</param>
+    public VectorTweenCurve(
 		TweenCurveNode<float>[][] values,
 		T defaultValue,
 		Func<float, float, double, float> interpolator,

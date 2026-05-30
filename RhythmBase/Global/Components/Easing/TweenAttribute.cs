@@ -7,7 +7,7 @@ namespace RhythmBase.Global.Components.Easing;
 /// <remarks>Apply this attribute to properties that are intended to be animated or smoothly transitioned by a
 /// tweening system. This attribute is typically used by frameworks or libraries that detect and process tweenable
 /// properties at runtime.</remarks>
-[System.AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
 public sealed class TweenAttribute : Attribute
 {
 	/// <summary>

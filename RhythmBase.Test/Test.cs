@@ -18,7 +18,7 @@ namespace RhythmBase.Test
 		[TestMethod]
 		public void AddRemoveTest()
 		{
-			RDLevel level = [];
+			Level level = [];
 			Decoration deco = [];
 			Move move = new();
 			deco.Add(move);
@@ -35,7 +35,7 @@ namespace RhythmBase.Test
 		[TestMethod]
 		public void GenerateLevelWithAllEventTypes()
 		{
-			RDLevel level = [];
+			Level level = [];
 			level.Rows.Add(new() { RowType = RowType.Classic });
 			level.Rows.Add(new() { RowType = RowType.Oneshot });
 			level.Decorations.Add([]);
@@ -60,7 +60,7 @@ namespace RhythmBase.Test
 						value = 0;
 						count[e.Tab] = value;
 					}
-					e.Beat = new(count[e.Tab] + 1);
+					e.TickTime = new(count[e.Tab] + 1);
 					if (e is BaseRowAction er)
 					{
 						if (er is BaseBeat beat)
@@ -82,7 +82,7 @@ namespace RhythmBase.Test
 			}
 			lock (this)
 				level.SaveToFile("out.rdlevel");
-			level = RDLevel.FromJsonString(level.ToJsonString());
+			level = Level.FromJsonString(level.ToJsonString());
 		}
 		[TestMethod]
 		public void ReadWriteSpeedTest()
@@ -103,7 +103,7 @@ namespace RhythmBase.Test
 				{
 					double readTime, writeTime;
 					sw.Restart();
-					using RDLevel level = RDLevel.FromZip("the-powe-S7V1kg9RWYK.rdzip", settings);
+					using Level level = Level.FromZip("the-powe-S7V1kg9RWYK.rdzip", settings);
 					readTime = sw.Elapsed.TotalMilliseconds;
 					Console.Write($"|{i}\t|{readTime,10} ms\t|");
 					sw.Restart();
@@ -143,13 +143,13 @@ namespace RhythmBase.Test
 		[TestMethod]
 		public void CPBTest()
 		{
-			RDLevel level = RDLevel.Default;
+			Level level = Level.Default;
 			SetCrotchetsPerBar cpb0 = new() { CrotchetsPerBar = 4 };
-			SetCrotchetsPerBar cpb1 = new() { Beat = new(9), CrotchetsPerBar = 3 };
-			SetCrotchetsPerBar cpb2 = new() { Beat = new(17), CrotchetsPerBar = 5 };
-			Comment cmt1 = new() { Beat = new(2) };
-			Comment cmt2 = new() { Beat = new(10) };
-			Comment cmt3 = new() { Beat = new(19) };
+			SetCrotchetsPerBar cpb1 = new() { TickTime = new(9), CrotchetsPerBar = 3 };
+			SetCrotchetsPerBar cpb2 = new() { TickTime = new(17), CrotchetsPerBar = 5 };
+			Comment cmt1 = new() { TickTime = new(2) };
+			Comment cmt2 = new() { TickTime = new(10) };
+			Comment cmt3 = new() { TickTime = new(19) };
 
 			level.Add(cpb0);
 			level.Add(cmt1);
@@ -212,27 +212,27 @@ namespace RhythmBase.Test
 			Random random = new();
 			string color = $"{((ushort)random.Next(0, 0x10000)):X4}";
 			char a = color[0], r = color[1], g = color[2], b = color[3];
-			Console.WriteLine(RDColor.FromArgb($"{r}{g}{b}").ToString());
-			Console.WriteLine(RDColor.FromArgb($"{a}{r}{g}{b}").ToString());
-			Console.WriteLine(RDColor.FromArgb($"{r}{r}{g}{g}{b}{b}").ToString());
-			Console.WriteLine(RDColor.FromArgb($"{a}{a}{r}{r}{g}{g}{b}{b}").ToString());
-			Console.WriteLine(RDColor.FromRgba($"{r}{g}{b}").ToString());
-			Console.WriteLine(RDColor.FromRgba($"{r}{g}{b}{a}").ToString());
-			Console.WriteLine(RDColor.FromRgba($"{r}{r}{g}{g}{b}{b}").ToString());
-			Console.WriteLine(RDColor.FromRgba($"{r}{r}{g}{g}{b}{b}{a}{a}").ToString());
-			Console.WriteLine(RDColor.FromArgb(Encoding.UTF8.GetBytes($"{r}{g}{b}")).ToString());
-			Console.WriteLine(RDColor.FromArgb(Encoding.UTF8.GetBytes($"{a}{r}{g}{b}")).ToString());
-			Console.WriteLine(RDColor.FromArgb(Encoding.UTF8.GetBytes($"{r}{r}{g}{g}{b}{b}")).ToString());
-			Console.WriteLine(RDColor.FromArgb(Encoding.UTF8.GetBytes($"{a}{a}{r}{r}{g}{g}{b}{b}")).ToString());
-			Console.WriteLine(RDColor.FromRgba(Encoding.UTF8.GetBytes($"{r}{g}{b}")).ToString());
-			Console.WriteLine(RDColor.FromRgba(Encoding.UTF8.GetBytes($"{r}{g}{b}{a}")).ToString());
-			Console.WriteLine(RDColor.FromRgba(Encoding.UTF8.GetBytes($"{r}{r}{g}{g}{b}{b}")).ToString());
-			Console.WriteLine(RDColor.FromRgba(Encoding.UTF8.GetBytes($"{r}{r}{g}{g}{b}{b}{a}{a}")).ToString());
-			Console.WriteLine(RDColor.FromName("grAy").ToString());
-			Console.WriteLine(RDColor.FromName("GRAY").ToString());
+			Console.WriteLine(Color.FromArgb($"{r}{g}{b}").ToString());
+			Console.WriteLine(Color.FromArgb($"{a}{r}{g}{b}").ToString());
+			Console.WriteLine(Color.FromArgb($"{r}{r}{g}{g}{b}{b}").ToString());
+			Console.WriteLine(Color.FromArgb($"{a}{a}{r}{r}{g}{g}{b}{b}").ToString());
+			Console.WriteLine(Color.FromRgba($"{r}{g}{b}").ToString());
+			Console.WriteLine(Color.FromRgba($"{r}{g}{b}{a}").ToString());
+			Console.WriteLine(Color.FromRgba($"{r}{r}{g}{g}{b}{b}").ToString());
+			Console.WriteLine(Color.FromRgba($"{r}{r}{g}{g}{b}{b}{a}{a}").ToString());
+			Console.WriteLine(Color.FromArgb(Encoding.UTF8.GetBytes($"{r}{g}{b}")).ToString());
+			Console.WriteLine(Color.FromArgb(Encoding.UTF8.GetBytes($"{a}{r}{g}{b}")).ToString());
+			Console.WriteLine(Color.FromArgb(Encoding.UTF8.GetBytes($"{r}{r}{g}{g}{b}{b}")).ToString());
+			Console.WriteLine(Color.FromArgb(Encoding.UTF8.GetBytes($"{a}{a}{r}{r}{g}{g}{b}{b}")).ToString());
+			Console.WriteLine(Color.FromRgba(Encoding.UTF8.GetBytes($"{r}{g}{b}")).ToString());
+			Console.WriteLine(Color.FromRgba(Encoding.UTF8.GetBytes($"{r}{g}{b}{a}")).ToString());
+			Console.WriteLine(Color.FromRgba(Encoding.UTF8.GetBytes($"{r}{r}{g}{g}{b}{b}")).ToString());
+			Console.WriteLine(Color.FromRgba(Encoding.UTF8.GetBytes($"{r}{r}{g}{g}{b}{b}{a}{a}")).ToString());
+			Console.WriteLine(Color.FromName("grAy").ToString());
+			Console.WriteLine(Color.FromName("GRAY").ToString());
 			try
 			{
-				Console.WriteLine(RDColor.FromName("None").ToString());
+				Console.WriteLine(Color.FromName("None").ToString());
 			}
 			catch (ArgumentException) { }
 			catch (Exception ex) { Console.WriteLine(ex.ToString()); }
@@ -240,7 +240,7 @@ namespace RhythmBase.Test
 		[TestMethod]
 		public void WindowTabSerializationTest()
 		{
-			RDLevel level = RDLevel.Default;
+			Level level = Level.Default;
 			level.Add(new NewWindowDance() { CustomTab = Tab.Actions });
 			level.Add(new NewWindowDance() { CustomTab = Tab.Windows });
 			level.Add(new WindowResize() { CustomTab = Tab.Actions });
@@ -255,9 +255,9 @@ namespace RhythmBase.Test
 		[TestMethod]
 		public void OthersTest()
 		{
-			RDLevel level = RDLevel.Default;
-			level.Add(new RhythmBase.Test.Tutorial.MyEvent());
-			RhythmBase.Global.Components.ReadOnlyEnumCollection<RhythmBase.RhythmDoctor.EventType> eventTypes = EventTypeUtils.CustomTypes;
+			Level level = Level.Default;
+			level.Add(new Tutorial.MyEvent());
+            ReadOnlyEnumCollection<EventType> eventTypes = EventTypeUtils.CustomTypes;
 		}
 	}
 }

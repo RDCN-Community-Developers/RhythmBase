@@ -1,15 +1,15 @@
-using RhythmBase.RhythmDoctor.Events;
 using System.Collections;
+using System.ComponentModel;
 namespace RhythmBase.Global.Components;
 
 /// <summary>
 /// Represents a collection of typed events.
 /// </summary>
 /// <typeparam name="TType">The type of the event type. Must be a struct and an enum.</typeparam>
-/// <typeparam name="TBeat">The type of the beat. Must be a struct and implement <see cref="IBeat{TBeat}"/>.</typeparam>
+/// <typeparam name="TBeat">The type of the beat. Must be a struct and implement <see cref="ITickTime{TBeat}"/>.</typeparam>
 public class TypedEventCollection<TType, TBeat> : IEnumerable<IEvent>
     where TType : struct, Enum
-    where TBeat : struct, IBeat<TBeat>
+    where TBeat : struct, ITickTime<TBeat>
 {
     /// <summary>
     /// Gets the number of events in the collection.
@@ -46,11 +46,16 @@ public class TypedEventCollection<TType, TBeat> : IEnumerable<IEvent>
             _types.Remove(EventTypeOf(item));
         return true;
     }
+    [EditorBrowsable(EditorBrowsableState.Never)]
     internal static TType EventTypeOf(IEvent item) => ((item as IEvent<TType, TBeat>) ?? throw new NotImplementedException()).Type;
-    internal bool ContainsType(TType type) => _types.Contains(type);
-    internal bool ContainsTypes(TType[] types) => _types.ContainsAny(types);
-    internal bool ContainsTypes(ReadOnlyEnumCollection<TType> types) => _types.AsReadOnly().ContainsAny(types);
-    internal bool CompareTo(IEvent item1, IEvent item2) =>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public bool ContainsType(TType type) => _types.Contains(type);
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public bool ContainsTypes(TType[] types) => _types.ContainsAny(types);
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public bool ContainsTypes(ReadOnlyEnumCollection<TType> types) => _types.AsReadOnly().ContainsAny(types);
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public bool CompareTo(IEvent item1, IEvent item2) =>
         list.IndexOf(item1) < list.IndexOf(item2);
     /// <summary>
     /// Returns a string that represents the current collection.

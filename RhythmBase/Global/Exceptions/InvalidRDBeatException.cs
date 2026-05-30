@@ -1,5 +1,5 @@
-﻿namespace RhythmBase.Global.Exceptions
-{
+﻿namespace RhythmBase.Global.Exceptions;
+
 	/// <summary>
 	/// Exception thrown when an invalid RD beat is encountered.
 	/// </summary>
@@ -17,4 +17,3 @@
 		/// </summary>
 		public override string Message { get; }
 	}
-}

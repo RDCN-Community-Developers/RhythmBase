@@ -323,7 +323,7 @@ namespace System.Collections.Generic
 {
     internal static class StackExtensions
     {
-        public static bool TryPeek<T>(this Stack<T> stack, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out T result)
+        public static bool TryPeek<T>(this Stack<T> stack, [MaybeNullWhen(false)] out T result)
         {
             if (stack.Count > 0)
             {
@@ -335,7 +335,7 @@ namespace System.Collections.Generic
             return false;
         }
 
-        public static bool TryPop<T>(this Stack<T> stack, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out T result)
+        public static bool TryPop<T>(this Stack<T> stack, [MaybeNullWhen(false)] out T result)
         {
             if (stack.Count > 0)
             {

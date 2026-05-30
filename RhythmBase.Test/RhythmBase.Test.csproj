@@ -11,10 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
     <PackageReference Include="MSTest" Version="4.1.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\RhythmBase\RhythmBase.csproj" />
+    <PackageReference Include="RhythmBase" Version="1.3.11-alpha3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,9 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="kikuo - Sight, Noise, Life and the Earth_v3_out.rdzip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="the-powe-S7V1kg9RWYK.rdzip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -37,6 +31,10 @@
     <None Update="your\level.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Global\" />
   </ItemGroup>
 
 </Project>

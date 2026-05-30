@@ -1,5 +1,3 @@
-using RhythmBase.RhythmDoctor.Events;
-
 namespace RhythmBase.Global.Linq;
 
 /// <summary>
@@ -7,12 +5,12 @@ namespace RhythmBase.Global.Linq;
 /// </summary>
 /// <typeparam name="TEvent">The type of events in the collection. Must implement <see cref="IEvent{TType, TBeat}"/>.</typeparam>
 /// <typeparam name="TType">The type of the event type. Must be a struct and an enum.</typeparam>
-/// <typeparam name="TBeat">The type of the beat. Must be a struct and implement <see cref="IBeat{TBeat}"/>.</typeparam>
+/// <typeparam name="TBeat">The type of the beat. Must be a struct and implement <see cref="ITickTime{TBeat}"/>.</typeparam>
 public interface IEventEnumerable<out TEvent, TType, TBeat>
     : IEnumerable<TEvent>
     where TEvent : IEvent<TType, TBeat>
     where TType : struct, Enum
-    where TBeat : struct, IBeat<TBeat>
+    where TBeat : struct, ITickTime<TBeat>
 {
     /// <summary>
     /// Gets the events organized by beat order.
@@ -25,5 +23,5 @@ public interface IEventEnumerable<out TEvent, TType, TBeat>
     /// <summary>
     /// Gets the beat range of the enumerable.
     /// </summary>
-    IBeatRange<TBeat> Range { get; }
+    ITickRange<TBeat> Range { get; }
 }

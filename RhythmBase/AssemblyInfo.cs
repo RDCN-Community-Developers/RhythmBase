@@ -1,0 +1,1 @@
+﻿[assembly: RhythmBase.JsonConverterId(nameof(RhythmBase.Global))]

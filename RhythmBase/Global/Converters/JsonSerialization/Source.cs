@@ -1,57 +1,54 @@
-﻿using RhythmBase.RhythmDoctor.Components;
-using System.Buffers;
-using System.Runtime.InteropServices;
+﻿using System.Buffers;
 using System.Text;
 using System.Text.Json;
 
-namespace RhythmBase.Global.Converters.JsonSerialization
-{
+namespace RhythmBase.Global.Converters.JsonSerialization;
 
-    internal interface IJsonDataSource
+public interface IJsonDataSource
+{
+    ValueTask<ReadOnlyMemory<byte>> GetMemoryAsync(CancellationToken cancellationToken = default);
+    ReadOnlyMemory<byte> GetMemory();
+    bool CanGetMemoryDirectly { get; }
+}
+public class StreamDataSource : IJsonDataSource
+{
+    private readonly Stream stream;
+    public StreamDataSource(Stream stream)
     {
-        ValueTask<ReadOnlyMemory<byte>> GetMemoryAsync(CancellationToken cancellationToken = default);
-        ReadOnlyMemory<byte> GetMemory();
-        bool CanGetMemoryDirectly { get; }
+        MemoryStream ms = new MemoryStream();
+        using EscapeSpecialCharacterStream escStream = new EscapeSpecialCharacterStream(stream);
+        escStream.CopyTo(ms);
+        ms.Position = 0;
+        this.stream = ms;
     }
-    internal readonly struct StreamDataSource : IJsonDataSource
+    public bool CanGetMemoryDirectly => false;
+    public ReadOnlyMemory<byte> GetMemory()
     {
-        private readonly Stream stream;
-        public StreamDataSource(Stream stream)
+        throw new NotSupportedException();
+    }
+    public async ValueTask<ReadOnlyMemory<byte>> GetMemoryAsync(CancellationToken cancellationToken = default)
+    {
+        byte[] buffer = ArrayPool<byte>.Shared.Rent((int)stream.Length);
+        try
         {
-            MemoryStream ms = new MemoryStream();
-            using EscapeSpecialCharacterStream escStream = new EscapeSpecialCharacterStream(stream);
-            escStream.CopyTo(ms);
-            ms.Position = 0;
-            this.stream = ms;
+            int bytesRead = 3;
+            // bom
+            await stream.ReadAsync(buffer, 0, 3, cancellationToken);
+            if (buffer is [0xEF, 0xBB, 0xBF, ..])
+                bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length - 3, cancellationToken);
+            else
+                bytesRead += await stream.ReadAsync(buffer, 3, buffer.Length - 3, cancellationToken);
+            return new ReadOnlyMemory<byte>(buffer, 0, bytesRead);
         }
-        public bool CanGetMemoryDirectly => false;
-        public ReadOnlyMemory<byte> GetMemory()
+        catch
         {
-            throw new NotSupportedException();
-        }
-        public async ValueTask<ReadOnlyMemory<byte>> GetMemoryAsync(CancellationToken cancellationToken = default)
-        {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-            try
-            {
-                int bytesRead = 3;
-                // bom
-                await stream.ReadAsync(buffer, 0, 3, cancellationToken);
-                if (buffer is [0xEF, 0xBB, 0xBF, ..])
-                    bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length - 3, cancellationToken);
-                else
-                    bytesRead += await stream.ReadAsync(buffer, 3, buffer.Length - 3, cancellationToken);
-                return new ReadOnlyMemory<byte>(buffer, 0, bytesRead);
-            }
-            catch
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-                throw;
-            }
+            ArrayPool<byte>.Shared.Return(buffer);
+            throw;
         }
     }
 }
-internal readonly struct JsonDocumentDataSource : IJsonDataSource
+
+public class JsonDocumentDataSource : IJsonDataSource
 {
     private readonly JsonDocument jsonDocument;
     public JsonDocumentDataSource(JsonDocument jsonDocument)
@@ -68,7 +65,7 @@ internal readonly struct JsonDocumentDataSource : IJsonDataSource
         return new(GetMemory());
     }
 }
-internal readonly struct ReadOnlyMemoryDataSource : IJsonDataSource
+public class ReadOnlyMemoryDataSource : IJsonDataSource
 {
     private readonly ReadOnlyMemory<byte> jsonData;
     public ReadOnlyMemoryDataSource(ReadOnlyMemory<byte> jsonData)

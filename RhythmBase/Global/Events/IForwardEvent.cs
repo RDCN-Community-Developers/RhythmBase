@@ -1,7 +1,6 @@
-﻿namespace RhythmBase.Global.Events
+﻿namespace RhythmBase.Global.Events;
+
+public interface IForwardEvent
 {
-    public interface IForwardEvent
-    {
-        string ActualType { get; set; }
-    }
+    string ActualType { get; set; }
 }

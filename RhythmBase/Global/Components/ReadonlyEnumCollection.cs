@@ -1,4 +1,3 @@
-using RhythmBase.RhythmDoctor.Components;
 using System.Collections;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -12,7 +11,7 @@ namespace RhythmBase.Global.Components;
 /// immutable after creation; values cannot be added or removed. The collection supports enumeration and membership
 /// checks, making it suitable for scenarios where a fixed set of enum values needs to be referenced or queried without
 /// modification.</remarks>
-/// <typeparam name="TEnum">The enumeration type contained in the collection. Must be a value type that derives from <see cref="System.Enum"/>.</typeparam>
+/// <typeparam name="TEnum">The enumeration type contained in the collection. Must be a value type that derives from <see cref="Enum"/>.</typeparam>
 [CollectionBuilder(typeof(CollectionBuilders), nameof(CollectionBuilders.BuildReadOnlyEnumCollection))]
 public struct ReadOnlyEnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : struct, Enum
 {

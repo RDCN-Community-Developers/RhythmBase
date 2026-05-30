@@ -1,0 +1,36 @@
+using RhythmBase.RhythmDoctor.Components;
+using RhythmBase.RhythmDoctor.Converters;
+
+namespace RhythmBase.RhythmDoctor.Events;
+
+/// <summary>
+/// Represents an event that changes the CPU type of rows.
+/// </summary>
+[JsonObjectSerializable]
+public record class ChangePlayersRows : BaseEvent
+{
+	/// <summary>
+	/// Initializes a new instance of the ChangePlayersRows class.
+	/// </summary>
+	public ChangePlayersRows()
+	{
+		Array.Fill(CpuMarkers, Characters.Otto);
+	}
+	/// <summary>
+	/// Gets or sets the list of players.
+	/// </summary>
+	public PlayerTypeGroup Players { get; set; } = PlayerTypeGroup.P1;
+	/// <summary>
+	/// Gets or sets the player mode.
+	/// </summary>
+	public PlayingMode PlayerMode { get; set; } = PlayingMode.OnePlayer;
+	/// <summary>
+	/// Gets or sets the list of CPU markers.
+	/// </summary>
+	public Characters[] CpuMarkers { get; set; } = new Characters[16];
+	/// <inheritdoc />
+	public override EventType Type => EventType.ChangePlayersRows;
+
+	/// <inheritdoc />
+	public override Tab Tab => Tab.Actions;
+}

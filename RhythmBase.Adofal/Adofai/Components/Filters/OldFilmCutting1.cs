@@ -1,0 +1,25 @@
+namespace RhythmBase.Adofai.Components.Filters;
+/// <summary>
+/// The filter of <b>OldFilm Cutting1</b>.
+/// </summary>
+[JsonObjectSerializable]
+public struct OldFilmCutting1 : IFilter
+{
+	///<inheritdoc/>
+	public readonly FilterType Type => FilterType.OldFilmCutting1;
+	/// <summary>
+	/// Gets or sets the value of the <b>Speed</b>.
+	/// </summary>
+	[JsonAlias("Speed")]
+	public float Speed { get; set; }
+	/// <summary>
+	/// Gets or sets the value of the <b>Luminosity</b>.
+	/// </summary>
+	[JsonAlias("Luminosity")]
+	public float Luminosity { get; set; }
+	/// <summary>
+	/// Gets or sets the value of the <b>Vignette</b>.
+	/// </summary>
+	[JsonAlias("Vignette")]
+	public float Vignette { get; set; }
+}

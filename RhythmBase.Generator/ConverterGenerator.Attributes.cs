@@ -1,20 +1,68 @@
-namespace RhythmBase.Generator
+using Microsoft.CodeAnalysis;
+
+namespace RhythmBase.Generator;
+
+partial class ConverterGenerator
 {
-	partial class ConverterGenerator
-	{
-		// Attribute 名称常量
-		private const string JsonEnumAttrName = "RhythmBase.Global.Converters.RDJsonEnumSerializableAttribute";
-		private const string JsonObjectSerializableAttrName = "RhythmBase.Global.Converters.RDJsonObjectSerializableAttribute";
-		private const string JsonObjectHasSerializerAttrName = "RhythmBase.Global.Converters.RDJsonObjectHasSerializerAttribute";
-		private const string JsonObjectNotSerializableAttrName = "RhythmBase.Global.Converters.RDJsonObjectNotSerializableAttribute";
-		private const string JsonAliasAttrName = "RhythmBase.Global.Converters.RDJsonAliasAttribute";
-		private const string JsonIgnoreAttrName = "RhythmBase.Global.Converters.RDJsonIgnoreAttribute";
-		private const string JsonNotIgnoreAttrName = "RhythmBase.Global.Converters.RDJsonNotIgnoreAttribute";
-		private const string JsonDefaultSerializerAttrName = "RhythmBase.Global.Converters.RDJsonDefaultSerializerAttribute";
-		private const string JsonConditionAttrName = "RhythmBase.Global.Converters.RDJsonConditionAttribute";
-		private const string JsonTimeAttrName = "RhythmBase.Global.Converters.RDJsonTimeAttribute";
-		private const string JsonConverterAttrName = "RhythmBase.Global.Converters.RDJsonConverterAttribute";
-		private const string JsonSpecialIDAttrName = "RhythmBase.Global.Converters.RDJsonSpecialIDAttribute";
-		private const string JsonConverterForAttrName = "RhythmBase.Global.Converters.RDJsonConverterForAttribute";
-	}
+	// Attribute 名称常量
+	private const string JsonEnumAttrName = "RhythmBase.JsonEnumSerializableAttribute";
+	private const string JsonObjectSerializableAttrName = "RhythmBase.JsonObjectSerializableAttribute";
+	private const string JsonObjectHasSerializerAttrName = "RhythmBase.JsonObjectHasSerializerAttribute";
+	private const string JsonObjectNotSerializableAttrName = "RhythmBase.JsonObjectNotSerializableAttribute";
+	private const string JsonObjectSerializationFallbackAttrName = "RhythmBase.JsonObjectSerializationFallbackAttribute";
+	private const string JsonAliasAttrName = "RhythmBase.JsonAliasAttribute";
+	private const string JsonIgnoreAttrName = "RhythmBase.JsonIgnoreAttribute";
+	private const string JsonNotIgnoreAttrName = "RhythmBase.JsonNotIgnoreAttribute";
+	private const string JsonDefaultSerializerAttrName = "RhythmBase.JsonDefaultSerializerAttribute";
+	private const string JsonConditionAttrName = "RhythmBase.JsonConditionAttribute";
+	private const string JsonTimeAttrName = "RhythmBase.JsonTimeAttribute";
+	private const string JsonConverterAttrName = "RhythmBase.JsonConverterAttribute";
+	private const string JsonConverterForAttrName = "RhythmBase.JsonConverterForAttribute";
+	private const string JsonConverterLinkAttrName = "RhythmBase.JsonConverterLinkAttribute";
+	private const string JsonConverterIdAttrName = "RhythmBase.JsonConverterIdAttribute";
+	private const string JsonConverterSourceTypeAttrName = "RhythmBase.JsonConverterSourceTypeAttribute";
+
+	// Type 类型
+	private const string IEventTypeName = "RhythmBase.Global.Events.IEvent";
+	private const string InstanceConverterTypeName = "RhythmBase.Global.Converters.InstanceConverter`1";
+	private const string MetadataJsonConverterTypeName = "RhythmBase.Global.Converters.MetadataJsonConverter`1";
+
+	//class SymbolResults
+	//{
+	//    public INamedTypeSymbol JsonEnumAttr;
+	//    public INamedTypeSymbol JsonObjectSerializableAttr;
+	//    public INamedTypeSymbol JsonObjectHasSerializerAttr;
+	//    public INamedTypeSymbol JsonObjectNotSerializableAttr;
+	//    public INamedTypeSymbol JsonAliasAttr;
+	//    public INamedTypeSymbol JsonIgnoreAttr;
+	//    public INamedTypeSymbol JsonNotIgnoreAttr;
+	//    public INamedTypeSymbol JsonDefaultSerializerAttr;
+	//    public INamedTypeSymbol JsonConditionAttr;
+	//    public INamedTypeSymbol JsonTimeAttr;
+	//    public INamedTypeSymbol JsonConverterAttr;
+	//    public INamedTypeSymbol JsonConverterForAttr;
+	//    public INamedTypeSymbol JsonConverterIdAttr;
+	//    public INamedTypeSymbol JsonConverterSourceTypeAttr;
+
+	//    public INamedTypeSymbol IEventType;
+	//    public SymbolResults(Compilation compilation)
+	//    {
+	//        JsonEnumAttr = compilation.GetTypeByMetadataName(JsonEnumAttrName);
+	//        JsonObjectSerializableAttr = compilation.GetTypeByMetadataName(JsonObjectSerializableAttrName);
+	//        JsonObjectHasSerializerAttr = compilation.GetTypeByMetadataName(JsonObjectHasSerializerAttrName);
+	//        JsonObjectNotSerializableAttr = compilation.GetTypeByMetadataName(JsonObjectNotSerializableAttrName);
+	//        JsonAliasAttr = compilation.GetTypeByMetadataName(JsonAliasAttrName);
+	//        JsonIgnoreAttr = compilation.GetTypeByMetadataName(JsonIgnoreAttrName);
+	//        JsonNotIgnoreAttr = compilation.GetTypeByMetadataName(JsonNotIgnoreAttrName);
+	//        JsonDefaultSerializerAttr = compilation.GetTypeByMetadataName(JsonDefaultSerializerAttrName);
+	//        JsonConditionAttr = compilation.GetTypeByMetadataName(JsonConditionAttrName);
+	//        JsonTimeAttr = compilation.GetTypeByMetadataName(JsonTimeAttrName);
+	//        JsonConverterAttr = compilation.GetTypeByMetadataName(JsonConverterAttrName);
+	//        JsonConverterForAttr = compilation.GetTypeByMetadataName(JsonConverterForAttrName);
+	//        JsonConverterIdAttr = compilation.GetTypeByMetadataName(JsonConverterIdAttrName);
+	//        JsonConverterSourceTypeAttr = compilation.GetTypeByMetadataName(JsonConverterSourceTypeAttrName);
+
+	//        IEventType = compilation.GetTypeByMetadataName(IEventTypeName);
+	//    }
+	//}
 }
