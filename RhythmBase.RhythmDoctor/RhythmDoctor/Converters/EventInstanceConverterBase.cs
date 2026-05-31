@@ -6,7 +6,8 @@ using System.Text.Json;
 
 namespace RhythmBase.RhythmDoctor.Converters;
 
-internal abstract class InstanceConverter<TEvent> : RhythmBase.Global.Converters.InstanceConverter<IBaseEvent> where TEvent : IBaseEvent, new()
+internal abstract class MemberConverterBase : RhythmBase.Global.Converters.MemberConverter<IBaseEvent>{ }
+internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEvent : IBaseEvent, new()
 {
 	public sealed override IBaseEvent ReadProperties(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options)
 	{

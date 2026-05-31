@@ -1,6 +1,6 @@
 using RhythmBase.RhythmDoctor.Events;
 
-namespace RhythmBase.RhythmDoctor.Extensions;
+namespace RhythmBase.RhythmDoctor.Converters;
 
 /// <summary>  
 /// Utility class for converting between event types and enumerations.  

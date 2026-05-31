@@ -12,7 +12,6 @@ partial class ConverterGenerator
 	private const string JsonObjectSerializationFallbackAttrName = "RhythmBase.JsonObjectSerializationFallbackAttribute";
 	private const string JsonAliasAttrName = "RhythmBase.JsonAliasAttribute";
 	private const string JsonIgnoreAttrName = "RhythmBase.JsonIgnoreAttribute";
-	private const string JsonNotIgnoreAttrName = "RhythmBase.JsonNotIgnoreAttribute";
 	private const string JsonDefaultSerializerAttrName = "RhythmBase.JsonDefaultSerializerAttribute";
 	private const string JsonConditionAttrName = "RhythmBase.JsonConditionAttribute";
 	private const string JsonTimeAttrName = "RhythmBase.JsonTimeAttribute";
@@ -24,7 +23,7 @@ partial class ConverterGenerator
 
 	// Type 类型
 	private const string IEventTypeName = "RhythmBase.Global.Events.IEvent";
-	private const string InstanceConverterTypeName = "RhythmBase.Global.Converters.InstanceConverter`1";
+	private const string MemberConverterTypeName = "RhythmBase.Global.Converters.MemberConverter`1";
 	private const string MetadataJsonConverterTypeName = "RhythmBase.Global.Converters.MetadataJsonConverter`1";
 
 	//class SymbolResults

@@ -63,7 +63,7 @@ new GenerationConfig() {
 	TargetConverterNamespace="RhythnBase.RhythnDoctor.Converters"，//序列化器的命名空间
 	TargetUtilsNamespace="RhythnBase.RhythnDoctor.Utils"，//救举转换器的命名空间
 	TargetUtilsClassName="EventTypeUtils"，//救举转换器的类名
-	BaseConverterClassName="EventInstanceConverter"，//序列化器的基类名
+	BaseConverterClassName="EventMemberConverter"，//序列化器的基类名
 	BaseInterfaceFullName="RhythnBase.RhythnDoctor.Events.IBaseEvent"，//需要生成序列化器的事件模型类型的上层接口
 	ClassTypeEnunFullnane="RhythnBase.RhythnDoctor.EventType"，//表示事件类型的救举类型
 	ClassTypeEnunUnknounMenberName="ForuardEvent"，//回退兼容类型名 48

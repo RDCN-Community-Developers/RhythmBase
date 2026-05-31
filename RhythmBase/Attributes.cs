@@ -16,8 +16,6 @@ public sealed class JsonObjectSerializationFallbackAttribute : Attribute { }
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
 public sealed class JsonIgnoreAttribute : Attribute { }
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
-public sealed class JsonNotIgnoreAttribute : Attribute { }
-[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
 public sealed class JsonConditionAttribute(string condition) : Attribute { }
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
 public sealed class JsonAliasAttribute(string name) : Attribute { }

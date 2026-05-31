@@ -191,7 +191,6 @@ xychart
 等）。
 
 - 代码补全
-- Source Generator 代码重构（#6bdbc108）
 - API 文档查询
 - 算法设计与优化建议
 - XML 注释编写

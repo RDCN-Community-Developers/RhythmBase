@@ -1,15 +1,16 @@
 ﻿using RhythmBase.Adofai.Components.Filters;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace RhythmBase.Adofai.Converters;
 
-internal abstract class FilterInstanceConverterBase
+internal abstract class FilterMemberConverterBase
 {
 	public abstract IFilter ReadProperties(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options);
 	public abstract void WriteProperties(Utf8JsonWriter writer, IFilter value, MetadataJsonSerializerOptions options);
 }
-internal abstract class FilterInstanceConverterBase<TFilter> : FilterInstanceConverterBase where TFilter : struct, IFilter
+internal abstract class FilterMemberConverter<TFilter> : FilterMemberConverterBase where TFilter : IFilter, new()
 {
 	public sealed override IFilter ReadProperties(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options)
 	{

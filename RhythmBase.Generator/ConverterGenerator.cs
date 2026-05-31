@@ -11,11 +11,6 @@ using System.Text;
 
 namespace RhythmBase.Generator;
 
-public record struct RegistryInfo(
-		string NamespaceId,
-		ITypeSymbol Type
-		);
-
 [Generator(LanguageNames.CSharp)]
 public partial class ConverterGenerator : IIncrementalGenerator
 {
@@ -98,6 +93,22 @@ public partial class ConverterGenerator : IIncrementalGenerator
 		"RhythmBase.Generator",
 		DiagnosticSeverity.Error,
 		isEnabledByDefault: true);
+	// 泛型类必须指定自定义转换器
+	private static readonly DiagnosticDescriptor GenericTypeMissingConverterRule = new(
+		"RD0011",
+		"Generic type missing converter",
+		"Generic type '{0}' must specify a custom converter using RhythmBase.JsonObjectHasSerializerAttribute",
+		"RhythmBase.Generator",
+		DiagnosticSeverity.Error,
+		isEnabledByDefault: true);
+	// 泛型成员转换器的基类必须是非泛型
+	private static readonly DiagnosticDescriptor GenericConverterBaseMustBeNonGenericRule = new(
+		"RD0012",
+		"Generic converter base must be non-generic",
+		"Base converter '{0}' for generic converter '{1}' must be a non-generic type",
+		"RhythmBase.Generator",
+		DiagnosticSeverity.Error,
+		isEnabledByDefault: true);
 	private static ISymbol? GetEnumInitializerValue(IPropertySymbol propertySymbol, Compilation compilation)
 	{
 		var syntaxRefs = propertySymbol.DeclaringSyntaxReferences;
@@ -147,36 +158,44 @@ public partial class ConverterGenerator : IIncrementalGenerator
 		public INamedTypeSymbol RootConverterType;
 		public string TypePropertyName;
 	}
+	List<Exception> exceptions = new List<Exception>();
 	public void Initialize(IncrementalGeneratorInitializationContext context)
 	{
 		var errors = new HashSet<Diagnostic>();
 		IncrementalValueProvider<string?> registryInfo = context.CompilationProvider // checked
 				.Select((compilation, ct) =>
 		{
-			var attrType = compilation.GetTypeByMetadataName(JsonConverterIdAttrName);
-			if (attrType == null) return default;
-			var assembly = compilation.Assembly;
-			foreach (var attr in assembly.GetAttributes())
+			try
 			{
-				if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attrType))
+				var attrType = compilation.GetTypeByMetadataName(JsonConverterIdAttrName);
+				if (attrType == null) return default;
+				var assembly = compilation.Assembly;
+				foreach (var attr in assembly.GetAttributes())
 				{
-					static bool IsValidNamespaceId(string? id)
+					if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attrType))
 					{
-						return !string.IsNullOrEmpty(id)
-								&& id[0] is not '.'
-								&& !char.IsDigit(id[0])
-								&& id.All(c => char.IsLetterOrDigit(c) || c is '_' or '.');
-					}
+						static bool IsValidNamespaceId(string? id)
+						{
+							return !string.IsNullOrEmpty(id)
+									&& id[0] is not '.'
+									&& !char.IsDigit(id[0])
+									&& id.All(c => char.IsLetterOrDigit(c) || c is '_' or '.');
+						}
 
-					var args = attr.ConstructorArguments;
-					string namespaceId = args[0].Value as string ?? "";
+						var args = attr.ConstructorArguments;
+						string namespaceId = args[0].Value as string ?? "";
 
-					if (!IsValidNamespaceId(namespaceId))
-					{
-						errors.Add(Diagnostic.Create(InvalidNamespaceIdRule, attr.ApplicationSyntaxReference?.GetSyntax().GetLocation(), namespaceId));
+						if (!IsValidNamespaceId(namespaceId))
+						{
+							errors.Add(Diagnostic.Create(InvalidNamespaceIdRule, attr.ApplicationSyntaxReference?.GetSyntax().GetLocation(), namespaceId));
+						}
+						return namespaceId;
 					}
-					return namespaceId;
 				}
+			}
+			catch (Exception ex)
+			{
+				exceptions.Add(ex);
 			}
 			return default;
 		});
@@ -192,8 +211,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 						if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attrType))
 						{
 							var args = attr.ConstructorArguments;
-							var type = args[0].Value as INamedTypeSymbol;
-							if (type == null) return default;
+							if (args[0].Value is not INamedTypeSymbol type) return default;
 							if (args[1].Value is not INamedTypeSymbol enumType || enumType.TypeKind != TypeKind.Enum)
 							{
 								errors.Add(Diagnostic.Create(InvalidEnumTypeRule, type?.Locations.FirstOrDefault(), args[1].Value?.ToString() ?? "null"));
@@ -216,20 +234,19 @@ public partial class ConverterGenerator : IIncrementalGenerator
 					}
 					return (compilation, types.ToArray(), errors);
 				});
-		var allasms = context.CompilationProvider.Select((compilation, ct) =>
+		IncrementalValueProvider<IAssemblySymbol[]> allasms = context.CompilationProvider.Select((compilation, ct) =>
 		{
-			var assemblies = compilation.References.Select(i => compilation.GetAssemblyOrModuleSymbol(i)).OfType<IAssemblySymbol>().Concat(new[] { compilation.Assembly });
-			return assemblies.ToArray();
+			return compilation.References.Select(i => compilation.GetAssemblyOrModuleSymbol(i)).OfType<IAssemblySymbol>().Concat([compilation.Assembly]).ToArray();
 		});
 		IncrementalValueProvider<ClassEnumMapGenerationInfo[]> classEnumMapInfo = classEnumAttrPairInfo // checked
 				.Select((input, ct) =>
 		{
 			(
-					Compilation compilation,
-					ClassGenAttr[] types,
-					var errors
-					) = input;
-			var eventTypeInterface = compilation.GetTypeByMetadataName(IEventTypeName);
+				Compilation compilation,
+				ClassGenAttr[] types,
+				var errors
+				) = input;
+			INamedTypeSymbol eventTypeInterface = compilation.GetTypeByMetadataName(IEventTypeName) ?? throw new NotImplementedException("1111");
 			var fallbackAttr = compilation.GetTypeByMetadataName(JsonObjectSerializationFallbackAttrName);
 			List<ClassEnumMapGenerationInfo> typesToGenerate = [];
 			foreach (var classGen in types)
@@ -241,21 +258,22 @@ public partial class ConverterGenerator : IIncrementalGenerator
 				if (baseType is null || enumType is null)
 					continue;
 				ISymbol[] enumMembers = enumType?.GetMembers().Where(m => m.Kind == SymbolKind.Field).ToArray() ?? [];
-				ISymbol fallbackEnumMember = null;
+				ISymbol? fallbackEnumMember = null;
 				INamedTypeSymbol[] subTypes = [.. GetDerivedTypes(baseType, compilation)];
-				INamedTypeSymbol[] subEventClasses = [.. subTypes.Where(t => t.TypeKind == TypeKind.Class && !t.IsAbstract)];
+				INamedTypeSymbol[] subEventClasses = [.. subTypes.Where(t => (t.TypeKind is TypeKind.Class or TypeKind.Struct) && !t.IsAbstract)];
 				IEnumerable<INamedTypeSymbol> fallbackTypes = subEventClasses.Where(c => c.GetAttributes().Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, fallbackAttr)));
-				INamedTypeSymbol fallbackType = null;
+				INamedTypeSymbol? fallbackType = null;
 				switch (fallbackTypes.Count())
 				{
 					case 0:
-						errors.Add(Diagnostic.Create(MissingFallbackModelRule, baseType.Locations.FirstOrDefault(), baseType.ToDisplayString()));
-						continue;
+						break;
 					case > 1:
 						errors.Add(Diagnostic.Create(MultipleFallbackModelsRule, baseType.Locations.FirstOrDefault(), baseType.ToDisplayString(), string.Join(", ", fallbackTypes.Select(i => i.ToDisplayString()))));
 						continue;
+					default:
+						fallbackType = fallbackTypes.FirstOrDefault();
+						break;
 				}
-				fallbackType = fallbackTypes.FirstOrDefault();
 				subEventClasses = subEventClasses.Where(c =>
 								!SymbolEqualityComparer.Default.Equals(c, fallbackType) &&
 								!IsDerivedFrom(c, fallbackType)).ToArray();
@@ -263,15 +281,20 @@ public partial class ConverterGenerator : IIncrementalGenerator
 				foreach (var subClass in subEventClasses)
 				{
 					var property = subClass.GetMembers().FirstOrDefault(m => m.Kind == SymbolKind.Property && m.Name == enumPropertyName) as IPropertySymbol;
-					ISymbol enumSymbol = null;
-					if (SymbolEqualityComparer.Default.Equals((ITypeSymbol?)property.Type, enumType))
+					ISymbol? enumSymbol = null;
+					if (property is not null && SymbolEqualityComparer.Default.Equals((ITypeSymbol?)property.Type, enumType))
 					{
 						enumSymbol = GetEnumInitializerValue(property, compilation);
 					}
 					if (enumSymbol != null)
 						classEnumMap[subClass] = enumSymbol;
-					else errors.Add(Diagnostic.Create(MissingEnumInitializerRule, property.Type.Locations.FirstOrDefault(), property.Name, property.ContainingType?.ToDisplayString()));
+					else errors.Add(Diagnostic.Create(
+						MissingEnumInitializerRule,
+						property?.Type.Locations.FirstOrDefault() ?? subClass.Locations.FirstOrDefault(),
+						property?.Name ?? subClass.Name,
+						property?.ContainingType?.ToDisplayString() ?? subClass.ContainingType?.ToDisplayString()));
 				}
+				if(fallbackType is not null)
 				{
 					var property = fallbackType.GetMembers().FirstOrDefault(m => m.Kind == SymbolKind.Property && m.Name == enumPropertyName);
 					if (property is IPropertySymbol propSymbol)
@@ -304,7 +327,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 				}
 				typesToGenerate.Add(new()
 				{
-					ClassType = baseType,
+					ClassType = classGen.RootType,
 					ClassTypeEnum = enumType,
 					FallbackClassType = fallbackType,
 					FallbackClassTypeEnum = fallbackEnumMember,
@@ -316,262 +339,210 @@ public partial class ConverterGenerator : IIncrementalGenerator
 			return typesToGenerate.ToArray();
 		});
 		IncrementalValueProvider<INamedTypeSymbol?> classConverterBaseInfo = context.CompilationProvider
-				.Select((compilation, ct) => compilation.GetTypeByMetadataName(InstanceConverterTypeName));
+				.Select((compilation, ct) => compilation.GetTypeByMetadataName(MemberConverterTypeName));
 
 		var enumNeedCvtr = context.CompilationProvider.Combine(allasms).Select((compilationAndAsms, ct) =>
 		{
-			var (compilation, asms) = compilationAndAsms;
-			List<INamedTypeSymbol> enums = [];
-			foreach (var asm in asms)
+			try
 			{
-				var types = GetAllTypes(asm.GlobalNamespace)
-							.OfType<INamedTypeSymbol>()
-							.Where(i => i.TypeKind == TypeKind.Enum && i.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == JsonEnumAttrName));
-				enums.AddRange(types);
+				var (compilation, asms) = compilationAndAsms;
+				List<INamedTypeSymbol> enums = [];
+				foreach (var asm in asms)
+				{
+					var types = GetAllTypes(asm.GlobalNamespace)
+								.OfType<INamedTypeSymbol>()
+								.Where(i => i.TypeKind == TypeKind.Enum && i.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == JsonEnumAttrName));
+					enums.AddRange(types);
+				}
+				return (compilation, enums.ToArray());
 			}
-			return (compilation, enums.ToArray());
+			catch (Exception ex)
+			{
+				exceptions.Add(ex);
+			}
+			return default;
 		});
-		//var jsonClassNeedConverterInfo = context.SyntaxProvider.ForAttributeWithMetadataName(JsonObjectSerializableAttrName,
-		//    static (node, ct) => node is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax,
-		//    static (context, ct) =>
-		//{
-		//    if (context.TargetSymbol is not INamedTypeSymbol typeSymbol) return default;
-		//    return typeSymbol;
-		//}).Collect().Combine(classEnumAttrPairInfo)
-		//.Select((classEnumPairInfoAndSymbols, ct) =>
-		//{
-		//    Exception? ex1 = null;
-		//    List<ClassGenCvtrInfo> classGenerateConverterInfos = [];
-		//    try
-		//    {
-		//        var (symbols, classEnumPairInfo) = classEnumPairInfoAndSymbols;
-		//        foreach (var pair in classEnumPairInfo.Item2)
-		//        {
-		//            var (baseType, enumType, converterBaseType, enumPropertyName) = pair;
-		//            IEnumerable<INamedTypeSymbol?> derivedTypes = symbols.Where(s =>
-		//                IsDerivedFrom(s, baseType));
-		//            foreach (var symbol in derivedTypes)
-		//            {
-		//                ClassGenCvtrInfo info;
-		//                info = GetClassGenCvtrInfo(classEnumPairInfo, enumType, enumPropertyName, symbol);
-		//                classGenerateConverterInfos.Add(info);
-		//            }
-		//        }
-		//    }
-		//    catch (Exception ex)
-		//    {
-		//        ex1 = ex;
-		//    }
-		//    return (classGenerateConverterInfos.ToArray(), ex1);
-		//});
 		var jsonClassExistedConverterInfor = context.SyntaxProvider.ForAttributeWithMetadataName(JsonObjectHasSerializerAttrName,
 			static (node, ct) => node is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax,
-			static (context, ct) =>
+			(ctx, ct) =>
 			{
-				if (context.TargetSymbol is not INamedTypeSymbol typeSymbol) return default;
-				return typeSymbol;
+				try
+				{
+					if (ctx.TargetSymbol is not INamedTypeSymbol typeSymbol) return default;
+					return typeSymbol;
+
+				}
+				catch (Exception ex)
+				{
+					exceptions.Add(ex);
+				}
+				return default;
 			}).Collect();
 
 		var jsonClassCvtrMapGenInfo = classEnumAttrPairInfo
 			.Select((classEnumAttrPairs, ct) =>
 			{
-				var (compilation, pairs, errors) = classEnumAttrPairs;
-				var jsonSlz = compilation.GetTypeByMetadataName(JsonObjectSerializableAttrName);
-				var jsonHasSlz = compilation.GetTypeByMetadataName(JsonObjectHasSerializerAttrName);
-				List<(IClassGen[], ClassGenAttr)> result = [];
-				foreach (var classEnumPair in pairs)
+				try
 				{
-					List<IClassGen> gens = [];
-					ClassGenAttr cga = classEnumPair;
-					var type = cga.RootType;
-					var enumType = cga.EnumType;
-					var enumPropertyName = cga.TypePropertyName;
-					var subTypes = GetAllTypes(type.ContainingNamespace)
-						.Where(
-							t => IsDerivedFrom(t, type) &&
-							t.TypeKind != TypeKind.Interface);
-					foreach (var subType in subTypes)
+					var (compilation, pairs, errors) = classEnumAttrPairs;
+					var jsonSlz = compilation.GetTypeByMetadataName(JsonObjectSerializableAttrName);
+					var jsonHasSlz = compilation.GetTypeByMetadataName(JsonObjectHasSerializerAttrName);
+					List<(IClassGen[], ClassGenAttr)> result = [];
+					foreach (var classEnumPair in pairs)
 					{
-						var attrs = subType.GetAttributes();
-						var jsonSlzSmp = attrs.FirstOrDefault(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, jsonSlz));
-						var jsonHasSlzSmp = attrs.FirstOrDefault(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, jsonHasSlz));
-						if (jsonSlzSmp is not null)
+						List<IClassGen> gens = [];
+						ClassGenAttr cga = classEnumPair;
+						var type = cga.RootType;
+						var enumType = cga.EnumType;
+						var enumPropertyName = cga.TypePropertyName;
+						var subTypes = GetAllTypes(type.ContainingAssembly)
+							.Where(
+								t => IsDerivedFrom(t, type) &&
+								t.TypeKind != TypeKind.Interface);
+						foreach (var subType in subTypes)
 						{
-							var classInfo = GetClassGenCvtrInfo(compilation, enumType, enumPropertyName, subType);
-							gens.Add(classInfo);
-						}
-						else if (jsonHasSlzSmp is AttributeData jsonHasSlzAttr)
-						{
-							var arg0 = jsonHasSlzAttr.ConstructorArguments[0].Value as INamedTypeSymbol;
-							ClassRefConverterInfo classInfo = new()
+							var attrs = subType.GetAttributes();
+							var jsonSlzSmp = attrs.FirstOrDefault(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, jsonSlz));
+							var jsonHasSlzSmp = attrs.FirstOrDefault(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, jsonHasSlz));
+							if (jsonSlzSmp is not null)
 							{
-								ClassType = subType,
-								ClassTypeEnum = GetEnumTypeMember(compilation, enumType, enumPropertyName, subType),
-								ConverterType = arg0,
-							};
-							gens.Add(classInfo);
-						}
-						else
-						{
-							ClassNoInfo classNoInfo = new()
+								var classInfo = GetClassGenCvtrInfo(compilation, enumType, enumPropertyName, subType);
+								gens.Add(classInfo);
+							}
+							else if (jsonHasSlzSmp is AttributeData jsonHasSlzAttr)
 							{
-								ClassType = subType,
-							};
-							gens.Add(classNoInfo);
+								var arg0 = jsonHasSlzAttr.ConstructorArguments[0].Value as INamedTypeSymbol;
+								ClassRefConverterInfo classInfo = new()
+								{
+									ClassType = subType,
+									ClassTypeEnum = GetEnumTypeMember(compilation, enumType, enumPropertyName, subType),
+									ConverterType = arg0,
+								};
+								gens.Add(classInfo);
+							}
+							else
+							{
+								ClassNoInfo classNoInfo = new()
+								{
+									ClassType = subType,
+								};
+								gens.Add(classNoInfo);
+							}
 						}
+						result.Add((gens.ToArray(), cga));
 					}
-					result.Add((gens.ToArray(), cga));
+					return result.ToArray();
+
 				}
-				return result.ToArray();
+				catch (Exception ex)
+				{
+					exceptions.Add(ex);
+				}
+				return default;
 			});
 
 		var jsonObjSlzForInfo = allasms.Combine(context.CompilationProvider).SelectMany((allasmsAndCompilation, ct) =>
 		{
-			var (allasms, compilation) = allasmsAndCompilation;
-			List<(ITypeSymbol, INamedTypeSymbol)> result = new();
-			var attrType = compilation.GetTypeByMetadataName(JsonConverterForAttrName);
-			static IEnumerable<INamedTypeSymbol> GetAllTypes(INamespaceSymbol namespaceSymbol)
+			try
 			{
-				foreach (var member in namespaceSymbol.GetMembers())
+				var (allasms, compilation) = allasmsAndCompilation;
+				List<(ITypeSymbol, INamedTypeSymbol)> result = new();
+				var attrType = compilation.GetTypeByMetadataName(JsonConverterForAttrName);
+				static IEnumerable<INamedTypeSymbol> GetAllTypes(INamespaceSymbol namespaceSymbol)
 				{
-					if (member is INamedTypeSymbol typeSymbol)
+					foreach (var member in namespaceSymbol.GetMembers())
 					{
-						yield return typeSymbol;
-					}
-					else if (member is INamespaceSymbol nestedNamespace)
-					{
-						foreach (var nestedType in GetAllTypes(nestedNamespace))
+						if (member is INamedTypeSymbol typeSymbol)
 						{
-							yield return nestedType;
+							yield return typeSymbol;
+						}
+						else if (member is INamespaceSymbol nestedNamespace)
+						{
+							foreach (var nestedType in GetAllTypes(nestedNamespace))
+							{
+								yield return nestedType;
+							}
 						}
 					}
 				}
-			}
-			foreach (var asm in allasms)
-			{
-				var types = GetAllTypes(asm.GlobalNamespace)
-								.OfType<INamedTypeSymbol>()
-								.Select(i => (i, i.GetAttributes().FirstOrDefault(j => j.AttributeClass.Equals(attrType, SymbolEqualityComparer.Default))))
-								.Where(pair => pair.Item2 != null);
-				foreach (var pair in types)
+				foreach (var asm in allasms)
 				{
-					if (SymbolEqualityComparer.Default.Equals(pair.Item2.AttributeClass, attrType))
+					var types = GetAllTypes(asm.GlobalNamespace)
+									.OfType<INamedTypeSymbol>()
+									.Select(i => (i, i.GetAttributes().FirstOrDefault(j => j.AttributeClass.Equals(attrType, SymbolEqualityComparer.Default))))
+									.Where(pair => pair.Item2 != null);
+					foreach (var pair in types)
 					{
-						var arg0 = pair.Item2.ConstructorArguments[0].Value as ITypeSymbol;
-						if (arg0 is INamedTypeSymbol namedType)
-							result.Add((arg0, pair.i));
+						if (SymbolEqualityComparer.Default.Equals(pair.Item2.AttributeClass, attrType))
+						{
+							var arg0 = pair.Item2.ConstructorArguments[0].Value as ITypeSymbol;
+							if (arg0 is INamedTypeSymbol namedType)
+								result.Add((arg0, pair.i));
+						}
 					}
 				}
+				return result.ToArray();
+
 			}
-			return result.ToArray();
+			catch (Exception ex)
+			{
+				exceptions.Add(ex);
+			}
+			return default;
 		})
 		.Collect();
 
 		var jsonObjSlzLnkInfo = context.CompilationProvider.Combine(allasms).Select((compilationAndAsms, ct) =>
 		{
-			(Compilation compilation, IAssemblySymbol[] assemblies) = compilationAndAsms;
-			var attrType = compilation.GetTypeByMetadataName(JsonConverterLinkAttrName);
-			if (attrType == null) return default;
-			List<(ITypeSymbol, INamedTypeSymbol)> types = [];
-			foreach (var attr in assemblies.SelectMany(i => i.GetAttributes()))
+			try
 			{
-				if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attrType))
+				(Compilation compilation, IAssemblySymbol[] assemblies) = compilationAndAsms;
+				var attrType = compilation.GetTypeByMetadataName(JsonConverterLinkAttrName);
+				if (attrType == null) return default;
+				List<(ITypeSymbol, INamedTypeSymbol)> types = [];
+				foreach (var attr in assemblies.SelectMany(i => i.GetAttributes()))
 				{
-					var args = attr.ConstructorArguments;
-					var arg0 = args[0].Value as ITypeSymbol;
-					var arg1 = args[1].Value as INamedTypeSymbol;
-					types.Add((arg0, arg1));
+					if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attrType))
+					{
+						var args = attr.ConstructorArguments;
+						var arg0 = args[0].Value as ITypeSymbol;
+						var arg1 = args[1].Value as INamedTypeSymbol;
+						types.Add((arg0, arg1));
+					}
 				}
+				return types.ToArray();
 			}
-			return types.ToArray();
+			catch (Exception ex)
+			{
+				exceptions.Add(ex);
+			}
+			return default;
 		});
-		var jsonObjSlzLnksInfo = jsonObjSlzForInfo.Combine(jsonObjSlzLnkInfo).Select((context, ct) =>
+		var jsonObjSlzLnksInfo = jsonObjSlzForInfo.Combine(jsonObjSlzLnkInfo).Select((ctx, ct) =>
 		{
-			List<(ITypeSymbol, INamedTypeSymbol)> gens = [];
-			foreach (var pair in context.Left)
-				gens.Add((pair.Item1, pair.Item2));
-			foreach (var pair in context.Right)
-				gens.Add((pair.Item1, pair.Item2));
-			return gens.ToArray();
+			try
+			{
+				List<(ITypeSymbol, INamedTypeSymbol)> gens = [];
+				foreach (var pair in ctx.Left)
+					gens.Add((pair.Item1, pair.Item2));
+				foreach (var pair in ctx.Right)
+					gens.Add((pair.Item1, pair.Item2));
+				return gens.ToArray();
+
+			}
+			catch (Exception ex)
+			{
+				exceptions.Add(ex);
+			}
+			return default;
 		});
 
-		//context.RegisterSourceOutput(registryInfo.Combine(jsonObjSlzLnksInfo), (context, input) =>
-		//{
-		//    var gens = input;
-		//    StringBuilder sb = new();
-		//    sb.AppendLine("/*");
-		//    foreach (var info in gens.Right.OrderBy(i => i.Item1?.ToDisplayString()))
-		//    {
-		//        sb.AppendLine($"""
-		//            {info.Item1?.ToDisplayString() ?? "null"}
-		//             +->{info.Item2?.ToDisplayString() ?? "null"}
-
-		//            """);
-		//    }
-		//    context.AddSource("test.g.cs", sb.AppendLine("*/").ToString());
-		//});
-		
 		GenerateConverterHub(context, registryInfo.Combine(jsonObjSlzLnksInfo));
 		GenerateConverter(context, (registryInfo.Combine(context.CompilationProvider)).Combine((jsonClassCvtrMapGenInfo.Combine(jsonObjSlzLnksInfo))));
 		GenerateClassEnumMap(context, registryInfo.Combine(classEnumMapInfo), errors);
 		GenerateEnumConverter(context, registryInfo);
 		GenerateOtherFiles(context, registryInfo);
 
-		//GenerationConfig[] configs = [
-		//  //new()
-		//  //{
-		//  //	Id = "RD",
-		//  //	SourceNamespace = "RhythmBase.RhythmDoctor.Events",
-		//  //	TargetConverterNamespace = "RhythmBase.RhythmDoctor.Converters",
-		//  //	TargetUtilsNamespace = "RhythmBase.RhythmDoctor.Utils",
-		//  //	TargetUtilsClassName = "EventTypeUtils",
-		//  //	BaseConverterClassName = "EventInstanceConverter",
-		//  //	BaseInterfaceFullName = "RhythmBase.RhythmDoctor.Events.IBaseEvent",
-		//  //	ClassTypeEnumFullname = "RhythmBase.RhythmDoctor.EventType",
-		//  //	ClassTypeEnumUnknownMemberName = "ForwardEvent",
-		//  //},
-		//  //new()
-		//  //{
-		//  //	Id = "AD",
-		//  //	SourceNamespace = "RhythmBase.Adofai.Events",
-		//  //	TargetConverterNamespace = "RhythmBase.Adofai.Converters",
-		//  //	TargetUtilsNamespace = "RhythmBase.Adofai.Utils",
-		//  //	TargetUtilsClassName = "EventTypeUtils",
-		//  //	BaseConverterClassName = "EventInstanceConverter",
-		//  //	BaseInterfaceFullName = "RhythmBase.Adofai.Events.IBaseEvent",
-		//  //	ClassTypeEnumFullname = "RhythmBase.Adofai.EventType",
-		//  //	ClassTypeEnumUnknownMemberName = "ForwardEvent",
-		//  //},
-		//  //new()
-		//  //{
-		//  //	Id = "Filter",
-		//  //	SourceNamespace = "RhythmBase.Adofai.Components.Filters",
-		//  //	TargetConverterNamespace = "RhythmBase.Adofai.Converters",
-		//  //	TargetUtilsNamespace = "RhythmBase.Adofai.Utils",
-		//  //	TargetUtilsClassName = "FilterTypeUtils",
-		//  //	BaseConverterClassName = "FilterInstanceConverter",
-		//  //	BaseInterfaceFullName = "RhythmBase.Adofai.Components.Filters.IFilter",
-		//  //	ClassTypeEnumFullname = "RhythmBase.Adofai.FilterType",
-		//  //	ClassTypeEnumUnknownMemberName = "Unknown",
-		//  //},
-		//  //new()
-		//  //{
-		//  //	Id = "BeatBlock",
-		//  //	SourceNamespace = "RhythmBase.BeatBlock.Events",
-		//  //	TargetConverterNamespace = "RhythmBase.BeatBlock.Converters",
-		//  //	TargetUtilsNamespace = "RhythmBase.BeatBlock.Utils",
-		//  //	TargetUtilsClassName = "EventTypeUtils",
-		//  //	BaseConverterClassName = "EventInstanceConverter",
-		//  //	BaseInterfaceFullName = "RhythmBase.BeatBlock.Events.IBaseEvent",
-		//  //	ClassTypeEnumFullname = "RhythmBase.BeatBlock.EventType",
-		//  //	ClassTypeEnumUnknownMemberName = "ForwardEvent",
-		//  //   }
-		//  ];
-		//foreach (var config in configs)
-		//{
-		//    GenerateConverter(context, config);
-		//}
-		//GenerateFilterTypeUtilsForEnum(context);
 	}
 	private const string CoreNs = "Global";
 	private void GenerateOtherFiles(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<string?> registryInfo)
@@ -657,62 +628,6 @@ public partial class ConverterGenerator : IIncrementalGenerator
 			? null
 			: GetEnumInitializerValue(typeProperty, compilation);
 	}
-
-	private static void GenerateException(IncrementalGeneratorInitializationContext context, string id, string message, Exception ex)
-	{
-		context.RegisterPostInitializationOutput(ctx =>
-		{
-			ctx.AddSource($"ConverterGenerator_{id}_Error.g.cs", $"""
-            /* This file is generated because an error was encountered during source generation. The converter source generation is skipped, and the errors should be investigated by debugging the generator. * /
-            /* 
-            {message}
-            */
-            """);
-		});
-	}
-	private readonly struct ConverterRegistryScanResult(
-		INamedTypeSymbol? ConverterType,
-		ImmutableArray<ITypeSymbol> TargetTypes,
-		Location? Location,
-		string? Error)
-	{
-		public INamedTypeSymbol? ConverterType { get; } = ConverterType;
-		public ImmutableArray<ITypeSymbol> TargetTypes { get; } = TargetTypes;
-		public Location? Location { get; } = Location;
-		public string? Error { get; } = Error;
-	}
-
-	private static bool HasAttribute(SyntaxList<AttributeListSyntax> list, string attributeFullName)
-	{
-		string attributeFullNameWithoutPostfix = attributeFullName.Remove(attributeFullName.Length - "Attribute".Length);
-		string attributeShortName = attributeFullName.Split('.').Last();
-		string attributeShortNameWithoutPostfix = attributeShortName.Remove(attributeShortName.Length - "Attribute".Length);
-		return list.Any(i => i.Attributes.Any(j =>
-		{
-			string name = j.Name.ToString();
-			return
-				name == attributeShortName ||
-				name == attributeFullName ||
-				name == attributeShortNameWithoutPostfix ||
-				name == attributeFullNameWithoutPostfix;
-		}));
-	}
-	private static bool HasAttribute(INamedTypeSymbol symbol, string attributeFullName)
-	{
-		string attributeFullNameWithoutPostfix = attributeFullName.Remove(attributeFullName.Length - "Attribute".Length);
-		string attributeShortName = attributeFullName.Split('.').Last();
-		string attributeShortNameWithoutPostfix = attributeShortName.Remove(attributeShortName.Length - "Attribute".Length);
-		return symbol.GetAttributes().Any(i =>
-		{
-			string name = i.AttributeClass?.ToDisplayString() ?? "";
-			return
-				name == attributeShortName ||
-				name == attributeFullName ||
-				name == attributeShortNameWithoutPostfix ||
-				name == attributeFullNameWithoutPostfix;
-		});
-	}
-
 	private static bool IsAttribute(AttributeData attribute, string attributeFullName)
 	{
 		string attributeFullNameWithoutPostfix = attributeFullName.Remove(attributeFullName.Length - "Attribute".Length);
@@ -725,88 +640,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 			name == attributeShortNameWithoutPostfix ||
 			name == attributeFullNameWithoutPostfix;
 	}
-
-	private static bool IsJsonConverterType(INamedTypeSymbol symbol)
-	{
-		for (INamedTypeSymbol? current = symbol; current is not null; current = current.BaseType)
-		{
-			string baseName = current.ConstructedFrom?.ToDisplayString() ?? current.ToDisplayString();
-			if (baseName == "System.Text.Json.Serialization.JsonConverter" ||
-				baseName.StartsWith("System.Text.Json.Serialization.JsonConverter<", StringComparison.Ordinal))
-				return true;
-		}
-		return false;
-	}
-
-	private static bool HasAccessibleParameterlessCtor(INamedTypeSymbol symbol)
-	{
-		return symbol.InstanceConstructors.Any(i =>
-			i.Parameters.Length == 0 &&
-			i.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal);
-	}
-
-
-	private record struct FieldName(string Name, string FullName, string? Alias = null);
-	private struct EnumInfo
-	{
-		public bool PascalCase;
-		public FieldName Symbol;
-		public FieldName[] Fields;
-	}
-
 	#region Event Converter 生成
-
-	private record struct PropertyInfo
-	{
-		public string? Alias;
-		public IPropertySymbol Symbol;
-		public string? Condition;
-		public string? Converter;
-		//public ISymbol? ConverterSymbol;
-		public int? TimeType;
-	}
-	private record struct ClassInfo
-	{
-		public string Name;
-		public INamedTypeSymbol Type;
-		public string BaseTypeName;
-		//public string? SpecialID;
-		//public string? Alias;
-		//public bool SerializerIgnore;
-		public bool NeedSerializer;
-		public bool HasSerializer;
-		public PropertyInfo[] Properties;
-	}
-	private struct GenerateSettings()
-	{
-		public bool WithTypeEnum = false;
-	}
-	private static AttributeSyntax? GetAttribute(SyntaxList<AttributeListSyntax> list, string attributeFullName)
-	{
-		string attributeFullNameWithoutPostfix = attributeFullName.Remove(attributeFullName.Length - "Attribute".Length);
-		string attributeShortName = attributeFullName.Split('.').Last();
-		string attributeShortNameWithoutPostfix = attributeShortName.Remove(attributeShortName.Length - "Attribute".Length);
-		foreach (var attrList in list)
-		{
-			foreach (var attr in attrList.Attributes)
-			{
-				string name = attr.Name.ToFullString();
-				if (name == attributeShortName ||
-					name == attributeFullName ||
-					name == attributeShortNameWithoutPostfix ||
-					name == attributeFullNameWithoutPostfix)
-				{
-					return attr;
-				}
-			}
-		}
-		return null;
-	}
-	static string ToShorter(string name)
-	{
-		string[] splitted = name.Split('.');
-		return splitted[splitted.Length - 1];
-	}
 	static string ToLowerCamelCase(string name)
 	{
 		if (string.IsNullOrEmpty(name) || char.IsLower(name[0]))
@@ -821,7 +655,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 			return arrayType.ElementType;
 		if (type.SpecialType == SpecialType.System_String)
 			return null;
-		if(type is INamedTypeSymbol namedType)
+		if (type is INamedTypeSymbol namedType)
 		{
 			var enumerableInterface = namedType.AllInterfaces.FirstOrDefault(i =>
 				i.IsGenericType &&
@@ -831,177 +665,6 @@ public partial class ConverterGenerator : IIncrementalGenerator
 		}
 		return null;
 	}
-	static ITypeSymbol WithoutNullable(ITypeSymbol type)
-	{
-		if (type.IsReferenceType)
-		{
-			return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
-		}
-		else if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-		{
-			return ((INamedTypeSymbol)type).TypeArguments[0];
-		}
-		return type;
-	}
-
-	private static bool IsSerializableEventProperty(PropertyDeclarationSyntax syntax, SemanticModel semanticModel)
-	{
-		IPropertySymbol propSymbol = semanticModel.GetDeclaredSymbol(syntax) ?? throw new NotImplementedException();
-		bool hasAlias = HasAttribute(syntax.AttributeLists, JsonAliasAttrName);
-		bool isPublic = propSymbol.DeclaredAccessibility == Accessibility.Public;
-		bool isIgnored = HasAttribute(syntax.AttributeLists, JsonIgnoreAttrName);
-		return !propSymbol.IsStatic && !isIgnored && (isPublic || hasAlias);
-	}
-
-	private static PropertyInfo BuildPropertyInfo(PropertyDeclarationSyntax syntax, SemanticModel semanticModel)
-	{
-		IPropertySymbol propSymbol = semanticModel.GetDeclaredSymbol(syntax) ?? throw new NotImplementedException();
-		PropertyInfo prop = new();
-		var aliasAttr = GetAttribute(syntax.AttributeLists, JsonAliasAttrName);
-		var conditionAttr = GetAttribute(syntax.AttributeLists, JsonConditionAttrName);
-		var converterAttr = GetAttribute(syntax.AttributeLists, JsonConverterAttrName);
-		var timeAttr = GetAttribute(syntax.AttributeLists, JsonTimeAttrName);
-
-		if (aliasAttr is AttributeSyntax aliasAttrNotNull)
-		{
-			var arg = aliasAttrNotNull.ArgumentList?.Arguments.FirstOrDefault();
-			if (arg?.Expression is LiteralExpressionSyntax les && les.IsKind(SyntaxKind.StringLiteralExpression))
-			{
-				prop.Alias = les.Token.ValueText;
-			}
-		}
-
-		if (conditionAttr is AttributeSyntax conditionAttrNotNull)
-		{
-			var arg = conditionAttrNotNull.ArgumentList?.Arguments.FirstOrDefault();
-			if (arg?.Expression is ExpressionSyntax les)
-			{
-				Optional<object?> constant = semanticModel.GetConstantValue(les);
-				if (constant.HasValue && constant.Value is string str)
-					prop.Condition = str;
-			}
-		}
-
-		if (converterAttr is AttributeSyntax converterAttrNotNull)
-		{
-			var arg = converterAttrNotNull.ArgumentList?.Arguments.FirstOrDefault();
-			if (arg?.Expression is TypeOfExpressionSyntax toes)
-			{
-				prop.Converter = semanticModel.GetSymbolInfo(toes.Type).Symbol?.ToDisplayString();
-			}
-		}
-
-		if (timeAttr is AttributeSyntax timeAttrNotNull)
-		{
-			var arg = timeAttrNotNull.ArgumentList?.Arguments.FirstOrDefault();
-			if (arg?.Expression is MemberAccessExpressionSyntax maes)
-			{
-				prop.TimeType = (int?)semanticModel.GetConstantValue(maes).Value;
-			}
-		}
-
-		prop.Symbol = propSymbol;
-		return prop;
-	}
-
-	private static void AppendWriteLinesWithCondition(StringBuilder target, StringBuilder content, string? conditionRaw, bool multiline)
-	{
-		if (string.IsNullOrEmpty(conditionRaw))
-		{
-			target.Append(content);
-			return;
-		}
-
-		string condition = conditionRaw!
-			.Replace("$&", "value")
-			.Replace("$r", "_rs")
-			.Replace("$w", "_ws");
-
-		string[] lines = [.. content.ToString()
-			.Split(['\n'], StringSplitOptions.RemoveEmptyEntries)
-			.Where(i => !string.IsNullOrWhiteSpace(i))
-			.Select(i => "\t" + i)];
-
-		if (multiline)
-		{
-			target.AppendLine($$"""
-		if ({{condition}})
-		{
-{{string.Concat(lines)}}
-		}
-""");
-		}
-		else
-		{
-			target.AppendLine($$"""
-		if ({{condition}})
-			{{string.Concat(lines).Trim()}}
-""");
-		}
-	}
-
 	static List<string> marks = [];
-	private record struct GenerationConfig
-	{
-		// RD
-		// AD
-		// AD_Filter
-		internal string Id;
-		// RhythmBase.RhythmDoctor.Events
-		// RhythmBase.Adofai.Events
-		// RhythmBase.Adofai.Components.Filters
-		internal string SourceNamespace;
-		// RhythmBase.RhythmDoctor.Converters
-		// RhythmBase.Adofai.Converters
-		// RhythmBase.Adofai.Converters.Filters
-		internal string TargetConverterNamespace;
-		// RhythmBase.RhythmDoctor.Utils
-		// RhythmBase.Adofai.Utils
-		internal string TargetUtilsNamespace;
-		internal string TargetUtilsClassName;
-		// EventInstanceConverter
-		// FilterInstanceConverter
-		internal string BaseConverterClassName;
-		// RhythmBase.RhythmDoctor.Events.IBaseEvent
-		// RhythmBase.Adofai.Events.IBaseEvent
-		// RhythmBase.Adofai.Components.Filters.IFilter
-		internal string BaseInterfaceFullName;
-		// RhythmBase.RhythmDoctor.EventType
-		// RhythmBase.Adofai.EventType
-		// RhythmBase.Adofai.Components.Filters.FilterType
-		internal string ClassTypeEnumFullname;
-		internal string ClassTypeEnumUnknownMemberName;
-	}
-
-	#endregion
-
-	#region Filter Converter 生成
-
-	#endregion
-
-	#region 工具方法
-
-	private static string TypeNameOf(ITypeSymbol symbol)
-	{
-		if (symbol is INamedTypeSymbol namedTypeSymbol)
-		{
-			if (namedTypeSymbol.TypeArguments.Length > 0)
-			{
-				string typeArgs = string.Join(", ", namedTypeSymbol.TypeArguments.Select(t => t.ToDisplayString()));
-				return $"{namedTypeSymbol.Name}<{typeArgs}>";
-			}
-			else
-			{
-				return namedTypeSymbol.Name;
-			}
-		}
-		else if (symbol is IArrayTypeSymbol)
-		{
-			return symbol.ToDisplayString();
-		}
-		return "";
-	}
-
-	private static string LastPartOf(string str) => str.Split('.').Last();
 	#endregion
 }

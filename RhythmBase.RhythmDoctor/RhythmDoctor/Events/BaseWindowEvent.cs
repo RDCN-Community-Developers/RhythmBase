@@ -5,7 +5,7 @@ namespace RhythmBase.RhythmDoctor.Events;
 /// <summary>  
 /// Represents the base class for all window-related events.  
 /// </summary>  
-[JsonObjectHasSerializer(typeof(RDInstanceConverter.BaseWindowEvent<>))]
+[JsonObjectHasSerializer(typeof(RDMemberConverter.BaseWindowEvent<>))]
 public abstract record class BaseWindowEvent : BaseEvent
 {
 	/// <inheritdoc/>

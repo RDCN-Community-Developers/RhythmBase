@@ -9,149 +9,6 @@ namespace RhythmBase.Generator;
 
 public partial class ConverterGenerator
 {
-	private static bool InheritsOrImplements(INamedTypeSymbol type, INamedTypeSymbol target)
-	{
-		static IEnumerable<INamedTypeSymbol> GetBaseTypes(INamedTypeSymbol type)
-		{
-			for (var current = type.BaseType;
-					current != null && current.SpecialType != SpecialType.System_Object;
-					current = current.BaseType)
-			{
-				yield return current;
-			}
-		}
-
-		if (SymbolEqualityComparer.Default.Equals(type, target))
-			return true;
-
-		return target.TypeKind is TypeKind.Interface
-				? type.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i, target))
-				: GetBaseTypes(type).Any(i => SymbolEqualityComparer.Default.Equals(i, target));
-	}
-	private static void GenerateConverterRegistry(IncrementalGeneratorInitializationContext context)
-	{
-		var scans = context.SyntaxProvider.CreateSyntaxProvider(
-				predicate: static (node, _) =>
-						node is ClassDeclarationSyntax cds && cds.AttributeLists.Count > 0,
-				transform: (ctx, _) =>
-				{
-					if (ctx.Node is not ClassDeclarationSyntax classDeclaration)
-						return default(ConverterRegistryScanResult);
-
-					if (ctx.SemanticModel.GetDeclaredSymbol(classDeclaration) is not INamedTypeSymbol symbol)
-						return default;
-
-					if (!HasAttribute(symbol, JsonConverterForAttrName))
-						return default;
-
-					Location? location = symbol.Locations.FirstOrDefault();
-					string converterName = symbol.ToDisplayString();
-
-					if (!IsJsonConverterType(symbol))
-						return new(symbol, [], location, "must inherit System.Text.Json.Serialization.JsonConverter or JsonConverter<T>");
-
-					if (symbol.IsAbstract)
-						return new(symbol, [], location, "abstract converter cannot be registered");
-
-					if (!HasAccessibleParameterlessCtor(symbol))
-						return new(symbol, [], location, "converter must have an accessible parameterless constructor");
-
-					HashSet<ITypeSymbol> targets = new(SymbolEqualityComparer.Default);
-					foreach (var attr in symbol.GetAttributes().Where(i => IsAttribute(i, JsonConverterForAttrName)))
-					{
-						if (attr.ConstructorArguments.Length == 0)
-							continue;
-
-						TypedConstant arg0 = attr.ConstructorArguments[0];
-						if (arg0.Kind == TypedConstantKind.Type && arg0.Value is ITypeSymbol targetType)
-							targets.Add(targetType);
-					}
-
-					if (targets.Count == 0)
-						return new(symbol, [], location, "at least one valid target type is required");
-
-					return new(symbol, [.. targets], location, null);
-				}).Collect();
-
-		context.RegisterSourceOutput(scans, (spc, results) =>
-		{
-			List<(ITypeSymbol TargetType, INamedTypeSymbol ConverterType, Location? Location)> registrations = [];
-
-			foreach (var result in results)
-			{
-				if (result.ConverterType is null)
-					continue;
-
-				if (result.Error is string err)
-				{
-					spc.ReportDiagnostic(Diagnostic.Create(
-									InvalidConverterRegistrationRule,
-									result.Location,
-									result.ConverterType.ToDisplayString(),
-									err));
-					continue;
-				}
-
-				foreach (var targetType in result.TargetTypes)
-					registrations.Add((targetType, result.ConverterType, result.Location));
-			}
-
-			foreach (var group in registrations.GroupBy(i => i.TargetType, SymbolEqualityComparer.Default).Distinct())
-			{
-				if (group.Count() <= 1)
-					continue;
-
-				string converterList = string.Join(", ", group.Select(i => i.ConverterType.ToDisplayString()).Distinct().OrderBy(i => i));
-				foreach (var item in group)
-				{
-					spc.ReportDiagnostic(Diagnostic.Create(
-									DuplicateConverterRegistrationRule,
-									item.Location,
-									group.Key?.ToDisplayString(),
-									converterList));
-				}
-			}
-
-			var validRegistrations = registrations
-							.GroupBy(i => i.TargetType, SymbolEqualityComparer.Default)
-							.Where(i => i.Count() == 1)
-							.Select(i => i.First())
-							.OrderBy(i => i.TargetType.ToDisplayString())
-							.ToArray();
-
-			StringBuilder sb = new();
-			sb.AppendLine("""
-			namespace RhythmBase.Global.Converters;
-
-			partial class ConverterHub
-			{
-				private static void InitializeConverters()
-				{
-			""");
-			for (int i = 0; i < validRegistrations.Length; i++)
-			{
-				(ITypeSymbol TargetType, INamedTypeSymbol ConverterType, Location? Location) reg = validRegistrations[i];
-				sb.AppendLine($"\tConverterCache<{reg.TargetType.ToDisplayString()}>.Converter = new {reg.ConverterType.ToDisplayString()}();");
-			}
-			sb.AppendLine("""
-				}
-				private static int idOf<T>()
-				{
-			""");
-			for (int i = 0; i < validRegistrations.Length; i++)
-			{
-				(ITypeSymbol TargetType, INamedTypeSymbol ConverterType, Location? Location) reg = validRegistrations[i];
-				sb.AppendLine($"\t\tif (typeof(T) == typeof({reg.TargetType.ToDisplayString()})) return {i};");
-			}
-			sb.AppendLine("""
-					return -1;
-				}
-			}
-			""");
-
-			spc.AddSource("GeneratedEntityConverterHub.g.cs", sb.ToString());
-		});
-	}
 	private static string ReplaceVariableWithName(string template)
 	{
 		return template
@@ -308,48 +165,6 @@ public partial class ConverterGenerator
 			spc.AddSource($"EnumConverters.{registryInfo}.g.cs", sb1.ToString());
 		});
 	}
-	private static void GetMetadata(IncrementalGeneratorInitializationContext context)
-	{
-		var metadata = context.CompilationProvider.Combine(context.SyntaxProvider.ForAttributeWithMetadataName(
-				fullyQualifiedMetadataName: JsonConverterSourceTypeAttrName,
-				predicate: (s, e) =>
-				{
-					return
-							(s is TypeDeclarationSyntax typeDeclaration &&
-							(typeDeclaration is InterfaceDeclarationSyntax) &&
-							typeDeclaration.AttributeLists.Count > 0);
-				},
-				transform: (ctx, e) =>
-				{
-					if (ctx.TargetNode is not TypeDeclarationSyntax typeDeclaration)
-						return default;
-					INamedTypeSymbol? symbol = ctx.SemanticModel.GetDeclaredSymbol(typeDeclaration);
-					if (symbol is null)
-						return default;
-					AttributeData? attrData = symbol.GetAttributes().FirstOrDefault(a => IsAttribute(a, JsonConverterSourceTypeAttrName));
-					return symbol;
-				}
-				).Collect());
-		context.RegisterSourceOutput(metadata, (ctx, pair) =>
-		{
-			(Compilation compilation, ImmutableArray<INamedTypeSymbol?> symbols) = pair;
-			foreach (var symbol in symbols)
-			{
-				INamedTypeSymbol? baseType = symbols.FirstOrDefault(i => i is not null);
-				if (baseType is null)
-					return;
-				IEnumerable<INamedTypeSymbol> derivedTypes = GetDerivedTypes(baseType, compilation);
-				StringBuilder sb = new();
-				sb.AppendLine($"// <auto-generated/>\n#nullable enable\n\nnamespace {baseType.ContainingNamespace};\n");
-				foreach (var type in derivedTypes.OrderBy(i => i.ToDisplayString()))
-				{
-					sb.AppendLine($"/* {type.ToDisplayString()} */");
-				}
-				ctx.AddSource("Metadata.g.cs", sb.ToString());
-				break;
-			}
-		});
-	}
 	private static IEnumerable<INamedTypeSymbol> GetDerivedTypes(INamedTypeSymbol baseType, Compilation compilation, bool includeReferences = false)
 	{
 		foreach (var t in GetAllTypes(compilation.GlobalNamespace))
@@ -391,16 +206,22 @@ public partial class ConverterGenerator
 			}
 		}
 	}
+	private static IEnumerable<INamedTypeSymbol> GetAllTypes(IAssemblySymbol assemblySymbol)
+	{
+		foreach (var module in assemblySymbol.Modules)
+			foreach (var type in GetAllTypes(module.GlobalNamespace))
+				yield return type;
+	}
 
 	private void GenerateConverterHub(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<(string? Left, (ITypeSymbol, INamedTypeSymbol)[] Right)> incrementalValueProvider)
 	{
 		context.RegisterSourceOutput(incrementalValueProvider, (ctx, data) =>
-		{
-			var (left, right) = data;
-			if (string.IsNullOrEmpty(left))
-				return;
-			StringBuilder sb = new();
-			sb.AppendLine($$"""
+	{
+		var (left, right) = data;
+		if (string.IsNullOrEmpty(left) || left == CoreNs)
+			return;
+		StringBuilder sb = new();
+		sb.AppendLine($$"""
 						// <auto-generated/>
 
 						using System.Text.Json;
@@ -418,13 +239,13 @@ public partial class ConverterGenerator
 							static ConverterHub()
 							{
 						""");
-			foreach (var pair in right)
-			{
-				sb.AppendLine($$"""
+		foreach (var pair in right)
+		{
+			sb.AppendLine($$"""
 								ConverterCache<{{pair.Item1.ToDisplayString()}}>.Converter = new {{pair.Item2.ToDisplayString()}}();
 						""");
-			}
-			sb.AppendLine("""
+		}
+		sb.AppendLine("""
 							}
 							public static T Read<T>(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options)
 							{
@@ -454,8 +275,8 @@ public partial class ConverterGenerator
 							}
 						}
 						""");
-			ctx.AddSource($"ConverterHub.{left}.g.cs", sb.ToString());
-		});
+		ctx.AddSource($"ConverterHub.{left}.g.cs", sb.ToString());
+	});
 	}
 	private static ITypeSymbol UnwarpNullable(ITypeSymbol type)
 	{
@@ -481,7 +302,6 @@ public partial class ConverterGenerator
 			var aliasAttrSmp = compilation.GetTypeByMetadataName(JsonAliasAttrName);
 			var condAttrSmp = compilation.GetTypeByMetadataName(JsonConditionAttrName);
 			var ignoreAttrSmp = compilation.GetTypeByMetadataName(JsonIgnoreAttrName);
-			var notIgnoreAttrSmp = compilation.GetTypeByMetadataName(JsonNotIgnoreAttrName);
 			var jsonCvtrAttrSmp = compilation.GetTypeByMetadataName(JsonConverterAttrName);
 			var timeCvtrAttrSmp = compilation.GetTypeByMetadataName(JsonTimeAttrName);
 			var dftCvtrAttrSmp = compilation.GetTypeByMetadataName(JsonDefaultSerializerAttrName);
@@ -491,7 +311,6 @@ public partial class ConverterGenerator
 				(
 				(
 				prop.Property.DeclaredAccessibility.HasFlag(Accessibility.Public) ||
-				attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, notIgnoreAttrSmp)) is not null ||
 				attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, aliasAttrSmp)) is not null
 				) &&
 				attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, ignoreAttrSmp)) is null
@@ -512,7 +331,7 @@ public partial class ConverterGenerator
 			var type = UnwarpNullable(prop.Property.Type);
 
 			// 已注册转换器
-			if(jsonCvtr is null && classGenMap.FirstOrDefault(i=>i.Item1.Equals(type, SymbolEqualityComparer.Default)) is var (classGen, cvtr) && classGen is not null)
+			if (jsonCvtr is null && classGenMap.FirstOrDefault(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)) is var (classGen, cvtr) && classGen is not null)
 			{
 				sb.Append($$"""{{valueAccess}} = ConverterHub.Read<{{type.ToDisplayString()}}>(ref reader, options);""");
 			}
@@ -606,7 +425,6 @@ public partial class ConverterGenerator
 			var aliasAttrSmp = compilation.GetTypeByMetadataName(JsonAliasAttrName);
 			var condAttrSmp = compilation.GetTypeByMetadataName(JsonConditionAttrName);
 			var ignoreAttrSmp = compilation.GetTypeByMetadataName(JsonIgnoreAttrName);
-			var notIgnoreAttrSmp = compilation.GetTypeByMetadataName(JsonNotIgnoreAttrName);
 			var jsonCvtrAttrSmp = compilation.GetTypeByMetadataName(JsonConverterAttrName);
 			var timeCvtrAttrSmp = compilation.GetTypeByMetadataName(JsonTimeAttrName);
 			var dftCvtrAttrSmp = compilation.GetTypeByMetadataName(JsonDefaultSerializerAttrName);
@@ -616,7 +434,6 @@ public partial class ConverterGenerator
 				(
 				(
 				prop.Property.DeclaredAccessibility.HasFlag(Accessibility.Public) ||
-				attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, notIgnoreAttrSmp)) is not null ||
 				attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, aliasAttrSmp)) is not null
 				) &&
 				attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, ignoreAttrSmp)) is null
@@ -654,7 +471,7 @@ public partial class ConverterGenerator
 			}
 
 			// 已注册转换器
-			if(jsonCvtr is null && classGenMap.FirstOrDefault(i=>i.Item1.Equals(type, SymbolEqualityComparer.Default)) is var (classGen, cvtr) && classGen is not null )
+			if (jsonCvtr is null && classGenMap.FirstOrDefault(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)) is var (classGen, cvtr) && classGen is not null)
 			{
 				sb.Append($$"""{{(hasCondition ? "{" : "")}} writer.WritePropertyName("{{alias}}"u8); ConverterHub.Write(writer, {{valueAccess}}, options); {{(hasCondition ? "}" : "")}}""");
 			}
@@ -725,7 +542,6 @@ public partial class ConverterGenerator
 		}
 		//sb.AppendLine("*/throw new NotImplementedException();");
 	}
-
 	private string GetJsonReadMethod(ITypeSymbol type)
 	{
 		return type.SpecialType switch
@@ -777,7 +593,7 @@ public partial class ConverterGenerator
 			var (idAndCompilation, classGensAndClassGenMap) = classGenInfoArray;
 			var (id, compilation) = idAndCompilation;
 			var (classGens, classGenMap) = classGensAndClassGenMap;
-			if (string.IsNullOrEmpty(id))
+			if (string.IsNullOrEmpty(id) || id == CoreNs)
 				return;
 			string ns = $"RhythmBase.{id}.Converters";
 			StringBuilder classCvtrSb = new();
@@ -787,7 +603,7 @@ public partial class ConverterGenerator
 						#nullable enable
 						
 						using System;
-						using RhythmBase.Global.Extensions;
+						using RhythmBase.Global.Converters;
 						using System.Text.Json;
 						using static RhythmBase.Global.Converters.EnumConverter;
 						
@@ -798,22 +614,36 @@ public partial class ConverterGenerator
 						internal static class ConverterMap {
 						""");
 
+
 			foreach (var classGen in classGens)
 			{
 				var classes = classGen.Item1;
+				var rootConverterTypeBase = classGen.Item2.RootConverterType.OriginalDefinition.BaseType;
+				if (rootConverterTypeBase is null || rootConverterTypeBase.IsGenericType)
+				{
+					ctx.ReportDiagnostic(Diagnostic.Create(GenericConverterBaseMustBeNonGenericRule, classGen.Item2.RootConverterType.Locations.FirstOrDefault(), rootConverterTypeBase?.ToDisplayString(), classGen.Item2.RootConverterType.ToDisplayString()));
+					return;
+				}
 				classMapSb.AppendLine($$"""
-							internal static RhythmBase.Global.Converters.InstanceConverter<{{classGen.Item2.RootType.ToDisplayString()}}> GetConverter({{classGen.Item2.EnumType.ToDisplayString()}} type) => type switch
+							internal static {{rootConverterTypeBase.ToDisplayString()}} GetConverter({{classGen.Item2.EnumType.ToDisplayString()}} type) => type switch
 							{
 						""");
 				foreach (var c in classes.OrderBy(i => i.ICGClassType.Name))
 				{
 					var t = c.ICGClassType;
 					var baseType = t.BaseType;
-					var baseRecord = classes.FirstOrDefault(d => baseType.Equals(d.ICGClassType, SymbolEqualityComparer.Default));
-					if (baseRecord is null && (baseRecord is not null || !baseType.Equals(classGen.Item2.RootType, SymbolEqualityComparer.Default))) continue;
+					IClassGen? baseRecord = classes.FirstOrDefault(d => baseType.Equals(d.ICGClassType, SymbolEqualityComparer.Default));
+					bool isDirectImplementation = t.TypeKind == TypeKind.Struct ||
+							baseType.Equals(classGen.Item2.RootType, SymbolEqualityComparer.Default);
+					if (baseRecord is null && !isDirectImplementation) continue; 
 					if (c is ClassGenCvtrInfo c1)
 					{
 						string baseConverterName;
+						if (c1.ClassType.IsAbstract)
+						{
+							ctx.ReportDiagnostic(Diagnostic.Create(GenericConverterBaseMustBeNonGenericRule, c1.ClassType.Locations.FirstOrDefault(), c1.ClassType.ToDisplayString(), "abstract classes cannot be converted"));
+							continue;
+						}
 						ISymbol enumValueSymbol = c1.ClassTypeEnum;
 						INamedTypeSymbol ocvtr = classGen.Item2.RootConverterType.OriginalDefinition.Construct(t);
 						if (baseRecord is ClassGenCvtrInfo baseRecord1)
@@ -827,7 +657,7 @@ public partial class ConverterGenerator
 								baseConverterName = baseConverter.OriginalDefinition.Construct(t).ToDisplayString();
 							else
 							{
-								ctx.ReportDiagnostic(Diagnostic.Create(NonGenericBaseConverterRule, c1.ClassType.Locations.FirstOrDefault(), baseConverter.ToDisplayString(), "base converter must be generic if the base type is not directly the root type"));
+								ctx.ReportDiagnostic(Diagnostic.Create(NonGenericBaseConverterRule, c1.ClassType.Locations.FirstOrDefault(), baseConverter.ToDisplayString(), $"{ns}.{baseRecord2.ClassType.Name}Converter"));
 								continue;
 							}
 						}
@@ -881,334 +711,6 @@ public partial class ConverterGenerator
 			ctx.AddSource($"Converters.{id}.g.cs", classCvtrSb.ToString());
 		});
 	}
-	private static void GenerateConverter(IncrementalGeneratorInitializationContext context, GenerationConfig config)
-	{
-		var classes = context.SyntaxProvider.CreateSyntaxProvider(
-				predicate: (s, e) =>
-				{
-					return
-							(s is TypeDeclarationSyntax typeDeclaration &&
-							(typeDeclaration is ClassDeclarationSyntax or RecordDeclarationSyntax or InterfaceDeclarationSyntax or StructDeclarationSyntax) &&
-							typeDeclaration.BaseList is not null);
-				},
-				transform: (ctx, e) =>
-				{
-					if (ctx.Node is not TypeDeclarationSyntax typeDeclaration)
-						return (ClassInfo?)null;
-					//InterfaceDeclarationSyntax? interfaceDeclaration = ctx.Node as InterfaceDeclarationSyntax;
-					INamedTypeSymbol classDeclarationSymbol = ctx.SemanticModel.GetDeclaredSymbol(typeDeclaration) ?? throw new NotImplementedException();
-					var interfaceToImplement = ctx.SemanticModel.Compilation.GetTypeByMetadataName(config.BaseInterfaceFullName);
-					bool isTargetEvent =
-									SymbolEqualityComparer.Default.Equals(classDeclarationSymbol, interfaceToImplement) ||
-									classDeclarationSymbol.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i, interfaceToImplement));
-					PropertyDeclarationSyntax[] propertyDeclarations = [.. typeDeclaration.ChildNodes().OfType<PropertyDeclarationSyntax>()];
-					if (!isTargetEvent)
-						return null;
-					PropertyInfo[] props = [.. propertyDeclarations
-										.Where(i =>
-										{
-												return IsSerializableEventProperty(i, ctx.SemanticModel);
-										})
-										.Select(i => BuildPropertyInfo(i, ctx.SemanticModel))];
-					//bool serializerIgnore = HasAttribute(classDeclarationSymbol, JsonObjectNotSerializableAttrName);
-					bool needSerializer = HasAttribute(classDeclarationSymbol, JsonObjectSerializableAttrName);
-					bool hasSerializer = HasAttribute(classDeclarationSymbol, JsonObjectHasSerializerAttrName);
-					var baseTypeSymbol = classDeclarationSymbol.BaseType;
-					ClassInfo classInfo = new()
-					{
-						Type = classDeclarationSymbol,
-						Name = classDeclarationSymbol.ToDisplayString(),
-						BaseTypeName = typeDeclaration is StructDeclarationSyntax ? "Base" : classDeclarationSymbol.BaseType?.ToDisplayString() ?? "object",
-						//SerializerIgnore = serializerIgnore,
-						NeedSerializer = needSerializer,
-						HasSerializer = hasSerializer,
-						Properties = props,
-					};
-					return classInfo;
-				}
-				).Collect();
-
-		context.RegisterSourceOutput(classes, (ctx, classSymbols) =>
-		{
-			try
-			{
-				StringBuilder sb = new();
-				StringBuilder sb2 = new();
-				sb.AppendLine($"""
-// <auto-generated/>
-#nullable enable
-
-using System;
-using RhythmBase.Global.Extensions;
-using System.Text.Json;
-using static RhythmBase.Global.Converters.EnumConverter;
-
-namespace {config.TargetConverterNamespace};
-""");
-				classSymbols = classSymbols.Where(i => i is not null).ToImmutableArray();
-				foreach (ClassInfo? classInfo in classSymbols.OrderBy(i => i?.Name))
-				{
-					if (classInfo is not ClassInfo ci) continue;
-					if (!ci.NeedSerializer) continue;
-					if (ci.Type.IsAbstract) continue;
-					sb.AppendLine($$"""
-internal class {{config.BaseConverterClassName}}{{ToShorter(ci.Name)}} : {{config.BaseConverterClassName}}{{ToShorter(ci.BaseTypeName)}}<{{ci.Name}}>
-{
-	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref {{ci.Name}} value, MetadataJsonSerializerOptions options)
-	{
-""");
-					ci.Properties = ci.Properties.OrderBy(i => i.Symbol.Name).ToArray();
-					if (ci.Properties.Length > 0)
-					{
-						if (ci.Properties.Count(i => i.Symbol.SetMethod is not null) == 0)
-						{
-							sb.AppendLine("        return base.Read(ref reader, propertyName, ref value, options);");
-						}
-						else
-						{
-							sb.AppendLine($$"""
-		if(base.Read(ref reader, propertyName, ref value, options))
-			return true;
-""");
-							bool isFirst = true;
-							int enumIndex = 0;
-							foreach (var pi in ci.Properties)
-							{
-								if (pi.Symbol.SetMethod is null) continue;
-								// ReadOnly properties are skipped
-								string propName = pi.Alias ?? ToLowerCamelCase(pi.Symbol.Name);
-								bool newlineNeeded = false;
-								// Custom converter
-								if (!string.IsNullOrEmpty(pi.Converter))
-								{
-									if (pi.Symbol.Type.NullableAnnotation == NullableAnnotation.Annotated)
-									{
-										sb.AppendLine($$"""
-		{{(isFirst ? "" : "else ")}}if (propertyName.SequenceEqual("{{propName}}"u8)){ if (reader.TokenType is not JsonTokenType.Null)
-""");
-										newlineNeeded = true;
-									}
-									else
-										sb.AppendLine($"		{(isFirst ? "" : "else ")}if (propertyName.SequenceEqual(\"{propName}\"u8))");
-									sb.AppendLine($"			value.{pi.Symbol.Name} = global::RhythmBase.Global.Converters.ConverterHub.Read<{WithoutNullable(pi.Symbol.Type).ToDisplayString()}>(ref reader, options);");
-									if (newlineNeeded)
-										sb.AppendLine("		}");
-								}
-								else
-								{
-									// Nullable
-									var typeNotNull = pi.Symbol.Type;
-									if (pi.Symbol.NullableAnnotation == NullableAnnotation.Annotated)
-									{
-										typeNotNull = WithoutNullable(pi.Symbol.Type);
-										sb.AppendLine($$"""		{{(isFirst ? "" : "else ")}}if (propertyName.SequenceEqual("{{propName}}"u8)){ if(reader.TokenType is not JsonTokenType.Null)""");
-										newlineNeeded = true;
-									}
-									else
-										sb.AppendLine($"		{(isFirst ? "" : "else ")}if (propertyName.SequenceEqual(\"{propName}\"u8))");
-
-									// Enum
-									if (typeNotNull.TypeKind == TypeKind.Enum)
-									{
-										sb.AppendLine($$"""
-			if(reader.TokenType is JsonTokenType.String && TryParse(reader.ValueSpan, out {{typeNotNull.ToDisplayString()}} enumValue{{enumIndex}}))
-				value.{{pi.Symbol.Name}} = enumValue{{enumIndex}};
-			else if(reader.TokenType is JsonTokenType.Number && reader.TryGetInt32(out int intValue{{enumIndex}}))
-				value.{{pi.Symbol.Name}} = ({{typeNotNull.ToDisplayString()}})intValue{{enumIndex}};
-			else
-				value.{{pi.Symbol.Name}} = default;
-""");
-										enumIndex++;
-									}
-									else if (pi.TimeType is int t)
-									{
-										sb.AppendLine($"			value.{pi.Symbol.Name} = {t switch
-										{
-											0 => "TimeSpan.FromSeconds(reader.GetDouble())",
-											1 => "TimeSpan.FromMilliseconds(reader.GetDouble())",
-											_ => throw new NotImplementedException(),
-										}};");
-									}
-									else
-									{
-										// Other types
-										switch (typeNotNull.SpecialType)
-										{
-											case
-																SpecialType.System_Byte or
-																SpecialType.System_SByte or
-																SpecialType.System_Char or
-																SpecialType.System_Decimal or
-																SpecialType.System_Double or
-																SpecialType.System_Single or
-																SpecialType.System_Int16 or
-																SpecialType.System_Int32 or
-																SpecialType.System_Int64 or
-																SpecialType.System_UInt16 or
-																SpecialType.System_UInt32 or
-																SpecialType.System_UInt64:
-												string typePostfix = typeNotNull.SpecialType.ToString().Replace("System_", "");
-												sb.AppendLine($"			value.{pi.Symbol.Name} = reader.Get{typePostfix}();");
-												break;
-											case SpecialType.System_Boolean:
-												sb.AppendLine($"""
-			if (reader.TokenType is JsonTokenType.True or JsonTokenType.False)
-				value.{pi.Symbol.Name} = reader.GetBoolean();
-			else if (reader.TokenType is JsonTokenType.String)
-				value.{pi.Symbol.Name} = "Enabled" == reader.GetString();
-			else
-				value.{pi.Symbol.Name} = false;
-""");
-												break;
-											case SpecialType.System_String:
-												sb.AppendLine($"			value.{pi.Symbol.Name} = reader.GetString() ?? \"\";");
-												break;
-											default:
-												if (typeNotNull.TypeKind == TypeKind.Struct)
-													sb.AppendLine($"			value.{pi.Symbol.Name} = global::RhythmBase.Global.Converters.ConverterHub.Read<{typeNotNull.ToDisplayString()}>(ref reader, options);");
-												else if (IsConcreteEnumerable(pi.Symbol.Type) is ITypeSymbol typeSymbol)
-													sb.AppendLine($"/*Tag:GenericList*/			value.{pi.Symbol.Name} = global::RhythmBase.Global.Converters.ConverterHub.Read<{typeNotNull.ToDisplayString()}>(ref reader, options) ?? [];");
-												else
-													sb.AppendLine($"			value.{pi.Symbol.Name} = global::RhythmBase.Global.Converters.ConverterHub.Read<{typeNotNull.ToDisplayString()}>(ref reader, options) ?? new();");
-												break;
-										}
-									}
-									if (newlineNeeded)
-										sb.AppendLine("		}");
-								}
-								isFirst = false;
-							}
-							sb.AppendLine($$"""
-		else return false;
-		return true;
-""");
-						}
-					}
-					else
-					{
-						sb.AppendLine("		return base.Read(ref reader, propertyName, ref value, options);");
-					}
-					sb.AppendLine($$"""
-	}
-	protected override void Write(Utf8JsonWriter writer, ref {{ci.Name}} value, MetadataJsonSerializerOptions options)
-	{
-		base.Write(writer, ref value, options);
-""");
-					if (ci.Properties.Length > 0)
-					{
-						int tempNotNullVarCount = 0;
-						foreach (var pi in ci.Properties)
-						{
-							if (pi.Symbol.GetMethod is null || (pi.Symbol.SetMethod is null && pi.Alias is null)) continue;
-							string propName = pi.Alias ?? ToLowerCamelCase(pi.Symbol.Name);
-							bool multiline = false;
-							// Custom converter
-							if (!string.IsNullOrEmpty(pi.Converter))
-							{
-								sb2.AppendLine($"		writer.WritePropertyName(\"{propName}\"u8);");
-								if (pi.Symbol.NullableAnnotation == NullableAnnotation.Annotated)
-								{
-									sb2.AppendLine($"""
-		if (value.{pi.Symbol.Name} is {WithoutNullable(pi.Symbol.Type).ToDisplayString()} valueNotNull{tempNotNullVarCount})
-			global::RhythmBase.Global.Converters.ConverterHub.Write<{WithoutNullable(pi.Symbol.Type).ToDisplayString()}>(writer, valueNotNull{tempNotNullVarCount}, options);
-		else
-			writer.WriteNullValue();
-""");
-									tempNotNullVarCount++;
-								}
-								else
-								{
-									sb2.AppendLine($"		global::RhythmBase.Global.Converters.ConverterHub.Write<{WithoutNullable(pi.Symbol.Type).ToDisplayString()}>(writer, value.{pi.Symbol.Name}, options);");
-								}
-								multiline = true;
-							}
-							else
-							{
-								var typeNotNull = pi.Symbol.Type;
-								bool isNullable = false;
-								if (pi.Symbol.NullableAnnotation == NullableAnnotation.Annotated)
-								{
-									typeNotNull = WithoutNullable(pi.Symbol.Type);
-									isNullable = true;
-									sb2.Append($"""
-		if (value.{pi.Symbol.Name} is {WithoutNullable(pi.Symbol.Type).ToDisplayString()} valueNotNull{tempNotNullVarCount})
-""");
-								}
-
-								if (typeNotNull.TypeKind == TypeKind.Enum)
-									sb2.AppendLine($"		writer.WriteString(\"{propName}\"u8, {(isNullable ? $"valueNotNull{tempNotNullVarCount}" : $"value.{pi.Symbol.Name}")}.ToEnumString());");
-								else if (pi.TimeType is int t)
-								{
-									sb2.AppendLine($"		writer.WriteNumber(\"{propName}\"u8, {(t switch
-									{
-										0 => "value." + pi.Symbol.Name + ".TotalMilliseconds",
-										1 => "value." + pi.Symbol.Name + ".TotalSeconds",
-										_ => throw new NotImplementedException(),
-									})});");
-								}
-								else
-								{
-									switch (typeNotNull.SpecialType)
-									{
-										case SpecialType.System_Boolean:
-											sb2.AppendLine($"		writer.WriteBoolean(\"{propName}\"u8, value.{LastPartOf(pi.Symbol.Name)}{(isNullable ? ".Value" : "")});");
-											break;
-										case SpecialType.System_String:
-											sb2.AppendLine($"		writer.WriteString(\"{propName}\"u8, value.{LastPartOf(pi.Symbol.Name)});");
-											break;
-										case SpecialType.System_Byte or
-															SpecialType.System_Int16 or
-															SpecialType.System_Int32 or
-															SpecialType.System_Int64 or
-															SpecialType.System_UInt16 or
-															SpecialType.System_UInt32 or
-															SpecialType.System_UInt64 or
-															SpecialType.System_Single or
-															SpecialType.System_Double or
-															SpecialType.System_Decimal:
-											sb2.AppendLine($"		writer.WriteNumber(\"{propName}\"u8, value.{LastPartOf(pi.Symbol.Name)}{(isNullable ? ".Value" : "")});");
-											break;
-										default:
-											sb2.AppendLine($$"""		{ writer.WritePropertyName("{{propName}}"u8);	global::RhythmBase.Global.Converters.ConverterHub.Write(writer, {{(isNullable ? $"valueNotNull{tempNotNullVarCount}" : $"value.{pi.Symbol.Name}")}}, options); }""");
-											break;
-									}
-								}
-								if (isNullable)
-								{
-									sb2.AppendLine($"""
-				else
-						writer.WriteNull("{propName}"u8);
-""");
-									tempNotNullVarCount++;
-								}
-							}
-							AppendWriteLinesWithCondition(sb, sb2, pi.Condition, multiline);
-							sb2.Clear();
-						}
-					}
-					else
-					{
-
-					}
-					sb.AppendLine($$"""
-	}
-}
-""");
-				}
-				ctx.AddSource($"EventInstanceConverters{config.Id}.g.cs", sb.ToString());
-				//GenerateEventTypeUtils(ctx, classSymbols, config);
-			}
-			catch (Exception ex)
-			{
-				ctx.AddSource($"EventInstanceConverters_Error{config.Id}.g.cs", $$"""
-				/*
-				An error occurred during generation: {{ex}}
-				{{string.Join("\n", marks)}}
-				*/
-				""");
-			}
-		});
-	}
 	private class ClassEnumMapGenerationInfo
 	{
 		public INamedTypeSymbol ClassType { get; set; }
@@ -1216,34 +718,46 @@ internal class {{config.BaseConverterClassName}}{{ToShorter(ci.Name)}} : {{confi
 		public IEnumerable<INamedTypeSymbol> Classes { get; set; }
 		public Dictionary<INamedTypeSymbol, HashSet<ISymbol>> ClassEnumMap { get; set; }
 		public Dictionary<INamedTypeSymbol, ISymbol> ClassEnumDoubleMap { get; internal set; }
-		public INamedTypeSymbol FallbackClassType { get; internal set; }
+		public INamedTypeSymbol? FallbackClassType { get; internal set; }
 		public ISymbol? FallbackClassTypeEnum { get; internal set; }
 	}
 	private static void GenerateEventTypeUtils(SourceProductionContext spc, (string, ClassEnumMapGenerationInfo[]) classSymbols)
 	{
 		(string configId, ClassEnumMapGenerationInfo[] infos) = classSymbols;
-		for (int i = 0; i < infos.Length; i++)
-		{
-			ClassEnumMapGenerationInfo? info = infos[i];
-			int maxLength = info.ClassEnumMap.Keys
-					.Max(i => i.ToDisplayString().Length);
-
-			StringBuilder sb = new();
-			sb.AppendLine($$"""
+		if (string.IsNullOrEmpty(configId) || configId == CoreNs || infos.Length == 0)
+			return;
+		StringBuilder sb = new();
+		sb.AppendLine($$"""
 // <auto-generated/>
 #nullable enable
 using System;
-namespace RhythmBase.{{configId}}.Extensions;
+namespace RhythmBase.{{configId}}.Converters;
 
 /// <summary>  
 /// Utility class for converting between event types and enumerations.  
 /// </summary>
 public static partial class ClassEnumMap
 {
-	private static System.Collections.ObjectModel.ReadOnlyCollection<Type>? _t;
-	private static System.Collections.ObjectModel.ReadOnlyDictionary<System.Type, RhythmBase.Global.Components.ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}>>? _t2e;
-	private static System.Collections.ObjectModel.ReadOnlyDictionary<{{info.ClassTypeEnum.ToDisplayString()}}, System.Type>? _e2t;
-	private static System.Collections.ObjectModel.ReadOnlyCollection<Type> _types => _t ??= new(new Type[]
+""");
+		for (int i = 0; i < infos.Length; i++)
+		{
+			string indexPostfix = infos.Length > 1 ? $"_{i}" : "";
+			string enumPostfix = infos.Length > 1 ? $"_{infos[i].ClassTypeEnum.Name}" : "";
+			string classPostfix = infos.Length > 1 ? $"_{infos[i].ClassType.Name}" : "";
+			ClassEnumMapGenerationInfo? info = infos[i];
+			int maxTypeStrLength = 100;
+			int maxEnumStrLength = 100;
+			maxTypeStrLength = info.ClassEnumMap.Keys
+					.Max(i => i.ToDisplayString().Length)
+					 + 13;
+			maxEnumStrLength = info.ClassEnumDoubleMap.Values
+					.Max(i => i.ToDisplayString().Length);
+
+			sb.AppendLine($$"""
+	private static System.Collections.ObjectModel.ReadOnlyCollection<Type>? _t{{indexPostfix}};
+	private static System.Collections.ObjectModel.ReadOnlyDictionary<System.Type, RhythmBase.Global.Components.ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}>>? _t2e{{indexPostfix}};
+	private static System.Collections.ObjectModel.ReadOnlyDictionary<{{info.ClassTypeEnum.ToDisplayString()}}, System.Type>? _e2t{{indexPostfix}};
+	private static System.Collections.ObjectModel.ReadOnlyCollection<Type> _types{{indexPostfix}} => _t{{indexPostfix}} ??= new(new Type[]
 	{
 """);
 			foreach (var classSymbol in info.Classes)
@@ -1252,40 +766,38 @@ public static partial class ClassEnumMap
 			}
 			sb.AppendLine($$"""
 	});
-	private static System.Collections.ObjectModel.ReadOnlyDictionary<System.Type, RhythmBase.Global.Components.ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}>> _type2enums => _t2e ??= new(new Dictionary<System.Type, RhythmBase.Global.Components.ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}>>()
+	private static System.Collections.ObjectModel.ReadOnlyDictionary<System.Type, RhythmBase.Global.Components.ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}>> _type2enums{{indexPostfix}} => _t2e{{indexPostfix}} ??= new(new Dictionary<System.Type, RhythmBase.Global.Components.ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}>>()
 	{
 """);
-			string indent = new(' ', maxLength + 13);
+			string indent = new(' ', maxTypeStrLength);
 			foreach (var pair in info.ClassEnumMap)
 			{
 				if (pair.Value.Count == 0)
 					continue;
 				sb.AppendLine($$"""
-			[typeof({{pair.Key.ToDisplayString()}})] ={{new string(' ', maxLength - pair.Key.ToDisplayString().Length)}} new RhythmBase.Global.Components.ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}>(2, // {{pair.Value.Count}}
-			{{indent}}{{string.Join($",\n\t\t{indent}", pair.Value.OrderBy(i => i.Name).Select(i => $"{i.ToDisplayString()}"))}}),
+			[typeof({{pair.Key.ToDisplayString()}})] ={{new string(' ', maxTypeStrLength - pair.Key.ToDisplayString().Length)}} new RhythmBase.Global.Components.ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}>(2, // {{pair.Value.Count}}
+			{{indent}}{{string.Join($",\n\t\t{indent}{new string(' ', 13)}", pair.Value.OrderBy(i => i.Name).Select(i => $"{i.ToDisplayString()}"))}}),
 """);
 			}
 			sb.AppendLine($$"""
 	});
-	private static System.Collections.ObjectModel.ReadOnlyDictionary<{{info.ClassTypeEnum.ToDisplayString()}}, System.Type> _enum2type => _e2t ??= new(new Dictionary<{{info.ClassTypeEnum.ToDisplayString()}}, System.Type>()
+	private static System.Collections.ObjectModel.ReadOnlyDictionary<{{info.ClassTypeEnum.ToDisplayString()}}, System.Type> _enum2type{{indexPostfix}} => _e2t{{indexPostfix}} ??= new(new Dictionary<{{info.ClassTypeEnum.ToDisplayString()}}, System.Type>()
 	{
 """);
 			foreach (var pair in info.ClassEnumDoubleMap)
-			{
-				sb.AppendLine($"\t\t[{pair.Value.ToDisplayString()}] ={new string(' ', maxLength - pair.Key.ToDisplayString().Length)} typeof({pair.Key.ToDisplayString()}),");
-			}
+				sb.AppendLine($"\t\t[{pair.Value.ToDisplayString()}] ={new string(' ', maxEnumStrLength - pair.Value.ToDisplayString().Length)} typeof({pair.Key.ToDisplayString()}),");
 			sb.AppendLine($$"""
-	});  
+	});
 	/// <summary>  
 	/// Converts a type to its corresponding <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumeration.  
 	/// </summary>  
 	/// <param name="type">The type to convert.</param>  
 	/// <returns>The corresponding <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumeration.</returns>  
 	/// <exception cref="IllegalEventTypeException">Thrown when no matching <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> is found or multiple matching <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> are found.</exception>  
-	public static {{info.ClassTypeEnum.ToDisplayString()}} ToEnum(Type type)
+	public static {{info.ClassTypeEnum.ToDisplayString()}} ToEnum{{enumPostfix}}(Type type)
 	{
 		{{info.ClassTypeEnum.ToDisplayString()}} v;
-		if (_type2enums == null)
+		if (_type2enums{{indexPostfix}} == null)
 		{
 			string name = type.Name;
 			if (!Enum.TryParse(name, out {{info.ClassTypeEnum.ToDisplayString()}} result))
@@ -1298,7 +810,7 @@ public static partial class ClassEnumMap
 		{
 			try
 			{
-				v = _type2enums[type].Single();
+				v = _type2enums{{indexPostfix}}[type].Single();
 			}
 			catch (Exception)
 			{
@@ -1312,23 +824,41 @@ public static partial class ClassEnumMap
 	/// </summary>  
 	/// <typeparam name="TEvent">The generic event type to convert.</typeparam>  
 	/// <returns>The corresponding <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumeration.</returns>  
-	public static {{info.ClassTypeEnum.ToDisplayString()}} ToEnum<TEvent>() where TEvent : {{info.ClassType.ToDisplayString()}}, new() => ToEnum(typeof(TEvent));
+	public static {{info.ClassTypeEnum.ToDisplayString()}} ToEnum{{enumPostfix}}<TEvent>() where TEvent : {{info.ClassType.ToDisplayString()}}, new() => ToEnum{{enumPostfix}}(typeof(TEvent));
 	/// <summary>  
 	/// Converts a type to an array of corresponding <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumerations.  
 	/// </summary>  
 	/// <param name="type">The type to convert.</param>  
 	/// <returns>An array of corresponding <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumerations.</returns>  
 	/// <exception cref="IllegalEventTypeException">Thrown when an unexpected exception occurs.</exception>  
-	public static ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}> ToEnums(Type type)
+	public static ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}> ToEnums{{enumPostfix}}(Type type)
 	{
-		return _type2enums.TryGetValue(type, out var value) ? value : throw new IllegalEventTypeException(type);
+		return _type2enums{{indexPostfix}}.TryGetValue(type, out var value) ? value : throw new IllegalEventTypeException(type);
 	}
 	/// <summary>  
 	/// Converts a generic event type to an array of corresponding <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumerations.  
 	/// </summary>  
 	/// <typeparam name="TEvent">The generic event type to convert.</typeparam>  
 	/// <returns>An array of corresponding <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumerations.</returns>
-	public static ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}> ToEnums<TEvent>() where TEvent : {{info.ClassType.ToDisplayString()}} => ToEnums(typeof(TEvent));
+	public static ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}> ToEnums{{enumPostfix}}<TEvent>() where TEvent : {{info.ClassType.ToDisplayString()}} => ToEnums{{enumPostfix}}(typeof(TEvent));
+		/// <summary>  
+	/// Converts an <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumeration to its corresponding Type.  
+	/// </summary>  
+	/// <param name="type">The <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumeration to convert.</param>  
+	/// <returns>The corresponding Type.</returns>  
+	/// <exception cref="IllegalEventTypeException">Thrown when the value does not exist in the <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" />" /> enumeration.</exception>
+	public static Type ToType(this {{info.ClassTypeEnum.ToDisplayString()}} type)
+	{
+		if (_enum2type{{indexPostfix}} == null)
+			return Type.GetType($"{{info.ClassType.ContainingNamespace.ToDisplayString()}}.{type}") ?? throw new RhythmBaseException(
+					$"Illegal Type: {type}.");
+		if (_enum2type{{indexPostfix}}.TryGetValue(type, out Type t))
+			return t;
+		throw new IllegalEventTypeException(type.ToString(), "This value does not exist in the {{info.ClassTypeEnum.ToDisplayString()}} enumeration.");
+	}
+""");
+		}
+		sb.AppendLine($$"""
 	/// <summary>  
 	/// Converts a string representation of an event type to its corresponding Type.  
 	/// </summary>  
@@ -1336,113 +866,23 @@ public static partial class ClassEnumMap
 	/// <returns>The corresponding Type.</returns>
 	public static Type ToType(string type)
 	{
-		Type t;
-		if (global::RhythmBase.Global.Converters.EnumConverter.TryParse(type, out {{info.ClassTypeEnum.ToDisplayString()}} result))
+""");
+		for (int i = 0; i < infos.Length; i++)
 		{
-			t = result.ToType();
+			var info = infos[i];
+			sb.AppendLine($$"""
+		if (global::RhythmBase.Global.Converters.EnumConverter.TryParse(type, out {{info.ClassTypeEnum.ToDisplayString()}} result{{i}}))
+			return result{{i}}.ToType();
+		""");
 		}
-		else
-		{
-			t = typeof({{info.FallbackClassType.ToDisplayString()}});
-		}
-		return t;
-	}
-	/// <summary>  
-	/// Converts an <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumeration to its corresponding Type.  
-	/// </summary>  
-	/// <param name="type">The <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumeration to convert.</param>  
-	/// <returns>The corresponding Type.</returns>  
-	/// <exception cref="IllegalEventTypeException">Thrown when the value does not exist in the <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumeration.</exception>
-	public static Type ToType(this {{info.ClassTypeEnum.ToDisplayString()}} type)
-	{
-		Type t;
-		if (_enum2type == null)
-		{
-			return Type.GetType($"{{info.ClassType.ContainingNamespace.ToDisplayString()}}.{type}") ?? throw new RhythmBaseException(
-					$"Illegal Type: {type}.");
-		}
-		else
-		{
-			try
-			{
-				t = _enum2type[type];
-			}
-			catch
-			{
-				throw new IllegalEventTypeException(type.ToString(), "This value does not exist in the {{info.ClassTypeEnum.ToDisplayString()}} enumeration.");
-			}
-		}
-		return t;
+		sb.AppendLine($$"""
+		return typeof({{(infos.Length == 1 ? (infos[0].FallbackClassType?.ToDisplayString() ?? infos[0].ClassType.ToDisplayString()) : "object")}});
 	}
 }
 """);
-			string filename =
-					infos.Length == 1
-					? $"ClassEnumMap.{configId}.g.cs"
-					: $"ClassEnumMap.{configId}_{i}.g.cs";
-			spc.AddSource(filename, sb.ToString());
-		}
 
-	}
-	private record struct ADFilterInfo(INamedTypeSymbol Type, AttributeData? specialNameAttribute);
-	private static void GenerateFilterTypeUtilsForEnum(IncrementalGeneratorInitializationContext context)
-	{
-		List<string> marks = [];
-		IncrementalValueProvider<ImmutableArray<ADFilterInfo>> types = context.SyntaxProvider.CreateSyntaxProvider(
-				predicate: static (s, ct) => s is StructDeclarationSyntax,
-				transform: (ctx, ct) =>
-				{
-					if (ctx.Node is not StructDeclarationSyntax structDecl)
-						return (ADFilterInfo?)null;
-					INamedTypeSymbol? interfaceToImplement = ctx.SemanticModel.Compilation.GetTypeByMetadataName("RhythmBase.Adofai.Components.Filters.IFilter");
-					INamedTypeSymbol? specialIdAttribute = ctx.SemanticModel.Compilation.GetTypeByMetadataName("RhythmBase.Global.Converters.RDJsonSpecialIDAttribute");
-					INamedTypeSymbol? symbol = ctx.SemanticModel.GetDeclaredSymbol(structDecl);
-					if (symbol == null || !symbol.Interfaces.Any(i => SymbolEqualityComparer.Default.Equals(i, interfaceToImplement)))
-						return null;
-					AttributeData? attribute =
-									symbol.GetAttributes().FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, specialIdAttribute));
-					return new ADFilterInfo(symbol, attribute);
-				})
-				.Where(i => i != null)
-				.Select((i, _) => i!.Value)
-				.Collect();
-		context.RegisterImplementationSourceOutput(types, (spc, type) =>
-		{
-			StringBuilder sb = new();
-			sb.AppendLine("""
-			// <auto-generated/>
-			namespace RhythmBase.Adofai.Utils;
-			partial class FilterTypeUtils{
-				private static System.Collections.ObjectModel.ReadOnlyDictionary<string, RhythmBase.Adofai.FilterType> _str2e;
-				private static System.Collections.ObjectModel.ReadOnlyDictionary<RhythmBase.Adofai.FilterType, string> _e2str;
-				internal static System.Collections.ObjectModel.ReadOnlyDictionary<string, RhythmBase.Adofai.FilterType> _string2enum = _str2e ??= new(new Dictionary<string, RhythmBase.Adofai.FilterType>()
-				{
-			""");
-			foreach (var t in type.OrderBy(i => i.Type.Name))
-			{
-				string specialName = t.specialNameAttribute?.ConstructorArguments.FirstOrDefault().Value?.ToString() ?? t.Type.Name;
-				sb.AppendLine($"""
-							["{specialName}"] = RhythmBase.Adofai.FilterType.{t.Type.Name},
-					""");
-			}
-			sb.AppendLine("""
-				});
-				internal static System.Collections.ObjectModel.ReadOnlyDictionary<RhythmBase.Adofai.FilterType, string> _enum2string = _e2str ??= new(new Dictionary<RhythmBase.Adofai.FilterType, string>()
-				{
-			""");
-			foreach (var t in type.OrderBy(i => i.Type.Name))
-			{
-				string specialName = t.specialNameAttribute?.ConstructorArguments.FirstOrDefault().Value?.ToString() ?? t.Type.Name;
-				sb.AppendLine($"""
-							[RhythmBase.Adofai.FilterType.{t.Type.Name}] = "{specialName}",
-					""");
-			}
-			sb.AppendLine("""
-				});
-			}
-			""");
-			spc.AddSource($"FilterTypeUtilsForEnum.g.cs", sb.ToString());
-		});
+		string filename = $"ClassEnumMap.{configId}.g.cs";
+		spc.AddSource(filename, sb.ToString());
 	}
 
 }

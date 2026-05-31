@@ -8,7 +8,7 @@ namespace RhythmBase.Adofai.Events;
 /// <summary>
 /// Represents an advanced filter event in the Adofai event system.
 /// </summary>
-[JsonObjectHasSerializer(typeof(EventInstanceConverterSetFilterAdvanced))]
+[JsonObjectHasSerializer(typeof(EventMemberConverterSetFilterAdvanced))]
 public class SetFilterAdvanced : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 {
 #pragma warning disable CS8618

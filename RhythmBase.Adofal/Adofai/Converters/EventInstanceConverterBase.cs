@@ -3,12 +3,8 @@ using System.Text;
 using System.Text.Json;
 
 namespace RhythmBase.Adofai.Converters;
-internal abstract class EventInstanceConverterBase
-{
-	public abstract IBaseEvent ReadProperties(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options);
-	public abstract void WriteProperties(Utf8JsonWriter writer, IBaseEvent value, MetadataJsonSerializerOptions options);
-}
-internal abstract class EventInstanceConverterBaseEvent<TEvent> : EventInstanceConverterBase where TEvent : IBaseEvent, new()
+internal abstract class EventMemberConverterBase: RhythmBase.Global.Converters.MemberConverter<IBaseEvent>{}
+internal abstract class MemberConverter<TEvent> : EventMemberConverterBase where TEvent : IBaseEvent, new()
 {
 	public sealed override IBaseEvent ReadProperties(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options)
 	{
@@ -61,7 +57,7 @@ internal abstract class EventInstanceConverterBaseEvent<TEvent> : EventInstanceC
 	{
 		if (value is BaseTileEvent bte && bte._floor >= 0)
 			writer.WriteNumber("floor"u8, bte._floor);
-		writer.WriteString("eventType"u8, EnumConverter.ToEnumString(value.Type));
+		writer.WriteString("eventType"u8, value.Type.ToEnumString());
 		if (value is BaseTaggedTileEvent btta)
 		{
 			if (btta.AngleOffset != 0)

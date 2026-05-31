@@ -6,9 +6,9 @@ using System.Text.Json;
 
 namespace RhythmBase.RhythmDoctor.Converters;
 
-internal partial class RDInstanceConverter
+internal partial class RDMemberConverter
 {
-		internal abstract class BaseRowAction<TEvent> : InstanceConverter<TEvent> where TEvent : BaseRowAction, new()
+		internal abstract class BaseRowAction<TEvent> : MemberConverter<TEvent> where TEvent : BaseRowAction, new()
 		{
 				protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
 				{
@@ -29,7 +29,7 @@ internal partial class RDInstanceConverter
 		internal abstract class BaseBeat<TEvent> : BaseRowAction<TEvent> where TEvent : BaseBeat, new()
 		{
 		}
-		internal abstract class BaseDecorationAction<TEvent> : InstanceConverter<TEvent> where TEvent : BaseDecorationAction, new()
+		internal abstract class BaseDecorationAction<TEvent> : MemberConverter<TEvent> where TEvent : BaseDecorationAction, new()
 		{
 				protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
 				{
@@ -48,7 +48,7 @@ internal partial class RDInstanceConverter
 								writer.WriteString("target"u8, value.Parent?.Id ?? value._decoId);
 				}
 		}
-		internal abstract class BaseBeatsPerMinute<TEvent> : InstanceConverter<TEvent> where TEvent : BaseBeatsPerMinute, new()
+		internal abstract class BaseBeatsPerMinute<TEvent> : MemberConverter<TEvent> where TEvent : BaseBeatsPerMinute, new()
 		{
 				protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
 				{
@@ -59,7 +59,7 @@ internal partial class RDInstanceConverter
 						base.Write(writer, ref value, options);						
 				}
 		}
-		internal abstract class BaseWindowEvent<TEvent> : InstanceConverter<TEvent> where TEvent : BaseWindowEvent, new()
+		internal abstract class BaseWindowEvent<TEvent> : MemberConverter<TEvent> where TEvent : BaseWindowEvent, new()
 		{
 				protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
 				{
@@ -70,7 +70,7 @@ internal partial class RDInstanceConverter
 						base.Write(writer, ref value, options);
 				}
 		}
-		internal class SetVFXPreset : InstanceConverter<Events.SetVFXPreset>
+		internal class SetVFXPreset : MemberConverter<Events.SetVFXPreset>
 		{
 				protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref Events.SetVFXPreset value, MetadataJsonSerializerOptions options)
 				{

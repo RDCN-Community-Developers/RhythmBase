@@ -1,9 +1,8 @@
 using RhythmBase.Adofai.Events;
 using System.Text.Json;
-using static RhythmBase.Adofai.Utils.EventTypeUtils;
 namespace RhythmBase.Adofai.Converters;
 
-	internal class BaseEventConverter : RDJsonConverter<IBaseEvent>
+	internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 	{
 		public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 		{
@@ -30,23 +29,23 @@ namespace RhythmBase.Adofai.Converters;
 			}
 			reader = checkpoint; IBaseEvent e;
 			if (!EnumConverter.TryParse(type, out EventType typeEnum))
-				e = ReadForwardEvent(ref reader, typeToConvert, options) ?? new ForwardEvent() { ActureType = type.ToString() ?? "" };
+				e = ReadForwardEvent(ref reader, typeToConvert, options) ?? new ForwardEvent() { ActualType = type.ToString() ?? "" };
 			else
-				e = converters[typeEnum].ReadProperties(ref reader, options);
+				e = ConverterMap.GetConverter(typeEnum).ReadProperties(ref reader, options);
 			JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndObject]);
 			reader.Read();
 			return e;
 		}
 		public override void Write(Utf8JsonWriter writer, IBaseEvent value, MetadataJsonSerializerOptions options)
 		{
-			if(value is IForwardEvent forwardEvent)
+			if(value is RhythmBase.Adofai.Events.IForwardEvent forwardEvent)
 			{
 				WriteForwardEvent(writer, forwardEvent);
 				return;
 			}
-			converters[value.Type].WriteProperties(writer, value, options);
+			ConverterMap.GetConverter(value.Type).WriteProperties(writer, value, options);
 		}
-		public IForwardEvent? ReadForwardEvent(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
+		public static RhythmBase.Adofai.Events.IForwardEvent? ReadForwardEvent(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 		{
 			using JsonDocument doc = JsonDocument.ParseValue(ref reader);
 			JsonElement root = doc.RootElement;
@@ -60,10 +59,10 @@ namespace RhythmBase.Adofai.Converters;
 			}
 			return isTile ? new ForwardTileEvent(doc) : new ForwardEvent(doc);
 		}
-		public static void WriteForwardEvent(Utf8JsonWriter writer, IForwardEvent value)
+		public static void WriteForwardEvent(Utf8JsonWriter writer, RhythmBase.Adofai.Events.IForwardEvent value)
 		{
 			writer.WriteStartObject();
-			writer.WriteString("eventType", value.ActureType);
+			writer.WriteString("eventType", value.ActualType);
 			if (value is ForwardTileEvent tileEvent)
 				writer.WriteNumber("floor", tileEvent._floor);
 			value.Data.WriteTo(writer);

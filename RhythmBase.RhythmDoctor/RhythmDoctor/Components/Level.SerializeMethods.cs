@@ -70,8 +70,7 @@ partial class Level
 		settings ??= new LevelReadSettings();
 		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(LevelType.RhythmDoctor, settings);
 		Level? level;
-		level = FileMainEntryConverter.DeserializeMainEntry<Level>(new StreamDataSource(rdlevelStream), options);
-		// await FileMainEntryConverter.DeserializeMainEntryAsync<Level>(new StreamDataSource(rdlevelStream), options, cancellationToken);
+		level = await FileMainEntryConverter.DeserializeMainEntryAsync<Level>(new StreamDataSource(rdlevelStream), options, cancellationToken);
 		return level ?? [];
 	}
 	/// <inheritdoc/>

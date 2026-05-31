@@ -30,7 +30,7 @@ internal class TileReferenceConverter : JsonConverter<TileReference>
     {
         writer.WriteStartArray();
         writer.WriteNumberValue(value.Offset);
-        writer.WriteStringValue(EnumConverter.ToEnumString(value.Type));
+        writer.WriteStringValue(value.Type.ToEnumString());
         writer.WriteEndArray();
     }
 }

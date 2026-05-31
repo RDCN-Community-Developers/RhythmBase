@@ -8,7 +8,6 @@ namespace RhythmBase.Adofai.Events;
 /// Represents the base interface for all Adofai event types.
 /// Provides access to the event type and dynamic event data via indexer.
 /// </summary>
-[JsonSourceType(typeof(EventType), nameof(Adofai))]
 public interface IBaseEvent : IEvent<EventType, TickTime>
 {
     /// <summary>

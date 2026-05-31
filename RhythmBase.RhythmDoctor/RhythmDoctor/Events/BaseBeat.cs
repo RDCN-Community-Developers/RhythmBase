@@ -5,7 +5,7 @@ namespace RhythmBase.RhythmDoctor.Events;
 /// <summary>
 /// Represents an abstract base class for beat actions.
 /// </summary>
-[JsonObjectHasSerializer(typeof(RDInstanceConverter.BaseBeat<>))]
+[JsonObjectHasSerializer(typeof(RDMemberConverter.BaseBeat<>))]
 public abstract record class BaseBeat : BaseRowAction
 {
 	/// <summary>

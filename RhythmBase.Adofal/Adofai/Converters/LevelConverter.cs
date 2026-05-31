@@ -1,11 +1,10 @@
 using RhythmBase.Adofai.Components;
 using RhythmBase.Adofai.Events;
-using RhythmBase.Adofai.Settings;
 using System.Text.Json;
 namespace RhythmBase.Adofai.Converters;
 
 [JsonConverterFor(typeof(Level))]
-internal class LevelConverter : RDJsonConverter<Level>
+internal class LevelConverter : MetadataJsonConverter<Level>
 {
     private static readonly BaseEventConverter baseEventConverter = new();
     private static readonly SettingsConverter settingsConverter = new();
@@ -134,10 +133,10 @@ internal class LevelConverter : RDJsonConverter<Level>
         writer.WritePropertyName("settings");
         settingsConverter.Write(writer, value.Settings, options.JsonSerializerOptions);
         writer.WriteStartArray("actions");
-        noIndentScope.WriteNoIndentArrayTo(false, writer, value.SelectMany(i => i.Cast<IBaseEvent>()), baseEventConverter.Write);
+        noIndentScope.WriteNoIndentArrayTo(options.WriteIndented, false, writer, value.SelectMany(i => i.Cast<IBaseEvent>()), baseEventConverter.Write);
         writer.WriteEndArray();
         writer.WriteStartArray("decorations");
-        noIndentScope.WriteNoIndentArrayTo(false, writer, value.Decorations, baseEventConverter.Write);
+        noIndentScope.WriteNoIndentArrayTo(options.WriteIndented, false, writer, value.Decorations, baseEventConverter.Write);
         writer.WriteEndArray();
         writer.WriteEndObject();
     }
