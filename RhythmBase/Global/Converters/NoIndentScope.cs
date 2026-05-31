@@ -32,7 +32,7 @@ public class NoIndentScope : IDisposable
 		if (!writeIndented)
 		{
 			foreach(var item in values)
-				writeValue(instance, item, options);
+				writeValue(instance, item, options with { WriteIndented = false });
 			return;
 		}
 		stream.SetLength(0);

@@ -133,10 +133,9 @@ partial class Level
 	{
 		settings ??= new LevelWriteSettings();
 		MetadataJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(filepath, settings);
-		using (FileStream stream = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write))
-		{
-			await Task.Run(() => FileMainEntryConverter.SerializeMainEntry(this, stream, options), cancellationToken);
-		}
+		using FileStream stream = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write);
+		stream.SetLength(0);
+		await Task.Run(() => FileMainEntryConverter.SerializeMainEntry(this, stream, options), cancellationToken);
 	}
 	#endregion
 	#region stream
