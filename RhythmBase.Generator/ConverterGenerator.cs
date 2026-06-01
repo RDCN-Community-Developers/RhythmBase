@@ -534,7 +534,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 
 		GenerateConverterHub(context, registryInfo.Combine(jsonObjSlzLnksInfo));
 		GenerateConverter(context, (registryInfo.Combine(context.CompilationProvider)).Combine((jsonClassCvtrMapGenInfo.Combine(jsonObjSlzLnksInfo))));
-		GenerateClassEnumMap(context, registryInfo.Combine(classEnumMapInfo), errors);
+		GenerateClassEnumMap(context, registryInfo.Combine(context.CompilationProvider).Combine(classEnumMapInfo), errors);
 		GenerateEnumConverter(context, registryInfo);
 		GenerateOtherFiles(context, registryInfo);
 

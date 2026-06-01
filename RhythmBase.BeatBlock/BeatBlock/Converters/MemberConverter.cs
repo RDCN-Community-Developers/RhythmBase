@@ -91,7 +91,7 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 	}
 
 }
-internal abstract class EventInstanceConverterBase : RhythmBase.Global.Converters.MemberConverter<IBaseEvent> { }
+internal abstract class EventInstanceConverterBase : Global.Converters.MemberConverter<IBaseEvent> { }
 internal abstract class MemberConverter<TEvent> : EventInstanceConverterBase where TEvent : IBaseEvent, new()
 {
 	public sealed override IBaseEvent ReadProperties(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options)

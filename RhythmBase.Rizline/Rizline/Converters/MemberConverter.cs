@@ -42,7 +42,7 @@ internal class InstanceConverter : MetadataJsonConverter<IBaseEvent>
 		throw new NotImplementedException();
 	}
 }
-internal abstract class MemberConverter : RhythmBase.Global.Converters.MemberConverter<IBaseEvent> { }
+internal abstract class MemberConverter : Global.Converters.MemberConverter<IBaseEvent> { }
 internal abstract class MemberConverter<TEvent> : MemberConverter where TEvent : IBaseEvent
 {
 	public override IBaseEvent ReadProperties(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options)

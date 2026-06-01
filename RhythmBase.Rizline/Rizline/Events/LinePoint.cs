@@ -1,6 +1,7 @@
 ﻿using RhythmBase.Global.Components.Easing;
-using RhythmBase.Rizline.Components;
 using RhythmBase.Rizline.Events;
+using RhythmBase.Rizline.Rizline;
+using RhythmBase.Rizline.Rizline.Events;
 
 namespace RhythmBase.Rizline.Events;
 
@@ -8,7 +9,7 @@ namespace RhythmBase.Rizline.Events;
 /// A point on a guide line that defines its position, color and interpolation to the next point.
 /// </summary>
 [JsonObjectSerializable]
-public record class LinePoint : BaseEvent, IEaseEvent
+public record class LinePoint : BaseEvent, IFloorPositionEvent
 {
     public override EventType Type => EventType.LinePoint;
     /// <summary>

@@ -14,7 +14,7 @@ public partial class ConverterGenerator
 			.Replace("$r", "_rs")
 			.Replace("$w", "_ws");
 	}
-	private static void GenerateClassEnumMap(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<(string, ClassEnumMapGenerationInfo[])> registryInfo, HashSet<Diagnostic> errors)
+	private static void GenerateClassEnumMap(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<((string, Compilation), ClassEnumMapGenerationInfo[])> registryInfo, HashSet<Diagnostic> errors)
 	{
 		context.RegisterSourceOutput(registryInfo, GenerateEventTypeUtils);
 	}
@@ -326,6 +326,7 @@ public partial class ConverterGenerator
 			var jsonCvtrAttrSmp = compilation.GetTypeByMetadataName(JsonConverterAttrName);
 			var timeCvtrAttrSmp = compilation.GetTypeByMetadataName(JsonTimeAttrName);
 			var dftCvtrAttrSmp = compilation.GetTypeByMetadataName(JsonDefaultSerializerAttrName);
+			var jsonEnumAttrSmp = compilation.GetTypeByMetadataName(JsonEnumAttrName);
 
 			bool shouldGenerate = prop.Property.SetMethod is not null &&
 				prop.Property.ExplicitInterfaceImplementations.Length == 0 &&
@@ -383,10 +384,12 @@ public partial class ConverterGenerator
 			// 枚举
 			else if (type.TypeKind == TypeKind.Enum)
 			{
-				if (attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) is not INamedTypeSymbol dft)
+				if (
+					type.GetAttributes().FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)) is not null &&
+					attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) is not INamedTypeSymbol dft)
 					sb.Append($$"""{ if (global::RhythmBase.Global.Converters.EnumConverter.TryParse(reader.GetString(), out {{type.ToDisplayString()}} enumValue{{index}})) {{valueAccess}} = enumValue{{index}}; }""");
 				else
-					// - 非枚举
+					// - 非枚举或无需序列化器
 					sb.Append($$"""{{valueAccess}} = ({{type.ToDisplayString()}})reader.GetInt64();""");
 			}
 			// 默认类型
@@ -409,7 +412,13 @@ public partial class ConverterGenerator
 				if (elementType.SpecialType is not SpecialType.None)
 					sb.Append($$"""  var elementValue = reader.Get{{GetJsonReadMethod(elementType)}}();""");
 				else if (elementType.TypeKind == TypeKind.Enum)
-					sb.Append($$"""  global::RhythmBase.Global.Converters.EnumConverter.TryParse(reader.GetString(), out {{elementType.ToDisplayString()}} elementValue);""");
+					if (
+						type.GetAttributes().FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)) is not null &&
+						attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) is not INamedTypeSymbol dft)
+						sb.Append($$"""  global::RhythmBase.Global.Converters.EnumConverter.TryParse(reader.GetString(), out {{elementType.ToDisplayString()}} elementValue);""");
+					else
+						// - 非枚举或无需序列化器
+						sb.Append($$"""var elementValue = ({{type.ToDisplayString()}})reader.GetInt64();""");
 				else
 					sb.Append($$"""  var elementValue = ConverterHub.Read<{{elementType.ToDisplayString()}}>(ref reader, options);""");
 				sb.AppendLine($$"""
@@ -449,6 +458,7 @@ public partial class ConverterGenerator
 			var jsonCvtrAttrSmp = compilation.GetTypeByMetadataName(JsonConverterAttrName);
 			var timeCvtrAttrSmp = compilation.GetTypeByMetadataName(JsonTimeAttrName);
 			var dftCvtrAttrSmp = compilation.GetTypeByMetadataName(JsonDefaultSerializerAttrName);
+			var jsonEnumAttrSmp = compilation.GetTypeByMetadataName(JsonEnumAttrName);
 
 			bool shouldGenerate = prop.Property.GetMethod is not null &&
 				prop.Property.ExplicitInterfaceImplementations.Length == 0 &&
@@ -523,10 +533,12 @@ public partial class ConverterGenerator
 			// 枚举
 			else if (type.TypeKind == TypeKind.Enum)
 			{
-				if (attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) is not INamedTypeSymbol dft)
+				if (
+					type.GetAttributes().FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)) is not null &&
+					attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) is not INamedTypeSymbol dft)
 					sb.Append($"writer.WriteString(\"{alias}\"u8, {valueAccess}.ToEnumUtf8String());");
 				else
-					// - 非枚举
+					// - 非枚举或无需序列化器
 					sb.Append($"writer.WriteNumber(\"{alias}\"u8, System.Convert.ToInt64({valueAccess}));");
 			}
 			// 默认类型
@@ -546,7 +558,13 @@ public partial class ConverterGenerator
 				if (elementType.SpecialType is not SpecialType.None)
 					sb.Append($$"""  writer.Write{{GetJsonWriterMethod(elementType)}}Value({{itemVar}});""");
 				else if (elementType.TypeKind == TypeKind.Enum)
-					sb.Append($$"""  writer.WriteStringValue({{itemVar}}.ToEnumUtf8String());""");
+					if (
+						type.GetAttributes().FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)) is not null &&
+						attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) is not INamedTypeSymbol dft)
+						sb.Append($$"""  writer.WriteStringValue({{itemVar}}.ToEnumUtf8String());""");
+					else
+						// - 非枚举或无需序列化器
+						sb.Append($"writer.WriteNumberValue(System.Convert.ToInt64({valueAccess}));");
 				else
 					sb.Append($$"""  ConverterHub.Write(writer, {{itemVar}}, options);""");
 				sb.AppendLine($$"""
@@ -656,7 +674,7 @@ public partial class ConverterGenerator
 					IClassGen? baseRecord = classes.FirstOrDefault(d => baseType.Equals(d.ICGClassType, SymbolEqualityComparer.Default));
 					bool isDirectImplementation = t.TypeKind == TypeKind.Struct ||
 							baseType.Equals(classGen.Item2.RootType, SymbolEqualityComparer.Default);
-					if (baseRecord is null && !isDirectImplementation) continue; 
+					if (baseRecord is null && !isDirectImplementation) continue;
 					if (c is ClassGenCvtrInfo c1)
 					{
 						string baseConverterName;
@@ -742,11 +760,13 @@ public partial class ConverterGenerator
 		public INamedTypeSymbol? FallbackClassType { get; internal set; }
 		public ISymbol? FallbackClassTypeEnum { get; internal set; }
 	}
-	private static void GenerateEventTypeUtils(SourceProductionContext spc, (string, ClassEnumMapGenerationInfo[]) classSymbols)
+	private static void GenerateEventTypeUtils(SourceProductionContext spc, ((string, Compilation), ClassEnumMapGenerationInfo[]) classSymbols)
 	{
-		(string configId, ClassEnumMapGenerationInfo[] infos) = classSymbols;
+		var (configIdAndCompilation, infos) = classSymbols;
+		var (configId, compilation) = configIdAndCompilation;
 		if (string.IsNullOrEmpty(configId) || configId == CoreNs || infos.Length == 0)
 			return;
+		var jsonEnumAttrSmp = compilation.GetTypeByMetadataName(JsonEnumAttrName);
 		StringBuilder sb = new();
 		sb.AppendLine($$"""
 // <auto-generated/>
@@ -879,7 +899,9 @@ public static partial class ClassEnumMap
 	}
 """);
 		}
-		sb.AppendLine($$"""
+		if (infos.Length > 0 && !infos.Any(i => i.ClassTypeEnum.GetAttributes().Any(a => a.AttributeClass?.Equals(jsonEnumAttrSmp, SymbolEqualityComparer.Default) ?? false)))
+		{
+			sb.AppendLine($$"""
 	/// <summary>  
 	/// Converts a string representation of an event type to its corresponding Type.  
 	/// </summary>  
@@ -888,19 +910,21 @@ public static partial class ClassEnumMap
 	public static Type ToType(string type)
 	{
 """);
-		for (int i = 0; i < infos.Length; i++)
-		{
-			var info = infos[i];
-			sb.AppendLine($$"""
+			for (int i = 0; i < infos.Length; i++)
+			{
+				var info = infos[i];
+				if (info.ClassTypeEnum.GetAttributes().Any(a => a.AttributeClass?.Equals(jsonEnumAttrSmp, SymbolEqualityComparer.Default) ?? false))
+				sb.AppendLine($$"""
 		if (global::RhythmBase.Global.Converters.EnumConverter.TryParse(type, out {{info.ClassTypeEnum.ToDisplayString()}} result{{i}}))
 			return result{{i}}.ToType();
-		""");
-		}
-		sb.AppendLine($$"""
+""");
+			}
+			sb.AppendLine($$"""
 		return typeof({{(infos.Length == 1 ? (infos[0].FallbackClassType?.ToDisplayString() ?? infos[0].ClassType.ToDisplayString()) : "object")}});
 	}
 }
 """);
+		}
 
 		string filename = $"ClassEnumMap.{configId}.g.cs";
 		spc.AddSource(filename, sb.ToString());
