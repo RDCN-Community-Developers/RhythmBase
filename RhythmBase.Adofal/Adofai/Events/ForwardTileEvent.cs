@@ -15,7 +15,7 @@ public class ForwardTileEvent : BaseTileEvent, IBaseEvent, IForwardEvent
 	public string ActualType
 	{
 		get => _extraData.TryGetValue("eventType", out JsonElement typeElement) ? typeElement.ToString() ?? "UnknownType" : "UnknownType";
-		set => _extraData["eventType"] = JsonDocument.Parse(value).RootElement;
+		set => _extraData["eventType"] = JsonElement.Parse(value);
 	}
 
 	/// <summary>  

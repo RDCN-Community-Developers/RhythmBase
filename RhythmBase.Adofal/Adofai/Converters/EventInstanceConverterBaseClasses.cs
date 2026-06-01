@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace RhythmBase.Adofai.Converters;
 
-internal class EventMemberConverterBaseTileEvent<TEvent> : MemberConverter<TEvent> where TEvent : BaseTileEvent, new()
+internal class MemberConverterBaseTileEvent<TEvent> : MemberConverter<TEvent> where TEvent : BaseTileEvent, new()
 {
 	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
 	{
@@ -17,7 +17,7 @@ internal class EventMemberConverterBaseTileEvent<TEvent> : MemberConverter<TEven
 		return true;
 	}
 }
-internal class MemberConverterBaseTaggedTileEvent<TEvent> : EventMemberConverterBaseTileEvent<TEvent> where TEvent : BaseTaggedTileEvent, new()
+internal class MemberConverterBaseTaggedTileEvent<TEvent> : MemberConverterBaseTileEvent<TEvent> where TEvent : BaseTaggedTileEvent, new()
 {
 	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
 	{
@@ -38,7 +38,7 @@ internal class MemberConverterBaseTaggedTileEvent<TEvent> : EventMemberConverter
 		writer.WriteNumber("angleOffset"u8, value.AngleOffset);
 	}
 }
-internal class EventMemberConverterSetFilterAdvanced : MemberConverterBaseTaggedTileEvent<SetFilterAdvanced>
+internal class MemberConverterSetFilterAdvanced : MemberConverterBaseTaggedTileEvent<SetFilterAdvanced>
 {
 	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref SetFilterAdvanced value, MetadataJsonSerializerOptions options)
 	{

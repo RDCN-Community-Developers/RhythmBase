@@ -1,19 +1,14 @@
-using RhythmBase.Global.Components;
 using RhythmBase.Global.Components.Easing;
-using RhythmBase.Global.Components.RichText;
-using RhythmBase.Global.Components.Vector;
 using RhythmBase.Global.Settings;
 using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Extensions;
 using RhythmBase.RhythmDoctor.Utils;
-using RhythmBase.RhythmDoctor.Settings;
 using System.Text.Json;
 using RhythmBase.RhythmDoctor;
-using RhythmBase.Global.Linq;
 
-namespace RhythmBase.Test
-{
+namespace RhythmBase.Test;
+
     [TestClass]
     public sealed class Tutorial
     {
@@ -435,4 +430,3 @@ namespace RhythmBase.Test
             }
         }
     }
-}

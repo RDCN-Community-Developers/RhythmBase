@@ -1,5 +1,3 @@
-using RhythmBase.Global.Components;
-
 namespace RhythmBase.RhythmDoctor.Components;
 
 /// <summary>

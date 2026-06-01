@@ -6,15 +6,15 @@ using System.Text.Json.Serialization;
 
 namespace RhythmBase.Adofai.Converters;
 
-[JsonConverterFor(typeof( Components.Settings))]
-internal class SettingsConverter : JsonConverter< Components.Settings>
+[JsonConverterFor(typeof(Settings))]
+internal class SettingsConverter : JsonConverter<Settings>
 {
     private static readonly RDPointNIConverter pointsConverter = new();
-    public override Components.Settings? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override Settings? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.TokenType != JsonTokenType.StartObject)
             throw new JsonException($"Expected StartObject token, but got {reader.TokenType}.");
-        Components.Settings settings = new();
+		Settings settings = new();
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.EndObject)
@@ -194,7 +194,7 @@ internal class SettingsConverter : JsonConverter< Components.Settings>
         reader.Read();
         return settings;
     }
-    public override void Write(Utf8JsonWriter writer, Components.Settings value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, Settings value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
         writer.WriteNumber("version"u8, value.Version);

@@ -6,13 +6,13 @@ using static System.Text.EncodingExtensions;
 
 namespace RhythmBase.RhythmDoctor.Converters;
 
-[JsonConverterFor(typeof(Components.Settings))]
-internal class SettingsConverter : MetadataJsonConverter<Components.Settings>
+[JsonConverterFor(typeof(Settings))]
+internal class SettingsConverter : MetadataJsonConverter<Settings>
 {
-    public override Components.Settings? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
+    public override Settings? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
     {
         JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
-        Components.Settings settings = new();
+		Settings settings = new();
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.EndObject)
@@ -138,7 +138,7 @@ internal class SettingsConverter : MetadataJsonConverter<Components.Settings>
         }
         throw new JsonException("Unexpected end of JSON.");
     }
-    public override void Write(Utf8JsonWriter writer, Components.Settings value, MetadataJsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, Settings value, MetadataJsonSerializerOptions options)
     {
         writer.WriteStartObject();
 

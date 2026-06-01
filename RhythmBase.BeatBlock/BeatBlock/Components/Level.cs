@@ -1,6 +1,4 @@
 ﻿using RhythmBase.BeatBlock.Events;
-using RhythmBase.Global.Components;
-using RhythmBase.Global.Utils;
 
 namespace RhythmBase.BeatBlock.Components;
 

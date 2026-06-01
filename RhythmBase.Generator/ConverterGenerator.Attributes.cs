@@ -1,5 +1,3 @@
-using Microsoft.CodeAnalysis;
-
 namespace RhythmBase.Generator;
 
 partial class ConverterGenerator

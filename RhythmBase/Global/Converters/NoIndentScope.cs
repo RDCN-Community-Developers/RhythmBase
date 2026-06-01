@@ -26,7 +26,7 @@ public class NoIndentScope : IDisposable
 		writer.Reset();
 	}
 	public void WriteNoIndentArrayTo<T>(MetadataJsonSerializerOptions writeSettings, Utf8JsonWriter instance, IEnumerable<T> values, Action<Utf8JsonWriter, T, MetadataJsonSerializerOptions> writeValue)
-		=> WriteNoIndentArrayTo<T>(writeSettings.WriteIndented, writeSettings.WriteAligned, instance, values, writeValue);
+		=> WriteNoIndentArrayTo(writeSettings.WriteIndented, writeSettings.WriteAligned, instance, values, writeValue);
 	public void WriteNoIndentArrayTo<T>(bool writeIndented, bool writeAligned, Utf8JsonWriter instance, IEnumerable<T> values, Action<Utf8JsonWriter, T, MetadataJsonSerializerOptions> writeValue)
 	{
 		if (!writeIndented)

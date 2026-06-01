@@ -1,7 +1,4 @@
-﻿using RhythmBase.BeatBlock.Components;
-using RhythmBase.Global.Components;
-
-namespace RhythmBase.BeatBlock.Components;
+﻿namespace RhythmBase.BeatBlock.Components;
 
 /// <summary>
 /// Represents a beat in the BeatBlock level format.

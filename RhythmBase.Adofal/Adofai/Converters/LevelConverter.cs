@@ -48,7 +48,7 @@ internal class LevelConverter : MetadataJsonConverter<Level>
 			else if (reader.ValueSpan.SequenceEqual("settings"u8))
 			{
 				reader.Read();
-				level.Settings = settingsConverter.Read(ref reader, typeof(Components.Settings), options.JsonSerializerOptions) ?? new();
+				level.Settings = settingsConverter.Read(ref reader, typeof(Settings), options.JsonSerializerOptions) ?? new();
 				if (level.Settings.Version < MinimumSupportedVersionAdofai)
 #if DEBUG
 					Console.WriteLine($"Current version {level.Settings.Version} is too low.");

@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace RhythmBase.Global.Components.RichText;
 
 /// <summary>

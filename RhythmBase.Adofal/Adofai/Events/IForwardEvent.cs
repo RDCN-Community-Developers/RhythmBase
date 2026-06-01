@@ -5,7 +5,7 @@ namespace RhythmBase.Adofai.Events;
 /// <summary>
 /// Represents a forward event in the Adofai system, used to preserve unknown or user-defined event data during serialization and deserialization.
 /// </summary>
-public interface IForwardEvent : IBaseEvent, RhythmBase.Global.Events.IForwardEvent
+public interface IForwardEvent : IBaseEvent, Global.Events.IForwardEvent
 {
 
     /// <summary>

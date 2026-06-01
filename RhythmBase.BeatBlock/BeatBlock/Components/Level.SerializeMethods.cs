@@ -1,13 +1,7 @@
 ﻿using RhythmBase.BeatBlock.Converters;
 using RhythmBase.BeatBlock.Events;
-using RhythmBase.BeatBlock.Settings;
-using RhythmBase.Global.Converters;
-using RhythmBase.Global.Settings;
 using System.Diagnostics;
-using RhythmBase.Global.Converters.JsonSerialization;
 using System.Text.Json;
-using RhythmBase.Global.Components;
-using RhythmBase.Global.Extensions;
 
 namespace RhythmBase.BeatBlock.Components;
 
@@ -128,7 +122,7 @@ partial class Level
             using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
             writer.WriteStartObject();
             writer.WriteStartArray("events"u8);
-            noIndentScope.WriteNoIndentArrayTo(false, writer, level, baseEventConverter.Write);
+            noIndentScope.WriteNoIndentArrayTo(options.WriteIndented, false, writer, level, baseEventConverter.Write);
             writer.WriteEndArray();
             writer.WriteEndObject();
             writer.Flush();
@@ -137,7 +131,7 @@ partial class Level
         {
             using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
             writer.WriteStartArray();
-            noIndentScope.WriteNoIndentArrayTo(false, writer, variant, baseEventConverter.Write);
+            noIndentScope.WriteNoIndentArrayTo(options.WriteIndented, false, writer, variant, baseEventConverter.Write);
             writer.WriteEndArray();
             writer.Flush();
         }
@@ -145,7 +139,7 @@ partial class Level
         {
             using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
             writer.WriteStartArray();
-            noIndentScope.WriteNoIndentArrayTo(false, writer, collection, baseEventConverter.Write);
+            noIndentScope.WriteNoIndentArrayTo(options.WriteIndented, false, writer, collection, baseEventConverter.Write);
             writer.WriteEndArray();
             writer.Flush();
         }
@@ -162,7 +156,7 @@ partial class Level
         Level? level;
         string manifestFilePath = Path.Combine(directoryPath, "manifest.json");
         using FileStream manifestFs = File.Open(manifestFilePath, FileMode.Open, FileAccess.Read);
-        level = await FileMainEntryConverter.DeserializeMainEntryAsync<Level>(new StreamDataSource(manifestFs), options);
+        level = await FileMainEntryConverter.DeserializeMainEntryAsync<Level>(new StreamDataSource(manifestFs), options, cancellationToken);
         string defaultLevelFile = Path.Combine(directoryPath, "level.json");
         if (File.Exists(defaultLevelFile))
         {
@@ -206,8 +200,7 @@ partial class Level
     {
         settings ??= new LevelWriteSettings();
         MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForWrite(LevelType.BeatBlock, settings);
-        MetadataJsonSerializerOptions localOptions = options with { WriteIndented = false };
-        using NoIndentScope noIndentScope = new(options.JsonSerializerOptions.Encoder, localOptions);
+        using NoIndentScope noIndentScope = new(options.JsonSerializerOptions.Encoder, options);
         string manifestFilePath = Path.Combine(directoryPath, "manifest.json");
         using FileStream manifestFs = File.Open(manifestFilePath, FileMode.Create, FileAccess.Write);
         FileMainEntryConverter.SerializeMainEntry(this, manifestFs, options);

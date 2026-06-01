@@ -30,8 +30,7 @@ public static class RDEditorPlus
 			}
 			set
 			{
-				using var doc = JsonDocument.Parse($"\"{value}\"");
-        e[SubRowKey] = doc.RootElement;
+        e[SubRowKey] =JsonElement.Parse($"\"{value}\"") ;
 			}
 		}
     }

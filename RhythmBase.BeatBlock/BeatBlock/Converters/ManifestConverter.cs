@@ -4,7 +4,7 @@ using System.Text.Json;
 namespace RhythmBase.BeatBlock.Converters;
 
 [JsonConverterFor(typeof(Level))]
-internal class ManifestConverter : RDJsonConverter<Level>
+internal class ManifestConverter : MetadataJsonConverter<Level>
 {
     public override Level? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
     {
@@ -227,7 +227,7 @@ internal class ManifestConverter : RDJsonConverter<Level>
         #endregion
         #region variants
         writer.WriteStartArray("variants");
-        noIndentScope.WriteNoIndentArrayTo(options.WriteAligned, writer, value.Variants, (w, v, o) => {
+        noIndentScope.WriteNoIndentArrayTo(options, writer, value.Variants, (w, v, o) => {
             w.WriteStartObject();
             w.WriteString("name"u8, v.Name);
             w.WriteString("charter"u8, v.Charter);

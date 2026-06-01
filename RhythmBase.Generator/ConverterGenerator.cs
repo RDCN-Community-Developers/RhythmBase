@@ -1,11 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Reflection;
-using System.Text;
 
 // 这坨写得太史了
 

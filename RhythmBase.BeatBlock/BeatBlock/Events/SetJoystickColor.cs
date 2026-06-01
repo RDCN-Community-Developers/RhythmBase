@@ -1,6 +1,5 @@
 using RhythmBase.BeatBlock.Components;
 using RhythmBase.Global.Components.Easing;
-using RhythmBase.Global.Components;
 namespace RhythmBase.BeatBlock.Events;
 
 /// <summary>

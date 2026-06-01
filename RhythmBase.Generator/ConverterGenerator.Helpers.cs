@@ -1,8 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Immutable;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace RhythmBase.Generator;
@@ -62,14 +60,14 @@ public partial class ConverterGenerator
 					""");
 			foreach (var e in enumSymbols.OrderBy(i => i.symbol.Name))
 			{
-				static string GetStringName(IFieldSymbol symbol)
+				static string GetStringName(IFieldSymbol symbol, bool pascalCase)
 				{
-					string? alias = symbol.GetAttributes().FirstOrDefault(a => IsAttribute(a, JsonAliasAttrName) && a.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string;
-					if (alias is null)
-						return symbol.Name; //ToLowerCamelCase(symbol.Name);
+					if (symbol.GetAttributes().FirstOrDefault(a => IsAttribute(a, JsonAliasAttrName) && a.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value is not string alias)
+						return pascalCase ? symbol.Name : ToLowerCamelCase(symbol.Name);
 					else
 						return alias;
 				}
+				bool pascalCase = e.symbol.GetAttributes().FirstOrDefault(a => IsAttribute(a, JsonEnumAttrName)) is AttributeData enumData && enumData.ConstructorArguments.Length == 1 && enumData.ConstructorArguments[0].Value is bool b && b;
 				string fullName = e.symbol.ToDisplayString();
 
 				// TryParse(string)
@@ -88,7 +86,7 @@ public partial class ConverterGenerator
 				foreach (var field in e.members.OrderBy(i => i.Name))
 				{
 					sb1.AppendLine($$"""
-									case "{{GetStringName(field)}}":
+									case "{{GetStringName(field, pascalCase)}}":
 										result = {{field.ToDisplayString()}}; return true;
 					""");
 				}
@@ -117,7 +115,7 @@ public partial class ConverterGenerator
 				foreach (var field in e.members.OrderBy(i => i.Name))
 				{
 					sb1.AppendLine($$"""
-								{{(isFirst ? "" : "else ")}}if (value.SequenceEqual("{{GetStringName(field)}}"u8))
+								{{(isFirst ? "" : "else ")}}if (value.SequenceEqual("{{GetStringName(field, pascalCase)}}"u8))
 								{
 									result = {{field.ToDisplayString()}};
 									return true;
@@ -149,11 +147,34 @@ public partial class ConverterGenerator
 				foreach (var field in e.members.OrderBy(i => i.Name))
 				{
 					sb2.AppendLine($"""
-								{field.ToDisplayString()} => "{GetStringName(field)}",
+								{field.ToDisplayString()} => "{GetStringName(field, pascalCase)}",
 					""");
 				}
 				sb2.AppendLine("""
 								_ => value.ToString(),
+						};
+					""");
+
+
+				// ToEnumUtf8String
+				sb2.AppendLine($$"""
+						/// <summary>
+						/// Converts the <see cref="{{fullName}}"/> enum value to its UTF-8 string representation.
+						/// </summary>
+						/// <param name="value">The enum value to convert.</param>
+						/// <returns>The string representation of the enum value.</returns>
+						[MethodImpl(MethodImplOptions.AggressiveInlining)]
+						public static ReadOnlySpan<byte> ToEnumUtf8String(this {{fullName}} value) => value switch
+						{
+					""");
+				foreach (var field in e.members.OrderBy(i => i.Name))
+				{
+					sb2.AppendLine($"""
+								{field.ToDisplayString()} => "{GetStringName(field, pascalCase)}"u8,
+					""");
+				}
+				sb2.AppendLine("""
+								_ => System.Text.Encoding.UTF8.GetBytes(value.ToString()),
 						};
 					""");
 			}
@@ -503,7 +524,7 @@ public partial class ConverterGenerator
 			else if (type.TypeKind == TypeKind.Enum)
 			{
 				if (attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) is not INamedTypeSymbol dft)
-					sb.Append($"writer.WriteString(\"{alias}\"u8, {valueAccess}.ToEnumString());");
+					sb.Append($"writer.WriteString(\"{alias}\"u8, {valueAccess}.ToEnumUtf8String());");
 				else
 					// - 非枚举
 					sb.Append($"writer.WriteNumber(\"{alias}\"u8, System.Convert.ToInt64({valueAccess}));");
@@ -525,7 +546,7 @@ public partial class ConverterGenerator
 				if (elementType.SpecialType is not SpecialType.None)
 					sb.Append($$"""  writer.Write{{GetJsonWriterMethod(elementType)}}Value({{itemVar}});""");
 				else if (elementType.TypeKind == TypeKind.Enum)
-					sb.Append($$"""  writer.WriteStringValue({{itemVar}}.ToEnumString());""");
+					sb.Append($$"""  writer.WriteStringValue({{itemVar}}.ToEnumUtf8String());""");
 				else
 					sb.Append($$"""  ConverterHub.Write(writer, {{itemVar}}, options);""");
 				sb.AppendLine($$"""

@@ -1,5 +1,4 @@
 using RhythmBase.Adofai.Components;
-using RhythmBase.Global.Events;
 using System.Text.Json;
 
 namespace RhythmBase.Adofai.Events;

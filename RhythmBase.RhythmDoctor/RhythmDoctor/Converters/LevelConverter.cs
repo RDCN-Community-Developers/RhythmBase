@@ -1,7 +1,4 @@
-using RhythmBase.Global.Components;
 using RhythmBase.Global.Converters;
-using RhythmBase.Global.Events;
-using RhythmBase.Global.Extensions;
 using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Extensions;
@@ -40,7 +37,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 			{
 				reader.Read();
 				JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
-				level.Settings = settingsConverter.Read(ref reader, typeof(Components.Settings), options) ?? new();
+				level.Settings = settingsConverter.Read(ref reader, typeof(Settings), options) ?? new();
 				if (ReadSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
 					foreach (FileReference file in level.Settings.GetAllFileReferences())
 						if (!file.IsEmpty && file.IsExist(DirectoryName!))
@@ -174,8 +171,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 					}
 					else
 					{
-						using var doc = JsonDocument.Parse(at.ToJsonString());
-						ReadSettings.OnUnreadableEventEncountered(level, doc.RootElement, $"AdvanceText references non-existent FloatingText id {targetId}.");
+						ReadSettings.OnUnreadableEventEncountered(level, JsonElement.Parse(at.ToJsonString()), $"AdvanceText references non-existent FloatingText id {targetId}.");
 					}
 				}
 			}

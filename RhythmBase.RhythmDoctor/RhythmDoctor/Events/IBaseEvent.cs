@@ -1,4 +1,3 @@
-using RhythmBase.Global.Events;
 using RhythmBase.RhythmDoctor.Components;
 using System.Text.Json;
 

@@ -1,5 +1,4 @@
 using RhythmBase.Adofai.Components;
-using RhythmBase.Adofai.Converters;
 using System.Text.Json;
 
 namespace RhythmBase.Adofai.Events;
@@ -7,6 +6,7 @@ namespace RhythmBase.Adofai.Events;
 /// <summary>
 /// Represents the base class for all ADOFAI events.
 /// </summary>
+[JsonObjectHasSerializer(typeof(Converters.MemberConverter<>))]
 public abstract class BaseEvent : IBaseEvent
 {
 	/// <inheritdoc/>

@@ -1,6 +1,5 @@
-﻿using RhythmBase.BeatBlock.Events;
-using RhythmBase.Global.Components;
-using RhythmBase.Global.Utils;
+﻿using RhythmBase.BeatBlock.Converters;
+using RhythmBase.BeatBlock.Events;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
@@ -69,16 +68,16 @@ public class Chart :
     {
         Name = name;
     }
-    internal override ReadOnlyEnumCollection<EventType> Types => Utils.EventTypeUtils.ToEnums<IChartEvent>();
+	protected override ReadOnlyEnumCollection<EventType> Types => ClassEnumMap.ToEnums<IChartEvent>();
 
     internal ChartCollection? _parent;
-    internal override TickTime CreateInstance(float beat) => new TickTime(beat);
+    protected override TickTime CreateInstance(float beat) => new TickTime(beat);
 
-    internal override ITickRange<TickTime> CreateRange(float? start, float? end) => new BBRange(start, end);
+	protected override ITickRange<TickTime> CreateRange(float? start, float? end) => new BBRange(start, end);
 
-    internal override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>()
+	protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>()
     {
-        return Utils.EventTypeUtils.ToEnums(typeof(TTarget));
+        return ClassEnumMap.ToEnums(typeof(TTarget));
     }
     [MemberNotNull(nameof(LevelFile))]
     public void SeparateFromDefaultLevel()

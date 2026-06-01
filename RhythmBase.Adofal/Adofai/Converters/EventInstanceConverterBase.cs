@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 
 namespace RhythmBase.Adofai.Converters;
-internal abstract class EventMemberConverterBase: RhythmBase.Global.Converters.MemberConverter<IBaseEvent>{}
+internal abstract class EventMemberConverterBase: Global.Converters.MemberConverter<IBaseEvent>{}
 internal abstract class MemberConverter<TEvent> : EventMemberConverterBase where TEvent : IBaseEvent, new()
 {
 	public sealed override IBaseEvent ReadProperties(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options)

@@ -2,7 +2,7 @@
 
 namespace RhythmBase.BeatBlock.Events;
 
-[JsonObjectNotSerializable]
+[JsonObjectSerializationFallback]
 public record class ForwardEvent : BaseEvent, IForwardEvent
 {
     public override EventType Type => EventType.ForwardEvent;

@@ -1,7 +1,6 @@
 using RhythmBase.Global.Converters;
 using RhythmBase.RhythmDoctor.Components;
 using System.Text.Json;
-using static RhythmBase.Global.Converters.EnumConverterExtensions;
 
 namespace RhythmBase.RhythmDoctor.Converters;
 

@@ -5,7 +5,7 @@ namespace RhythmBase.Adofai.Events;
 /// <summary>
 /// Represents the base class for all tile-specific ADOFAI events.
 /// </summary>
-[JsonObjectHasSerializer(typeof(EventMemberConverterBaseTileEvent<>))]
+[JsonObjectHasSerializer(typeof(MemberConverterBaseTileEvent<>))]
 public abstract class BaseTileEvent : BaseEvent
 {
 	/// <summary>

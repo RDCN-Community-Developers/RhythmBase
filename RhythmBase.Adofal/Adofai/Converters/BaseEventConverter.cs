@@ -38,14 +38,14 @@ namespace RhythmBase.Adofai.Converters;
 		}
 		public override void Write(Utf8JsonWriter writer, IBaseEvent value, MetadataJsonSerializerOptions options)
 		{
-			if(value is RhythmBase.Adofai.Events.IForwardEvent forwardEvent)
+			if(value is Events.IForwardEvent forwardEvent)
 			{
 				WriteForwardEvent(writer, forwardEvent);
 				return;
 			}
 			ConverterMap.GetConverter(value.Type).WriteProperties(writer, value, options);
 		}
-		public static RhythmBase.Adofai.Events.IForwardEvent? ReadForwardEvent(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
+		public static Events.IForwardEvent? ReadForwardEvent(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 		{
 			using JsonDocument doc = JsonDocument.ParseValue(ref reader);
 			JsonElement root = doc.RootElement;
@@ -59,7 +59,7 @@ namespace RhythmBase.Adofai.Converters;
 			}
 			return isTile ? new ForwardTileEvent(doc) : new ForwardEvent(doc);
 		}
-		public static void WriteForwardEvent(Utf8JsonWriter writer, RhythmBase.Adofai.Events.IForwardEvent value)
+		public static void WriteForwardEvent(Utf8JsonWriter writer, Events.IForwardEvent value)
 		{
 			writer.WriteStartObject();
 			writer.WriteString("eventType", value.ActualType);

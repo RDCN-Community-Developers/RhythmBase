@@ -1,5 +1,4 @@
-﻿using RhythmBase.Adofai.Events;
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 using RhythmBase.Adofai.Converters;

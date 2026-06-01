@@ -16,7 +16,7 @@ public class ForwardEvent : BaseEvent, IBaseEvent, IForwardEvent
 	public string ActualType
 	{
 		get => _extraData.TryGetValue("eventType", out JsonElement typeElement) ? typeElement.ToString() ?? "UnknownType" : "UnknownType";
-		set => _extraData["eventType"] = JsonDocument.Parse($"\"{value}\"").RootElement;
+		set => _extraData["eventType"] = JsonElement.Parse($"\"{value}\"");
 	}
 	/// <summary>
 	/// Initializes a new instance of the <see cref="ForwardEvent"/> class.

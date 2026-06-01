@@ -16,11 +16,7 @@ public record class ForwardDecorationEvent : BaseDecorationAction, IForwardEvent
 	{
 		get => _extraData.TryGetValue("type", out JsonElement typeElement) && typeElement.ValueKind == JsonValueKind.String ?
 			typeElement.GetString() ?? "" : "";
-		set
-		{
-			using var doc = JsonDocument.Parse($"\"{value}\"");
-			_extraData["type"] = doc.RootElement;
-		}
+		set => _extraData["type"] = JsonElement.Parse($"\"{value}\"");
 	}
 	/// <inheritdoc />
 	public override Tab Tab => Tab.Decorations;

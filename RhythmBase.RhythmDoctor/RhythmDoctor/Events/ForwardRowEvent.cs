@@ -17,7 +17,7 @@ public record class ForwardRowEvent : BaseRowAction, IForwardEvent
     {
         get => _extraData.TryGetValue("type", out JsonElement typeElement) && typeElement.ValueKind == JsonValueKind.String ?
                 typeElement.GetString() ?? "" : "";
-        set => _extraData["type"] = JsonDocument.Parse(value).RootElement;
+        set => _extraData["type"] = JsonElement.Parse(value);
     }
 
     ///<inheritdoc/>
