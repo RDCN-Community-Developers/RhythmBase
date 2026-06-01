@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace RhythmBase.Rizline.Converters;
 
-internal class MetadataEventConverter : MetadataJsonConverter<IBaseEvent>
+internal class InstanceConverter : MetadataJsonConverter<IBaseEvent>
 {
 	public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 	{
@@ -42,21 +42,9 @@ internal class MetadataEventConverter : MetadataJsonConverter<IBaseEvent>
 		throw new NotImplementedException();
 	}
 }
-
-internal abstract class InstanceConverter<TEvent> : RhythmBase.Global.Converters.InstanceConverter<IBaseEvent> where TEvent : IBaseEvent
+internal abstract class MemberConverter : RhythmBase.Global.Converters.MemberConverter<IBaseEvent> { }
+internal abstract class MemberConverter<TEvent> : MemberConverter where TEvent : IBaseEvent
 {
-    private LevelReadSettings _rs = new LevelReadSettings();
-    private LevelWriteSettings _ws = new LevelWriteSettings();
-    public InstanceConverter<TEvent> WithReadSettings(LevelReadSettings settings)
-    {
-        _rs = settings;
-        return this;
-    }
-    public InstanceConverter<TEvent> WithWriteSettings(LevelWriteSettings settings)
-    {
-        _ws = settings;
-        return this;
-    }
 	public override IBaseEvent ReadProperties(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options)
 	{
 		throw new NotImplementedException();
@@ -64,5 +52,13 @@ internal abstract class InstanceConverter<TEvent> : RhythmBase.Global.Converters
 	public override void WriteProperties(Utf8JsonWriter writer, IBaseEvent value, MetadataJsonSerializerOptions options)
 	{
 		throw new NotImplementedException();
+	}
+	protected virtual bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
+	{
+		return false;
+	}
+	protected virtual void Write(Utf8JsonWriter writer, ref TEvent value, MetadataJsonSerializerOptions options)
+	{
+
 	}
 }
