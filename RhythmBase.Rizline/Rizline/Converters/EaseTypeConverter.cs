@@ -4,7 +4,8 @@ using System.Text.Json.Serialization;
 
 namespace RhythmBase.Rizline.Converters;
 
-internal class RizlineEaseTypeConverter : JsonConverter<EaseType>
+[JsonConverterFor(typeof(EaseType))]
+internal class EaseTypeConverter : JsonConverter<EaseType>
 {
     public override EaseType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
