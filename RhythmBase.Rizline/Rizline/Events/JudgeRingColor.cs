@@ -1,6 +1,4 @@
-﻿using RhythmBase.Rizline.Events;
-
-namespace RhythmBase.Rizline.Rizline.Events;
+﻿namespace RhythmBase.Rizline.Events;
 
 [JsonObjectSerializable]
 public record class JudgeRingColor : BaseEvent, IColorDurationEvent

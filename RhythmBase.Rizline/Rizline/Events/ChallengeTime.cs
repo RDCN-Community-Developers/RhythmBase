@@ -1,6 +1,4 @@
-﻿using RhythmBase.Rizline.Rizline;
-
-namespace RhythmBase.Rizline.Events;
+﻿namespace RhythmBase.Rizline.Events;
 
 /// <summary>
 /// Represents a Riztime section's timing boundaries and transition duration.

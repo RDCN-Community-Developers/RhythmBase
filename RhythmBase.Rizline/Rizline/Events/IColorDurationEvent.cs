@@ -1,9 +1,4 @@
-﻿using RhythmBase.Rizline.Events;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace RhythmBase.Rizline.Rizline.Events;
+﻿namespace RhythmBase.Rizline.Events;
 
 public interface IColorDurationEvent : IBaseEvent
 {

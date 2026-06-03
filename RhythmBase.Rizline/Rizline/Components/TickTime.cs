@@ -1,6 +1,4 @@
-﻿using RhythmBase.Global.Components;
-
-namespace RhythmBase.Rizline.Components;
+﻿namespace RhythmBase.Rizline.Components;
 
 public struct TickTime : ITickTime<TickTime>
 {

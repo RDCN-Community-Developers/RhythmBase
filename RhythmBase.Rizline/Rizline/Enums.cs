@@ -1,4 +1,4 @@
-﻿namespace RhythmBase.Rizline.Rizline;
+﻿namespace RhythmBase.Rizline;
 
 /// <summary>
 /// Types of notes supported by Rizline levels. 
@@ -25,4 +25,5 @@ public enum EventType
 	CanvasSpeed,
 	CameraScale,
 	CameraPosition,
+	BpmShift,
 }

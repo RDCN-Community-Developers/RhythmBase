@@ -1,13 +1,10 @@
-﻿using RhythmBase.Rizline.Components;
-using RhythmBase.Rizline.Rizline;
-
-namespace RhythmBase.Rizline.Events;
+﻿namespace RhythmBase.Rizline.Events;
 
 /// <summary>
 /// Drag note implementation. 
 /// </summary>
 [JsonObjectSerializable]
-public record class Drag : BaseEvent, INote
+public record class Drag : BaseEvent, BaseNote
 {
     /// <inheritdoc/>
     public override EventType Type => EventType.Drag;

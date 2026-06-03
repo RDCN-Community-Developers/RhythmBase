@@ -1,4 +1,4 @@
-﻿namespace RhythmBase.Rizline.Rizline.Events;
+﻿namespace RhythmBase.Rizline.Events;
 
 public interface IKeyPointEvent : IFloorPositionEvent
 {

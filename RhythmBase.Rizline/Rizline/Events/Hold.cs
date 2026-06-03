@@ -1,13 +1,10 @@
-﻿using RhythmBase.Rizline.Components;
-using RhythmBase.Rizline.Rizline;
-
-namespace RhythmBase.Rizline.Events;
+﻿namespace RhythmBase.Rizline.Events;
 
 /// <summary>
 /// Hold (sustain) note implementation. Stores tail information as well. 
 /// </summary>
 [JsonObjectSerializable]
-public record class Hold : BaseEvent, INote
+public record class Hold : BaseEvent, BaseNote
 {
     /// <inheritdoc/>
     public override EventType Type => EventType.Hold;

@@ -1,6 +1,4 @@
-﻿using RhythmBase.Global.Events;
-using RhythmBase.Rizline.Components;
-using RhythmBase.Rizline.Rizline;
+﻿using RhythmBase.Rizline.Components;
 
 namespace RhythmBase.Rizline.Events;
 

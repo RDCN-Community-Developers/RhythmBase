@@ -1,7 +1,6 @@
 ﻿using RhythmBase.Global.Components.Easing;
-using RhythmBase.Rizline.Events;
 
-namespace RhythmBase.Rizline.Rizline.Events;
+namespace RhythmBase.Rizline.Events;
 
 [JsonObjectSerializable]
 public record class CameraPosition : BaseEvent, IKeyPointEvent
