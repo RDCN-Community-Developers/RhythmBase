@@ -7,7 +7,6 @@ namespace RhythmBase.Adofai.Components;
 
 partial class Level
 {
-	public static LevelType LevelType => LevelType.Adofai;
 	#region zip
 	/// <inheritdoc/>
 	public static Level FromZip(string filepath, LevelReadSettings? settings = null)

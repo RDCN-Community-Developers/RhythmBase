@@ -7,7 +7,6 @@ namespace RhythmBase.BeatBlock.Components;
 /// </summary>
 public partial class Level :
     //OrderedEventCollection<IBaseEvent, EventType, BBBeat>,
-    IJsonLevel<Level, IBaseEvent, EventType, TickTime>,
     IArchiveLevel<Level, IBaseEvent, EventType, TickTime>,
     IMultiFileLevel<Level, IBaseEvent, EventType, TickTime>,
     IDisposable

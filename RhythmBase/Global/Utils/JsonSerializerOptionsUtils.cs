@@ -13,14 +13,14 @@ public static class JsonSerializerOptionsUtils
             AllowTrailingCommas = true,                
         };
     }
-    public static MetadataJsonSerializerOptions GetJsonSerializerOptionsForRead(LevelType type, LevelReadSettings settings)
+    public static MetadataJsonSerializerOptions GetJsonSerializerOptionsForRead(LevelReadSettings settings)
     {
-        MetadataJsonSerializerOptions options = new() { JsonSerializerOptions = new(JsonSerializerOptionsUtils.options), Type = type };
+        MetadataJsonSerializerOptions options = new() { JsonSerializerOptions = new(JsonSerializerOptionsUtils.options) };
         return options;
     }
-    public static MetadataJsonSerializerOptions GetJsonSerializerOptionsForWrite(LevelType type, LevelWriteSettings settings)
+    public static MetadataJsonSerializerOptions GetJsonSerializerOptionsForWrite(LevelWriteSettings settings)
     {
-        MetadataJsonSerializerOptions options = new() { JsonSerializerOptions = new(JsonSerializerOptionsUtils.options), Type = type, WriteAligned = settings.WriteAligned };
+        MetadataJsonSerializerOptions options = new() { JsonSerializerOptions = new(JsonSerializerOptionsUtils.options), WriteAligned = settings.WriteAligned };
         options.JsonSerializerOptions.WriteIndented = settings.WriteIndented;
         if (settings.EnableUnsafeRelaxedJsonEscaping)
             options.JsonSerializerOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;

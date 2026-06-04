@@ -8,7 +8,7 @@ public abstract class MetadataJsonConverter<T> : JsonConverter<T>
     public MetadataJsonSerializerOptions? JsonSerializerOptions { get; internal set; }
     public MetadataJsonConverter<T> WithOptions(JsonSerializerOptions options)
     {
-        this.JsonSerializerOptions ??= new MetadataJsonSerializerOptions { Type = LevelType.Unknown, JsonSerializerOptions = options };
+        this.JsonSerializerOptions ??= new MetadataJsonSerializerOptions { JsonSerializerOptions = options };
         return this;
     }
     public MetadataJsonConverter<T> WithOptions(MetadataJsonSerializerOptions options)
@@ -20,10 +20,10 @@ public abstract class MetadataJsonConverter<T> : JsonConverter<T>
     public abstract void Write(Utf8JsonWriter writer, T value, MetadataJsonSerializerOptions options);
     public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return Read(ref reader, typeToConvert, this.JsonSerializerOptions ?? new MetadataJsonSerializerOptions { Type = LevelType.Unknown, JsonSerializerOptions = options });
+        return Read(ref reader, typeToConvert, this.JsonSerializerOptions ?? new MetadataJsonSerializerOptions { JsonSerializerOptions = options });
     }
     public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
     {
-        Write(writer, value, this.JsonSerializerOptions ?? new MetadataJsonSerializerOptions { Type = LevelType.Unknown, JsonSerializerOptions = options });
+        Write(writer, value, this.JsonSerializerOptions ?? new MetadataJsonSerializerOptions { JsonSerializerOptions = options });
     }
 }

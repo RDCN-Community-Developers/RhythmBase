@@ -8,7 +8,6 @@ namespace RhythmBase.RhythmDoctor.Components;
 
 partial class Level
 {
-	public static LevelType LevelType => LevelType.RhythmDoctor;
 	#region file
 	/// <inheritdoc/>
 	public static Level FromFile(string filepath, LevelReadSettings? settings = null)
@@ -46,7 +45,7 @@ partial class Level
 	public async Task SaveToFileAsync(string filepath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
 	{
 		settings ??= new LevelWriteSettings();
-		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForWrite(LevelType.RhythmDoctor, settings);
+		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForWrite(settings);
 		DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
 		if (!directory.Exists)
 			directory.Create();
@@ -63,7 +62,7 @@ partial class Level
 	public static async Task<Level> FromStreamAsync(Stream rdlevelStream, LevelReadSettings? settings = null, CancellationToken cancellationToken = default)
 	{
 		settings ??= new LevelReadSettings();
-		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(LevelType.RhythmDoctor, settings);
+		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
 		Level? level;
 		level = await FileMainEntryConverter.DeserializeMainEntryAsync<Level>(new StreamDataSource(rdlevelStream), options, cancellationToken);
 		return level ?? [];
@@ -75,7 +74,7 @@ partial class Level
 	public async Task SaveToStreamAsync(Stream stream, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
 	{
 		settings ??= new LevelWriteSettings();
-		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForWrite(LevelType.RhythmDoctor, settings);
+		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForWrite(settings);
 		FileMainEntryConverter.SerializeMainEntry(this, stream, options);
 	}
 	#endregion
@@ -186,7 +185,7 @@ partial class Level
 		settings.FileReferenceEncountered += referenceDelegate;
 		bool loadAssets = settings.LoadAssets;
 		settings.LoadAssets = true;
-		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForWrite(LevelType.RhythmDoctor, settings);
+		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForWrite(settings);
 		DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
 		if (!directory.Exists)
 			directory.Create();
@@ -211,7 +210,7 @@ partial class Level
 	public static Level FromJsonString(string json, LevelReadSettings? settings = null)
 	{
 		settings ??= new LevelReadSettings();
-		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(LevelType.RhythmDoctor, settings);
+		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
 		Level? level;
 		level = FileMainEntryConverter.DeserializeMainEntry<Level>(new ReadOnlyMemoryDataSource(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(json))), options);
 		return level ?? [];
@@ -220,7 +219,7 @@ partial class Level
 	public static Level FromJsonDocument(JsonDocument jsonDocument, LevelReadSettings? settings = null)
 	{
 		settings ??= new LevelReadSettings();
-		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(LevelType.RhythmDoctor, settings);
+		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
 		Level? level;
 		level = FileMainEntryConverter.DeserializeMainEntry<Level>(new JsonDocumentDataSource(jsonDocument), options);
 		return level ?? [];
@@ -233,7 +232,7 @@ partial class Level
 	public string ToJsonString(LevelWriteSettings? settings = null)
 	{
 		settings ??= new LevelWriteSettings();
-		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForWrite(LevelType.RhythmDoctor, settings);
+		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForWrite(settings);
 		string json;
 		using (MemoryStream stream = new())
 		{

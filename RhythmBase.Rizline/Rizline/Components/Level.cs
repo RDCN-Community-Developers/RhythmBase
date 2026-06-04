@@ -176,7 +176,6 @@ public enum Difficulty
 /// Core Rizline level representation with metadata, timing and content lists.
 /// </summary>
 public partial class Level :
-		IJsonLevel<Level, IBaseEvent, EventType, TickTime>,
 		IArchiveLevel<Level, IBaseEvent, EventType, TickTime>,
 		IMultiFileLevel<Level, IBaseEvent, EventType, TickTime>
 {
@@ -191,7 +190,7 @@ public partial class Level :
 	/// <summary>
 	/// Original file path of the level, if any. 
 	/// </summary>
-	public string? Filepath { get; }
+	public string? Filepath { get; internal set; }
 
 	/// <summary>
 	/// Beat calculator instance used for timing calculations. 
@@ -201,12 +200,12 @@ public partial class Level :
 	/// <summary>
 	/// Resolved absolute path to the level file. 
 	/// </summary>
-	public string ResolvedPath { get; }
+	public string ResolvedPath { get; internal set; } = string.Empty;
 
 	/// <summary>
 	/// Resolved directory containing the level file, if available. 
 	/// </summary>
-	public string? ResolvedDirectory { get; }
+	public string? ResolvedDirectory { get; internal set; }
 
 	/// <summary>
 	/// Default instance used as a fallback. 

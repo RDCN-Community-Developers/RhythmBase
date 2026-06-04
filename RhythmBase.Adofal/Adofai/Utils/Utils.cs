@@ -33,7 +33,7 @@ namespace RhythmBase.Adofai.Utils;
 		internal static MetadataJsonSerializerOptions GetJsonSerializerOptions(string? filepath = null, LevelReadSettings? settings = null)
 		{
 			settings ??= new LevelReadSettings();
-			MetadataJsonSerializerOptions options = new() { Type = LevelType.Adofai, JsonSerializerOptions = new(Utils.options) };
+			MetadataJsonSerializerOptions options = new() { JsonSerializerOptions = new(Utils.options) };
 			LevelConverter levelConverter = new()
 			{
 				ReadSettings = settings,
@@ -48,7 +48,7 @@ namespace RhythmBase.Adofai.Utils;
 		internal static MetadataJsonSerializerOptions GetJsonSerializerOptions(string? filepath = null, LevelWriteSettings? settings = null)
 		{
 			settings ??= new LevelWriteSettings();
-			MetadataJsonSerializerOptions options = new() { Type = LevelType.Adofai, JsonSerializerOptions = new(Utils.options) };
+			MetadataJsonSerializerOptions options = new() { JsonSerializerOptions = new(Utils.options) };
 			if (settings.WriteIndented)
 				options.JsonSerializerOptions.WriteIndented = true;
 			else

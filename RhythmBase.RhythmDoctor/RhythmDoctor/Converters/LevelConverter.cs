@@ -236,7 +236,6 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		using MemoryStream stream = new();
 		MetadataJsonSerializerOptions localOptions = new()
 		{
-			Type = Level.LevelType,
 			JsonSerializerOptions = new(options.JsonSerializerOptions)
 			{ WriteIndented = false, }
 		};

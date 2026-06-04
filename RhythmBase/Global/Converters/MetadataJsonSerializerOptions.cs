@@ -10,7 +10,6 @@ public record class MetadataJsonSerializerOptions
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         WriteIndented = true,
     };
-    public required LevelType Type { get; init; }
     public bool WriteAligned { get; init; }
     public bool WriteIndented { get => JsonSerializerOptions.WriteIndented; init => JsonSerializerOptions.WriteIndented = value; }
 }

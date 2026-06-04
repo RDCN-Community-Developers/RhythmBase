@@ -1,6 +1,8 @@
 ﻿using RhythmBase.BeatBlock.Converters;
 using RhythmBase.BeatBlock.Events;
+using RhythmBase.Global.Settings;
 using System.Diagnostics;
+using System.IO.Compression;
 using System.Text.Json;
 
 namespace RhythmBase.BeatBlock.Components;
@@ -8,8 +10,6 @@ namespace RhythmBase.BeatBlock.Components;
 partial class Level
 {
 	private static readonly BaseEventConverter baseEventConverter = new();
-	/// <inheritdoc/>
-	public static LevelType LevelType => LevelType.BeatBlock;
 	private static class FileConverter
 	{
 		public static void DeserializeLevel(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, Chart variant, LevelReadSettings settings)
@@ -152,7 +152,7 @@ partial class Level
 	public static async Task<Level> FromDirectoryAsync(string directoryPath, LevelReadSettings? settings = null, CancellationToken cancellationToken = default)
 	{
 		settings ??= new LevelReadSettings();
-		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(LevelType.BeatBlock, settings);
+		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
 		Level? level;
 		string manifestFilePath = Path.Combine(directoryPath, "manifest.json");
 		using FileStream manifestFs = File.Open(manifestFilePath, FileMode.Open, FileAccess.Read);
@@ -199,7 +199,7 @@ partial class Level
 	public async Task SaveToDirectoryAsync(string directoryPath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
 	{
 		settings ??= new LevelWriteSettings();
-		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForWrite(LevelType.BeatBlock, settings);
+		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForWrite(settings);
 		using NoIndentScope noIndentScope = new(options.JsonSerializerOptions.Encoder, options);
 		string manifestFilePath = Path.Combine(directoryPath, "manifest.json");
 		if (!Directory.Exists(manifestFilePath))
@@ -240,39 +240,61 @@ partial class Level
 	public static Level FromZip(string filepath, LevelReadSettings? settings = null)
 			=> FromZipAsync(filepath, settings).GetAwaiter().GetResult();
 	/// <inheritdoc/>
-	public static Task<Level> FromZipAsync(string filepath, LevelReadSettings? settings = null, CancellationToken cancellationToken = default)
+	public static async Task<Level> FromZipAsync(string filepath, LevelReadSettings? settings = null, CancellationToken cancellationToken = default)
 	{
-		throw new NotImplementedException();
+		settings ??= new LevelReadSettings();
+		string extension = Path.GetExtension(filepath);
+		if (extension is not ".zip" and not ".bbz")
+			throw new NotSupportedException($"File type '{extension}' is not supported.");
+		DirectoryInfo tempDirectory = new(Path.Combine(
+			GlobalSettings.CachePath, GlobalSettings.CacheDirectoryPrefix + Path.GetRandomFileName()));
+		tempDirectory.Create();
+		try
+		{
+#if NET8_0_OR_GREATER
+			using Stream stream = File.OpenRead(filepath);
+			ZipFile.ExtractToDirectory(stream, tempDirectory.FullName, overwriteFiles: true);
+#else
+			ZipFile.ExtractToDirectory(filepath, tempDirectory.FullName);
+#endif
+			Level level = await FromDirectoryAsync(tempDirectory.FullName, settings, cancellationToken);
+			level.ResolvedPath = Path.GetFullPath(filepath);
+			level.Filepath = Path.GetFullPath(filepath);
+			level.isZip = true;
+			level.isExtracted = true;
+			return level;
+		}
+		catch (Exception ex)
+		{
+			tempDirectory.Delete(true);
+			throw new RhythmBaseException("Cannot extract the file.", ex);
+		}
 	}
 	/// <inheritdoc/>
 	public void SaveToZip(string filepath, LevelWriteSettings? settings = null)
 			=> SaveToZipAsync(filepath, settings).GetAwaiter().GetResult();
 	/// <inheritdoc/>
-	public Task SaveToZipAsync(string filepath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
+	public async Task SaveToZipAsync(string filepath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
 	{
-		throw new NotImplementedException();
-	}
-	#endregion
-	#region json
-	/// <inheritdoc/>
-	public static Level FromJsonDocument(JsonDocument jsonDocument, LevelReadSettings? settings = null)
-	{
-		throw new NotImplementedException();
-	}
-	/// <inheritdoc/>
-	public static Level FromJsonString(string json, LevelReadSettings? settings = null)
-	{
-		throw new NotImplementedException();
-	}
-	/// <inheritdoc/>
-	public JsonDocument ToJsonDocument(LevelWriteSettings? settings = null)
-	{
-		throw new NotImplementedException();
-	}
-	/// <inheritdoc/>
-	public string ToJsonString(LevelWriteSettings? settings = null)
-	{
-		throw new NotImplementedException();
+		settings ??= new LevelWriteSettings();
+		DirectoryInfo directory = new FileInfo(filepath).Directory ?? new("");
+		if (!directory.Exists)
+			directory.Create();
+		string tempDir = Path.Combine(
+			GlobalSettings.CachePath, GlobalSettings.CacheDirectoryPrefix + Path.GetRandomFileName());
+		await SaveToDirectoryAsync(tempDir, settings, cancellationToken);
+		using Stream stream = new FileStream(filepath, FileMode.Create, FileAccess.Write);
+		using ZipArchive archive = new(stream, ZipArchiveMode.Create);
+		foreach (string file in Directory.GetFiles(tempDir, "*", SearchOption.AllDirectories))
+		{
+#if NET8_0_OR_GREATER
+			string entryName = Path.GetRelativePath(tempDir, file).Replace('\\', '/');
+#else
+			string entryName = file.Substring(tempDir.Length + 1).Replace('\\', '/');
+#endif
+			archive.CreateEntryFromFile(file, entryName);
+		}
+		Directory.Delete(tempDir, true);
 	}
 	#endregion
 }

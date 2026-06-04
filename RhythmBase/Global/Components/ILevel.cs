@@ -2,14 +2,6 @@
 
 namespace RhythmBase.Global.Components;
 
-public enum LevelType
-{
-    Unknown,
-    RhythmDoctor,
-    Adofai,
-    BeatBlock,
-    Rizline,
-}
 public interface IChart<TBeat> where TBeat : struct, ITickTime<TBeat>
 {
     IBeatCalculator<TBeat> Calculator { get; }
@@ -30,10 +22,6 @@ public interface ILevel<TSelf, TEvent, TType, TBeat> : IDisposable, ILevel
     /// The default level within the game.
     /// </summary>
     static abstract TSelf Default { get; }
-    /// <summary>
-    /// The type of the level.
-    /// </summary>
-    static abstract LevelType LevelType { get; }
 #endif
 }
 public interface ISingleFileLevel<TSelf, TEvent, TType, TBeat> : ILevel<TSelf, TEvent, TType, TBeat>

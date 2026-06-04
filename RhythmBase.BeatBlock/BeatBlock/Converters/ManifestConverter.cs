@@ -175,7 +175,6 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
     {
         MetadataJsonSerializerOptions localOptions = new() {
             JsonSerializerOptions = options.JsonSerializerOptions,
-            Type = options.Type,
             WriteAligned = false 
         };
         using NoIndentScope noIndentScope = new(options.JsonSerializerOptions.Encoder, localOptions);
