@@ -25,26 +25,26 @@ public static class CollectionBuilders
 [CollectionBuilder(typeof(CollectionBuilders), nameof(CollectionBuilders.BuildEnumCollection))]
 public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : unmanaged, Enum
 {
-	private static readonly int bw = sizeof(nuint) * 8;
-	private readonly nuint signMask;
-	internal nuint[] _lowerBits;
-	internal nuint[] _upperBits;
-	private readonly nuint[] Lower => _lowerBits ?? Array.Empty<nuint>();
-	private readonly nuint[] Upper => _upperBits ?? Array.Empty<nuint>();
-	private static nuint ComputeSignMask()
+	private const int bw = sizeof(ulong) * 8;
+	private readonly ulong signMask;
+	internal ulong[] _lowerBits;
+	internal ulong[] _upperBits;
+	private readonly ulong[] Lower => _lowerBits ?? Array.Empty<ulong>();
+	private readonly ulong[] Upper => _upperBits ?? Array.Empty<ulong>();
+	private static ulong ComputeSignMask()
 	{
 		int bitWidth = sizeof(TEnum) * 8;
-		return (bitWidth >= bw) ? 0u : ((nuint)1 << (bitWidth - 1));
+		return (bitWidth >= bw) ? 0u : ((ulong)1 << (bitWidth - 1));
 	}
-	private static void Classify(nuint raw, nuint signMask, out nuint index, out bool isNegative)
+	private static void Classify(ulong raw, ulong signMask, out ulong index, out bool isNegative)
 	{
 		isNegative = (raw & signMask) != 0;
 		index = isNegative ? (~raw & (signMask - 1)) : (raw & (signMask - 1));
 	}
-	private readonly TEnum ToEnum(nuint index, bool isNegative)
+	private readonly TEnum ToEnum(ulong index, bool isNegative)
 	{
-		nuint value = isNegative ? (~index & (signMask - 1)) | signMask : (index & (signMask - 1));
-		return Unsafe.As<nuint, TEnum>(ref value);
+		ulong value = isNegative ? (~index & (signMask - 1)) | signMask : (index & (signMask - 1));
+		return Unsafe.As<ulong, TEnum>(ref value);
 	}
 	/// <summary>
 	/// Initializes a new instance of the EnumCollection class, sizing automatically from the enum type.
@@ -53,13 +53,13 @@ public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : un
 	public EnumCollection()
 	{
 		signMask = ComputeSignMask();
-		nuint enumLowerMax = 0;
-		nuint enumUpperMax = 0;
+		ulong enumLowerMax = 0;
+		ulong enumUpperMax = 0;
 		foreach (TEnum value in Enum.GetValues<TEnum>())
 		{
 			TEnum vt = value;
-			nuint v = Unsafe.As<TEnum, nuint>(ref vt);
-			Classify(v, signMask, out nuint idx, out bool neg);
+			ulong v = Unsafe.As<TEnum, ulong>(ref vt);
+			Classify(v, signMask, out ulong idx, out bool neg);
 			if (neg)
 			{
 				if (idx > enumUpperMax) enumUpperMax = idx;
@@ -72,15 +72,15 @@ public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : un
 		int lowerSize, upperSize;
 		try
 		{
-			lowerSize = checked((int)(enumLowerMax / (nuint)bw) + 1);
-			upperSize = checked((int)(enumUpperMax / (nuint)bw) + 1);
+			lowerSize = checked((int)(enumLowerMax / (ulong)bw) + 1);
+			upperSize = checked((int)(enumUpperMax / (ulong)bw) + 1);
 		}
 		catch
 		{
 			throw new InvalidOperationException("The enum value is too big.");
 		}
-		_lowerBits = new nuint[lowerSize];
-		_upperBits = new nuint[upperSize];
+		_lowerBits = new ulong[lowerSize];
+		_upperBits = new ulong[upperSize];
 	}
 	/// <summary>
 	/// Initializes a new instance of the collection with the supplied enum values.
@@ -100,7 +100,7 @@ public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : un
 		foreach (TEnum value in values)
 			Add(value);
 	}
-	internal EnumCollection(nuint[] lowerBits, nuint[] upperBits, nuint signMask)
+	internal EnumCollection(ulong[] lowerBits, ulong[] upperBits, ulong signMask)
 	{
 		this.signMask = signMask;
 		_lowerBits = lowerBits;
@@ -114,14 +114,14 @@ public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : un
 		get
 		{
 			int count = 0;
-			foreach (nuint block in Lower)
+			foreach (ulong block in Lower)
 			{
-				nuint b = block;
+				ulong b = block;
 				while (b != 0) { b &= (b - 1); count++; }
 			}
-			foreach (nuint block in Upper)
+			foreach (ulong block in Upper)
 			{
-				nuint b = block;
+				ulong b = block;
 				while (b != 0) { b &= (b - 1); count++; }
 			}
 			return count;
@@ -134,9 +134,9 @@ public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : un
 	{
 		get
 		{
-			foreach (nuint block in Lower)
+			foreach (ulong block in Lower)
 				if (block != 0) return false;
-			foreach (nuint block in Upper)
+			foreach (ulong block in Upper)
 				if (block != 0) return false;
 			return true;
 		}
@@ -148,16 +148,16 @@ public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : un
 	/// <returns>true if the value was successfully added; otherwise, false if already present.</returns>
 	public bool Add(TEnum item)
 	{
-		nuint v = Unsafe.As<TEnum, nuint>(ref item);
-		Classify(v, signMask, out nuint idx, out bool neg);
-		int div = (int)(idx / (nuint)bw);
-		int rem = (int)(idx % (nuint)bw);
-		ref nuint[] bits = ref neg ? ref _upperBits : ref _lowerBits;
+		ulong v = Unsafe.As<TEnum, ulong>(ref item);
+		Classify(v, signMask, out ulong idx, out bool neg);
+		int div = (int)(idx / (ulong)bw);
+		int rem = (int)(idx % (ulong)bw);
+		ref ulong[] bits = ref neg ? ref _upperBits : ref _lowerBits;
 		if (bits is null || div >= bits.Length)
 			Array.Resize(ref bits, div + 1);
-		if ((bits[div] & ((nuint)1 << rem)) != 0)
+		if ((bits[div] & ((ulong)1 << rem)) != 0)
 			return false;
-		bits[div] |= ((nuint)1 << rem);
+		bits[div] |= ((ulong)1 << rem);
 		return true;
 	}
 	/// <summary>
@@ -167,15 +167,15 @@ public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : un
 	/// <returns>true if the value was present and successfully removed; otherwise, false.</returns>
 	public readonly bool Remove(TEnum item)
 	{
-		nuint v = Unsafe.As<TEnum, nuint>(ref item);
-		Classify(v, signMask, out nuint idx, out bool neg);
-		nuint[] bits = neg ? Upper : Lower;
-		int div = (int)(idx / (nuint)bw);
-		int rem = (int)(idx % (nuint)bw);
+		ulong v = Unsafe.As<TEnum, ulong>(ref item);
+		Classify(v, signMask, out ulong idx, out bool neg);
+		ulong[] bits = neg ? Upper : Lower;
+		int div = (int)(idx / (ulong)bw);
+		int rem = (int)(idx % (ulong)bw);
 		if (div >= bits.Length) return false;
-		if ((bits[div] & ((nuint)1 << rem)) == 0)
+		if ((bits[div] & ((ulong)1 << rem)) == 0)
 			return false;
-		bits[div] &= ~((nuint)1 << rem);
+		bits[div] &= ~((ulong)1 << rem);
 		return true;
 	}
 	/// <summary>
@@ -185,12 +185,12 @@ public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : un
 	/// <returns>true if the value is contained; otherwise, false.</returns>
 	public readonly bool Contains(TEnum type)
 	{
-		nuint v = Unsafe.As<TEnum, nuint>(ref type);
-		Classify(v, signMask, out nuint idx, out bool neg);
-		nuint[] bits = neg ? Upper : Lower;
-		int div = (int)(idx / (nuint)bw);
-		int rem = (int)(idx % (nuint)bw);
-		return div >= 0 && div < bits.Length && (bits[div] & ((nuint)1 << rem)) != 0;
+		ulong v = Unsafe.As<TEnum, ulong>(ref type);
+		Classify(v, signMask, out ulong idx, out bool neg);
+		ulong[] bits = neg ? Upper : Lower;
+		int div = (int)(idx / (ulong)bw);
+		int rem = (int)(idx % (ulong)bw);
+		return div >= 0 && div < bits.Length && (bits[div] & ((ulong)1 << rem)) != 0;
 	}
 	/// <summary>
 	/// Determines whether the collection contains any of the specified enumeration values.
@@ -215,8 +215,8 @@ public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : un
 	/// </summary>
 	public readonly bool ContainsAny(EnumCollection<TEnum> types)
 	{
-		nuint[] thisLower = Lower, thisUpper = Upper;
-		nuint[] otherLower = types.Lower, otherUpper = types.Upper;
+		ulong[] thisLower = Lower, thisUpper = Upper;
+		ulong[] otherLower = types.Lower, otherUpper = types.Upper;
 		for (int i = 0; i < Math.Min(thisLower.Length, otherLower.Length); i++)
 			if ((thisLower[i] & otherLower[i]) != 0) return true;
 		for (int i = 0; i < Math.Min(thisUpper.Length, otherUpper.Length); i++)
@@ -246,62 +246,62 @@ public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : un
 	/// </summary>
 	public readonly bool ContainsAll(EnumCollection<TEnum> types)
 	{
-		nuint[] thisLower = Lower, thisUpper = Upper;
-		nuint[] otherLower = types.Lower, otherUpper = types.Upper;
+		ulong[] thisLower = Lower, thisUpper = Upper;
+		ulong[] otherLower = types.Lower, otherUpper = types.Upper;
 		for (int i = 0; i < Math.Min(thisLower.Length, otherLower.Length); i++)
 		{
-			nuint tBits = otherLower[i];
+			ulong tBits = otherLower[i];
 			if (tBits != 0 && (thisLower[i] & tBits) != tBits) return false;
 		}
 		for (int i = thisLower.Length; i < otherLower.Length; i++)
 			if (otherLower[i] != 0) return false;
 		for (int i = 0; i < Math.Min(thisUpper.Length, otherUpper.Length); i++)
 		{
-			nuint tBits = otherUpper[i];
+			ulong tBits = otherUpper[i];
 			if (tBits != 0 && (thisUpper[i] & tBits) != tBits) return false;
 		}
 		for (int i = thisUpper.Length; i < otherUpper.Length; i++)
 			if (otherUpper[i] != 0) return false;
 		return true;
 	}
-	private static nuint[] BitwiseAnd(ReadOnlySpan<nuint> a, ReadOnlySpan<nuint> b)
+	private static ulong[] BitwiseAnd(ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
 	{
 		int size = Math.Min(a.Length, b.Length);
-		nuint[] result = new nuint[size];
+		ulong[] result = new ulong[size];
 		for (int i = 0; i < size; i++)
 			result[i] = a[i] & b[i];
 		return result;
 	}
-	private static nuint[] BitwiseAndNot(ReadOnlySpan<nuint> a, ReadOnlySpan<nuint> b)
+	private static ulong[] BitwiseAndNot(ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
 	{
 		int size = Math.Min(a.Length, b.Length);
-		nuint[] result = new nuint[a.Length];
+		ulong[] result = new ulong[a.Length];
 		for (int i = 0; i < size; i++)
 			result[i] = a[i] & ~b[i];
 		for (int i = size; i < a.Length; i++)
 			result[i] = a[i];
 		return result;
 	}
-	private static nuint[] BitwiseXor(ReadOnlySpan<nuint> a, ReadOnlySpan<nuint> b)
+	private static ulong[] BitwiseXor(ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
 	{
 		int size = Math.Max(a.Length, b.Length);
-		nuint[] result = new nuint[size];
+		ulong[] result = new ulong[size];
 		for (int i = 0; i < size; i++)
 		{
-			nuint va = (i < a.Length) ? a[i] : 0u;
-			nuint vb = (i < b.Length) ? b[i] : 0u;
+			ulong va = (i < a.Length) ? a[i] : 0u;
+			ulong vb = (i < b.Length) ? b[i] : 0u;
 			result[i] = va ^ vb;
 		}
 		return result;
 	}
-	private static nuint[] BitwiseOr(ReadOnlySpan<nuint> a, ReadOnlySpan<nuint> b)
+	private static ulong[] BitwiseOr(ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
 	{
 		int size = Math.Max(a.Length, b.Length);
-		nuint[] result = new nuint[size];
+		ulong[] result = new ulong[size];
 		for (int i = 0; i < size; i++)
 		{
-			nuint va = (i < a.Length) ? a[i] : 0u;
-			nuint vb = (i < b.Length) ? b[i] : 0u;
+			ulong va = (i < a.Length) ? a[i] : 0u;
+			ulong vb = (i < b.Length) ? b[i] : 0u;
 			result[i] = va | vb;
 		}
 		return result;
@@ -351,11 +351,11 @@ public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : un
 	/// </summary>
 	public readonly ReadOnlyEnumCollection<TEnum> AsReadOnly()
 	{
-		nuint[] srcLower = Lower;
-		nuint[] srcUpper = Upper;
-		nuint[] newLower = new nuint[srcLower.Length];
+		ulong[] srcLower = Lower;
+		ulong[] srcUpper = Upper;
+		ulong[] newLower = new ulong[srcLower.Length];
 		Array.Copy(srcLower, newLower, srcLower.Length);
-		nuint[] newUpper = new nuint[srcUpper.Length];
+		ulong[] newUpper = new ulong[srcUpper.Length];
 		Array.Copy(srcUpper, newUpper, srcUpper.Length);
 		return new ReadOnlyEnumCollection<TEnum>(newLower, newUpper, signMask);
 	}
@@ -365,25 +365,25 @@ public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : un
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public readonly IEnumerator<TEnum> GetEnumerator()
 	{
-		nuint[] upper = Upper, lower = Lower;
+		ulong[] upper = Upper, lower = Lower;
 		for (int div = 0; div < lower.Length; div++)
 		{
-			nuint block = lower[div];
+			ulong block = lower[div];
 			while (block != 0)
 			{
 				int rem = TrailingZeroCount(block);
-				nuint value = (nuint)(div * bw + rem);
+				ulong value = (ulong)(div * bw + rem);
 				yield return ToEnum(value, false);
 				block &= (block - 1);
 			}
 		}
 		for (int div = upper.Length - 1; div >= 0; div--)
 		{
-			nuint block = upper[div];
+			ulong block = upper[div];
 			while (block != 0)
 			{
 				int rem = TrailingZeroCount(block);
-				nuint value = (nuint)(div * bw + rem);
+				ulong value = (ulong)(div * bw + rem);
 				yield return ToEnum(value, true);
 				block &= (block - 1);
 			}
@@ -391,13 +391,13 @@ public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : un
 	}
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-	private static int TrailingZeroCount(nuint v)
+	private static int TrailingZeroCount(ulong v)
 	{
 #if NET8_0_OR_GREATER
 		return System.Numerics.BitOperations.TrailingZeroCount((ulong)v);
 #else
 		int c = 0;
-		while ((v & (nuint)1) == 0)
+		while ((v & (ulong)1) == 0)
 		{
 			v >>= 1;
 			c++;
