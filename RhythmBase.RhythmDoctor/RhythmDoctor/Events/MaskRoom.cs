@@ -53,10 +53,10 @@ public record class MaskRoom : BaseEvent, IColorEvent, IImageFileEvent
 	public override EventType Type => EventType.MaskRoom;
 	///<inheritdoc/>
 	public override Tab Tab => Tab.Rooms;
-
 	/// <summary>
 	/// Gets the room associated with the event.
 	/// </summary>
+	[JsonIgnore]
 	public Room Room => new SingleRoom(checked((byte)Y));
 	IEnumerable<FileReference> IImageFileEvent.ImageFiles => [.. Image];
 	IEnumerable<FileReference> IFileEvent.Files => [.. Image];
