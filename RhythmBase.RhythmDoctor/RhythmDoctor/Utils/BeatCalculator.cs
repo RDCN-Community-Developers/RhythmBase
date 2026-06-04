@@ -480,7 +480,7 @@ public class BeatCalculator : IBeatCalculator<TickTime>
     public TickTime BeatOf(TimeSpan timeSpan) => new(this, timeSpan);
 
     /// <summary>
-    /// Creates an <see cref="Range"/> representing the interval between two beats.
+    /// Creates a <see cref="Components.Range"/> representing the interval between two beats.
     /// </summary>
     /// <param name="beat1">The starting beat.</param>
     /// <param name="beat2">The ending beat.</param>
@@ -488,7 +488,7 @@ public class BeatCalculator : IBeatCalculator<TickTime>
     public Components.Range IntervalOf(TickTime beat1, TickTime beat2) => new Components.Range(new(this, beat1), new(this, beat2));
 
     /// <summary>
-    /// Creates an <see cref="Range"/> representing the interval between two bar/beat pairs.
+    /// Creates a <see cref="Components.Range"/> representing the interval between two bar/beat pairs.
     /// </summary>
     /// <param name="beat1">The starting bar/beat tuple.</param>
     /// <param name="beat2">The ending bar/beat tuple.</param>
@@ -496,7 +496,7 @@ public class BeatCalculator : IBeatCalculator<TickTime>
     public Components.Range IntervalOf((int bar, float beat) beat1, (int bar, float beat) beat2) => IntervalOf(BeatOf(beat1.bar, beat1.beat), BeatOf(beat2.bar, beat2.beat));
 
     /// <summary>
-    /// Creates an <see cref="Range"/> representing the interval between two timespans.
+    /// Creates a <see cref="Components.Range"/> representing the interval between two timespans.
     /// </summary>
     /// <param name="timeSpan1">The start time.</param>
     /// <param name="timeSpan2">The end time.</param>

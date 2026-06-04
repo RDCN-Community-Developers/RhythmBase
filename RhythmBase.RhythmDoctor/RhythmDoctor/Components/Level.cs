@@ -96,12 +96,16 @@ public partial class Level :
         Rows = new(this);
         Decorations = new(this);
     }
+    /// <inheritdoc/>
     protected override TickTime CreateInstance(float beat) => new TickTime(beat);
+    /// <inheritdoc/>
     protected override ITickRange<TickTime> CreateRange(float? start, float? end) => new Range(
         start is float s ? Calculator.BeatOf(s) : null,
         end is float e ? Calculator.BeatOf(e) : null
         );
+    /// <inheritdoc/>
     protected override ReadOnlyEnumCollection<EventType> Types => ClassEnumMap.Types;
+    /// <inheritdoc/>
     protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => ClassEnumMap.ToEnums(typeof(TTarget));
 
     /// <summary>

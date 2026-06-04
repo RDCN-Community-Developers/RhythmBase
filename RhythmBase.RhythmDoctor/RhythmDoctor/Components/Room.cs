@@ -74,10 +74,10 @@ public struct Room :
 	///// <param name="enableTop">Indicates if the top room can be applied.</param>
 	//public RDRoom(bool enableTop) => EnableTop = enableTop;
 	/// <summary>
-	/// Initializes a new instance of the <see cref="RDRoom"/> struct with the specified room indices.
+	/// Initializes a new instance of the <see cref="Room"/> struct with the specified room indices.
 	/// </summary>
 	/// <remarks>This constructor allows you to specify one or more room indices to initialize the <see
-	/// cref="RDRoom"/> instance. If no indices are provided, the room is set to an unavailable state.</remarks>
+	/// cref="Room"/> instance. If no indices are provided, the room is set to an unavailable state.</remarks>
 	/// <param name="rooms">An array of room indices to initialize. Each index represents a specific room to be enabled. If the array is
 	/// empty, the room is marked as not available. If the array contains a single element, only that room is enabled. If
 	/// the array contains multiple elements, all specified rooms are enabled.</param>

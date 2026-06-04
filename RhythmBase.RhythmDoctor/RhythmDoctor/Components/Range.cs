@@ -130,13 +130,13 @@ public struct Range : ITickRange<TickTime>
         return new Range(newStart, newEnd);
     }
     /// <summary>
-    /// Gets the start and end beats for the current range, using the specified level's default values if not explicitly
+    /// Gets the start and end beats for the current range, using the specified default values if not explicitly
     /// set.
     /// </summary>
-    /// <param name="level">The level from which to retrieve the default start beat and length if the current range does not specify them.</param>
+    /// <param name="endTime">The default end time to use if the current range does not specify an end value.</param>
     /// <returns>A tuple containing the start and end beats. The start beat is set to the current range's start value if defined;
-    /// otherwise, it defaults to the level's default beat. The end beat is set to the current range's end value if
-    /// defined; otherwise, it defaults to the level's length.</returns>
+    /// otherwise, it defaults to 1. The end beat is set to the current range's end value if
+    /// defined; otherwise, it defaults to <paramref name="endTime"/>.</returns>
     public readonly (TickTime Start, TickTime End) GetStartAndEnd(TickTime endTime)
         => (Start is TickTime startNotNull ? startNotNull : new(1), End is TickTime endNotNull ? endNotNull : endTime);
     /// <summary>

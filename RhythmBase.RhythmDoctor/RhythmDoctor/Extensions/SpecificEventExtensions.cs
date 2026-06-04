@@ -569,11 +569,10 @@ public static partial class Extensions
 		public bool IsInFrontOf(IBaseEvent item) => e.TickTime.BaseLevel?.IsInFrontOf(e, item) ?? throw new InvalidRDBeatException();
 
 		/// <summary>
-		/// Converts the specified <see cref="IBaseEvent"/> instance to its JSON string representation.
+		/// Converts the current <see cref="IBaseEvent"/> instance to its JSON string representation.
 		/// </summary>
 		/// <remarks>The JSON output can be customized using the provided <paramref name="options"/>.  If no options
 		/// are specified, the default settings are applied.</remarks>
-		/// <param name="ev">The <see cref="IBaseEvent"/> instance to serialize. Cannot be <see langword="null"/>.</param>
 		/// <param name="options">Optional <see cref="JsonSerializerOptions"/> to configure the serialization process.  If <see langword="null"/>,
 		/// default serialization options are used.</param>
 		/// <returns>A JSON string representation of the <see cref="IBaseEvent"/> instance.</returns>

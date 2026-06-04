@@ -77,7 +77,13 @@ public static class Constants
         /// </summary>
         EnableSpeed = 0b1000_000_000_0,
     }
+    /// <summary>
+    /// The default beats per minute for a new level.
+    /// </summary>
     public const float DefaultBpm = 100f;
+    /// <summary>
+    /// The default number of crotchets per bar for a new level.
+    /// </summary>
     public const int DefaultCpb = 8;
     /// <summary>
     /// Read-only mapping that associates each <see cref="VfxPreset"/> with the corresponding <see cref="VfxAttribute"/> flags.

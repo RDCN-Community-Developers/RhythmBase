@@ -86,12 +86,16 @@ public class Row : OrderedEventCollection<BaseRowAction, EventType, TickTime>, I
     /// Initializes a new instance of the <see cref="Row"/> class.
     /// </summary>
     public Row() { }
+    /// <inheritdoc/>
     protected override TickTime CreateInstance(float beat) => new(beat);
+    /// <inheritdoc/>
     protected override ITickRange<TickTime> CreateRange(float? start, float? end) => new Range(
     start is float s ? new TickTime(s) : null,
     end is float e ? new TickTime(e) : null
     );
+    /// <inheritdoc/>
     protected override ReadOnlyEnumCollection<EventType> Types => ClassEnumMap.ToEnums<BaseRowAction>();
+    /// <inheritdoc/>
     protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => ClassEnumMap.ToEnums(typeof(TTarget));
     /// <summary>
     /// Adds an item to the row.

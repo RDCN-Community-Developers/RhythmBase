@@ -40,7 +40,7 @@ partial class Extensions
         }
 
         /// <summary>
-        /// Filters the event enumerable to only include events of type <typeparamref name="TEvent"/> within the specified <see cref="Range"/>.
+        /// Filters the event enumerable to only include events of type <typeparamref name="TEvent"/> within the specified <see cref="Components.Range"/>.
         /// </summary>
         /// <param name="range">The beat range to filter for.</param>
         /// <returns>An <see cref="IEventEnumerable{TEvent}"/> containing only events of type <typeparamref name="TEvent"/> within the specified range.</returns>
@@ -112,7 +112,7 @@ partial class Extensions
         }
 
         /// <summary>
-        /// Filters the event enumerable to only include events within the specified <see cref="Range"/>.
+        /// Filters the event enumerable to only include events within the specified <see cref="Components.Range"/>.
         /// </summary>
         /// <param name="range">The beat range to filter for.</param>
         /// <returns>An <see cref="IEventEnumerable{IBaseEvent}"/> containing only events within the specified range.</returns>
