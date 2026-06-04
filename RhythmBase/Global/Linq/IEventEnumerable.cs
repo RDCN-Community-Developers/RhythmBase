@@ -9,7 +9,7 @@ namespace RhythmBase.Global.Linq;
 public interface IEventEnumerable<out TEvent, TType, TBeat>
     : IEnumerable<TEvent>
     where TEvent : IEvent<TType, TBeat>
-    where TType : struct, Enum
+    where TType : unmanaged, Enum
     where TBeat : struct, ITickTime<TBeat>
 {
     /// <summary>

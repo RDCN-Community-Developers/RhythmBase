@@ -6,372 +6,403 @@ namespace RhythmBase.Global.Components;
 
 public static class CollectionBuilders
 {
-    public static EnumCollection<TEnum> BuildEnumCollection<TEnum>(ReadOnlySpan<TEnum> values) where TEnum : struct, Enum
-    {
-        EnumCollection<TEnum> collection = new(values);
-        return collection;
-    }
-    public static ReadOnlyEnumCollection<TEnum> BuildReadOnlyEnumCollection<TEnum>(ReadOnlySpan<TEnum> values) where TEnum : struct, Enum
-    {
-        ReadOnlyEnumCollection<TEnum> collection = new(values);
-        return collection;
-    }
+	public static EnumCollection<TEnum> BuildEnumCollection<TEnum>(ReadOnlySpan<TEnum> values) where TEnum : unmanaged, Enum
+	{
+		EnumCollection<TEnum> collection = new(values);
+		return collection;
+	}
+	public static ReadOnlyEnumCollection<TEnum> BuildReadOnlyEnumCollection<TEnum>(ReadOnlySpan<TEnum> values) where TEnum : unmanaged, Enum
+	{
+		ReadOnlyEnumCollection<TEnum> collection = new(values);
+		return collection;
+	}
 }
 /// <summary>
 /// Represents a compact set-like collection for storing values of an enum type, providing efficient add, remove, and
 /// enumeration operations.
 /// </summary>
-/// <remarks>This collection optimized for scenarios where you need to track membership of enum values
-/// with minimal memory overhead. It is suitable for enums with underlying values that fit within the supported range.
-/// The collection does not allow duplicate values and does not preserve insertion order. Thread safety is not
-/// guaranteed; external synchronization is required for concurrent access.</remarks>
-/// <typeparam name="TEnum">The enum type to be stored in the collection. Must be a value type that derives from Enum.</typeparam>
+/// <typeparam name="TEnum">The enum type to be stored in the collection.</typeparam>
 [CollectionBuilder(typeof(CollectionBuilders), nameof(CollectionBuilders.BuildEnumCollection))]
-public struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : struct, Enum
+public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : unmanaged, Enum
 {
-    private const int bw = sizeof(ulong) * 8;
-    private readonly ulong mask;
-    internal readonly ulong[] _bits;
-    /// <summary>
-    /// Initializes a new instance of the EnumCollection class with the specified capacity.
-    /// </summary>
-    /// <remarks>The capacity determines the initial size of the underlying storage. If more elements are added
-    /// than the specified capacity, the collection may need to resize internally, which can impact performance.</remarks>
-    /// <param name="capacity">The number of elements that the collection can initially store. Must be greater than zero.</param>
-    public EnumCollection(int capacity)
-    {
-        _bits = new ulong[capacity];
-        int byteWidth = Unsafe.SizeOf<TEnum>();
-        int bitWidth = byteWidth * 8;
-        mask = (bitWidth >= 64) ? ulong.MaxValue : ((1ul << bitWidth) - 1ul);
-    }
-    /// <summary>
-    /// Initializes a new instance of the EnumCollection class for the specified enum type.
-    /// </summary>
-    /// <remarks>This constructor determines the required storage size based on the maximum value of the provided
-    /// enum type. The enum type must have underlying values that fit within the supported bit width; otherwise, an
-    /// exception is thrown.</remarks>
-    /// <exception cref="InvalidOperationException">Thrown if the maximum value of the enum type exceeds the supported range for internal storage.</exception>
-    public EnumCollection()
-    {
-        ulong enumMax = 0;
-        int byteWidth = Unsafe.SizeOf<TEnum>();
-        ulong enumMask = (byteWidth * 8 >= 64) ? ulong.MaxValue : ((1ul << (byteWidth * 8)) - 1ul);
-        foreach (TEnum value in Enum.GetValues<TEnum>())
-        {
-            TEnum vt = value;
-            ulong v = Convert.ToUInt64(vt) & enumMask;
-            if (v > enumMax)
-                enumMax = v;
-        }
-        int size;
-        try
-        {
-            size = checked((int)(enumMax / bw) + 1);
-        }
-        catch
-        {
-            throw new InvalidOperationException("The enum value is too big.");
-        }
-        _bits = new ulong[size];
-        mask = enumMask;
-    }
-    /// <summary>
-    /// Initializes a new instance of the collection with the supplied enum values.
-    /// </summary>
-    /// <param name="values">A parameter array whose values are immediately added to the collection.</param>
-    public EnumCollection(params TEnum[] values) : this()
-    {
-        foreach (TEnum value in values)
-            Add(value);
-    }
-    /// <summary>
-    /// Initializes a new instance of the collection with the supplied enumerable sequence.
-    /// </summary>
-    /// <param name="values">An enumerable sequence whose values are immediately added to the collection.</param>
-    public EnumCollection(IEnumerable<TEnum> values) : this()
-    {
-        foreach (TEnum value in values)
-            Add(value);
-    }
-    /// <summary>
-    /// Initializes a new instance of the collection with the supplied read-only span.
-    /// </summary>
-    /// <param name="values">A read-only span whose values are immediately added to the collection.</param>
-    public EnumCollection(ReadOnlySpan<TEnum> values) : this()
-    {
-        foreach (TEnum value in values)
-            Add(value);
-    }
-    private readonly ulong ToUL(TEnum value) => Unsafe.As<TEnum, ulong>(ref value) & mask;
-    private static TEnum ToEnum(ulong value) => Unsafe.As<ulong, TEnum>(ref value);
-    /// <summary>
-    /// Gets the number of elements contained in the collection.
-    /// </summary>
-    public readonly int Count
-    {
-        get
-        {
-            int count = 0;
-            foreach (ulong block in _bits)
-            {
-                ulong b = block;
-                while (b != 0)
-                {
-                    b &= (b - 1);
-                    count++;
-                }
-            }
-            return count;
-        }
-    }
-    /// <summary>
-    /// Gets a value indicating whether the collection contains no elements.
-    /// </summary>
-    public readonly bool IsEmpty
-    {
-        get
-        {
-            foreach (ulong block in _bits)
-                if (block != 0) return false;
-            return true;
-        }
-    }
-    /// <summary>
-    /// Attempts to add the specified enum value to the collection if it is not already present.
-    /// </summary>
-    /// <param name="item">The enum value to add to the collection. Must be within the valid range of the collection.</param>
-    /// <returns>true if the value was successfully added; otherwise, false if the value was already present.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if item is outside the valid range of enum values supported by the collection.</exception>
-    public readonly bool Add(TEnum item)
-    {
-        ulong v = ToUL(item);
-        int div = (int)(v / bw);
-        int rem = (int)(v % bw);
-        if (div >= _bits.Length || div < 0) throw new ArgumentOutOfRangeException(nameof(item), "Enum value out of collection range.");
-        if ((_bits[div] & (1ul << rem)) != 0)
-            return false;
-        _bits[div] |= (1ul << rem);
-        return true;
-    }
-    /// <summary>
-    /// Removes the specified enumeration value from the collection if it exists.
-    /// </summary>
-    /// <param name="item">The enumeration value to remove from the collection.</param>
-    /// <returns>true if the value was present and successfully removed; otherwise, false.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if the specified enumeration value is outside the valid range of the collection.</exception>
-    public readonly bool Remove(TEnum item)
-    {
-        ulong v = ToUL(item);
-        int div = (int)(v / bw);
-        int rem = (int)(v % bw);
-        if (div >= _bits.Length || div < 0) throw new ArgumentOutOfRangeException(nameof(item), "Enum value out of collection range.");
-        if ((_bits[div] & (1ul << rem)) == 0)
-            return false;
-        _bits[div] &= ~(1ul << rem);
-        return true;
-    }
-    /// <summary>
-    /// Determines whether the specified enumeration value is present in the current set.
-    /// </summary>
-    /// <param name="type">The enumeration value to locate within the set.</param>
-    /// <returns>true if the specified value is contained in the set; otherwise, false.</returns>
-    public readonly bool Contains(TEnum type)
-    {
-        ulong v = ToUL(type);
-        int div = (int)(v / bw);
-        int rem = (int)(v % bw);
-        return div >= _bits.Length || div < 0 ? false : (_bits[div] & (1ul << rem)) != 0;
-    }
-    /// <summary>
-    /// Determines whether the collection contains any of the specified enumeration values.
-    /// </summary>
-    /// <param name="types">An array of enumeration values to check for presence in the collection. Can be empty.</param>
-    /// <returns>true if at least one of the specified enumeration values is contained in the collection; otherwise, false.</returns>
-    public readonly bool ContainsAny(params TEnum[] types)
-    {
-        foreach (TEnum type in types)
-            if (Contains(type)) return true;
-        return false;
-    }
-    /// <summary>
-    /// Determines whether the collection contains any of the specified enumeration values.
-    /// </summary>
-    /// <param name="types">A parameter array of enumeration value collections to check for presence in the collection. Each enumerable may
-    /// contain one or more values to test.</param>
-    /// <returns>true if at least one of the specified enumeration values is present in the collection; otherwise, false.</returns>
-    public readonly bool ContainsAny(params IEnumerable<TEnum> types)
-    {
-        foreach (TEnum type in types)
-            if (Contains(type)) return true;
-        return false;
-    }
-    /// <summary>
-    /// Determines whether the collection contains any of the specified enumeration values.
-    /// </summary>
-    /// <param name="types">A parameter array of enumeration value collections to check for presence in the collection. Each enumerable may
-    /// contain one or more values to test.</param>
-    /// <returns>true if at least one of the specified enumeration values is present in the collection; otherwise, false.</returns>
-    public readonly bool ContainsAny(EnumCollection<TEnum> types)
-    {
-        for (int i = 0; i < Math.Min(_bits.Length, types._bits.Length); i++)
-            if ((_bits[i] & types._bits[i]) != 0)
-                return true;
-        return false;
-    }
-    /// <summary>
-    /// Determines whether all specified enumeration values are contained within the current set.
-    /// </summary>
-    /// <param name="types">An array of enumeration values to check for containment. Cannot be null. The method returns false if any value in
-    /// the array is not present.</param>
-    /// <returns>true if all specified enumeration values are contained; otherwise, false.</returns>
-    public readonly bool ContainsAll(params TEnum[] types)
-    {
-        foreach (TEnum type in types)
-            if (!Contains(type)) return false;
-        return true;
-    }
-    /// <summary>
-    /// Determines whether all specified enumeration values are contained within the current set.
-    /// </summary>
-    /// <remarks>If any collection in the parameter array is null, the method may throw an exception. The method
-    /// returns false as soon as a missing value is found, which may improve performance for large sets.</remarks>
-    /// <param name="types">A parameter array of enumeration value collections to check for containment. Each collection must not be null.</param>
-    /// <returns>true if every enumeration value in all provided collections is contained; otherwise, false.</returns>
-    public readonly bool ContainsAll(params IEnumerable<TEnum> types)
-    {
-        foreach (TEnum type in types)
-            if (!Contains(type)) return false;
-        return true;
-    }
-    /// <summary>
-    /// Determines whether all specified enumeration values are contained within the current set.
-    /// </summary>
-    /// <remarks>If any collection in the parameter array is null, the method may throw an exception. The method
-    /// returns false as soon as a missing value is found, which may improve performance for large sets.</remarks>
-    /// <param name="types">A parameter array of enumeration value collections to check for containment. Each collection must not be null.</param>
-    /// <returns>true if every enumeration value in all provided collections is contained; otherwise, false.</returns>
-    public readonly bool ContainsAll(EnumCollection<TEnum> types)
-    {
-        for (int i = 0; i < Math.Min(_bits.Length, types._bits.Length); i++)
-        {
-            ulong tBits = types._bits[i];
-            if (tBits != 0 && (_bits[i] & tBits) != tBits)
-                return false;
-        }
-        return true;
-    }
-    /// <summary>
-    /// Returns a new collection containing the elements that exist in both this collection and the specified collection.
-    /// </summary>
-    /// <param name="other">The collection to compare with the current collection. Only elements present in both collections will be included
-    /// in the result.</param>
-    /// <returns>An <see cref="EnumCollection{TEnum}"/> containing the intersection of the two collections. The result will be empty if there are
-    /// no common elements.</returns>
-    public readonly EnumCollection<TEnum> Intersect(EnumCollection<TEnum> other)
-    {
-        int size = Math.Min(_bits.Length, other._bits.Length);
-        EnumCollection<TEnum> result = new(size);
-        for (int i = 0; i < size; i++)
-            result._bits[i] = _bits[i] & other._bits[i];
-        return result;
-    }
-    /// <summary>
-    /// Returns a new collection containing the elements of this collection that are not present in the specified
-    /// collection.
-    /// </summary>
-    /// <param name="other">The collection whose elements should be excluded from the result. Cannot be null.</param>
-    /// <returns>A new <see cref="EnumCollection{TEnum}"/> containing the elements that exist in this collection but not in
-    /// <paramref name="other"/>.</returns>
-    public readonly EnumCollection<TEnum> Except(EnumCollection<TEnum> other)
-    {
-        int size = Math.Min(_bits.Length, other._bits.Length);
-        EnumCollection<TEnum> result = new(_bits.Length);
-        for (int i = 0; i < size; i++)
-            result._bits[i] = _bits[i] & ~other._bits[i];
-        for (int i = size; i < _bits.Length; i++)
-            result._bits[i] = _bits[i];
-        return result;
-    }
-    /// <summary>
-    /// Returns a new collection containing the symmetric difference between this collection and the specified collection.
-    /// </summary>
-    /// <param name="other">The collection to compare with the current collection. The symmetric difference will include elements present in
-    /// either collection but not in both.</param>
-    /// <returns>An <see cref="EnumCollection{TEnum}"/> containing elements that are present in either this collection or <paramref
-    /// name="other"/>, but not in both.</returns>
-    public readonly EnumCollection<TEnum> SymmetricExcept(EnumCollection<TEnum> other)
-    {
-        int size = Math.Max(_bits.Length, other._bits.Length);
-        EnumCollection<TEnum> result = new(size);
-        for (int i = 0; i < size; i++)
-        {
-            ulong a = (i < _bits.Length) ? _bits[i] : 0ul;
-            ulong b = (i < other._bits.Length) ? other._bits[i] : 0ul;
-            result._bits[i] = a ^ b;
-        }
-        return result;
-    }
-    /// <summary>
-    /// Returns a new collection that contains all elements present in either this collection or the specified collection.
-    /// </summary>
-    /// <param name="other">The collection whose elements will be combined with those of this collection. Cannot be null.</param>
-    /// <returns>An <see cref="EnumCollection{TEnum}"/> containing the union of elements from this collection and <paramref
-    /// name="other"/>.</returns>
-    public readonly EnumCollection<TEnum> Union(EnumCollection<TEnum> other)
-    {
-        int size = Math.Max(_bits.Length, other._bits.Length);
-        EnumCollection<TEnum> result = new(size);
-        for (int i = 0; i < size; i++)
-        {
-            ulong a = (i < _bits.Length) ? _bits[i] : 0ul;
-            ulong b = (i < other._bits.Length) ? other._bits[i] : 0ul;
-            result._bits[i] = a | b;
-        }
-        return result;
-    }
-    /// <summary>
-    /// Returns a read-only wrapper for the current collection.
-    /// </summary>
-    /// <remarks>The returned collection reflects changes made to the underlying collection. To prevent
-    /// modifications, ensure that the original collection is not altered after creating the read-only wrapper.</remarks>
-    /// <returns>A <see cref="ReadOnlyEnumCollection{TEnum}"/> that provides a read-only view of the current collection.</returns>
-    public readonly ReadOnlyEnumCollection<TEnum> AsReadOnly()
-    {
-        return new ReadOnlyEnumCollection<TEnum>(this);
-    }
-    /// <summary>
-    /// Returns an enumerator that iterates through the set of values contained in the collection.
-    /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public readonly IEnumerator<TEnum> GetEnumerator()
-    {
-        for (int div = 0; div < _bits.Length; div++)
-        {
-            ulong block = _bits[div];
-            while (block != 0)
-            {
-                int rem = TrailingZeroCount(block);
-                ulong value = (ulong)(div * bw + rem);
-                yield return ToEnum(value);
-                block &= (block - 1);
-            }
-        }
-    }
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    private static int TrailingZeroCount(ulong v)
-    {
+	private static readonly int bw = sizeof(nuint) * 8;
+	private readonly nuint signMask;
+	internal nuint[] _lowerBits;
+	internal nuint[] _upperBits;
+	private readonly nuint[] Lower => _lowerBits ?? Array.Empty<nuint>();
+	private readonly nuint[] Upper => _upperBits ?? Array.Empty<nuint>();
+	private static nuint ComputeSignMask()
+	{
+		int bitWidth = sizeof(TEnum) * 8;
+		return (bitWidth >= bw) ? 0u : ((nuint)1 << (bitWidth - 1));
+	}
+	private static void Classify(nuint raw, nuint signMask, out nuint index, out bool isNegative)
+	{
+		isNegative = (raw & signMask) != 0;
+		index = isNegative ? (~raw & (signMask - 1)) : (raw & (signMask - 1));
+	}
+	private readonly TEnum ToEnum(nuint index, bool isNegative)
+	{
+		nuint value = isNegative ? (~index & (signMask - 1)) | signMask : (index & (signMask - 1));
+		return Unsafe.As<nuint, TEnum>(ref value);
+	}
+	/// <summary>
+	/// Initializes a new instance of the EnumCollection class, sizing automatically from the enum type.
+	/// </summary>
+	/// <exception cref="InvalidOperationException">Thrown if the enum values exceed the supported range.</exception>
+	public EnumCollection()
+	{
+		signMask = ComputeSignMask();
+		nuint enumLowerMax = 0;
+		nuint enumUpperMax = 0;
+		foreach (TEnum value in Enum.GetValues<TEnum>())
+		{
+			TEnum vt = value;
+			nuint v = Unsafe.As<TEnum, nuint>(ref vt);
+			Classify(v, signMask, out nuint idx, out bool neg);
+			if (neg)
+			{
+				if (idx > enumUpperMax) enumUpperMax = idx;
+			}
+			else
+			{
+				if (idx > enumLowerMax) enumLowerMax = idx;
+			}
+		}
+		int lowerSize, upperSize;
+		try
+		{
+			lowerSize = checked((int)(enumLowerMax / (nuint)bw) + 1);
+			upperSize = checked((int)(enumUpperMax / (nuint)bw) + 1);
+		}
+		catch
+		{
+			throw new InvalidOperationException("The enum value is too big.");
+		}
+		_lowerBits = new nuint[lowerSize];
+		_upperBits = new nuint[upperSize];
+	}
+	/// <summary>
+	/// Initializes a new instance of the collection with the supplied enum values.
+	/// </summary>
+	/// <param name="values">A parameter array whose values are immediately added to the collection.</param>
+	public EnumCollection(params TEnum[] values) : this()
+	{
+		foreach (TEnum value in values)
+			Add(value);
+	}
+	/// <summary>
+	/// Initializes a new instance of the collection with the supplied read-only span.
+	/// </summary>
+	/// <param name="values">A read-only span whose values are immediately added to the collection.</param>
+	public EnumCollection(params ReadOnlySpan<TEnum> values) : this()
+	{
+		foreach (TEnum value in values)
+			Add(value);
+	}
+	internal EnumCollection(nuint[] lowerBits, nuint[] upperBits, nuint signMask)
+	{
+		this.signMask = signMask;
+		_lowerBits = lowerBits;
+		_upperBits = upperBits;
+	}
+	/// <summary>
+	/// Gets the number of elements contained in the collection.
+	/// </summary>
+	public readonly int Count
+	{
+		get
+		{
+			int count = 0;
+			foreach (nuint block in Lower)
+			{
+				nuint b = block;
+				while (b != 0) { b &= (b - 1); count++; }
+			}
+			foreach (nuint block in Upper)
+			{
+				nuint b = block;
+				while (b != 0) { b &= (b - 1); count++; }
+			}
+			return count;
+		}
+	}
+	/// <summary>
+	/// Gets a value indicating whether the collection contains no elements.
+	/// </summary>
+	public readonly bool IsEmpty
+	{
+		get
+		{
+			foreach (nuint block in Lower)
+				if (block != 0) return false;
+			foreach (nuint block in Upper)
+				if (block != 0) return false;
+			return true;
+		}
+	}
+	/// <summary>
+	/// Attempts to add the specified enum value to the collection if it is not already present.
+	/// </summary>
+	/// <param name="item">The enum value to add.</param>
+	/// <returns>true if the value was successfully added; otherwise, false if already present.</returns>
+	public bool Add(TEnum item)
+	{
+		nuint v = Unsafe.As<TEnum, nuint>(ref item);
+		Classify(v, signMask, out nuint idx, out bool neg);
+		int div = (int)(idx / (nuint)bw);
+		int rem = (int)(idx % (nuint)bw);
+		ref nuint[] bits = ref neg ? ref _upperBits : ref _lowerBits;
+		if (bits is null || div >= bits.Length)
+			Array.Resize(ref bits, div + 1);
+		if ((bits[div] & ((nuint)1 << rem)) != 0)
+			return false;
+		bits[div] |= ((nuint)1 << rem);
+		return true;
+	}
+	/// <summary>
+	/// Removes the specified enumeration value from the collection if it exists.
+	/// </summary>
+	/// <param name="item">The enumeration value to remove.</param>
+	/// <returns>true if the value was present and successfully removed; otherwise, false.</returns>
+	public readonly bool Remove(TEnum item)
+	{
+		nuint v = Unsafe.As<TEnum, nuint>(ref item);
+		Classify(v, signMask, out nuint idx, out bool neg);
+		nuint[] bits = neg ? Upper : Lower;
+		int div = (int)(idx / (nuint)bw);
+		int rem = (int)(idx % (nuint)bw);
+		if (div >= bits.Length) return false;
+		if ((bits[div] & ((nuint)1 << rem)) == 0)
+			return false;
+		bits[div] &= ~((nuint)1 << rem);
+		return true;
+	}
+	/// <summary>
+	/// Determines whether the specified enumeration value is present in the current set.
+	/// </summary>
+	/// <param name="type">The enumeration value to locate.</param>
+	/// <returns>true if the value is contained; otherwise, false.</returns>
+	public readonly bool Contains(TEnum type)
+	{
+		nuint v = Unsafe.As<TEnum, nuint>(ref type);
+		Classify(v, signMask, out nuint idx, out bool neg);
+		nuint[] bits = neg ? Upper : Lower;
+		int div = (int)(idx / (nuint)bw);
+		int rem = (int)(idx % (nuint)bw);
+		return div >= 0 && div < bits.Length && (bits[div] & ((nuint)1 << rem)) != 0;
+	}
+	/// <summary>
+	/// Determines whether the collection contains any of the specified enumeration values.
+	/// </summary>
+	public readonly bool ContainsAny(params TEnum[] types)
+	{
+		foreach (TEnum type in types)
+			if (Contains(type)) return true;
+		return false;
+	}
+	/// <summary>
+	/// Determines whether the collection contains any of the specified enumeration values.
+	/// </summary>
+	public readonly bool ContainsAny(params IEnumerable<TEnum> types)
+	{
+		foreach (TEnum type in types)
+			if (Contains(type)) return true;
+		return false;
+	}
+	/// <summary>
+	/// Determines whether the collection contains any of the specified enumeration values.
+	/// </summary>
+	public readonly bool ContainsAny(EnumCollection<TEnum> types)
+	{
+		nuint[] thisLower = Lower, thisUpper = Upper;
+		nuint[] otherLower = types.Lower, otherUpper = types.Upper;
+		for (int i = 0; i < Math.Min(thisLower.Length, otherLower.Length); i++)
+			if ((thisLower[i] & otherLower[i]) != 0) return true;
+		for (int i = 0; i < Math.Min(thisUpper.Length, otherUpper.Length); i++)
+			if ((thisUpper[i] & otherUpper[i]) != 0) return true;
+		return false;
+	}
+	/// <summary>
+	/// Determines whether all specified enumeration values are contained within the current set.
+	/// </summary>
+	public readonly bool ContainsAll(params TEnum[] types)
+	{
+		foreach (TEnum type in types)
+			if (!Contains(type)) return false;
+		return true;
+	}
+	/// <summary>
+	/// Determines whether all specified enumeration values are contained within the current set.
+	/// </summary>
+	public readonly bool ContainsAll(params IEnumerable<TEnum> types)
+	{
+		foreach (TEnum type in types)
+			if (!Contains(type)) return false;
+		return true;
+	}
+	/// <summary>
+	/// Determines whether all specified enumeration values are contained within the current set.
+	/// </summary>
+	public readonly bool ContainsAll(EnumCollection<TEnum> types)
+	{
+		nuint[] thisLower = Lower, thisUpper = Upper;
+		nuint[] otherLower = types.Lower, otherUpper = types.Upper;
+		for (int i = 0; i < Math.Min(thisLower.Length, otherLower.Length); i++)
+		{
+			nuint tBits = otherLower[i];
+			if (tBits != 0 && (thisLower[i] & tBits) != tBits) return false;
+		}
+		for (int i = thisLower.Length; i < otherLower.Length; i++)
+			if (otherLower[i] != 0) return false;
+		for (int i = 0; i < Math.Min(thisUpper.Length, otherUpper.Length); i++)
+		{
+			nuint tBits = otherUpper[i];
+			if (tBits != 0 && (thisUpper[i] & tBits) != tBits) return false;
+		}
+		for (int i = thisUpper.Length; i < otherUpper.Length; i++)
+			if (otherUpper[i] != 0) return false;
+		return true;
+	}
+	private static nuint[] BitwiseAnd(ReadOnlySpan<nuint> a, ReadOnlySpan<nuint> b)
+	{
+		int size = Math.Min(a.Length, b.Length);
+		nuint[] result = new nuint[size];
+		for (int i = 0; i < size; i++)
+			result[i] = a[i] & b[i];
+		return result;
+	}
+	private static nuint[] BitwiseAndNot(ReadOnlySpan<nuint> a, ReadOnlySpan<nuint> b)
+	{
+		int size = Math.Min(a.Length, b.Length);
+		nuint[] result = new nuint[a.Length];
+		for (int i = 0; i < size; i++)
+			result[i] = a[i] & ~b[i];
+		for (int i = size; i < a.Length; i++)
+			result[i] = a[i];
+		return result;
+	}
+	private static nuint[] BitwiseXor(ReadOnlySpan<nuint> a, ReadOnlySpan<nuint> b)
+	{
+		int size = Math.Max(a.Length, b.Length);
+		nuint[] result = new nuint[size];
+		for (int i = 0; i < size; i++)
+		{
+			nuint va = (i < a.Length) ? a[i] : 0u;
+			nuint vb = (i < b.Length) ? b[i] : 0u;
+			result[i] = va ^ vb;
+		}
+		return result;
+	}
+	private static nuint[] BitwiseOr(ReadOnlySpan<nuint> a, ReadOnlySpan<nuint> b)
+	{
+		int size = Math.Max(a.Length, b.Length);
+		nuint[] result = new nuint[size];
+		for (int i = 0; i < size; i++)
+		{
+			nuint va = (i < a.Length) ? a[i] : 0u;
+			nuint vb = (i < b.Length) ? b[i] : 0u;
+			result[i] = va | vb;
+		}
+		return result;
+	}
+	/// <summary>
+	/// Returns a new collection containing the elements that exist in both this collection and the specified collection.
+	/// </summary>
+	public readonly EnumCollection<TEnum> Intersect(EnumCollection<TEnum> other)
+	{
+		return new EnumCollection<TEnum>(
+				BitwiseAnd(Lower, other.Lower),
+				BitwiseAnd(Upper, other.Upper),
+				signMask);
+	}
+	/// <summary>
+	/// Returns a new collection containing the elements of this collection that are not present in the specified collection.
+	/// </summary>
+	public readonly EnumCollection<TEnum> Except(EnumCollection<TEnum> other)
+	{
+		return new EnumCollection<TEnum>(
+				BitwiseAndNot(Lower, other.Lower),
+				BitwiseAndNot(Upper, other.Upper),
+				signMask);
+	}
+	/// <summary>
+	/// Returns a new collection containing the symmetric difference between this collection and the specified collection.
+	/// </summary>
+	public readonly EnumCollection<TEnum> SymmetricExcept(EnumCollection<TEnum> other)
+	{
+		return new EnumCollection<TEnum>(
+				BitwiseXor(Lower, other.Lower),
+				BitwiseXor(Upper, other.Upper),
+				signMask);
+	}
+	/// <summary>
+	/// Returns a new collection that contains all elements present in either this collection or the specified collection.
+	/// </summary>
+	public readonly EnumCollection<TEnum> Union(EnumCollection<TEnum> other)
+	{
+		return new EnumCollection<TEnum>(
+				BitwiseOr(Lower, other.Lower),
+				BitwiseOr(Upper, other.Upper),
+				signMask);
+	}
+	/// <summary>
+	/// Returns a read-only wrapper for the current collection.
+	/// </summary>
+	public readonly ReadOnlyEnumCollection<TEnum> AsReadOnly()
+	{
+		nuint[] srcLower = Lower;
+		nuint[] srcUpper = Upper;
+		nuint[] newLower = new nuint[srcLower.Length];
+		Array.Copy(srcLower, newLower, srcLower.Length);
+		nuint[] newUpper = new nuint[srcUpper.Length];
+		Array.Copy(srcUpper, newUpper, srcUpper.Length);
+		return new ReadOnlyEnumCollection<TEnum>(newLower, newUpper, signMask);
+	}
+	/// <summary>
+	/// Returns an enumerator that iterates through the set of values contained in the collection.
+	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	public readonly IEnumerator<TEnum> GetEnumerator()
+	{
+		nuint[] upper = Upper, lower = Lower;
+		for (int div = 0; div < lower.Length; div++)
+		{
+			nuint block = lower[div];
+			while (block != 0)
+			{
+				int rem = TrailingZeroCount(block);
+				nuint value = (nuint)(div * bw + rem);
+				yield return ToEnum(value, false);
+				block &= (block - 1);
+			}
+		}
+		for (int div = upper.Length - 1; div >= 0; div--)
+		{
+			nuint block = upper[div];
+			while (block != 0)
+			{
+				int rem = TrailingZeroCount(block);
+				nuint value = (nuint)(div * bw + rem);
+				yield return ToEnum(value, true);
+				block &= (block - 1);
+			}
+		}
+	}
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+	private static int TrailingZeroCount(nuint v)
+	{
 #if NET8_0_OR_GREATER
-		return System.Numerics.BitOperations.TrailingZeroCount(v);
+		return System.Numerics.BitOperations.TrailingZeroCount((ulong)v);
 #else
-        int c = 0;
-        while ((v & 1ul) == 0)
-        {
-            v >>= 1;
-            c++;
-        }
-        return c;
+		int c = 0;
+		while ((v & (nuint)1) == 0)
+		{
+			v >>= 1;
+			c++;
+		}
+		return c;
 #endif
-    }
+	}
 }

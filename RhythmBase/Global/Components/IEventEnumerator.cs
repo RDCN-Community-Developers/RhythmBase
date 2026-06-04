@@ -6,7 +6,7 @@ namespace RhythmBase.Global.Components;
 public class EventEnumerator<TEvent, TType, TBeat>(RedBlackTree<TBeat, TypedEventCollection<TType, TBeat>> collection, ReadOnlyEnumCollection<TType> types, ITickRange<TBeat> range)
     : IEventEnumerable<TEvent, TType, TBeat>, IEnumerator<TEvent>
     where TEvent : IEvent<TType, TBeat>
-    where TType : struct, Enum
+    where TType : unmanaged, Enum
     where TBeat : struct, ITickTime<TBeat>
 {
     protected readonly IEnumerator<KeyValuePair<TBeat, TypedEventCollection<TType, TBeat>>> beats = collection.GetEnumerator();

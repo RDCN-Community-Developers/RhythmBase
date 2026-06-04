@@ -98,14 +98,14 @@ public partial record class SetGameSound : BaseEvent, IAudioFileEvent
 					and not SoundType.BurnshotSound)
 					? [Audio.Filename]
 					: [];
-	internal readonly ReadOnlyEnumCollection<SoundType> MultipleSoundTypes = new(
+	internal readonly ReadOnlyEnumCollection<SoundType> MultipleSoundTypes = [
 		SoundType.ClapSoundHold,
 		SoundType.ClapSoundHoldP2,
 		SoundType.PulseSoundHold,
 		SoundType.PulseSoundHoldP2,
 		SoundType.BurnshotSound,
 		SoundType.FreezeshotSound
-	);
+	];
 	/// <summary>  
 	/// Returns a string that represents the current object.  
 	/// </summary>  

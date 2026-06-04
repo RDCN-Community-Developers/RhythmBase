@@ -80,7 +80,7 @@ public record class SetTheme : BaseEvent, IRoomEvent, IEaseEvent
 	public float Duration { get; set; }
 	///<inheritdoc/>
 	public override string ToString() => base.ToString() + $" {Preset}";
-	internal static readonly ReadOnlyEnumCollection<Theme> ThemesHasPosition = new(
+	internal static readonly ReadOnlyEnumCollection<Theme> ThemesHasPosition = [
 		Theme.TrainDay,
 		Theme.TrainNight,
 		Theme.DesertDay,
@@ -93,5 +93,5 @@ public record class SetTheme : BaseEvent, IRoomEvent, IEaseEvent
 		Theme.AthleteWardNight,
 		Theme.Airport,
 		Theme.RecordsRoom,
-		Theme.AbandonedWard);
+		Theme.AbandonedWard];
 }

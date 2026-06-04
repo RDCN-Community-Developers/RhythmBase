@@ -12,7 +12,7 @@ namespace RhythmBase.Global.Components;
 /// 
 public abstract class OrderedEventCollection<TEvent, TType, TTickTime> : ICollection<TEvent>, IEventEnumerable<TEvent, TType, TTickTime>
     where TEvent : IEvent<TType, TTickTime>
-    where TType : struct, Enum
+    where TType : unmanaged, Enum
     where TTickTime : struct, ITickTime<TTickTime>
 {
     /// <summary>

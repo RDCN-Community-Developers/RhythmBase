@@ -22,7 +22,7 @@ partial class ClassEnumMap
     /// <summary>  
     /// Custom event types.  
     /// </summary>  
-    public static readonly ReadOnlyEnumCollection<EventType> CustomTypes = new(2,
+    public static readonly ReadOnlyEnumCollection<EventType> CustomTypes = new(
         EventType.ForwardEvent,
         EventType.ForwardRowEvent,
         EventType.ForwardDecorationEvent
@@ -30,7 +30,7 @@ partial class ClassEnumMap
     /// <summary>  
     /// Event types for gameplay.  
     /// </summary>  
-    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForGameplay = new(2,
+    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForGameplay = new(
         EventType.HideRow,
         EventType.ChangePlayersRows,
         EventType.FinishLevel,
@@ -41,7 +41,7 @@ partial class ClassEnumMap
     /// <summary>  
     /// Event types for environment.  
     /// </summary>  
-    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForEnvironment = new(2,
+    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForEnvironment = new(
         EventType.SetTheme,
         EventType.SetBackgroundColor,
         EventType.SetForeground,
@@ -52,7 +52,7 @@ partial class ClassEnumMap
     /// <summary>  
     /// Event types for row effects.  
     /// </summary>  
-    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForRowFX = new(2,
+    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForRowFX = new(
         EventType.HideRow,
         EventType.MoveRow,
         EventType.PlayExpression,
@@ -61,7 +61,7 @@ partial class ClassEnumMap
     /// <summary>  
     /// Event types for camera effects.  
     /// </summary>  
-    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForCameraFX = new(2,
+    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForCameraFX = new(
         EventType.MoveCamera,
         EventType.ShakeScreen,
         EventType.FlipScreen,
@@ -70,7 +70,7 @@ partial class ClassEnumMap
     /// <summary>  
     /// Event types for visual effects.  
     /// </summary>  
-    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForVisualFX = new(2,
+    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForVisualFX = new(
         EventType.SetVFXPreset,
         EventType.SetSpeed,
         EventType.Flash,
@@ -84,7 +84,7 @@ partial class ClassEnumMap
     /// <summary>  
     /// Event types for text effects.  
     /// </summary>  
-    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForText = new(2,
+    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForText = new(
         EventType.TextExplosion,
         EventType.ShowDialogue,
         EventType.ShowStatusSign,
@@ -94,7 +94,7 @@ partial class ClassEnumMap
     /// <summary>  
     /// Event types for utility actions.  
     /// </summary>  
-    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForUtility = new(2,
+    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForUtility = new(
         EventType.Comment,
         EventType.TagAction,
         EventType.CallCustomMethod
@@ -103,7 +103,7 @@ partial class ClassEnumMap
     /// <summary>  
     /// Event types that inherit from classic row actions.  
     /// </summary>  
-    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForRowClassic = new(2,
+    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForRowClassic = new(
          EventType.AddClassicBeat,
          EventType.AddFreeTimeBeat,
          EventType.PulseFreeTimeBeat,
@@ -112,7 +112,7 @@ partial class ClassEnumMap
     /// <summary>  
     /// Event types that inherit from oneshot row actions.  
     /// </summary>  
-    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForRowOneshot = new(2,
+    public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForRowOneshot = new(
          EventType.AddOneshotBeat,
          EventType.SetOneshotWave
     );

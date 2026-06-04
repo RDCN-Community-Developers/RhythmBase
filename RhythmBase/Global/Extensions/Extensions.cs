@@ -81,7 +81,7 @@ public static class Extensions
 	public static ReadOnlyEnumCollection<TType> TypesOf<TEvent, TTarget, TType, TBeat>()
 			where TEvent : IEvent<TType, TBeat>
 			where TTarget : IEvent<TType, TBeat>
-			where TType : struct, Enum
+			where TType : unmanaged, Enum
 			where TBeat : struct, ITickTime<TBeat>
 	{
 		//if (typeof(TType) == typeof(RhythmDoctor.EventType))

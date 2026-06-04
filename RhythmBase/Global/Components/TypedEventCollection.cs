@@ -8,7 +8,7 @@ namespace RhythmBase.Global.Components;
 /// <typeparam name="TType">The type of the event type. Must be a struct and an enum.</typeparam>
 /// <typeparam name="TBeat">The type of the beat. Must be a struct and implement <see cref="ITickTime{TBeat}"/>.</typeparam>
 public class TypedEventCollection<TType, TBeat> : IEnumerable<IEvent>
-    where TType : struct, Enum
+    where TType : unmanaged, Enum
     where TBeat : struct, ITickTime<TBeat>
 {
     /// <summary>
@@ -75,5 +75,5 @@ public class TypedEventCollection<TType, TBeat> : IEnumerable<IEvent>
     IEnumerator IEnumerable.GetEnumerator() =>
         list.GetEnumerator();
     private readonly List<IEvent> list = [];
-    private readonly EnumCollection<TType> _types = new(2);
+    private readonly EnumCollection<TType> _types = [];
 }

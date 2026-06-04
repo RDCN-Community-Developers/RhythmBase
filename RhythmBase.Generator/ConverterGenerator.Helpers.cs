@@ -816,8 +816,8 @@ public static partial class ClassEnumMap
 				if (pair.Value.Count == 0)
 					continue;
 				sb.AppendLine($$"""
-			[typeof({{pair.Key.ToDisplayString()}})] ={{new string(' ', maxTypeStrLength - pair.Key.ToDisplayString().Length)}} new RhythmBase.Global.Components.ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}>(2, // {{pair.Value.Count}}
-			{{indent}}{{string.Join($",\n\t\t{indent}{new string(' ', 13)}", pair.Value.OrderBy(i => i.Name).Select(i => $"{i.ToDisplayString()}"))}}),
+		[typeof({{pair.Key.ToDisplayString()}})] ={{new string(' ', maxTypeStrLength - pair.Key.ToDisplayString().Length - 13)}} new RhythmBase.Global.Components.ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}>(
+		{{indent}}{{string.Join($",\n\t\t{indent}", pair.Value.OrderBy(i => i.Name).Select(i => $"{i.ToDisplayString()}"))}}),
 """);
 			}
 			sb.AppendLine($$"""

@@ -524,7 +524,7 @@ public static partial class Extensions
 
 	extension<TEvent, TType, TBeat>(OrderedEventCollection<TEvent, TType, TBeat> e)
 			where TEvent : IEvent<TType, TBeat>
-			where TType : struct, Enum
+			where TType : unmanaged, Enum
 			where TBeat : struct, ITickTime<TBeat>
 	{
 		/// <summary>
