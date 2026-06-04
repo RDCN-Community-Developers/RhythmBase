@@ -6,41 +6,38 @@ namespace RhythmBase.Rizline.Converters;
 [JsonConverterFor(typeof(Theme))]
 internal class ThemeConverter : MetadataJsonConverter<Theme>
 {
-    public override Theme Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
-    {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
-        reader.Read();
-        ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-        Theme theme = new();
-        while (reader.Read())
-        {
-            if (reader.TokenType == JsonTokenType.EndObject)
-                break;
-            JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
-            if (propertyName.SequenceEqual("colorsList"u8))
-            {
-                reader.Read();
-                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
-                reader.Read();
-                theme.BackgroundColor = ConverterHub.Read<Color>(ref reader, options);
-                reader.Read();
-                theme.ObjectColor = ConverterHub.Read<Color>(ref reader, options);
-                reader.Read();
-                theme.UserInterfaceColor = ConverterHub.Read<Color>(ref reader, options);
-                reader.Read();
-            }
-        }
-        return theme;
-    }
+	public override Theme Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
+	{
+		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
+		Theme theme = new();
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+		{
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
+			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
+			reader.Read();
+			if (propertyName.SequenceEqual("colorsList"u8))
+			{
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
+				reader.Read();
+				theme.BackgroundColor = ConverterHub.Read<Color>(ref reader, options);
+				reader.Read();
+				theme.ObjectColor = ConverterHub.Read<Color>(ref reader, options);
+				reader.Read();
+				theme.UserInterfaceColor = ConverterHub.Read<Color>(ref reader, options);
+				reader.Read();
+			}
+		}
+		return theme;
+	}
 
-    public override void Write(Utf8JsonWriter writer, Theme value, MetadataJsonSerializerOptions options)
-    {
-        writer.WriteStartObject();
-        writer.WriteStartArray("colorsList"u8);
-        ConverterHub.Write(writer, value.BackgroundColor, options);
-        ConverterHub.Write(writer, value.ObjectColor, options);
-        ConverterHub.Write(writer, value.UserInterfaceColor, options);
-        writer.WriteEndArray();
-        writer.WriteEndObject();
-    }
+	public override void Write(Utf8JsonWriter writer, Theme value, MetadataJsonSerializerOptions options)
+	{
+		writer.WriteStartObject();
+		writer.WriteStartArray("colorsList"u8);
+		ConverterHub.Write(writer, value.BackgroundColor, options);
+		ConverterHub.Write(writer, value.ObjectColor, options);
+		ConverterHub.Write(writer, value.UserInterfaceColor, options);
+		writer.WriteEndArray();
+		writer.WriteEndObject();
+	}
 }

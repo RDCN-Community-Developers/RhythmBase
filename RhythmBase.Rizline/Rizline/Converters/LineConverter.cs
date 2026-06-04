@@ -1,54 +1,71 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using RhythmBase.Rizline.Components;
-using System.Text.Json.Serialization;
-using System.Text.Json;
+﻿using RhythmBase.Rizline.Components;
 using RhythmBase.Rizline.Events;
+using System.Text;
+using System.Text.Json;
 
 namespace RhythmBase.Rizline.Converters
 {
 	[JsonConverterFor(typeof(Line))]
 	internal class LineConverter : MetadataJsonConverter<Line>
 	{
+		private readonly InstanceConverter instanceConverter = new();
 		public override Line? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 		{
-			JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 			Line line = new();
-			while (reader.Read())
+			while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 			{
-				if (reader.TokenType == JsonTokenType.EndObject)
-					break;
-				JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
 				reader.Read();
 				if (propertyName.SequenceEqual("linePoints"u8))
 				{
-					JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-						line.LinePoints.Add(ConverterHub.Read<LinePoint>(ref reader, options));
-					reader.Read();
+					{
+						LinePoint e = ConverterMap
+							.GetConverter(EventType.LinePoint)
+							.ReadProperties(ref reader, options)
+							as LinePoint
+							?? throw new JsonException("Failed to read a LinePoint event.");
+						line.LinePoints.Add(e);
+					}
 				}
 				else if (propertyName.SequenceEqual("notes"u8))
 				{
-					JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-						line.Notes.Add(ConverterHub.Read<Note>(ref reader, options));
-					reader.Read();
+					{
+						//reader.Skip();// line.Notes.Add(ConverterHub.Read<Note>(ref reader, options));
+						var note = instanceConverter.Read(ref reader, typeof(BaseNote), options);
+						if (note is BaseNote n)
+							line.Notes.Add(n);
+						else
+							throw new JsonException("Failed to read a Note event.");
+					}
 				}
 				else if (propertyName.SequenceEqual("judgeRingColor"u8))
 				{
-					JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-						line.JudgeRingColor.Add(ConverterHub.Read<JudgeRingColor>(ref reader, options));
-					reader.Read();
+					{
+						JudgeRingColor e = ConverterMap
+						.GetConverter(EventType.JudgeRingColor)
+						.ReadProperties(ref reader, options)
+						as JudgeRingColor
+						?? throw new JsonException("Failed to read a JudgeRingColor event.");
+						line.JudgeRingColor.Add(e);
+					}
 				}
 				else if (propertyName.SequenceEqual("lineColor"u8))
 				{
-					JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-						line.LineColor.Add(ConverterHub.Read<LineColor>(ref reader, options));
-					reader.Read();
+					{
+						LineColor e = ConverterMap
+						.GetConverter(EventType.LineColor)
+						.ReadProperties(ref reader, options)
+						as LineColor
+						?? throw new JsonException("Failed to read a LineColor event.");
+						line.LineColor.Add(e);
+					}
 				}
 				else
 					reader.Skip();
@@ -61,19 +78,19 @@ namespace RhythmBase.Rizline.Converters
 			writer.WriteStartObject();
 			writer.WritePropertyName("linePoints");
 			writer.WriteStartArray();
-			noIndentScope.WriteNoIndentArrayTo(options, writer, value.LinePoints, ConverterHub.Write);
+			noIndentScope.WriteNoIndentArrayTo(options, writer, value.LinePoints, instanceConverter.Write);
 			writer.WriteEndArray();
 			writer.WritePropertyName("notes");
 			writer.WriteStartArray();
-			noIndentScope.WriteNoIndentArrayTo(options, writer, value.Notes, ConverterHub.Write);
+			noIndentScope.WriteNoIndentArrayTo(options, writer, value.Notes, instanceConverter.Write);
 			writer.WriteEndArray();
 			writer.WritePropertyName("judgeRingColor");
 			writer.WriteStartArray();
-			noIndentScope.WriteNoIndentArrayTo(options, writer, value.JudgeRingColor, ConverterHub.Write);
+			noIndentScope.WriteNoIndentArrayTo(options, writer, value.JudgeRingColor, instanceConverter.Write);
 			writer.WriteEndArray();
 			writer.WritePropertyName("lineColor");
 			writer.WriteStartArray();
-			noIndentScope.WriteNoIndentArrayTo(options, writer, value.LineColor, ConverterHub.Write);
+			noIndentScope.WriteNoIndentArrayTo(options, writer, value.LineColor, instanceConverter.Write);
 			writer.WriteEndArray();
 			writer.WriteEndObject();
 		}

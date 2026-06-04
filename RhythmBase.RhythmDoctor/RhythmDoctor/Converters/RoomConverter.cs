@@ -11,13 +11,13 @@ internal class RoomConverter : JsonConverter<Room>
     private int index = 0;
     public override Room Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
         while (reader.Read())
             if (reader.TokenType == JsonTokenType.EndArray)
                 break;
             else
                 buffer[index++] = reader.GetByte();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
         Room result = new();
         for (int i = 0; i < index; i++)
             result[buffer[i]] = true;
@@ -38,12 +38,12 @@ internal class SingleRoomConverter : JsonConverter<SingleRoom>
 {
     public override SingleRoom Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
         reader.Read();
         byte index = reader.GetByte();
         SingleRoom result = new(index);
         reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
         return result;
     }
 

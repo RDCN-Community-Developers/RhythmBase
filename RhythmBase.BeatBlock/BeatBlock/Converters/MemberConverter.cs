@@ -24,7 +24,7 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 	}
 	public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 	{
-		JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 		ReadOnlySpan<byte> type = default;
 
 		Utf8JsonReader checkpoint = reader;
@@ -51,7 +51,7 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 			e = ReadForwardEvent(ref reader) ?? new ForwardEvent() { ActualType = type.ToString() ?? "" };
 		else
 			e = ConverterMap.GetConverter(typeEnum).WithReadSettings(_rs).ReadProperties(ref reader, options);
-		JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndObject]);
+		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndObject);
 		return e;
 	}
 	public static Events.IForwardEvent? ReadForwardEvent(ref Utf8JsonReader reader)
@@ -107,7 +107,7 @@ internal abstract class MemberConverter<TEvent> : EventInstanceConverterBase whe
 				value.Angle = angle;
 				return value;
 			}
-			JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
 			if (propertyName.IsEmpty)
 				throw new JsonException("Property name cannot be null.");

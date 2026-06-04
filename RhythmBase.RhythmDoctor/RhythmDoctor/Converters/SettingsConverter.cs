@@ -11,13 +11,13 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
 {
     public override Settings? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 		Settings settings = new();
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.EndObject)
             { reader.Read(); return settings; }
-            JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+            JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
             ReadOnlySpan<byte> propertyName = reader.ValueSpan;
             reader.Read();
             if (propertyName.SequenceEqual("version"u8))
@@ -84,30 +84,30 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
                 settings.LevelVolume = reader.GetSingle();
             else if (propertyName.SequenceEqual("rankMaxMistakes"u8))
             {
-                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+                JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
                 int[] ranks = new int[4];
                 for (int i = 0; i < 4; i++)
                 {
                     reader.Read();
-                    JsonException.ThrowIfNotMatch(reader, [JsonTokenType.Number]);
+                    JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.Number);
                     ranks[i] = reader.GetInt32();
                 }
                 reader.Read();
-                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+                JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
                 settings.RankMaxMistakes = ranks;
             }
             else if (propertyName.SequenceEqual("rankDescription"u8))
             {
-                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+                JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
                 string[] descriptions = new string[6];
                 for (int i = 0; i < 6; i++)
                 {
                     reader.Read();
-                    JsonException.ThrowIfNotMatch(reader, [JsonTokenType.String]);
+                    JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.String);
                     descriptions[i] = reader.GetString() ?? "";
                 }
                 reader.Read();
-                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+                JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
                 settings.RankDescription = descriptions;
             }
             else if (propertyName.SequenceEqual("mods"u8))
@@ -118,7 +118,7 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
                     reader.Read();
                     while (reader.TokenType != JsonTokenType.EndArray)
                     {
-                        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.String]);
+                        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.String);
                         mods.Add(reader.GetString() ?? "");
                         reader.Read();
                     }

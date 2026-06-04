@@ -25,18 +25,18 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		reader.Read();
 		baseEventConverter.WithReadSettings(ReadSettings);
 		Level level = [];
-		JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 		reader.Read();
 		while (true)
 		{
 
 			if (reader.TokenType == JsonTokenType.EndObject)
 				break;
-			JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 			if (reader.ValueSpan.SequenceEqual("settings"u8))
 			{
 				reader.Read();
-				JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 				level.Settings = settingsConverter.Read(ref reader, typeof(Settings), options) ?? new();
 				if (ReadSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
 					foreach (FileReference file in level.Settings.GetAllFileReferences())
@@ -52,7 +52,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 			else if (reader.ValueSpan.SequenceEqual("rows"u8))
 			{
 				reader.Read();
-				JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				while (reader.Read())
 				{
 					if (reader.TokenType == JsonTokenType.EndArray)
@@ -75,7 +75,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 			else if (reader.ValueSpan.SequenceEqual("decorations"u8))
 			{
 				reader.Read();
-				JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				while (reader.Read())
 				{
 					if (reader.TokenType == JsonTokenType.EndArray)
@@ -98,7 +98,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 			else if (reader.ValueSpan.SequenceEqual("events"u8))
 			{
 				reader.Read();
-				JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				Dictionary<int, FloatingText> floatingTexts = [];
 				List<AdvanceText> advanceTexts = [];
 				JsonElement[]? data = [];
@@ -178,7 +178,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 			else if (reader.ValueSpan.SequenceEqual("bookmarks"u8))
 			{
 				reader.Read();
-				JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				reader.Read();
 				while (true)
 				{
@@ -193,7 +193,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 			else if (reader.ValueSpan.SequenceEqual("colorPalette"u8))
 			{
 				reader.Read();
-				JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				int colorIndex = 0;
 				while (reader.Read())
 				{
@@ -211,7 +211,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 			else if (reader.ValueSpan.SequenceEqual("conditionals"u8))
 			{
 				reader.Read();
-				JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				reader.Read();
 				while (true)
 				{

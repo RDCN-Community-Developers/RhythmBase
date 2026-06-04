@@ -10,7 +10,7 @@ internal class RDCornerConverter : MetadataJsonConverter<Corner>
 {
     public override Corner Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray, JsonTokenType.Null]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray, JsonTokenType.Null);
         reader.Read();
         Corner corner = new()
         {
@@ -20,12 +20,12 @@ internal class RDCornerConverter : MetadataJsonConverter<Corner>
             RightTop = ReadOneCorner(ref reader, options)
         };
         if (reader.TokenType != JsonTokenType.EndArray)
-            JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+            JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
         return corner;
     }
     private static Point? ReadOneCorner(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray, JsonTokenType.Null]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray, JsonTokenType.Null);
         if (reader.TokenType == JsonTokenType.Null)
         {
             reader.Read();

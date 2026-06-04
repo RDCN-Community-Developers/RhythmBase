@@ -111,7 +111,7 @@ public class CameraMove
 	/// <summary>
 	/// Scale (zoom) key points for the camera. 
 	/// </summary>
-	public List<CameraScale> Scale { get; } = [];
+	public List<CameraScale> Scales { get; } = [];
 
 	/// <summary>
 	/// Horizontal position key points for camera panning. 
@@ -160,6 +160,7 @@ public class Chart : IChart<TickTime>
 	/// Canvas movement entries for each canvas/track.
 	/// </summary>
 	public List<CanvasMove> CanvasMoves { get; set; } = [];
+	public CameraMove CameraMove { get; set; } = new();
 	IBeatCalculator<TickTime> IChart<TickTime>.Calculator { get; }
 }
 

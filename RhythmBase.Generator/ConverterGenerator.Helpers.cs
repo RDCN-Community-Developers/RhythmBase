@@ -418,9 +418,9 @@ public partial class ConverterGenerator
 						sb.Append($$"""  global::RhythmBase.Global.Converters.EnumConverter.TryParse(reader.GetString(), out {{elementType.ToDisplayString()}} elementValue);""");
 					else
 						// - 非枚举或无需序列化器
-						sb.Append($$"""var elementValue = ({{type.ToDisplayString()}})reader.GetInt64();""");
+						sb.AppendLine($$"""					var elementValue = ({{elementType.ToDisplayString()}})reader.GetInt64();""");
 				else
-					sb.Append($$"""  var elementValue = ConverterHub.Read<{{elementType.ToDisplayString()}}>(ref reader, options);""");
+					sb.Append($$"""					var elementValue = ConverterHub.Read<{{elementType.ToDisplayString()}}>(ref reader, options);""");
 				sb.AppendLine($$"""
 									list.Add(elementValue);
 								}
@@ -922,10 +922,11 @@ public static partial class ClassEnumMap
 			sb.AppendLine($$"""
 		return typeof({{(infos.Length == 1 ? (infos[0].FallbackClassType?.ToDisplayString() ?? infos[0].ClassType.ToDisplayString()) : "object")}});
 	}
-}
 """);
 		}
-
+		sb.AppendLine("""
+}
+""");
 		string filename = $"ClassEnumMap.{configId}.g.cs";
 		spc.AddSource(filename, sb.ToString());
 	}

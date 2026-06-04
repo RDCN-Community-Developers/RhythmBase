@@ -1,5 +1,6 @@
 ﻿using RhythmBase.Rizline.Converters;
 using RhythmBase.Rizline.Events;
+using System.Text;
 using System.Text.Json;
 
 namespace RhythmBase.Rizline.Components;
@@ -17,12 +18,11 @@ partial class Level
 					: dataSource.GetMemoryAsync().GetAwaiter().GetResult();
 			Utf8JsonReader reader = new Utf8JsonReader(jsonData.Span, new() { AllowTrailingCommas = true });
 			reader.Read();
-			JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 			Chart chart = new Chart();
-			while (reader.Read())
+			while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 			{
-				if (reader.TokenType == JsonTokenType.EndObject) break;
-				JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
 				reader.Read();
 				if (propertyName.SequenceEqual("fileVersion"u8))
@@ -35,90 +35,196 @@ partial class Level
 					chart.Offset = TimeSpan.FromMilliseconds(reader.GetDouble());
 				else if (propertyName.SequenceEqual("themes"u8))
 				{
-					JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					reader.Read();
 					chart.Themes.MainTheme = ConverterHub.Read<Theme>(ref reader, options);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 						chart.Themes.RiztimeThemes.Add(ConverterHub.Read<Theme>(ref reader, options));
-					reader.Read();
 				}
 				else if (propertyName.SequenceEqual("challengeTimes"u8))
 				{
-					JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-						chart.ChallengeTimes.Add(ConverterHub.Read<ChallengeTime>(ref reader, options));
+					{
+						ChallengeTime e = ConverterMap
+							.GetConverter(EventType.ChallengeTime)
+							.WithReadSettings(settings)
+							.ReadProperties(ref reader, options)
+							as ChallengeTime
+							?? throw new JsonException("Failed to read a ChallengeTime event.");
+						chart.ChallengeTimes.Add(e);
+					}
 				}
 				else if (propertyName.SequenceEqual("bPM"u8))
 					chart.Bpm = reader.GetSingle();
 				else if (propertyName.SequenceEqual("bpmShifts"u8))
 				{
-					JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-						chart.BpmShifts.Add(ConverterHub.Read<BpmShift>(ref reader, options));
-					reader.Read();
+					{
+						BpmShift e = ConverterMap
+							.GetConverter(EventType.BpmShift)
+							.WithReadSettings(settings)
+							.ReadProperties(ref reader, options)
+							as BpmShift
+							?? throw new JsonException("Failed to read a BpmShift event.");
+						chart.BpmShifts.Add(e);
+					}
 				}
 				else if (propertyName.SequenceEqual("lines"u8))
 				{
-					JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 						chart.Lines.Add(ConverterHub.Read<Line>(ref reader, options));
-					reader.Read();
 				}
 				else if (propertyName.SequenceEqual("canvasMoves"u8))
 				{
-					JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 					{
-						JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
-						CanvasMove canvasMove = new CanvasMove();
+						JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
+						CanvasMove canvasMove = new();
 						while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 						{
-							JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+							JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 							ReadOnlySpan<byte> cmPropertyName = reader.ValueSpan;
 							reader.Read();
 							if (cmPropertyName.SequenceEqual("index"u8))
 								canvasMove.Index = reader.GetInt32();
-							else if (cmPropertyName.SequenceEqual("xPosition"u8))
+							else if (cmPropertyName.SequenceEqual("xPositionKeyPoints"u8))
 							{
-								JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
 								while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-									canvasMove.XPosition.Add(ConverterHub.Read<CanvasPosition>(ref reader, options));
+								{
+									CanvasPosition e = ConverterMap
+										.GetConverter(EventType.CanvasPosition)
+										.WithReadSettings(settings)
+										.ReadProperties(ref reader, options)
+										as CanvasPosition
+										?? throw new JsonException("Failed to read a CanvasPosition event.");
+									canvasMove.XPosition.Add(e);
+								}
 							}
-							else if (cmPropertyName.SequenceEqual("speed"u8))
+							else if (cmPropertyName.SequenceEqual("speedKeyPoints"u8))
 							{
-								JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
 								while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-									canvasMove.Speed.Add(ConverterHub.Read<CanvasSpeed>(ref reader, options));
+								{
+									CanvasSpeed e = ConverterMap
+										.GetConverter(EventType.CanvasSpeed)
+										.WithReadSettings(settings)
+										.ReadProperties(ref reader, options)
+										as CanvasSpeed
+										?? throw new JsonException("Failed to read a CanvasSpeed event.");
+									canvasMove.Speed.Add(e);
+								}
 							}
+							else
+#if DEBUG
+								throw new JsonException($"Unexpected property in canvasMoves: {Encoding.UTF8.GetString(cmPropertyName.ToArray())}");
+#else
+								reader.Skip();
+#endif
 						}
 					}
 				}
-				else if (propertyName.SequenceEqual("cameraMoves"u8))
+				else if (propertyName.SequenceEqual("cameraMove"u8))
 				{
-					JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 					CameraMove cameraMove = new CameraMove();
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 					{
-						JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+						JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 						ReadOnlySpan<byte> cmPropertyName = reader.ValueSpan;
 						reader.Read();
 						if (cmPropertyName.SequenceEqual("scaleKeyPoints"u8))
 						{
-							JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
 							while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-								cameraMove.Scale.Add(ConverterHub.Read<CameraScale>(ref reader, options));
+							{
+								CameraScale e = ConverterMap
+									.GetConverter(EventType.CameraScale)
+									.WithReadSettings(settings)
+									.ReadProperties(ref reader, options)
+									as CameraScale
+									?? throw new JsonException("Failed to read a CameraScale event.");
+								cameraMove.Scales.Add(e);
+							}
 						}
 						else if (cmPropertyName.SequenceEqual("xPositionKeyPoints"u8))
 						{
-							JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
 							while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-								cameraMove.XPosition.Add(ConverterHub.Read<CameraPosition>(ref reader, options));
+							{
+								CameraPosition e = ConverterMap
+									.GetConverter(EventType.CameraPosition)
+									.WithReadSettings(settings)
+									.ReadProperties(ref reader, options)
+									as CameraPosition
+									?? throw new JsonException("Failed to read a CameraPosition event.");
+								cameraMove.XPosition.Add(e);
+							}
 						}
+						else
+#if DEBUG
+							throw new JsonException($"Unexpected property in cameraMoves: {Encoding.UTF8.GetString(cmPropertyName.ToArray())}");
+#else
+							reader.Skip();
+#endif
 					}
+					chart.CameraMove = cameraMove;
 				}
 				else
+#if DEBUG
+					throw new JsonException($"Unexpected property in chart: {Encoding.UTF8.GetString(propertyName.ToArray())}");
+#else
 					reader.Skip();
+#endif
 			}
+			level.Charts.Add(chart);
+		}
+
+		internal static void WriteChartToStream(Stream stream, NoIndentScope noIndentScope, Chart chart, LevelWriteSettings settings, MetadataJsonSerializerOptions options)
+		{
+			using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
+			writer.WriteStartObject();
+			writer.WriteNumber("fileVersion", chart.FileVersion);
+			writer.WriteString("songsName", chart.SongsName);
+			writer.WriteNumber("chartDelayMs", chart.Delay.TotalMilliseconds);
+			writer.WriteNumber("offset", chart.Offset.TotalMilliseconds);
+			writer.WriteStartArray("themes"u8);
+			noIndentScope.WriteNoIndentArrayTo(options, writer, [chart.Themes.MainTheme, .. chart.Themes.RiztimeThemes], ConverterHub.Write);
+			writer.WriteEndArray();
+			writer.WriteStartArray("challengeTimes"u8);
+			noIndentScope.WriteNoIndentArrayTo(options, writer, chart.ChallengeTimes, (w, e, o) => ConverterMap.GetConverter(EventType.ChallengeTime).WithWriteSettings(settings).WriteProperties(w, e, o));
+			writer.WriteEndArray();
+			writer.WriteNumber("bPM", chart.Bpm);
+			writer.WriteStartArray("bpmShifts"u8);
+			noIndentScope.WriteNoIndentArrayTo(options, writer, chart.BpmShifts, (w, e, o) => ConverterMap.GetConverter(EventType.BpmShift).WithWriteSettings(settings).WriteProperties(w, e, o));
+			writer.WriteEndArray();
+			writer.WriteStartArray("lines"u8);
+			foreach (Line line in chart.Lines)
+				ConverterHub.Write(writer, line, options);
+			writer.WriteEndArray();
+			writer.WriteStartArray("canvasMoves"u8);
+			foreach (CanvasMove canvasMove in chart.CanvasMoves)
+			{
+				writer.WriteStartObject();
+				writer.WriteNumber("index", canvasMove.Index);
+				writer.WriteStartArray("xPositionKeyPoints"u8);
+				noIndentScope.WriteNoIndentArrayTo(options, writer, canvasMove.XPosition, (w, e, o) => ConverterMap.GetConverter(EventType.CanvasPosition).WithWriteSettings(settings).WriteProperties(w, e, o));
+				writer.WriteEndArray();
+				writer.WriteStartArray("speedKeyPoints"u8);
+				noIndentScope.WriteNoIndentArrayTo(options, writer, canvasMove.Speed, (w, e, o) => ConverterMap.GetConverter(EventType.CanvasSpeed).WithWriteSettings(settings).WriteProperties(w, e, o));
+				writer.WriteEndArray();
+				writer.WriteEndObject();
+			}
+			writer.WriteEndArray();
+			writer.WriteStartObject("cameraMove"u8);
+			writer.WriteStartArray("scaleKeyPoints"u8);
+			noIndentScope.WriteNoIndentArrayTo(options, writer, chart.CameraMove.Scales, (w, e, o) => ConverterMap.GetConverter(EventType.CameraScale).WithWriteSettings(settings).WriteProperties(w, e, o));
+			writer.WriteEndArray();
+			writer.WriteStartArray("xPositionKeyPoints"u8);
+			noIndentScope.WriteNoIndentArrayTo(options, writer, chart.CameraMove.XPosition, (w, e, o) => ConverterMap.GetConverter(EventType.CameraPosition).WithWriteSettings(settings).WriteProperties(w, e, o));
+			writer.WriteEndArray();
+			writer.WriteEndObject();
+			writer.WriteEndObject();
 		}
 	}
 	#region zip
@@ -178,9 +284,11 @@ partial class Level
 		string[] jsonFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.AllDirectories);
 		foreach (string jsonFile in jsonFiles)
 		{
-			if (jsonFile == "metadata.json") continue;
+			if (Path.GetFileNameWithoutExtension(jsonFile) != "chart") continue;
+			//if (!Path.GetFileName(jsonFile).StartsWith("chart")) continue;
+			//if (jsonFile == "metadata.json") continue;
 			using FileStream jsonFs = new(jsonFile, FileMode.Open, FileAccess.Read);
-
+			FileConverter.DeserializeChart(new StreamDataSource(jsonFs), options, level, settings);
 		}
 		return level;
 	}
@@ -188,9 +296,26 @@ partial class Level
 	public void SaveToDirectory(string directoryPath, LevelWriteSettings? settings = null)
 			=> SaveToDirectoryAsync(directoryPath, settings).GetAwaiter().GetResult();
 	/// <inheritdoc/>
-	public Task SaveToDirectoryAsync(string directoryPath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
+	public async Task SaveToDirectoryAsync(string directoryPath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default)
 	{
-		throw new NotImplementedException();
+		settings ??= new LevelWriteSettings();
+		if (!Directory.Exists(directoryPath))
+			Directory.CreateDirectory(directoryPath);
+		using FileStream metadataFs = new(Path.Combine(directoryPath, "metadata.json"), FileMode.Create, FileAccess.Write);
+		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForWrite(LevelType, settings);
+		FileMainEntryConverter.SerializeMainEntry(this, metadataFs, options);
+		using NoIndentScope noIndentScope = new(options.JsonSerializerOptions.Encoder, options);
+		if (Charts.Count == 1)
+		{
+			using FileStream jsonFs = new(Path.Combine(directoryPath, $"chart.json"), FileMode.Create, FileAccess.Write);
+			FileConverter.WriteChartToStream(jsonFs, noIndentScope, Charts[0], settings, options);
+		}
+		else
+			foreach (Chart chart in Charts)
+			{
+				using FileStream jsonFs = new(Path.Combine(directoryPath, $"chart_{chart.SongsName}.json"), FileMode.Create, FileAccess.Write);
+				FileConverter.WriteChartToStream(jsonFs, noIndentScope, chart, settings, options);
+			}
 	}
 	#endregion
 }

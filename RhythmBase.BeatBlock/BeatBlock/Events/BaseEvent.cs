@@ -32,7 +32,7 @@ public abstract record class BaseEvent : IBaseEvent
     /// <summary>
     /// Gets the beat of the event.
     /// </summary>
-    public TickTime TickTime { get; }
+    public TickTime TickTime { get; set; }
     /// <summary>
     /// Gets or sets additional data associated with the specified property name.
     /// </summary>

@@ -14,7 +14,7 @@ internal class RowConverter : MetadataJsonConverter<Row>
         {
             if (reader.TokenType == JsonTokenType.EndObject)
                 break;
-            JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+            JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
             ReadOnlySpan<byte> propertyName = reader.ValueSpan;
             reader.Read();
             if (propertyName.SequenceEqual("character"u8))

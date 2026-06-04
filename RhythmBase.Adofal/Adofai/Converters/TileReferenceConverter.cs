@@ -9,17 +9,17 @@ internal class TileReferenceConverter : JsonConverter<TileReference>
 {
     public override TileReference Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
         reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.Number]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.Number);
         int offset = reader.GetInt32();
         reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.String]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.String);
         ReadOnlySpan<byte> typeSpan = reader.ValueSpan;
         if (!EnumConverter.TryParse(typeSpan, out RelativeType type))
             throw new JsonException($"Invalid RelativeType value: {typeSpan.ToString()}");
         reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
         return new TileReference
         {
             Offset = offset,

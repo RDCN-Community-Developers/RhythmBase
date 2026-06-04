@@ -10,12 +10,12 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
     {
         reader.Read();
         Level level = new();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.EndObject)
                 break;
-            JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+            JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
             ReadOnlySpan<byte> propertyName = reader.ValueSpan;
             reader.Read();
             if (propertyName.SequenceEqual("defaultVariant"u8))
@@ -26,7 +26,7 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
                 {
                     if (reader.TokenType == JsonTokenType.EndObject)
                         break;
-                    JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+                    JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
                     ReadOnlySpan<byte> metadataPropertyName = reader.ValueSpan;
                     reader.Read();
                     if (metadataPropertyName.SequenceEqual("artist"u8))
@@ -57,12 +57,12 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
                         level.Metadata.Source = reader.GetString() ?? "";
                     else if (metadataPropertyName.SequenceEqual("bgData"u8))
                     {
-                        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+                        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
                         while (reader.Read())
                         {
                             if (reader.TokenType == JsonTokenType.EndObject)
                                 break;
-                            JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+                            JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
                             ReadOnlySpan<byte> bgDataPropertyName = reader.ValueSpan;
                             reader.Read();
                             if (bgDataPropertyName.SequenceEqual("redChannel"u8))
@@ -93,12 +93,12 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
             }
             else if (propertyName.SequenceEqual("properties"u8))
             {
-                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+                JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
                 while (reader.Read())
                 {
                     if (reader.TokenType == JsonTokenType.EndObject)
                         break;
-                    JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+                    JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
                     ReadOnlySpan<byte> propertiesPropertyName = reader.ValueSpan;
                     reader.Read();
                     if (propertiesPropertyName.SequenceEqual("formatVersion"u8))
@@ -117,21 +117,21 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
             }
             else if (propertyName.SequenceEqual("variants"u8))
             {
-                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+                JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
                 List<Chart> variants = [];
                 List<int> slotIndex = [];
                 while (reader.Read())
                 {
                     if (reader.TokenType == JsonTokenType.EndArray)
                         break;
-                    JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+                    JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
                     Chart variant = [];
                     int index = 0;
                     while (reader.Read())
                     {
                         if (reader.TokenType == JsonTokenType.EndObject)
                             break;
-                        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+                        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
                         ReadOnlySpan<byte> variantPropertyName = reader.ValueSpan;
                         reader.Read();
                         if (variantPropertyName.SequenceEqual("charter"u8))

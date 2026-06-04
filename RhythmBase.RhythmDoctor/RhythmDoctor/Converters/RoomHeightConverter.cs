@@ -9,16 +9,16 @@ internal class RoomHeightConverter : JsonConverter<RoomHeight>
 {
 	public override RoomHeight Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
-		JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 		RoomHeight height = new();
 		for (int i = 0; i < 4; i++)
 		{
 			reader.Read();
-			JsonException.ThrowIfNotMatch(reader, [JsonTokenType.Number]);
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.Number);
 			height[i] = reader.GetInt32();
 		}
 		reader.Read();
-		JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
 		return height;
 	}
 

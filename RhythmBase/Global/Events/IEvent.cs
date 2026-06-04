@@ -21,5 +21,5 @@ public interface IEvent<TType, TTick> : IEvent
     /// <summary>
     /// Gets the beat of the event.
     /// </summary>
-    TTick TickTime { get; }
+    TTick TickTime { get; set; }
 }

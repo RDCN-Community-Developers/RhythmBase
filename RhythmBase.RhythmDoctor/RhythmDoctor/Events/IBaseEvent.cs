@@ -13,10 +13,6 @@ public interface IBaseEvent : IEvent<EventType, TickTime>
     /// </summary>
     bool Active { get; set; }
     /// <summary>
-    /// Gets or sets the beat associated with the event.
-    /// </summary>
-    new TickTime TickTime { get; set; }
-    /// <summary>
     /// Gets or sets the condition associated with the event.
     /// </summary>
     Condition Condition { get; set; }

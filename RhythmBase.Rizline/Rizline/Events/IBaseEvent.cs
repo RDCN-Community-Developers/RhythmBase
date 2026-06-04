@@ -4,5 +4,5 @@ namespace RhythmBase.Rizline.Events;
 
 public interface IBaseEvent : IEvent<EventType, TickTime>
 {
-    public EventType Type { get; }
+	public EventType Type { get; }
 }

@@ -14,17 +14,10 @@ internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEve
 		TEvent value = new();
 		int bar = 1;
 		float beat = 1;
-		while (reader.Read())
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.EndObject)
-			{
-				value.TickTime = new(bar, beat);
-				return value;
-			}
-			JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-			if (propertyName.IsEmpty)
-				throw new JsonException("Property name cannot be null.");
 			reader.Read();
 			if (propertyName.SequenceEqual("bar"u8))
 				bar = reader.GetInt32();
@@ -47,6 +40,7 @@ internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEve
 	] = JsonElement.ParseValue(ref reader);
 			}
 		}
+		value.TickTime = new(bar, beat);
 		return value;
 	}
 	public sealed override void WriteProperties(Utf8JsonWriter writer, IBaseEvent value, MetadataJsonSerializerOptions options)

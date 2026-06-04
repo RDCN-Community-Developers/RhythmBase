@@ -32,12 +32,12 @@ public abstract class ColorConverter : JsonConverter<Color>
         public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             Color color = default;
-            JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+            JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
             while (reader.Read())
             {
                 if (reader.TokenType == JsonTokenType.EndObject)
                 { return color; }
-                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+                JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
                 ReadOnlySpan<byte> propertyName = reader.ValueSpan;
                 reader.Read();
                 if (propertyName.SequenceEqual("a"u8) || propertyName.SequenceEqual("alpha"u8))
@@ -68,12 +68,12 @@ public abstract class ColorConverter : JsonConverter<Color>
         public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             Color color = default;
-            JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+            JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
             while (reader.Read())
             {
                 if (reader.TokenType == JsonTokenType.EndObject)
                 { return color; }
-                JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+                JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
                 ReadOnlySpan<byte> propertyName = reader.ValueSpan;
                 reader.Read();
                 if (propertyName.SequenceEqual("r"u8) || propertyName.SequenceEqual("red"u8))
@@ -176,7 +176,7 @@ public abstract class ColorConverter : JsonConverter<Color>
 //    }
 //    public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 //    {
-//        var tokenType = JsonException.ThrowIfNotMatch(reader, [JsonTokenType.String, JsonTokenType.Null, JsonTokenType.StartObject]);
+//        var tokenType = JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.String, JsonTokenType.Null, JsonTokenType.StartObject);
 //        switch (GetColorFormat(options.Type))
 //        {
 //            case ColorFormat.RgbaHex or ColorFormat.HashRgbaHex:
@@ -193,7 +193,7 @@ public abstract class ColorConverter : JsonConverter<Color>
 //                {
 //                    if (reader.TokenType == JsonTokenType.EndObject)
 //                    { return color; }
-//                    JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+//                    JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 //                    ReadOnlySpan<byte> propertyName = reader.ValueSpan;
 //                    reader.Read();
 //                    if (propertyName.SequenceEqual("r"u8) || propertyName.SequenceEqual("red"u8))

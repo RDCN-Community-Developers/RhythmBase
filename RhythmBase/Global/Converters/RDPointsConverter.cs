@@ -12,12 +12,12 @@ public class RDPointConverter : JsonConverter<Point>
 {
     public override Point Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
         var value = new Point(
                 reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetSingle() : null,
                 reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetSingle() : null);
         reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
         return value;
     }
     public override void Write(Utf8JsonWriter writer, Point value, JsonSerializerOptions serializer)
@@ -39,12 +39,12 @@ public class RDPointNIConverter : JsonConverter<PointNI>
 {
     public override PointNI Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
         var value = new PointNI(
             reader.Read() ? reader.GetInt32() : 0,
             reader.Read() ? reader.GetInt32() : 0);
         reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
         return value;
     }
     public override void Write(Utf8JsonWriter writer, PointNI value, JsonSerializerOptions serializer)
@@ -60,12 +60,12 @@ public class RDPointNConverter : JsonConverter<PointN>
 {
     public override PointN Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
         var value = new PointN(
             reader.Read() ? reader.GetSingle() : 0,
             reader.Read() ? reader.GetSingle() : 0);
         reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
         return value;
     }
     public override void Write(Utf8JsonWriter writer, PointN value, JsonSerializerOptions serializer)
@@ -81,12 +81,12 @@ public class RDPointIConverter : JsonConverter<PointI>
 {
     public override PointI Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
         var value = new PointI(
             reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetInt32() : null,
             reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetInt32() : null);
         reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
         return value;
     }
     public override void Write(Utf8JsonWriter writer, PointI value, JsonSerializerOptions serializer)
@@ -108,12 +108,12 @@ public class RDSizeNIConverter : JsonConverter<SizeNI>
 {
     public override SizeNI Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
         var value = new SizeNI(
             reader.Read() ? reader.GetInt32() : 0,
             reader.Read() ? reader.GetInt32() : 0);
         reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
         return value;
     }
     public override void Write(Utf8JsonWriter writer, SizeNI value, JsonSerializerOptions serializer)
@@ -129,12 +129,12 @@ public class RDSizeNConverter : JsonConverter<SizeN>
 {
     public override SizeN Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
         var value = new SizeN(
             reader.Read() ? reader.GetSingle() : 0,
             reader.Read() ? reader.GetSingle() : 0);
         reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
         return value;
     }
     public override void Write(Utf8JsonWriter writer, SizeN value, JsonSerializerOptions serializer)
@@ -150,12 +150,12 @@ public class RDSizeIConverter : JsonConverter<SizeI>
 {
     public override SizeI Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
         var value = new SizeI(
             reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetInt32() : null,
             reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetInt32() : null);
         reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
         return value;
     }
     public override void Write(Utf8JsonWriter writer, SizeI value, JsonSerializerOptions serializer)
@@ -177,12 +177,12 @@ public class RDSizeConverter : JsonConverter<Size>
 {
     public override Size Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
         var value = new Size(
             reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetSingle() : null,
             reader.Read() && reader.TokenType == JsonTokenType.Number ? reader.GetSingle() : null);
         reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
         return value;
     }
     public override void Write(Utf8JsonWriter writer, Size value, JsonSerializerOptions serializer)

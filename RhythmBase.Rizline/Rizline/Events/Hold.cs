@@ -1,15 +1,15 @@
-﻿namespace RhythmBase.Rizline.Events;
+﻿using RhythmBase.Rizline.Converters;
+
+namespace RhythmBase.Rizline.Events;
 
 /// <summary>
 /// Hold (sustain) note implementation. Stores tail information as well. 
 /// </summary>
-[JsonObjectSerializable]
-public record class Hold : BaseEvent, BaseNote
+[JsonObjectHasSerializer(typeof(HoldConverter))]
+public record class Hold : BaseNote
 {
     /// <inheritdoc/>
     public override EventType Type => EventType.Hold;
-    /// <inheritdoc/>
-    public float FloorPosition { get; set; }
 
     /// <summary>
     /// End time (tail) of the hold note in ticks. 

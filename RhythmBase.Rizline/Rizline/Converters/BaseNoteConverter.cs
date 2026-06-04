@@ -6,22 +6,15 @@ using RhythmBase.Rizline.Events;
 
 namespace RhythmBase.Rizline.Converters
 {
-	internal class MemberConverterBaseNote : MemberConverter<BaseNote>
+	internal class MemberConverterBaseNote<T> : MemberConverter<T> where T : BaseNote, new()
 	{
-		protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref BaseNote value, MetadataJsonSerializerOptions options)
+		protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref T value, MetadataJsonSerializerOptions options)
 		{
-			JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
-			Utf8JsonReader checkpoint = reader;
-			while (reader.Read())
-			{
-				if (reader.TokenType == JsonTokenType.PropertyName && reader.ValueTextEquals(propertyName))
-				{
-					return true;
-				}
-			}
+			return base.Read(ref reader, propertyName, ref value, options);
 		}
-		protected override void Write(Utf8JsonWriter writer, ref BaseNote value, MetadataJsonSerializerOptions options)
+		protected override void Write(Utf8JsonWriter writer, ref T value, MetadataJsonSerializerOptions options)
 		{
+			writer.WriteNumber("type"u8, (int)value.Type);
 			base.Write(writer, ref value, options);
 		}
 	}

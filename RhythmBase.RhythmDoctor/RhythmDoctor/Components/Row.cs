@@ -117,7 +117,5 @@ public class Row : OrderedEventCollection<BaseRowAction, EventType, TickTime>, I
     {
         return (Parent?.RemoveDirectlyInternal(item) ?? true) && base.Remove(item);
     }
-
-    [JsonIgnore]
     internal Level? Parent = null;
 }

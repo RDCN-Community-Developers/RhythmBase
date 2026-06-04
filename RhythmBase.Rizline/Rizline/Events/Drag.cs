@@ -4,10 +4,8 @@
 /// Drag note implementation. 
 /// </summary>
 [JsonObjectSerializable]
-public record class Drag : BaseEvent, BaseNote
+public record class Drag : BaseNote
 {
     /// <inheritdoc/>
     public override EventType Type => EventType.Drag;
-    /// <inheritdoc/>
-    public float FloorPosition { get; set; }
 }

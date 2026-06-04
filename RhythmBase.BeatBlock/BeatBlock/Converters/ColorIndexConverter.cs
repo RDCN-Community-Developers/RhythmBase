@@ -9,7 +9,7 @@ internal class ColorIndexConverter : JsonConverter<ColorIndex>
 {
     public override ColorIndex Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.Number]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.Number);
         return new ColorIndex(reader.GetByte());
     }
 

@@ -4,10 +4,8 @@
 /// Tap note implementation. 
 /// </summary>
 [JsonObjectSerializable]
-public record class Tap : BaseEvent, BaseNote
+public record class Tap : BaseNote
 {
     /// <inheritdoc/>
     public override EventType Type => EventType.Tap;
-    /// <inheritdoc/>
-    public float FloorPosition { get; set; }
 }

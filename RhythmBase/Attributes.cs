@@ -17,7 +17,7 @@ public sealed class JsonObjectSerializationFallbackAttribute : Attribute { }
 public sealed class JsonIgnoreAttribute : Attribute { }
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public sealed class JsonConditionAttribute(string condition) : Attribute { }
-[AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
 public sealed class JsonAliasAttribute(string name) : Attribute { }
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public sealed class JsonDefaultSerializerAttribute : Attribute { }

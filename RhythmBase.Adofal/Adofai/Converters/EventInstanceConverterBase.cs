@@ -15,7 +15,7 @@ internal abstract class MemberConverter<TEvent> : EventMemberConverterBase where
 			{
 				return value;
 			}
-			JsonException.ThrowIfNotMatch	(reader, [JsonTokenType.PropertyName]);
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
 			if (propertyName.IsEmpty)
 				throw new JsonException("Property name cannot be null");

@@ -18,23 +18,23 @@ internal class LevelConverter : MetadataJsonConverter<Level>
 		bool isTileLoad = false;
 		List<BaseTileEvent> tileEventsNotLoad = [];
 		reader.Read();
-		JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartObject]);
+		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 		reader.Read();
 		while (true)
 		{
 			if (reader.TokenType == JsonTokenType.EndObject)
 				break;
-			JsonException.ThrowIfNotMatch(reader, [JsonTokenType.PropertyName]);
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 			if (reader.ValueSpan.SequenceEqual("angleData"u8))
 			{
 				reader.Read();
-				JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				reader.Read();
 				while (true)
 				{
 					if (reader.TokenType == JsonTokenType.EndArray)
 						break;
-					JsonException.ThrowIfNotMatch(reader, [JsonTokenType.Number]);
+					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.Number);
 					float angle = reader.GetSingle();
 					if (angle == Utils.Utils.MidSpinAngle)
 						level.Add(new Tile(true));
@@ -59,7 +59,7 @@ internal class LevelConverter : MetadataJsonConverter<Level>
 			else if (reader.ValueSpan.SequenceEqual("actions"u8))
 			{
 				reader.Read();
-				JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				reader.Read();
 				while (true)
 				{
@@ -81,7 +81,7 @@ internal class LevelConverter : MetadataJsonConverter<Level>
 			else if (reader.ValueSpan.SequenceEqual("decorations"u8))
 			{
 				reader.Read();
-				JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				reader.Read();
 				while (true)
 				{

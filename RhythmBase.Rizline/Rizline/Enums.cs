@@ -26,4 +26,5 @@ public enum EventType
 	CameraScale,
 	CameraPosition,
 	BpmShift,
+	ForwardEvent,
 }

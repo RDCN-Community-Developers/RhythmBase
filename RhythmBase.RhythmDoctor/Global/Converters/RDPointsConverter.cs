@@ -10,7 +10,7 @@ internal class PointEConverter : JsonConverter<PointE>
 {
     public override PointE Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
         var value = new PointE(
             reader.Read() ?
             reader.TokenType == JsonTokenType.Number ? new Expression(reader.GetSingle()) :
@@ -24,7 +24,7 @@ internal class PointEConverter : JsonConverter<PointE>
             null
             );
         reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
         return value;
     }
     public override void Write(Utf8JsonWriter writer, PointE value, JsonSerializerOptions serializer)
@@ -52,7 +52,7 @@ internal class SizeEConverter : JsonConverter<SizeE>
 {
     public override SizeE Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions serializer)
     {
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.StartArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
         var value = new SizeE(
             reader.Read() ?
             reader.TokenType == JsonTokenType.Number ? new Expression(reader.GetSingle()) :
@@ -65,7 +65,7 @@ internal class SizeEConverter : JsonConverter<SizeE>
             (Expression?)null :
             null);
         reader.Read();
-        JsonException.ThrowIfNotMatch(reader, [JsonTokenType.EndArray]);
+        JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
         return value;
     }
     public override void Write(Utf8JsonWriter writer, SizeE value, JsonSerializerOptions serializer)

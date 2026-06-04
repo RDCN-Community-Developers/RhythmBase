@@ -11,12 +11,12 @@ public abstract class BaseEvent : IBaseEvent
 {
 	/// <inheritdoc/>
 	public abstract EventType Type { get; }
-    /// <summary>
-    /// Gets the beat at which the event occurs.
-    /// </summary>
-    public TickTime TickTime { get; }
+	/// <summary>
+	/// Gets the beat at which the event occurs.
+	/// </summary>
+	public TickTime TickTime { get; set; }
 
-    internal Dictionary<string, JsonElement> _extraData = [];
+	internal Dictionary<string, JsonElement> _extraData = [];
 	/// <summary>
 	/// Returns a string representation of the event type.
 	/// </summary>
