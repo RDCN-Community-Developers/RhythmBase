@@ -34,7 +34,7 @@ internal class InstanceConverter : MetadataJsonConverter<IBaseEvent>
 			case -1:
 				throw new NotImplementedException();
 			case 0 or 1 or 2:
-				e = ConverterMap.GetConverter((EventType)type).ReadProperties(ref reader, options);
+				e = EventConverterMap.GetConverter((EventType)type).ReadProperties(ref reader, options);
 				break;
 			default:
 				throw new JsonException($"Unknown note type: {type}");
@@ -44,7 +44,7 @@ internal class InstanceConverter : MetadataJsonConverter<IBaseEvent>
 
 	public override void Write(Utf8JsonWriter writer, IBaseEvent value, MetadataJsonSerializerOptions options)
 	{
-		ConverterMap.GetConverter(value.Type).WriteProperties(writer, value, options);
+		EventConverterMap.GetConverter(value.Type).WriteProperties(writer, value, options);
 	}
 }
 internal abstract class MemberConverter : Global.Converters.MemberConverter<IBaseEvent> { }

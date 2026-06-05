@@ -94,9 +94,9 @@ public class Row : OrderedEventCollection<BaseRowAction, EventType, TickTime>, I
     end is float e ? new TickTime(e) : null
     );
     /// <inheritdoc/>
-    protected override ReadOnlyEnumCollection<EventType> Types => ClassEnumMap.ToEnums<BaseRowAction>();
+    protected override ReadOnlyEnumCollection<EventType> Types => EventTypeRegistry.ToEnums<BaseRowAction>();
     /// <inheritdoc/>
-    protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => ClassEnumMap.ToEnums(typeof(TTarget));
+    protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => EventTypeRegistry.ToEnums(typeof(TTarget));
     /// <summary>
     /// Adds an item to the row.
     /// </summary>

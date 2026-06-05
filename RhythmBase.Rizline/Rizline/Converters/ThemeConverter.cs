@@ -19,11 +19,11 @@ internal class ThemeConverter : MetadataJsonConverter<Theme>
 			{
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				reader.Read();
-				theme.BackgroundColor = ConverterHub.Read<Color>(ref reader, options);
+				theme.BackgroundColor = TypeConverterRegistry.Read<Color>(ref reader, options);
 				reader.Read();
-				theme.ObjectColor = ConverterHub.Read<Color>(ref reader, options);
+				theme.ObjectColor = TypeConverterRegistry.Read<Color>(ref reader, options);
 				reader.Read();
-				theme.UserInterfaceColor = ConverterHub.Read<Color>(ref reader, options);
+				theme.UserInterfaceColor = TypeConverterRegistry.Read<Color>(ref reader, options);
 				reader.Read();
 			}
 		}
@@ -34,9 +34,9 @@ internal class ThemeConverter : MetadataJsonConverter<Theme>
 	{
 		writer.WriteStartObject();
 		writer.WriteStartArray("colorsList"u8);
-		ConverterHub.Write(writer, value.BackgroundColor, options);
-		ConverterHub.Write(writer, value.ObjectColor, options);
-		ConverterHub.Write(writer, value.UserInterfaceColor, options);
+		TypeConverterRegistry.Write(writer, value.BackgroundColor, options);
+		TypeConverterRegistry.Write(writer, value.ObjectColor, options);
+		TypeConverterRegistry.Write(writer, value.UserInterfaceColor, options);
 		writer.WriteEndArray();
 		writer.WriteEndObject();
 	}

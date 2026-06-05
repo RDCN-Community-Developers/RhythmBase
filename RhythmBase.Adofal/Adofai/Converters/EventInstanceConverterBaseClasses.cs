@@ -70,7 +70,7 @@ internal class MemberConverterSetFilterAdvanced : MemberConverterBaseTaggedTileE
 		{
 			ReadOnlySpan<byte> json = [(byte)'{', .. Encoding.UTF8.GetBytes(reader.GetString() ?? ""), (byte)'}'];
 			Utf8JsonReader subReader = new(json);
-			FilterMemberConverterBase converter = ConverterMap.GetConverter(filterType);
+			FilterMemberConverterBase converter = EventConverterMap.GetConverter(filterType);
 			value.FilterProperties = converter.ReadProperties(ref subReader, options);
 		}
 		else
@@ -94,7 +94,7 @@ internal class MemberConverterSetFilterAdvanced : MemberConverterBaseTaggedTileE
 		{
 			using MemoryStream ms = new();
 			using Utf8JsonWriter tempWriter = new(ms, new() { SkipValidation = true, });
-			FilterMemberConverterBase converter = ConverterMap.GetConverter(value.FilterProperties.Type);
+			FilterMemberConverterBase converter = EventConverterMap.GetConverter(value.FilterProperties.Type);
 			converter.WriteProperties(tempWriter, value.FilterProperties, options);
 			tempWriter.Flush();
 			string jsonString = Encoding.UTF8.GetString(ms.ToArray());

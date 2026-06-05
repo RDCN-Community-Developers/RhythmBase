@@ -114,7 +114,7 @@ partial class Level
 		public static void WriteManifestToStream(Stream stream, Level level, MetadataJsonSerializerOptions options)
 		{
 			using Utf8JsonWriter writer = new(stream, new() { Indented = options.JsonSerializerOptions.WriteIndented });
-			ConverterHub.Write(writer, level, options);
+			TypeConverterRegistry.Write(writer, level, options);
 			writer.Flush();
 		}
 		public static void WriteVariantLevelToStream(Stream stream, NoIndentScope noIndentScope, Chart level, MetadataJsonSerializerOptions options)

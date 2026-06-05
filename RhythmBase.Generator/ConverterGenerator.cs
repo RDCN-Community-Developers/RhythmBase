@@ -233,7 +233,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 		{
 			return compilation.References.Select(i => compilation.GetAssemblyOrModuleSymbol(i)).OfType<IAssemblySymbol>().Concat([compilation.Assembly]).ToArray();
 		});
-		IncrementalValueProvider<ClassEnumMapGenerationInfo[]> classEnumMapInfo = classEnumAttrPairInfo // checked
+		IncrementalValueProvider<EventTypeRegistryGenerationInfo[]> EventTypeRegistryInfo = classEnumAttrPairInfo // checked
 				.Select((input, ct) =>
 		{
 			(
@@ -243,7 +243,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 				) = input;
 			INamedTypeSymbol eventTypeInterface = compilation.GetTypeByMetadataName(IEventTypeName) ?? throw new NotImplementedException("1111");
 			var fallbackAttr = compilation.GetTypeByMetadataName(JsonObjectSerializationFallbackAttrName);
-			List<ClassEnumMapGenerationInfo> typesToGenerate = [];
+			List<EventTypeRegistryGenerationInfo> typesToGenerate = [];
 			foreach (var classGen in types)
 			{
 				INamedTypeSymbol baseType = classGen.RootType;
@@ -272,7 +272,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 				subEventClasses = subEventClasses.Where(c =>
 								!SymbolEqualityComparer.Default.Equals(c, fallbackType) &&
 								!IsDerivedFrom(c, fallbackType)).ToArray();
-				Dictionary<INamedTypeSymbol, ISymbol> classEnumMap = new(SymbolEqualityComparer.Default);
+				Dictionary<INamedTypeSymbol, ISymbol> EventTypeRegistry = new(SymbolEqualityComparer.Default);
 				foreach (var subClass in subEventClasses)
 				{
 					var property = subClass.GetMembers().FirstOrDefault(m => m.Kind == SymbolKind.Property && m.Name == enumPropertyName) as IPropertySymbol;
@@ -282,7 +282,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 						enumSymbol = GetEnumInitializerValue(property, compilation);
 					}
 					if (enumSymbol != null)
-						classEnumMap[subClass] = enumSymbol;
+						EventTypeRegistry[subClass] = enumSymbol;
 					else errors.Add(Diagnostic.Create(
 						MissingEnumInitializerRule,
 						property?.Type.Locations.FirstOrDefault() ?? subClass.Locations.FirstOrDefault(),
@@ -316,9 +316,9 @@ public partial class ConverterGenerator : IIncrementalGenerator
 								? c.AllInterfaces.Contains(subType, SymbolEqualityComparer.Default)
 								: IsDerivedFrom(c, subType)));
 					if (dict.TryGetValue(subType, out var enumMap))
-						enumMap.UnionWith(subTypeSubEventClasses.Where(c => classEnumMap.ContainsKey(c)).Select(c => classEnumMap[c]));
+						enumMap.UnionWith(subTypeSubEventClasses.Where(c => EventTypeRegistry.ContainsKey(c)).Select(c => EventTypeRegistry[c]));
 					else
-						dict[subType] = new HashSet<ISymbol>(subTypeSubEventClasses.Where(c => classEnumMap.ContainsKey(c)).Select(c => classEnumMap[c]), SymbolEqualityComparer.Default);
+						dict[subType] = new HashSet<ISymbol>(subTypeSubEventClasses.Where(c => EventTypeRegistry.ContainsKey(c)).Select(c => EventTypeRegistry[c]), SymbolEqualityComparer.Default);
 				}
 				typesToGenerate.Add(new()
 				{
@@ -327,8 +327,8 @@ public partial class ConverterGenerator : IIncrementalGenerator
 					FallbackClassType = fallbackType,
 					FallbackClassTypeEnum = fallbackEnumMember,
 					Classes = subEventClasses,
-					ClassEnumMap = dict,
-					ClassEnumDoubleMap = classEnumMap,
+					EventTypeRegistry = dict,
+					ClassEnumDoubleMap = EventTypeRegistry,
 				});
 			}
 			return typesToGenerate.ToArray();
@@ -532,9 +532,9 @@ public partial class ConverterGenerator : IIncrementalGenerator
 			return default;
 		});
 
-		GenerateConverterHub(context, registryInfo.Combine(jsonObjSlzLnksInfo));
+		GenerateTypeConverterRegistry(context, registryInfo.Combine(jsonObjSlzLnksInfo));
 		GenerateConverter(context, (registryInfo.Combine(context.CompilationProvider)).Combine((jsonClassCvtrMapGenInfo.Combine(jsonObjSlzLnksInfo))));
-		GenerateClassEnumMap(context, registryInfo.Combine(context.CompilationProvider).Combine(classEnumMapInfo), errors);
+		GenerateEventTypeRegistry(context, registryInfo.Combine(context.CompilationProvider).Combine(EventTypeRegistryInfo), errors);
 		GenerateEnumConverter(context, registryInfo);
 		GenerateOtherFiles(context, registryInfo);
 
@@ -562,14 +562,14 @@ public partial class ConverterGenerator : IIncrementalGenerator
 							: dataSource.GetMemoryAsync().GetAwaiter().GetResult();
 					Utf8JsonReader reader = new(jsonData.Span,
 							new() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip });
-					return RhythmBase.{{registryId}}.Converters.ConverterHub.Read<T>(ref reader, options) ?? new();
+					return RhythmBase.{{registryId}}.Converters.TypeConverterRegistry.Read<T>(ref reader, options) ?? new();
 				}
 				public static async Task<T> DeserializeMainEntryAsync<T>(RhythmBase.Global.Converters.JsonSerialization.IJsonDataSource dataSource, RhythmBase.Global.Converters.MetadataJsonSerializerOptions options, CancellationToken cancellationToken = default)
 						where T : new()
 				{
 					Utf8JsonReader reader = new((await dataSource.GetMemoryAsync(cancellationToken)).Span,
 							new() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip });
-					return RhythmBase.{{registryId}}.Converters.ConverterHub.Read<T>(ref reader, options) ?? new();
+					return RhythmBase.{{registryId}}.Converters.TypeConverterRegistry.Read<T>(ref reader, options) ?? new();
 				}
 				public static void SerializeMainEntry<T>(T mainEntry, Stream stream, RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
 				{
@@ -580,7 +580,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 						IndentCharacter = options.JsonSerializerOptions.IndentCharacter,
 						IndentSize = options.JsonSerializerOptions.IndentSize,
 					});
-					RhythmBase.{{registryId}}.Converters.ConverterHub.Write(writer, mainEntry, options);
+					RhythmBase.{{registryId}}.Converters.TypeConverterRegistry.Write(writer, mainEntry, options);
 					writer.Flush();
 				}
 			}

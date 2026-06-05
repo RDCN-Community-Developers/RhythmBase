@@ -30,7 +30,7 @@ internal class RowConverter : MetadataJsonConverter<Row>
             else if (propertyName.SequenceEqual("rowType"u8) && EnumConverter.TryParse(reader.ValueSpan, out RowType value1))
                 result.RowType = value1;
             else if (propertyName.SequenceEqual("rooms"u8))
-                result.Room = ConverterHub.Read<SingleRoom>(ref reader, options);
+                result.Room = TypeConverterRegistry.Read<SingleRoom>(ref reader, options);
             else if (propertyName.SequenceEqual("hideAtStart"u8))
                 result.HideAtStart = reader.GetBoolean();
             else if (propertyName.SequenceEqual("player"u8) && EnumConverter.TryParse(reader.ValueSpan, out PlayerType value2))
@@ -68,7 +68,7 @@ internal class RowConverter : MetadataJsonConverter<Row>
         writer.WriteNumber("row"u8, value.Index);
 
         writer.WritePropertyName("rooms"u8);
-        ConverterHub.Write(writer, value.Room, options);
+        TypeConverterRegistry.Write(writer, value.Room, options);
 
         if (value.HideAtStart)
             writer.WriteBoolean("hideAtStart"u8, value.HideAtStart);

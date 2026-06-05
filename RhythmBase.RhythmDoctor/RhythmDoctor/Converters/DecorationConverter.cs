@@ -26,7 +26,7 @@ internal class DecorationConverter : MetadataJsonConverter<Decoration>
 				else if (reader.ValueSpan.SequenceEqual("rooms"u8))
 				{
 					reader.Read();
-					decoration.Room = ConverterHub.Read<SingleRoom>(ref reader, options);
+					decoration.Room = TypeConverterRegistry.Read<SingleRoom>(ref reader, options);
 				}
 				else if (reader.ValueSpan.SequenceEqual("filename"u8))
 				{
@@ -74,7 +74,7 @@ internal class DecorationConverter : MetadataJsonConverter<Decoration>
 		writer.WriteString("id"u8, value.Id);
 		writer.WriteNumber("row"u8, value.Index);
 		writer.WritePropertyName("rooms"u8);
-		ConverterHub.Write(writer, value.Room, options);
+		TypeConverterRegistry.Write(writer, value.Room, options);
 		if (!value.Character.IsCustom && value.Character.Character is Characters rdc)
 			writer.WriteString("character", rdc.ToEnumString());
 		else

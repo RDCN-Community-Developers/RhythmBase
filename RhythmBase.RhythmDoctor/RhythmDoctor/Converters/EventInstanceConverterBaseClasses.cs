@@ -77,7 +77,7 @@ internal partial class RDMemberConverter
 						if (base.Read(ref reader, propertyName, ref value, options))
 								return true;
 						if (propertyName.SequenceEqual("rooms"u8))
-								value.Rooms = ConverterHub.Read<Room>(ref reader, options);
+								value.Rooms = TypeConverterRegistry.Read<Room>(ref reader, options);
 						else if (propertyName.SequenceEqual("preset"u8))
 								if (reader.TokenType is JsonTokenType.String && EnumConverter.TryParse(reader.ValueSpan, out VfxPreset enumValue0))
 										value.Preset = enumValue0;
@@ -97,7 +97,7 @@ internal partial class RDMemberConverter
 						else if (propertyName.SequenceEqual("intensity"u8))
 								value.Intensity = reader.GetSingle();
 						else if (propertyName.SequenceEqual("color"u8))
-								value.Color = ConverterHub.Read<PaletteColor>(ref reader, options);
+								value.Color = TypeConverterRegistry.Read<PaletteColor>(ref reader, options);
 						else if (propertyName.SequenceEqual("floatX"u8))
 						{
 								if (reader.TokenType is not JsonTokenType.Null)
@@ -117,7 +117,7 @@ internal partial class RDMemberConverter
 								}
 						}
 						else if (propertyName.SequenceEqual("amount"u8))
-								value.Amount = ConverterHub.Read<Point>(ref reader, options);
+								value.Amount = TypeConverterRegistry.Read<Point>(ref reader, options);
 						else if (propertyName.SequenceEqual("speedPerc"u8))
 								value.SpeedPercentage = reader.GetSingle();
 						else if (propertyName.SequenceEqual("ease"u8))
@@ -135,7 +135,7 @@ internal partial class RDMemberConverter
 				protected override void Write(Utf8JsonWriter writer, ref Events.SetVFXPreset value, MetadataJsonSerializerOptions options)
 				{
 						base.Write(writer, ref value, options);
-						{ writer.WritePropertyName("rooms"u8); ConverterHub.Write(writer, value.Rooms, options); }
+						{ writer.WritePropertyName("rooms"u8); TypeConverterRegistry.Write(writer, value.Rooms, options); }
 						writer.WriteString("preset"u8, value.Preset.ToEnumString());
 						if (value.Preset is not VfxPreset.DisableAll)
 								writer.WriteBoolean("enable"u8, value.Enable);
@@ -146,7 +146,7 @@ internal partial class RDMemberConverter
 						if (value.Enable && VfxAttributes[value.Preset].HasFlag(VfxAttribute.EnableColor) && value.Color is PaletteColor valueNotNull2)
 						{ writer.WriteString("color"u8, valueNotNull2.Serialize()); }
 						if (value.Enable && VfxAttributes[value.Preset].HasFlag(VfxAttribute.EnableAbsoluteXY) && value.Amount is Point valueNotNull3)
-						{ writer.WritePropertyName("amount"u8); ConverterHub.Write(writer, valueNotNull3, options); }
+						{ writer.WritePropertyName("amount"u8); TypeConverterRegistry.Write(writer, valueNotNull3, options); }
 						if (value.Enable && VfxAttributes[value.Preset].HasFlag(VfxAttribute.EnableSpeed) && value.SpeedPercentage is float valueNotNull4)
 								writer.WriteNumber("speedPerc"u8, valueNotNull4);
 						if (value.Enable && VfxAttributes[value.Preset].HasFlag(VfxAttribute.EnableEase))

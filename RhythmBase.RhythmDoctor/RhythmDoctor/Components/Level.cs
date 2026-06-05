@@ -104,9 +104,9 @@ public partial class Level :
         end is float e ? Calculator.BeatOf(e) : null
         );
     /// <inheritdoc/>
-    protected override ReadOnlyEnumCollection<EventType> Types => ClassEnumMap.Types;
+    protected override ReadOnlyEnumCollection<EventType> Types => EventTypeRegistry.Types;
     /// <inheritdoc/>
-    protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => ClassEnumMap.ToEnums(typeof(TTarget));
+    protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => EventTypeRegistry.ToEnums(typeof(TTarget));
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Level"/> class with the specified items.
@@ -225,8 +225,8 @@ public partial class Level :
     /// <param name="item">The event to check for.</param>
     /// <returns>True if the event is contained in the level; otherwise, false.</returns>
     public override bool Contains(IBaseEvent item) =>
-        ClassEnumMap.RowTypes.Contains(item.Type) && Rows.Any((i) => i.Contains(item)) ||
-        ClassEnumMap.DecorationTypes.Contains(item.Type) && Decorations.Any((i) => i.Contains(item)) ||
+        EventTypeRegistry.RowTypes.Contains(item.Type) && Rows.Any((i) => i.Contains(item)) ||
+        EventTypeRegistry.DecorationTypes.Contains(item.Type) && Decorations.Any((i) => i.Contains(item)) ||
         base.Contains(item);
     /// <summary>
     /// Removes an event from the level.

@@ -68,7 +68,7 @@ public class Chart :
     {
         Name = name;
     }
-	protected override ReadOnlyEnumCollection<EventType> Types => ClassEnumMap.ToEnums<IChartEvent>();
+	protected override ReadOnlyEnumCollection<EventType> Types => EventTypeRegistry.ToEnums<IChartEvent>();
 
     internal ChartCollection? _parent;
     protected override TickTime CreateInstance(float beat) => new(beat);
@@ -77,7 +77,7 @@ public class Chart :
 
 	protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>()
     {
-        return ClassEnumMap.ToEnums(typeof(TTarget));
+        return EventTypeRegistry.ToEnums(typeof(TTarget));
     }
     [MemberNotNull(nameof(LevelFile))]
     public void SeparateFromDefaultLevel()

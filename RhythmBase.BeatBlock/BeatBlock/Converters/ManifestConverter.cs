@@ -66,23 +66,23 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
                             ReadOnlySpan<byte> bgDataPropertyName = reader.ValueSpan;
                             reader.Read();
                             if (bgDataPropertyName.SequenceEqual("redChannel"u8))
-                                level.Metadata.BackgroundData.RedChannel = ConverterHub.Read<Color>(ref reader, options);
+                                level.Metadata.BackgroundData.RedChannel = TypeConverterRegistry.Read<Color>(ref reader, options);
                             else if (bgDataPropertyName.SequenceEqual("greenChannel"u8))
-                                level.Metadata.BackgroundData.GreenChannel = ConverterHub.Read<Color>(ref reader, options);
+                                level.Metadata.BackgroundData.GreenChannel = TypeConverterRegistry.Read<Color>(ref reader, options);
                             else if (bgDataPropertyName.SequenceEqual("blueChannel"u8))
-                                level.Metadata.BackgroundData.BlueChannel = ConverterHub.Read<Color>(ref reader, options);
+                                level.Metadata.BackgroundData.BlueChannel = TypeConverterRegistry.Read<Color>(ref reader, options);
                             else if (bgDataPropertyName.SequenceEqual("yellowChannel"u8))
-                                level.Metadata.BackgroundData.YellowChannel = ConverterHub.Read<Color>(ref reader, options);
+                                level.Metadata.BackgroundData.YellowChannel = TypeConverterRegistry.Read<Color>(ref reader, options);
                             else if (bgDataPropertyName.SequenceEqual("cyanChannel"u8))
-                                level.Metadata.BackgroundData.CyanChannel = ConverterHub.Read<Color>(ref reader, options);
+                                level.Metadata.BackgroundData.CyanChannel = TypeConverterRegistry.Read<Color>(ref reader, options);
                             else if (bgDataPropertyName.SequenceEqual("magentaChannel"u8))
-                                level.Metadata.BackgroundData.MagentaChannel = ConverterHub.Read<Color>(ref reader, options);
+                                level.Metadata.BackgroundData.MagentaChannel = TypeConverterRegistry.Read<Color>(ref reader, options);
                             else if (bgDataPropertyName.SequenceEqual("hideCranky"u8))
                                 level.Metadata.BackgroundData.HideCranky = reader.GetBoolean();
                             else if (bgDataPropertyName.SequenceEqual("image"u8))
-                                level.Metadata.BackgroundData.Image = ConverterHub.Read<FileReference>(ref reader, options);
+                                level.Metadata.BackgroundData.Image = TypeConverterRegistry.Read<FileReference>(ref reader, options);
                             else if (bgDataPropertyName.SequenceEqual("resultsImage"u8))
-                                level.Metadata.BackgroundData.ResultsImage = ConverterHub.Read<FileReference>(ref reader, options);
+                                level.Metadata.BackgroundData.ResultsImage = TypeConverterRegistry.Read<FileReference>(ref reader, options);
                             else
                                 reader.Skip();
                         }
@@ -200,22 +200,22 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
         #region bgdata
         writer.WriteStartObject("bgData");
         writer.WritePropertyName("redChannel");
-        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.RedChannel, ConverterHub.Write);
+        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.RedChannel, TypeConverterRegistry.Write);
         writer.WritePropertyName("greenChannel");
-        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.GreenChannel, ConverterHub.Write);
+        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.GreenChannel, TypeConverterRegistry.Write);
         writer.WritePropertyName("blueChannel");
-        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.BlueChannel, ConverterHub.Write);
+        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.BlueChannel, TypeConverterRegistry.Write);
         writer.WritePropertyName("yellowChannel");
-        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.YellowChannel, ConverterHub.Write);
+        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.YellowChannel, TypeConverterRegistry.Write);
         writer.WritePropertyName("cyanChannel");
-        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.CyanChannel, ConverterHub.Write);
+        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.CyanChannel, TypeConverterRegistry.Write);
         writer.WritePropertyName("magentaChannel");
-        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.MagentaChannel, ConverterHub.Write);
+        noIndentScope.WriteNoIndentObjectTo(writer, value.Metadata.BackgroundData.MagentaChannel, TypeConverterRegistry.Write);
         writer.WriteBoolean("hideCranky"u8, value.Metadata.BackgroundData.HideCranky);
         writer.WritePropertyName("image");
-        ConverterHub.Write(writer, value.Metadata.BackgroundData.Image, options);
+        TypeConverterRegistry.Write(writer, value.Metadata.BackgroundData.Image, options);
         writer.WritePropertyName("resultsImage");
-        ConverterHub.Write(writer, value.Metadata.BackgroundData.ResultsImage, options);
+        TypeConverterRegistry.Write(writer, value.Metadata.BackgroundData.ResultsImage, options);
         writer.WriteEndObject();
         #endregion
         #endregion

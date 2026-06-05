@@ -31,7 +31,7 @@ namespace RhythmBase.Adofai.Converters;
 			if (!EnumConverter.TryParse(type, out EventType typeEnum))
 				e = ReadForwardEvent(ref reader, typeToConvert, options) ?? new ForwardEvent() { ActualType = type.ToString() ?? "" };
 			else
-				e = ConverterMap.GetConverter(typeEnum).ReadProperties(ref reader, options);
+				e = EventConverterMap.GetConverter(typeEnum).ReadProperties(ref reader, options);
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndObject);
 			reader.Read();
 			return e;
@@ -43,7 +43,7 @@ namespace RhythmBase.Adofai.Converters;
 				WriteForwardEvent(writer, forwardEvent);
 				return;
 			}
-			ConverterMap.GetConverter(value.Type).WriteProperties(writer, value, options);
+			EventConverterMap.GetConverter(value.Type).WriteProperties(writer, value, options);
 		}
 		public static Events.IForwardEvent? ReadForwardEvent(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 		{

@@ -68,7 +68,7 @@ public sealed class JsonTimeAttribute(JsonTimeType type) : Attribute { }
 public sealed class JsonConverterAttribute(Type converterType) : Attribute { }
 /// <summary>
 /// Registers a hand-written converter as the converter for the specified target type in the
-/// generated <c>ConverterHub</c>.
+/// generated <c>TypeConverterRegistry</c>.
 /// </summary>
 /// <param name="targetType">The type this converter handles.</param>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
@@ -81,7 +81,7 @@ public sealed class JsonConverterForAttribute(Type targetType) : Attribute { }
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false, Inherited = false)]
 public sealed class JsonConverterIdAttribute(string namespaceId) : Attribute { }
 /// <summary>
-/// Links a public type to a custom converter in the generated <c>ConverterHub</c>.
+/// Links a public type to a custom converter in the generated <c>TypeConverterRegistry</c>.
 /// </summary>
 /// <param name="objectType">The type to register.</param>
 /// <param name="converterType">The converter type for the specified object type.</param>
@@ -90,7 +90,7 @@ public sealed class JsonConverterLinkAttribute(Type objectType, Type converterTy
 /// <summary>
 /// Declares the event type system for a game adapter, linking an event interface, an enum type,
 /// a converter base class, and the enum property name. Used by the source generator to produce
-/// <c>ConverterMap</c>, <c>ClassEnumMap</c>, and individual event converters.
+/// <c>EventConverterMap</c>, <c>EventTypeRegistry</c>, and individual event converters.
 /// </summary>
 /// <param name="interfaceType">The event interface (e.g. <c>IBaseEvent</c>).</param>
 /// <param name="typeEnumType">The enum type representing event categories (e.g. <c>EventType</c>).</param>

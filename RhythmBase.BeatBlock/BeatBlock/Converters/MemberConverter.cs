@@ -50,7 +50,7 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 		if (!EnumConverter.TryParse(type, out EventType typeEnum))
 			e = ReadForwardEvent(ref reader) ?? new ForwardEvent() { ActualType = type.ToString() ?? "" };
 		else
-			e = ConverterMap.GetConverter(typeEnum).WithReadSettings(_rs).ReadProperties(ref reader, options);
+			e = EventConverterMap.GetConverter(typeEnum).WithReadSettings(_rs).ReadProperties(ref reader, options);
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndObject);
 		return e;
 	}
@@ -71,7 +71,7 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 		}
 		else
 		{
-			ConverterMap.GetConverter(value.Type).WithWriteSettings(_ws).WriteProperties(writer, value, options);
+			EventConverterMap.GetConverter(value.Type).WithWriteSettings(_ws).WriteProperties(writer, value, options);
 		}
 	}
 

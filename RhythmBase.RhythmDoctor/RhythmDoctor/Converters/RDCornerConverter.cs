@@ -33,7 +33,7 @@ internal class RDCornerConverter : MetadataJsonConverter<Corner>
         }
         else if (reader.TokenType == JsonTokenType.StartArray)
         {
-            var value = ConverterHub.Read<Point>(ref reader, options);
+            var value = TypeConverterRegistry.Read<Point>(ref reader, options);
             reader.Read();
             return value;
         }
@@ -51,7 +51,7 @@ internal class RDCornerConverter : MetadataJsonConverter<Corner>
     private static void WriteOneCorner(Utf8JsonWriter writer, Point? point, MetadataJsonSerializerOptions options)
     {
         if (point is Point p)
-            ConverterHub.Write(writer, p, options);
+            TypeConverterRegistry.Write(writer, p, options);
         else
             writer.WriteNullValue();
     }

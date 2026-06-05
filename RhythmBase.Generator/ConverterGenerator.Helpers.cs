@@ -14,7 +14,7 @@ public partial class ConverterGenerator
 			.Replace("$r", "_rs")
 			.Replace("$w", "_ws");
 	}
-	private static void GenerateClassEnumMap(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<((string, Compilation), ClassEnumMapGenerationInfo[])> registryInfo, HashSet<Diagnostic> errors)
+	private static void GenerateEventTypeRegistry(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<((string, Compilation), EventTypeRegistryGenerationInfo[])> registryInfo, HashSet<Diagnostic> errors)
 	{
 		context.RegisterSourceOutput(registryInfo, GenerateEventTypeUtils);
 	}
@@ -237,7 +237,7 @@ public partial class ConverterGenerator
 				yield return type;
 	}
 
-	private void GenerateConverterHub(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<(string? Left, (ITypeSymbol, INamedTypeSymbol)[] Right)> incrementalValueProvider)
+	private void GenerateTypeConverterRegistry(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<(string? Left, (ITypeSymbol, INamedTypeSymbol)[] Right)> incrementalValueProvider)
 	{
 		context.RegisterSourceOutput(incrementalValueProvider, (ctx, data) =>
 	{
@@ -254,13 +254,13 @@ public partial class ConverterGenerator
 
 						namespace RhythmBase.{{left}}.Converters;
 
-						internal static partial class ConverterHub
+						internal static partial class TypeConverterRegistry
 						{
 							private static class ConverterCache<T>
 							{
 								public static JsonConverter? Converter;
 							}
-							static ConverterHub()
+							static TypeConverterRegistry()
 							{
 						""");
 		foreach (var pair in right)
@@ -299,7 +299,7 @@ public partial class ConverterGenerator
 							}
 						}
 						""");
-		ctx.AddSource($"ConverterHub.{left}.g.cs", sb.ToString());
+		ctx.AddSource($"TypeConverterRegistry.{left}.g.cs", sb.ToString());
 	});
 	}
 	private static ITypeSymbol UnwarpNullable(ITypeSymbol type)
@@ -358,7 +358,7 @@ public partial class ConverterGenerator
 			// 已注册转换器
 			if (jsonCvtr is null && classGenMap.FirstOrDefault(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)) is var (classGen, cvtr) && classGen is not null)
 			{
-				sb.Append($$"""{{valueAccess}} = ConverterHub.Read<{{type.ToDisplayString()}}>(ref reader, options);""");
+				sb.Append($$"""{{valueAccess}} = TypeConverterRegistry.Read<{{type.ToDisplayString()}}>(ref reader, options);""");
 			}
 			// 自定义转换器
 			else if (jsonCvtr is not null)
@@ -423,7 +423,7 @@ public partial class ConverterGenerator
 						// - 非枚举或无需序列化器
 						sb.AppendLine($$"""					var elementValue = ({{elementType.ToDisplayString()}})reader.GetInt64();""");
 				else
-					sb.Append($$"""					var elementValue = ConverterHub.Read<{{elementType.ToDisplayString()}}>(ref reader, options);""");
+					sb.Append($$"""					var elementValue = TypeConverterRegistry.Read<{{elementType.ToDisplayString()}}>(ref reader, options);""");
 				sb.AppendLine($$"""
 									list.Add(elementValue);
 								}
@@ -433,7 +433,7 @@ public partial class ConverterGenerator
 				""");
 			}
 			else
-				sb.Append($$"""{{valueAccess}} = ConverterHub.Read<{{type.ToDisplayString()}}>(ref reader, options);""");
+				sb.Append($$"""{{valueAccess}} = TypeConverterRegistry.Read<{{type.ToDisplayString()}}>(ref reader, options);""");
 			sb.AppendLine();
 			index++;
 		}
@@ -507,7 +507,7 @@ public partial class ConverterGenerator
 			// 已注册转换器
 			if (jsonCvtr is null && classGenMap.FirstOrDefault(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)) is var (classGen, cvtr) && classGen is not null)
 			{
-				sb.Append($$"""{{(hasCondition ? "{" : "")}} writer.WritePropertyName("{{alias}}"u8); ConverterHub.Write(writer, {{valueAccess}}, options); {{(hasCondition ? "}" : "")}}""");
+				sb.Append($$"""{{(hasCondition ? "{" : "")}} writer.WritePropertyName("{{alias}}"u8); TypeConverterRegistry.Write(writer, {{valueAccess}}, options); {{(hasCondition ? "}" : "")}}""");
 			}
 			// 自定义转换器
 			else if (jsonCvtr is not null)
@@ -569,14 +569,14 @@ public partial class ConverterGenerator
 						// - 非枚举或无需序列化器
 						sb.Append($"writer.WriteNumberValue(System.Convert.ToInt64({valueAccess}));");
 				else
-					sb.Append($$"""  ConverterHub.Write(writer, {{itemVar}}, options);""");
+					sb.Append($$"""  TypeConverterRegistry.Write(writer, {{itemVar}}, options);""");
 				sb.AppendLine($$"""
 					}
 					writer.WriteEndArray(); }
 				""");
 			}
 			else
-				sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); ConverterHub.Write(writer, {{valueAccess}}, options); }""");
+				sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); TypeConverterRegistry.Write(writer, {{valueAccess}}, options); }""");
 			if (isNullable)
 				sb.AppendLine(" }");
 			else
@@ -653,7 +653,7 @@ public partial class ConverterGenerator
 						""");
 
 			classMapSb.AppendLine($$"""
-						internal static class ConverterMap {
+						internal static class EventConverterMap {
 						""");
 
 
@@ -753,17 +753,17 @@ public partial class ConverterGenerator
 			ctx.AddSource($"Converters.{id}.g.cs", classCvtrSb.ToString());
 		});
 	}
-	private class ClassEnumMapGenerationInfo
+	private class EventTypeRegistryGenerationInfo
 	{
 		public INamedTypeSymbol ClassType { get; set; }
 		public INamedTypeSymbol ClassTypeEnum { get; set; }
 		public IEnumerable<INamedTypeSymbol> Classes { get; set; }
-		public Dictionary<INamedTypeSymbol, HashSet<ISymbol>> ClassEnumMap { get; set; }
+		public Dictionary<INamedTypeSymbol, HashSet<ISymbol>> EventTypeRegistry { get; set; }
 		public Dictionary<INamedTypeSymbol, ISymbol> ClassEnumDoubleMap { get; internal set; }
 		public INamedTypeSymbol? FallbackClassType { get; internal set; }
 		public ISymbol? FallbackClassTypeEnum { get; internal set; }
 	}
-	private static void GenerateEventTypeUtils(SourceProductionContext spc, ((string, Compilation), ClassEnumMapGenerationInfo[]) classSymbols)
+	private static void GenerateEventTypeUtils(SourceProductionContext spc, ((string, Compilation), EventTypeRegistryGenerationInfo[]) classSymbols)
 	{
 		var (configIdAndCompilation, infos) = classSymbols;
 		var (configId, compilation) = configIdAndCompilation;
@@ -780,7 +780,7 @@ namespace RhythmBase.{{configId}}.Converters;
 /// <summary>  
 /// Utility class for converting between event types and enumerations.  
 /// </summary>
-public static partial class ClassEnumMap
+public static partial class EventTypeRegistry
 {
 """);
 		for (int i = 0; i < infos.Length; i++)
@@ -788,10 +788,10 @@ public static partial class ClassEnumMap
 			string indexPostfix = infos.Length > 1 ? $"_{i}" : "";
 			string enumPostfix = infos.Length > 1 ? $"_{infos[i].ClassTypeEnum.Name}" : "";
 			string classPostfix = infos.Length > 1 ? $"_{infos[i].ClassType.Name}" : "";
-			ClassEnumMapGenerationInfo? info = infos[i];
+			EventTypeRegistryGenerationInfo? info = infos[i];
 			int maxTypeStrLength = 100;
 			int maxEnumStrLength = 100;
-			maxTypeStrLength = info.ClassEnumMap.Keys
+			maxTypeStrLength = info.EventTypeRegistry.Keys
 					.Max(i => i.ToDisplayString().Length)
 					 + 13;
 			maxEnumStrLength = info.ClassEnumDoubleMap.Values
@@ -814,7 +814,7 @@ public static partial class ClassEnumMap
 	{
 """);
 			string indent = new(' ', maxTypeStrLength);
-			foreach (var pair in info.ClassEnumMap)
+			foreach (var pair in info.EventTypeRegistry)
 			{
 				if (pair.Value.Count == 0)
 					continue;
@@ -930,7 +930,7 @@ public static partial class ClassEnumMap
 		sb.AppendLine("""
 }
 """);
-		string filename = $"ClassEnumMap.{configId}.g.cs";
+		string filename = $"EventTypeRegistry.{configId}.g.cs";
 		spc.AddSource(filename, sb.ToString());
 	}
 

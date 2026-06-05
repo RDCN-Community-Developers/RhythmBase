@@ -87,9 +87,9 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction, EventType
         end.HasValue ? new TickTime(end.Value) : null
     );
     /// <inheritdoc/>
-    protected override ReadOnlyEnumCollection<EventType> Types => ClassEnumMap.ToEnums<BaseDecorationAction>();
+    protected override ReadOnlyEnumCollection<EventType> Types => EventTypeRegistry.ToEnums<BaseDecorationAction>();
     /// <inheritdoc/>
-    protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => ClassEnumMap.ToEnums(typeof(TTarget));
+    protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => EventTypeRegistry.ToEnums(typeof(TTarget));
     /// <summary>
     /// Add an event to decoration.
     /// </summary>

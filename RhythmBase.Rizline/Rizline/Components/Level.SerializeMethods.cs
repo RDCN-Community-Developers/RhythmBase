@@ -38,16 +38,16 @@ partial class Level
 				{
 					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					reader.Read();
-					chart.Themes.MainTheme = ConverterHub.Read<Theme>(ref reader, options);
+					chart.Themes.MainTheme = TypeConverterRegistry.Read<Theme>(ref reader, options);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-						chart.Themes.RiztimeThemes.Add(ConverterHub.Read<Theme>(ref reader, options));
+						chart.Themes.RiztimeThemes.Add(TypeConverterRegistry.Read<Theme>(ref reader, options));
 				}
 				else if (propertyName.SequenceEqual("challengeTimes"u8))
 				{
 					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 					{
-						ChallengeTime e = ConverterMap
+						ChallengeTime e = EventConverterMap
 							.GetConverter(EventType.ChallengeTime)
 							.WithReadSettings(settings)
 							.ReadProperties(ref reader, options)
@@ -63,7 +63,7 @@ partial class Level
 					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 					{
-						BpmShift e = ConverterMap
+						BpmShift e = EventConverterMap
 							.GetConverter(EventType.BpmShift)
 							.WithReadSettings(settings)
 							.ReadProperties(ref reader, options)
@@ -76,7 +76,7 @@ partial class Level
 				{
 					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-						chart.Lines.Add(ConverterHub.Read<Line>(ref reader, options));
+						chart.Lines.Add(TypeConverterRegistry.Read<Line>(ref reader, options));
 				}
 				else if (propertyName.SequenceEqual("canvasMoves"u8))
 				{
@@ -96,7 +96,7 @@ partial class Level
 							{
 								while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 								{
-									CanvasPosition e = ConverterMap
+									CanvasPosition e = EventConverterMap
 										.GetConverter(EventType.CanvasPosition)
 										.WithReadSettings(settings)
 										.ReadProperties(ref reader, options)
@@ -109,7 +109,7 @@ partial class Level
 							{
 								while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 								{
-									CanvasSpeed e = ConverterMap
+									CanvasSpeed e = EventConverterMap
 										.GetConverter(EventType.CanvasSpeed)
 										.WithReadSettings(settings)
 										.ReadProperties(ref reader, options)
@@ -140,7 +140,7 @@ partial class Level
 						{
 							while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 							{
-								CameraScale e = ConverterMap
+								CameraScale e = EventConverterMap
 									.GetConverter(EventType.CameraScale)
 									.WithReadSettings(settings)
 									.ReadProperties(ref reader, options)
@@ -153,7 +153,7 @@ partial class Level
 						{
 							while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 							{
-								CameraPosition e = ConverterMap
+								CameraPosition e = EventConverterMap
 									.GetConverter(EventType.CameraPosition)
 									.WithReadSettings(settings)
 									.ReadProperties(ref reader, options)
@@ -190,18 +190,18 @@ partial class Level
 			writer.WriteNumber("chartDelayMs", chart.Delay.TotalMilliseconds);
 			writer.WriteNumber("offset", chart.Offset.TotalMilliseconds);
 			writer.WriteStartArray("themes"u8);
-			noIndentScope.WriteNoIndentArrayTo(options, writer, [chart.Themes.MainTheme, .. chart.Themes.RiztimeThemes], ConverterHub.Write);
+			noIndentScope.WriteNoIndentArrayTo(options, writer, [chart.Themes.MainTheme, .. chart.Themes.RiztimeThemes], TypeConverterRegistry.Write);
 			writer.WriteEndArray();
 			writer.WriteStartArray("challengeTimes"u8);
-			noIndentScope.WriteNoIndentArrayTo(options, writer, chart.ChallengeTimes, (w, e, o) => ConverterMap.GetConverter(EventType.ChallengeTime).WithWriteSettings(settings).WriteProperties(w, e, o));
+			noIndentScope.WriteNoIndentArrayTo(options, writer, chart.ChallengeTimes, (w, e, o) => EventConverterMap.GetConverter(EventType.ChallengeTime).WithWriteSettings(settings).WriteProperties(w, e, o));
 			writer.WriteEndArray();
 			writer.WriteNumber("bPM", chart.Bpm);
 			writer.WriteStartArray("bpmShifts"u8);
-			noIndentScope.WriteNoIndentArrayTo(options, writer, chart.BpmShifts, (w, e, o) => ConverterMap.GetConverter(EventType.BpmShift).WithWriteSettings(settings).WriteProperties(w, e, o));
+			noIndentScope.WriteNoIndentArrayTo(options, writer, chart.BpmShifts, (w, e, o) => EventConverterMap.GetConverter(EventType.BpmShift).WithWriteSettings(settings).WriteProperties(w, e, o));
 			writer.WriteEndArray();
 			writer.WriteStartArray("lines"u8);
 			foreach (Line line in chart.Lines)
-				ConverterHub.Write(writer, line, options);
+				TypeConverterRegistry.Write(writer, line, options);
 			writer.WriteEndArray();
 			writer.WriteStartArray("canvasMoves"u8);
 			foreach (CanvasMove canvasMove in chart.CanvasMoves)
@@ -209,20 +209,20 @@ partial class Level
 				writer.WriteStartObject();
 				writer.WriteNumber("index", canvasMove.Index);
 				writer.WriteStartArray("xPositionKeyPoints"u8);
-				noIndentScope.WriteNoIndentArrayTo(options, writer, canvasMove.XPosition, (w, e, o) => ConverterMap.GetConverter(EventType.CanvasPosition).WithWriteSettings(settings).WriteProperties(w, e, o));
+				noIndentScope.WriteNoIndentArrayTo(options, writer, canvasMove.XPosition, (w, e, o) => EventConverterMap.GetConverter(EventType.CanvasPosition).WithWriteSettings(settings).WriteProperties(w, e, o));
 				writer.WriteEndArray();
 				writer.WriteStartArray("speedKeyPoints"u8);
-				noIndentScope.WriteNoIndentArrayTo(options, writer, canvasMove.Speed, (w, e, o) => ConverterMap.GetConverter(EventType.CanvasSpeed).WithWriteSettings(settings).WriteProperties(w, e, o));
+				noIndentScope.WriteNoIndentArrayTo(options, writer, canvasMove.Speed, (w, e, o) => EventConverterMap.GetConverter(EventType.CanvasSpeed).WithWriteSettings(settings).WriteProperties(w, e, o));
 				writer.WriteEndArray();
 				writer.WriteEndObject();
 			}
 			writer.WriteEndArray();
 			writer.WriteStartObject("cameraMove"u8);
 			writer.WriteStartArray("scaleKeyPoints"u8);
-			noIndentScope.WriteNoIndentArrayTo(options, writer, chart.CameraMove.Scales, (w, e, o) => ConverterMap.GetConverter(EventType.CameraScale).WithWriteSettings(settings).WriteProperties(w, e, o));
+			noIndentScope.WriteNoIndentArrayTo(options, writer, chart.CameraMove.Scales, (w, e, o) => EventConverterMap.GetConverter(EventType.CameraScale).WithWriteSettings(settings).WriteProperties(w, e, o));
 			writer.WriteEndArray();
 			writer.WriteStartArray("xPositionKeyPoints"u8);
-			noIndentScope.WriteNoIndentArrayTo(options, writer, chart.CameraMove.XPosition, (w, e, o) => ConverterMap.GetConverter(EventType.CameraPosition).WithWriteSettings(settings).WriteProperties(w, e, o));
+			noIndentScope.WriteNoIndentArrayTo(options, writer, chart.CameraMove.XPosition, (w, e, o) => EventConverterMap.GetConverter(EventType.CameraPosition).WithWriteSettings(settings).WriteProperties(w, e, o));
 			writer.WriteEndArray();
 			writer.WriteEndObject();
 			writer.WriteEndObject();

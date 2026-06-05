@@ -22,7 +22,7 @@ namespace RhythmBase.Rizline.Converters
 				{
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 					{
-						LinePoint e = ConverterMap
+						LinePoint e = EventConverterMap
 							.GetConverter(EventType.LinePoint)
 							.ReadProperties(ref reader, options)
 							as LinePoint
@@ -35,7 +35,7 @@ namespace RhythmBase.Rizline.Converters
 					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 					{
-						//reader.Skip();// line.Notes.Add(ConverterHub.Read<Note>(ref reader, options));
+						//reader.Skip();// line.Notes.Add(TypeConverterRegistry.Read<Note>(ref reader, options));
 						var note = instanceConverter.Read(ref reader, typeof(BaseNote), options);
 						if (note is BaseNote n)
 							line.Notes.Add(n);
@@ -47,7 +47,7 @@ namespace RhythmBase.Rizline.Converters
 				{
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 					{
-						JudgeRingColor e = ConverterMap
+						JudgeRingColor e = EventConverterMap
 						.GetConverter(EventType.JudgeRingColor)
 						.ReadProperties(ref reader, options)
 						as JudgeRingColor
@@ -59,7 +59,7 @@ namespace RhythmBase.Rizline.Converters
 				{
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 					{
-						LineColor e = ConverterMap
+						LineColor e = EventConverterMap
 						.GetConverter(EventType.LineColor)
 						.ReadProperties(ref reader, options)
 						as LineColor

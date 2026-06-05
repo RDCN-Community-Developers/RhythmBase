@@ -5,7 +5,7 @@ namespace RhythmBase.RhythmDoctor.Converters;
 /// <summary>  
 /// Utility class for converting between event types and enumerations.  
 /// </summary>  
-partial class ClassEnumMap
+partial class EventTypeRegistry
 {
     /// <summary>
     /// All event types.

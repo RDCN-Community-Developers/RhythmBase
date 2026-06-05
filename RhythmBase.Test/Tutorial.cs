@@ -221,15 +221,15 @@ namespace RhythmBase.Test;
         public void EventTypeUtilsConvert()
         {
             Console.WriteLine(EventType.Tint.ToType());                                              // RhythmBase.Events.Tint
-            Console.WriteLine(ClassEnumMap.ToEnum(typeof(Tint)));                                    // Tint
-            Console.WriteLine(ClassEnumMap.ToEnum<Tint>());                                          // Tint
-            Console.WriteLine(string.Join(", ", ClassEnumMap.ToEnums(typeof(IBarBeginningEvent))));  // PlaySong,SetCrotchetsPerBar, SetHeartExplodeVolume
-            Console.WriteLine(string.Join(", ", ClassEnumMap.ToEnums<IBarBeginningEvent>()));        // PlaySong,SetCrotchetsPerBar, SetHeartExplodeVolume
+            Console.WriteLine(EventTypeRegistry.ToEnum(typeof(Tint)));                                    // Tint
+            Console.WriteLine(EventTypeRegistry.ToEnum<Tint>());                                          // Tint
+            Console.WriteLine(string.Join(", ", EventTypeRegistry.ToEnums(typeof(IBarBeginningEvent))));  // PlaySong,SetCrotchetsPerBar, SetHeartExplodeVolume
+            Console.WriteLine(string.Join(", ", EventTypeRegistry.ToEnums<IBarBeginningEvent>()));        // PlaySong,SetCrotchetsPerBar, SetHeartExplodeVolume
         }
         [TestMethod]
         public void EventTypeUtilsStatic()
         {
-            Console.WriteLine(string.Join(",\n", ClassEnumMap.DecorationTypes));
+            Console.WriteLine(string.Join(",\n", EventTypeRegistry.DecorationTypes));
             // Comment,
             // CustomDecorationEvent,
             // Move,
@@ -238,13 +238,13 @@ namespace RhythmBase.Test;
             // Tile,
             // Tint
 
-            Console.WriteLine(string.Join(",\n", ClassEnumMap.EventTypeEnumsForCameraFX));
+            Console.WriteLine(string.Join(",\n", EventTypeRegistry.EventTypeEnumsForCameraFX));
             // MoveCamera,
             // ShakeScreen,
             // FlipScreen,
             // PulseCamera
 
-            Console.WriteLine(string.Join(",\n", ClassEnumMap.EventTypeEnumsForUtility));
+            Console.WriteLine(string.Join(",\n", EventTypeRegistry.EventTypeEnumsForUtility));
             // Comment,
             // TagAction,
             // CallCustomMethod

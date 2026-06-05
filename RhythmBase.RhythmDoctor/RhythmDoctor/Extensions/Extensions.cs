@@ -326,7 +326,7 @@ public static partial class Extensions
 		/// </summary>
 		public IEnumerable<TEvent> Before()
 		{
-			ReadOnlyEnumCollection<EventType> types = ClassEnumMap.ToEnums<TEvent>();
+			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
 			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			while (enumerator.MoveNext() && enumerator.Current.Key < e.TickTime)
 			{
@@ -354,7 +354,7 @@ public static partial class Extensions
 		/// </summary>
 		public IEnumerable<TEvent> After()
 		{
-			ReadOnlyEnumCollection<EventType> types = ClassEnumMap.ToEnums<TEvent>();
+			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
 			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			bool moved;
 			while ((moved = enumerator.MoveNext()) && enumerator.Current.Key < e.TickTime) { }
@@ -391,7 +391,7 @@ public static partial class Extensions
 		/// </summary>
 		public TEvent? FrontOrDefault()
 		{
-			ReadOnlyEnumCollection<EventType> types = ClassEnumMap.ToEnums<TEvent>();
+			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
 			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			TEvent? front = null;
 			while (enumerator.MoveNext() && enumerator.Current.Key < e.TickTime)
@@ -424,7 +424,7 @@ public static partial class Extensions
 		/// </summary>
 		public TEvent? NextOrDefault()
 		{
-			ReadOnlyEnumCollection<EventType> types = ClassEnumMap.ToEnums<TEvent>();
+			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
 			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			bool moved;
 			while ((moved = enumerator.MoveNext()) && enumerator.Current.Key < e.TickTime) { }
@@ -462,7 +462,7 @@ public static partial class Extensions
 		/// </summary>
 		public IEnumerable<TEvent> Before<TEvent>() where TEvent : class, IBaseEvent
 		{
-			ReadOnlyEnumCollection<EventType> types = ClassEnumMap.ToEnums<TEvent>();
+			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
 			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			while (enumerator.MoveNext() && enumerator.Current.Key < e.TickTime)
 			{
@@ -489,7 +489,7 @@ public static partial class Extensions
 		/// </summary>
 		public IEnumerable<TEvent> After<TEvent>() where TEvent : class, IBaseEvent
 		{
-			ReadOnlyEnumCollection<EventType> types = ClassEnumMap.ToEnums<TEvent>();
+			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
 			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			bool moved;
 			while ((moved = enumerator.MoveNext()) && enumerator.Current.Key < e.TickTime) { }
@@ -527,7 +527,7 @@ public static partial class Extensions
 		/// </summary>
 		public TEvent? FrontOrDefault<TEvent>() where TEvent : class, IBaseEvent
 		{
-			ReadOnlyEnumCollection<EventType> types = ClassEnumMap.ToEnums<TEvent>();
+			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
 			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			TEvent? front = null;
 			while (enumerator.MoveNext() && enumerator.Current.Key < e.TickTime)
@@ -561,7 +561,7 @@ public static partial class Extensions
 		/// </summary>
 		public TEvent? NextOrDefault<TEvent>() where TEvent : class, IBaseEvent
 		{
-			ReadOnlyEnumCollection<EventType> types = ClassEnumMap.ToEnums<TEvent>();
+			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
 			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			bool moved;
 			while ((moved = enumerator.MoveNext()) && enumerator.Current.Key < e.TickTime) { }

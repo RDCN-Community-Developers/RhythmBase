@@ -63,7 +63,7 @@ partial class Extensions
             if (source is OrderedEventCollection<TEvent, EventType, TickTime> ordered)
             {
                 var collection = ordered.EventsBeatOrder.TryGetValue(beat, out TypedEventCollection<EventType, TickTime>? b) ? b : [];
-                var types = ClassEnumMap.ToEnums(typeof(TEvent));
+                var types = EventTypeRegistry.ToEnums(typeof(TEvent));
                 return collection.ContainsTypes(types) ?
                     collection.Where(i => types.Contains(((IBaseEvent)i).Type)).OfType<TEvent>() :
                     [];
@@ -81,7 +81,7 @@ partial class Extensions
         /// <exception cref="NotSupportedException">Thrown if the provided <see cref="IEventEnumerable{TEvent}"/> is not supported.</exception>
         public IEventEnumerable<TEvent> OfEvent<TEvent>() where TEvent : IBaseEvent
         {
-            ReadOnlyEnumCollection<EventType> merged = ClassEnumMap.ToEnums(typeof(TEvent)).Intersect(source.Types);
+            ReadOnlyEnumCollection<EventType> merged = EventTypeRegistry.ToEnums(typeof(TEvent)).Intersect(source.Types);
             return new EventEnumerator<TEvent>(source.EventsBeatOrder, merged, source.Range as Components.Range? ?? new Components.Range(null, null));
         }
 

@@ -13,14 +13,14 @@
 //				: dataSource.GetMemoryAsync().GetAwaiter().GetResult();
 //		Utf8JsonReader reader = new(jsonData.Span,
 //				new() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip });
-//		return RhythmBase.Global.Converters.ConverterHub.Read<T>(ref reader, options) ?? new();
+//		return RhythmBase.Global.Converters.TypeConverterRegistry.Read<T>(ref reader, options) ?? new();
 //	}
 //	public static async Task<T> DeserializeMainEntryAsync<T>(IJsonDataSource dataSource, RhythmBase.Global.Converters.MetadataJsonSerializerOptions options, CancellationToken cancellationToken = default)
 //			where T : new()
 //	{
 //		Utf8JsonReader reader = new((await dataSource.GetMemoryAsync(cancellationToken)).Span,
 //				new() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip });
-//		return ConverterHub.Read<T>(ref reader, options) ?? new();
+//		return TypeConverterRegistry.Read<T>(ref reader, options) ?? new();
 //	}
 //	public static void SerializeMainEntry<T>(T mainEntry, Stream stream, RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
 //	{
@@ -31,7 +31,7 @@
 //			IndentCharacter = options.JsonSerializerOptions.IndentCharacter,
 //			IndentSize = options.JsonSerializerOptions.IndentSize,
 //		});
-//		RhythmBase.Global.Converters.ConverterHub.Write(writer, mainEntry, options);
+//		RhythmBase.Global.Converters.TypeConverterRegistry.Write(writer, mainEntry, options);
 //		writer.Flush();
 //	}
 //}
