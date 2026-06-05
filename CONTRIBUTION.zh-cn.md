@@ -1,71 +1,329 @@
-适配新的音游谱面流程：
+# 贡献指南
 
-1. 定义枚举类型，用于表示此关卡类型的所有事件类型。
-1. 定义时间单位，实现 `IBeat<TSelf>` 接口，提供时间单位记录。
-2. 定义时间范围，实现 `IBeatRange<TBeat>` 接口，提供按时间范围筛选功能。
-1. 定义关卡模型，实现 `RhythmBase.Global.ILevel<TSelf，TEvent，TType，TBeat>` 接口，
-	提供关卡基本信息和读写相关方法。\
-	依据关卡格式，可以选择实现这些接口：
-	- `IJsonLevel<TLevel，TEvent，TType，TBeat>`\
-		关卡内容为 JSON 格式。提供 JSON 预览
-	- `ISingleFileLevel<TSelf, TEvent, TType, TBeat>`\
-		关卡为单文件。
-	- `IMultiFileLevel<TSelf, TEvent, TType, TBeat>`\
-		关卡为多文件。
-	- `IArchiveLevel<TSelf, TEvent, TType, TBeat>`\
-		关卡存在压缩包形式。	
-1. 定义谱面模型，实现 `RhythmBase.Clobal.IChart<TBeat>` 接口。
-4. 定义事件模型，实现 `IEvent<TType，TBeat>` 接口。
-   建议编写一个命名空间限定接口用于事件模型实现。\
-	依据事件功能，可以选择实现这些接口：
-	- `IDurationEvent`\
-		事件带有时长属性\
-		此接口用于未来扩展动画帧功能
-		- `IEaseEvent`\
-			事件带有缓动属性
-	- `IFileEvent`\
-		事件包含外部文件引用，用于针对压缩包关卡类型收集关卡文件引用以打包资源
-		- `IAudioFileEvent`\
-			事件包含音频文件引用 
-		- `IImageFileEvent`\
-			事件包含图像文件引用
-	- `IForwardEvent`\
-		回退兼容事件
-5. 对象依据事件和属性的需求分别标记特定的特性
-	- `RDJsonEnumSerializableAttribute`\
-		需要添加字符串转换的枚举类型
-	- `RDJsonObjectSerializableAttribute`\
-		需要自动生成序列化器和映射的事件类型
-	- `RDJsonObjectHasSerializerAttribute`\
-		已自行实现序列化器，但是需要映射的事件类型
-	- `RDJsonObjectNotSerializableAttribute`\
-		不需要自动生成序列化器和映射的事件类型，如回退兼容事件
-	- `RDJsonIgnoreAttribute`\
-		序列化和反序列化时需要忽略的公开属性
-	- `RDJsonNotIgnoreAttribute`\
-		序列化和反序列化时不能够忽略的非公开属性
-	- `RDJsonConditionAttribute`\
-		序列化和反序列化时按条件不忽略的属性，用 `$&` 指代对象本身\
-		如 `RDJsonCondition("$&.Angle is not null")`
-	- `RDJsonAliasAttribute`\
-		序列化和反序列化时需要使用别名的属性
-	- `RDJsonTimeAttribute`\
-		需要序列化和反序列化为特定 `TimeSpan` 类型的属性
-	- `RDJsonConverterAttribute`\
-		需要使用特定序列化器序列化和反序列化的属性
-	- `RDJsonConverterForAttribute`\
-		需要指定为特定类型的序列化器的类型
-6. 源生成器项目添加一个 `GenerationConfig` 配置，用于指定此音游格式下序列化器和枚举转换器的生成规则
-```cs
-new GenerationConfig() {
-	ID="RD"，//区分音游类型的唯一ID
-	SourceNamespace="RhythnBase.RhythnDoctor.Events"，//事件模型的命名空间
-	TargetConverterNamespace="RhythnBase.RhythnDoctor.Converters"，//序列化器的命名空间
-	TargetUtilsNamespace="RhythnBase.RhythnDoctor.Utils"，//救举转换器的命名空间
-	TargetUtilsClassName="EventTypeUtils"，//救举转换器的类名
-	BaseConverterClassName="EventMemberConverter"，//序列化器的基类名
-	BaseInterfaceFullName="RhythnBase.RhythnDoctor.Events.IBaseEvent"，//需要生成序列化器的事件模型类型的上层接口
-	ClassTypeEnunFullnane="RhythnBase.RhythnDoctor.EventType"，//表示事件类型的救举类型
-	ClassTypeEnunUnknounMenberName="ForuardEvent"，//回退兼容类型名 48
+## 目录
+
+- [开发环境](#开发环境)
+- [项目架构](#项目架构)
+- [适配新游戏](#适配新游戏)
+  - [快速检查清单](#快速检查清单)
+  - [详细步骤](#详细步骤)
+- [源代码生成器](#源代码生成器)
+  - [生成器做什么](#生成器做什么)
+  - [开发者需要提供什么](#开发者需要提供什么)
+  - [生成产物](#生成产物)
+- [手写转换器](#手写转换器)
+- [代码规范](#代码规范)
+- [属性参考](#属性参考)
+- [常见问题](#常见问题)
+
+---
+
+## 开发环境
+
+**前置要求**：
+- .NET 8.0 SDK（或更高版本）
+- 支持 C# 14 的编译器（Visual Studio 2022 17.12+、Rider 2024.3+、或 .NET 9+ SDK）
+
+**克隆与构建**：
+
+```bash
+git clone https://github.com/RDCN-Community-Developers/RhythmToolkit.git
+cd RhythmToolkit
+dotnet restore
+dotnet build
+```
+
+**本地 NuGet 包调试**：
+
+子项目（RhythmDoctor、Adofai 等）引用核心库的 NuGet 包。调试时需要先将核心库打包到本地 NuGet 源：
+
+```powershell
+# 在 RhythmBase 项目目录下打包
+dotnet pack -c Release -o ./nupkg
+
+# 添加本地源（首次）
+dotnet nuget add source ./nupkg --name local
+
+# 之后每次修改核心库后重新打包
+dotnet pack -c Release -o ./nupkg --force
+```
+
+> 子项目的 NuGet 缓存可能导致更新不生效。可执行 `dotnet nuget locals all --clear` 清除缓存后重新 restore。
+
+---
+
+## 项目架构
+
+```
+RhythmBase                         ← 核心库
+├── Global/                        ← 公共接口、类型、序列化基础设施
+│   ├── Components/                ← Color, EnumCollection, ITickTime, ILevel...
+│   ├── Events/                    ← IEvent, IDurationEvent, IFileEvent, IForwardEvent...
+│   ├── Converters/                ← MetadataJsonConverter, MemberConverter, TypeConverterRegistry...
+│   └── Extensions/                ← LINQ 查询, 事件导航
+
+RhythmBase.Generator              ← 源代码生成器
+└── 根据 AssemblyInfo.cs 中的属性声明，自动生成：
+    ├── EventConverterMap          ← 事件枚举 → MemberConverter 的路由表
+    ├── EventTypeRegistry          ← 类型 ↔ 枚举的双向映射 + 分类查询
+    ├── EnumConverterExtensions    ← 枚举的 TryParse / ToEnumString 扩展方法
+    ├── TypeConverterRegistry      ← 公共类型转换器的注册表
+    └── 每个事件类的 MemberConverter ← 属性级序列化器
+
+RhythmBase.RhythmDoctor            ← 节奏医生适配
+RhythmBase.Adofai                  ← 冰与火之舞适配
+RhythmBase.BeatBlock               ← BeatBlock 适配
+RhythmBase.Rizline                 ← Rizline 适配
+```
+
+**序列化体系的两条线**：
+
+```
+MetadataJsonConverter<T>     — 管 { } 的边界（Level、Settings、Row 等复合对象）
+└── BaseEventConverter       — 根据 "type" 字段路由到 EventConverterMap
+
+MemberConverter<T>           — 管 { } 内部的字段（单个事件的属性读写）
+└── 具体事件 Converter       — 源生成器自动生成
+```
+
+---
+
+## 适配新游戏
+
+### 快速检查清单
+
+- [ ] 创建项目，`RootNamespace` 设为 `RhythmBase`，引用 `RhythmBase` NuGet 包
+- [ ] 定义事件类型枚举，标记 `[JsonEnumSerializable]`
+- [ ] 定义时间单位，实现 `ITickTime<TickTime>`
+- [ ] 定义事件接口（如 `IBaseEvent`）和事件基类
+- [ ] 定义事件子类，标记 `[JsonObjectSerializable]`
+- [ ] 定义关卡模型 `Level`，实现相应的 `ILevel` 接口组合
+- [ ] 创建 `AssemblyInfo.cs`，注册 `JsonConverterId` + `JsonConverterSourceType`
+- [ ] 实现手写转换器（`LevelConverter`、`SettingsConverter`、`BaseEventConverter` 等）
+- [ ] 实现序列化方法（`FromFile`、`SaveToFile`、`FromZip` 等）
+- [ ] 创建 `GlobalUsing.cs`
+- [ ] 全部编译通过，无错误
+
+### 详细步骤
+
+详见 [Tutorial.zh-cn.md](docs/Tutorial.zh-cn.md#二实现新的关卡类型)。
+
+---
+
+## 源代码生成器
+
+### 生成器做什么
+
+源代码生成器（`RhythmBase.Generator`）是一个 Roslyn Incremental Source Generator，在编译时扫描项目中的属性声明，自动生成以下代码：
+
+```
+扫描 AssemblyInfo.cs 中的属性
+    ↓
+┌─ JsonConverterId("RhythmDoctor")
+│   → 生成 TypeConverterRegistry.RhythmDoctor.g.cs
+│     （公共类型转换器注册表）
+│
+├─ JsonConverterSourceType(IBaseEvent, EventType, MemberConverter<>, "Type")
+│   → 生成 Converters.RhythmDoctor.g.cs
+│     （每个事件类的 MemberConverter + EventConverterMap 路由表）
+│
+├─ JsonConverterLink(typeof(Color), typeof(ColorConverter.RgbaHex))
+│   → 注入到 TypeConverterRegistry 中
+│
+└─ [JsonObjectSerializable] 标记的事件类
+    → 生成对应的 MemberConverter 子类
+    → 生成 EventTypeRegistry（类型 ↔ 枚举映射）
+    → 生成 EnumConverterExtensions（TryParse / ToEnumString）
+```
+
+### 开发者需要提供什么
+
+| 必须提供 | 说明 |
+|---|---|
+| 事件枚举 | 带 `[JsonEnumSerializable]`，成员名与事件类名一致 |
+| 事件接口 | 如 `IBaseEvent : IEvent<EventType, TickTime>` |
+| 事件基类 | 带 `_extraData` 字典和索引器 |
+| 事件子类 | 带 `[JsonObjectSerializable]`，`Type` 属性返回枚举值 |
+| Fallback 事件 | 带 `[JsonObjectSerializationFallback]`（全局唯一） |
+| `AssemblyInfo.cs` | 注册 `JsonConverterId` + `JsonConverterSourceType` |
+| 手写转换器 | `LevelConverter`、`SettingsConverter`、`BaseEventConverter` 等 |
+
+| 自动生成 | 说明 |
+|---|---|
+| 每个事件的 `MemberConverter<T>` | 处理事件属性的读写 |
+| `EventConverterMap` | 枚举值 → MemberConverter 的 switch 路由 |
+| `EventTypeRegistry` | 类型 ↔ 枚举的双向映射 + 分类查询 |
+| `TypeConverterRegistry` | 公共类型（Color、RichLine 等）的转换器注册 |
+| `EnumConverterExtensions` | 枚举的 `TryParse` / `ToEnumString` 扩展方法 |
+
+### 生成产物
+
+编译后在 `obj/` 目录下可找到生成的文件：
+
+```
+obj/Debug/net8.0/generated/RhythmBase.Generator/
+├── Converters.RhythmDoctor.g.cs          ← 事件转换器 + EventConverterMap
+├── EnumConverters.RhythmDoctor.g.cs      ← 枚举转换扩展方法
+├── ConverterRegistry.g.cs                ← TypeConverterRegistry + FileMainEntryConverter
+└── ClassEnumMap.g.cs                     ← EventTypeRegistry
+```
+
+> 生成的文件头部带有 `// <auto-generated/>` 标记。
+
+---
+
+## 手写转换器
+
+以下复合类型需要手写转换器，因为它们的序列化逻辑无法由源生成器自动推断：
+
+| 转换器 | 职责 | 参考 |
+|---|---|---|
+| `LevelConverter` | 读写整个关卡对象（Settings、Rows、Decorations、Events 等） | `RhythmDoctor/Converters/LevelConverter.cs` |
+| `SettingsConverter` | 读写关卡设置 | `RhythmDoctor/Converters/SettingsConverter.cs` |
+| `BaseEventConverter` | 事件类型路由——扫描 JSON 中的 `type` 字段，分发到 `EventConverterMap` | `RhythmDoctor/Converters/BaseEventConverter.cs` |
+
+**手写转换器的模式**：
+
+```csharp
+// 继承 MetadataJsonConverter<T>，处理 { } 边界
+internal class LevelConverter : MetadataJsonConverter<Level>
+{
+    public override Level? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
+    {
+        // 读取 { ... } 内部的字段
+        // 对于子对象（Settings、Events），调用对应的转换器
+    }
+
+    public override void Write(Utf8JsonWriter writer, Level value, MetadataJsonSerializerOptions options)
+    {
+        // 写入 { ... } 内部的字段
+    }
 }
+```
+
+**BaseEventConverter 的特殊模式**：
+
+```csharp
+// 扫描 "type" 字段 → 调用 EventConverterMap.GetConverter(type) → 委托给 MemberConverter
+internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
+{
+    public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
+    {
+        // 1. 先扫描 JSON 找到 "type" 字段的值
+        // 2. EventConverterMap.GetConverter(typeEnum) 获取对应的 MemberConverter
+        // 3. MemberConverter.WithReadSettings(_rs).ReadProperties(ref reader, options)
+    }
+}
+```
+
+---
+
+## 代码规范
+
+### 命名空间
+
+```
+RhythmBase.{游戏类型}.{综合类型}
+```
+
+- 游戏类型：`RhythmDoctor`、`Adofai`、`BeatBlock`、`Rizline`
+- 综合类型：`Components`、`Events`、`Converters`、`Constants`、`Extensions`、`Utils`
+
+### 文件组织
+
+```
+RhythmBase.{Game}/
+├── AssemblyInfo.cs                    ← 源生成器注册入口
+├── GlobalUsing.cs                     ← 全局 using 指令
+├── {Game}/
+│   ├── GlobalUsing.cs                 ← 游戏子命名空间全局 using
+│   ├── Enums.cs                       ← 事件枚举 + 游戏特有枚举
+│   ├── Components/
+│   │   ├── Level.cs                   ← 关卡模型（分部类）
+│   │   ├── Level.SerializeMethods.cs  ← 序列化方法（FromFile/SaveToFile 等）
+│   │   ├── TickTime.cs                ← 时间单位
+│   │   ├── Settings.cs                ← 关卡设置
+│   │   └── ...
+│   ├── Events/
+│   │   ├── IBaseEvent.cs              ← 事件接口
+│   │   ├── BaseEvent.cs               ← 事件基类
+│   │   ├── ForwardEvent.cs            ← 回退兼容事件
+│   │   └── ...（具体事件类）
+│   ├── Converters/
+│   │   ├── BaseEventConverter.cs      ← 事件路由转换器
+│   │   ├── LevelConverter.cs          ← 关卡转换器
+│   │   └── ...
+│   ├── Constants/
+│   │   └── Constants.cs               ← 预定义常量
+│   ├── Extensions/
+│   │   └── LinqExtensions.cs          ← LINQ 扩展
+│   └── Utils/
+│       └── BeatCalculator.cs          ← 节拍计算器（如果有的话）
+└── Global/
+    └── Components/Vector/             ← 项目级几何类型扩展（如果需要）
+```
+
+### 事件类规范
+
+- 所有事件必须是 `record` 类型（支持 `with` 表达式和值相等性）
+- 每个事件必须有 `override EventType Type { get; }` 属性，返回对应的枚举值
+- 事件基类必须包含 `internal Dictionary<string, JsonElement> _extraData` 和索引器
+- 使用 `[JsonObjectSerializable]` 标记需要自动生成转换器的事件
+- 使用 `[JsonObjectNotSerializable]` 标记 `ForwardEvent` 等回退类型
+- 使用 `[JsonObjectSerializationFallback]` 标记一个回退事件类（全局唯一）
+
+### TickTime 规范
+
+- 必须是 `struct`，实现 `ITickTime<TickTime>`
+- 必须支持从 `float`、`TimeSpan` 构造
+- 必须实现 `IComparable<TickTime>` 和比较运算符
+- 建议实现与 `BeatCalculator` 的关联/取消关联机制
+
+---
+
+## 属性参考
+
+### 类型级属性
+
+| 属性 | 目标 | 说明 |
+|---|---|---|
+| `[JsonEnumSerializable]` | 枚举 | 标记需要字符串转换的枚举类型。默认 PascalCase；`[JsonEnumSerializable(false)]` 为 camelCase |
+| `[JsonObjectSerializable]` | 类/结构体 | 自动生成序列化器和 EventTypeRegistry 映射 |
+| `[JsonObjectHasSerializer(typeof(C))]` | 类/结构体 | 已有自定义序列化器，仍需映射到 EventTypeRegistry |
+| `[JsonObjectNotSerializable]` | 类/结构体 | 不需要序列化器和映射（如 `ForwardEvent`） |
+| `[JsonObjectSerializationFallback]` | 类/结构体 | 未知类型的回退模型（每个 `JsonConverterSourceType` 声明唯一一个） |
+
+### 属性级属性
+
+| 属性 | 目标 | 说明 |
+|---|---|---|
+| `[JsonAlias("name")]` | 属性/字段 | JSON 中使用的别名（默认自动 camelCase） |
+| `[JsonIgnore]` | 属性/字段 | 序列化/反序列化时忽略 |
+| `[JsonCondition("$&.Prop != value")]` | 属性/字段 | 条件写入。`$&` = 对象本身, `$r` = 读设置, `$w` = 写设置 |
+| `[JsonTime(JsonTimeType.Milliseconds)]` | 属性/字段 | TimeSpan 序列化为毫秒或秒 |
+| `[JsonConverter(typeof(C))]` | 属性/字段 | 使用指定的转换器 |
+| `[JsonDefaultSerializer]` | 属性/字段 | 使用默认枚举序列化器（数字而非字符串） |
+
+### 程序集级属性
+
+| 属性 | 说明 |
+|---|---|
+| `[JsonConverterId("GameType")]` | 声明游戏类型命名空间 ID，用于生成 `TypeConverterRegistry`、`EnumConverterExtensions` 等 |
+| `[JsonConverterSourceType(I, E, C, P)]` | 声明事件类型系统。`I` = 事件接口, `E` = 事件枚举, `C` = 转换器基类（开放泛型）, `P` = 枚举属性名 |
+| `[JsonConverterLink(Type, Converter)]` | 将公共类型（如 `Color`）链接到指定的转换器（如 `ColorConverter.RgbaHex`） |
+
+### 属性条件表达式语法
+
+`[JsonCondition]` 的表达式支持以下占位符：
+
+| 占位符 | 替换为 |
+|---|---|
+| `$&` | 当前对象实例（`value`） |
+| `$r` | 读取设置（`_rs`） |
+| `$w` | 写入设置（`_ws`） |
+
+```csharp
+// 仅当 Swing 不为默认值时写入
+[JsonCondition($"$&.{nameof(Swing)} is not 1f and not 0f")]
+public float Swing { get; set; }
 ```

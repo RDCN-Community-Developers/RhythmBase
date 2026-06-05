@@ -2,150 +2,147 @@
 
 # Table of Contents
 
-- [Project Structure](#project-structure)
-- [Level Creation, Opening and Saving](#level-creation-opening-and-saving)
-  - [Creating a Level](#creating-a-level)
-  - [Opening a Level](#opening-a-level)
-  - [Saving a Level](#saving-a-level)
-- [Basic Components](#basic-components)
-  - [Common Components](#common-components)
-    - [Color RDColor](#color-rdcolor)
-    - [Geometry Types](#geometry-types)
-    - [Range RDRange](#range-rdrange)
-  - [Rhythm Doctor Components](#rhythm-doctor-components)
-    - [Beat RDBeat](#beat-rdbeat)
-    - [Expression RDExpression](#expression-rdexpression)
-    - [Other Special Syntax Types](#other-special-syntax-types)
-- [Events](#events)
-  - [Event System](#event-system)
-  - [Finding and Retrieving Events](#finding-and-retrieving-events)
-  - [Creating and Modifying Events](#creating-and-modifying-events)
-  - [Custom Events](#custom-events)
-  - [Event Types and Enums](#event-types-and-enums)
-- [Rich Text and Dialogue Components](#rich-text-and-dialogue-components)
-- [Easing](#easing)
-- [Utilities](#utilities)
-  - [Rhythm Doctor](#rhythm-doctor-1)
-    - [BeatCalculator](#beatcalculator)
-  - [Adofai](#adofai)
-- [Examples](#examples)
-  - [Merging Audio and Visual Levels](#merging-audio-and-visual-levels)
+- [I. Using RhythmBase](#i-using-rhythmbase)
+  - [Project Structure](#project-structure)
+  - [Creating, Opening, and Saving Levels](#creating-opening-and-saving-levels)
+    - [Creating a Level](#creating-a-level)
+    - [Opening a Level](#opening-a-level)
+    - [Saving a Level](#saving-a-level)
+  - [Base Components](#base-components)
+    - [Shared Components](#shared-components)
+    - [Game-Specific Components](#game-specific-components)
+    - [Enum Collections](#enum-collections)
+  - [Events](#events)
+    - [Event System](#event-system)
+    - [Finding and Querying Events](#finding-and-querying-events)
+    - [Creating, Adding, and Removing Events](#creating-adding-and-removing-events)
+    - [Custom Events](#custom-events)
+    - [Event Types and Enums](#event-types-and-enums)
+  - [RichText and Dialogue Components](#richtext-and-dialogue-components)
+  - [Easing](#easing)
+  - [Utilities](#utilities)
+  - [Examples](#examples)
+    - [Merging a Beatmap Level with a VFX Level](#merging-a-beatmap-level-with-a-vfx-level)
+- [II. Implementing a New Level Type](#ii-implementing-a-new-level-type)
+  - [Overview](#overview)
+  - [Step 1: Create the Project](#step-1-create-the-project)
+  - [Step 2: Define the Event Type Enum](#step-2-define-the-event-type-enum)
+  - [Step 3: Define the Time Unit (TickTime)](#step-3-define-the-time-unit-ticktime)
+  - [Step 4: Define the Event Interface and Base Class](#step-4-define-the-event-interface-and-base-class)
+  - [Step 5: Define Event Subclasses](#step-5-define-event-subclasses)
+  - [Step 6: Define the Level Model](#step-6-define-the-level-model)
+  - [Step 7: Register AssemblyInfo](#step-7-register-assemblyinfo)
+  - [Step 8: Create GlobalUsing](#step-8-create-globalusing)
+  - [Step 9: Implement Hand-Written Converters](#step-9-implement-hand-written-converters)
+  - [Step 10: Implement Level Serialization Methods](#step-10-implement-level-serialization-methods)
+  - [Implementation-Specific Notes](#implementation-specific-notes)
 
 ---
 
+# I. Using RhythmBase
+
 # Project Structure
 
-Namespaces follow the pattern `RhythmBase.[GameType].[Category]`.
+Namespaces follow the pattern `RhythmBase.[GameType].[CategoryType]`.
 
-- **GameType**: All components for a specific game. Enums are also located here directly.
-  - `Global`: Shared components.
+- **GameType**: All components for a specific game; enum types also reside here.
+  - `Global`: Shared components (used by all games).
   - `RhythmDoctor`: Rhythm Doctor specific components.
   - `Adofai`: A Dance of Fire and Ice specific components.
-- **Category**: Further categorization of components within each branch.
-  - `Components`: Basic data models.
+  - `BeatBlock`: BeatBlock specific components.
+  - `Rizline`: Rizline specific components.
+- **CategoryType**: Further classification of components.
+  - `Components`: Core data models.
   - `Constants`: Predefined constants.
+  - `Converters`: Serializers.
   - `Events`: All event data models.
   - `Extensions`: Extension methods.
-  - `Utils`: Basic utilities.
+  - `Utils`: Utility tools.
 
-# Level Creation, Opening and Saving
+All game types share the public interfaces (`IEvent`, `ILevel`, `ITickTime`, etc.) and shared components (`Color`, geometry types, `EnumCollection`, etc.) under `RhythmBase.Global`. Each game type implements its own event model, level model, and serializers.
+
+# Creating, Opening, and Saving Levels
+
+The following examples use Rhythm Doctor; other game types have identical API signatures, differing only in class names and file extensions.
 
 ## Creating a Level
 
-You can create an empty level, a template level (commonly used for testing), or deserialize directly from a JSON string or `JsonDocument`.
+You can create an empty level, a default level (useful for testing), or deserialize directly from a JSON string or `JsonDocument`.
 
 ```cs
-using RDLevel emptyLevel = [];
-using RDLevel defaultLevel = RDLevel.Default;
-using RDLevel jsonLevel = RDLevel.FromJsonString(...);
-using RDLevel jsonDocumentLevel = RDLevel.FromJsonDocument(...);
+using Level emptyLevel = [];
+using Level defaultLevel = Level.Default;
+using Level jsonLevel = Level.FromJsonString(...);
+using Level jsonDocumentLevel = Level.FromJsonDocument(...);
 ```
+
+> Note: Multi-file formats (BeatBlock, Rizline) do not support JSON read/write, as their level data is spread across multiple files.
 
 ## Opening a Level
 
-Supports reading levels from file paths, streams, or strings. Formats include `.rdlevel`, `.rdzip`, `.zip`.\
-Behavior can be configured during reading. All methods have async overloads.
+Supports reading from file paths, streams, or directories. All methods provide async overloads.
 
-> It is recommended to use `using` statements to manage level variables, ensuring resources are released and temporary extracted files are cleaned up when leaving the scope.
-
-> When reading from streams, only text formats are currently supported.
+> It is recommended to use `using` statements to manage level variables, ensuring resources are released and temporary extracted files are cleaned up when leaving scope.
 
 ```cs
 using RhythmBase.RhythmDoctor.Components;
 
 LevelReadSettings settings = new()
 {
-    // Extract all files
-    ZipFileProcessMethod = ZipFileProcessMethod.AllFiles,
-    // Record file references
-    LoadAssets = true,
-    // Handling of inactive events
-    InactiveEventsHandling = InactiveEventsHandling.Store,
-    // Handling of events that throw exceptions during reading
-    UnreadableEventsHandling = UnreadableEventHandling.Store,
+	ZipFileProcessMethod = ZipFileProcessMethod.AllFiles,
+	LoadAssets = true,
+	InactiveEventsHandling = InactiveEventsHandling.Store,
+	UnreadableEventsHandling = UnreadableEventHandling.Store,
 };
 
-// Read level file
-using RDLevel rdlevel1 = RDLevel.FromFile(@"your\level.rdlevel");
-// Read level pack file
-using RDLevel rdlevel2 = RDLevel.FromFile(@"your\level.rdzip");
-// Read compressed pack with custom settings
-using RDLevel rdlevel3 = RDLevel.FromFile(@"your\level.zip", settings);
-// Read from stream
+// Read a level file
+using Level rdlevel1 = Level.FromFile(@"your\level.rdlevel");
+// Read a level archive
+using Level rdlevel2 = Level.FromFile(@"your\level.rdzip");
+// Read an archive with custom settings
+using Level rdlevel3 = Level.FromFile(@"your\level.zip", settings);
+// Read from a stream
 using Stream fs = new FileStream(@"your\level.rdlevel", FileMode.Open, FileAccess.Read);
-using RDLevel rdlevel4 = RDLevel.FromStream(fs, settings);
+using Level rdlevel4 = Level.FromStream(fs, settings);
 
-// View inactive events from reading results
+// View inactive events
 foreach (var inactiveEvent in settings.InactiveEvents)
-    Console.WriteLine($"Inactive Event: {inactiveEvent}");
-// View events that threw exceptions during reading
+	Console.WriteLine($"Inactive Event: {inactiveEvent}");
+// View unreadable events
 foreach (var unreadableEvent in settings.UnreadableEvents)
-    Console.WriteLine($"Unreadable Event: {unreadableEvent}");
+	Console.WriteLine($"Unreadable Event: {unreadableEvent}");
 ```
 
-When reading `.rdzip` or `.zip`, `LevelReadSettings.ZipFileProcessMethod` defaults to `AllFiles`, which extracts level resources to a temporary directory.\
-You can customize the temporary directory or clean it up manually:
+When reading archives, `LevelReadSettings.ZipFileProcessMethod` defaults to `AllFiles`, which extracts level resources to a temporary directory.\
+You can customize the temporary directory or clean up manually:
 
 ```cs
-// Temporary directory root path, defaults to system temp directory
 GlobalSettings.CachePath = "cache";
-// Temporary folder name prefix
 GlobalSettings.CacheDirectoryPrefix = "MyPrefix";
-// Extracted folders will look like "cache/MyPrefixjvm3yxwf.wm2"
-
-// Clean up matching temporary directories according to config
 GlobalSettings.ClearCache();
 ```
 
 ## Saving a Level
 
-Supports saving levels to files, streams, or packing them as level packs (`.rdzip`).\
-Can also serialize directly to JSON string or `JsonDocument`.
-
-> Missing assets will not throw exceptions.\
-> If reading directly from a compressed pack, it is recommended to keep the default `ZipFileProcessMethod.AllFiles` so that the temp directory retains complete assets for repacking.
+Supports saving to a file, stream, or packaging as an archive.\
+Can also serialize directly to a JSON string or `JsonDocument` (only for game types that support `IJsonLevel`).
 
 ```cs
-// Save as rdlevel file
 rdlevel1.SaveToFile(@"your\output1.rdlevel");
-// Save as level pack (automatically packs referenced assets)
 rdlevel2.SaveToZip(@"your\output2.rdzip");
-// Write to stream
 rdlevel3.SaveToStream(fs);
-// Output JSON string
 Console.WriteLine(rdlevel4.ToJsonString());
-// Output JsonDocument for dynamic modification
 JsonDocument jsonDocument = rdlevel4.ToJsonDocument();
 ```
 
 `LevelReadSettings` and `LevelWriteSettings` each provide lifecycle events:
 
-| Event | Trigger Timing |
+| Event | Trigger |
 |---|---|
-| `BeforeReading` | Before reading level |
-| `AfterReading` | After reading level |
-| `BeforeWriting` | Before writing level |
-| `AfterWriting` | After writing level |
+| `BeforeReading` | Before reading a level |
+| `AfterReading` | After reading a level |
+| `BeforeWriting` | Before writing a level |
+| `AfterWriting` | After writing a level |
 
 ```cs
 using RhythmBase.Global.Settings;
@@ -156,107 +153,153 @@ settings.AfterWriting += (sender, e) => Console.WriteLine("Level saved!");
 rdlevel.SaveToFile(@"your\outLevel.rdlevel", settings);
 ```
 
-# Basic Components
+# Base Components
 
-## Common Components
+## Shared Components
 
-### Color `RDColor`
+The following types are located in the `RhythmBase.Global.Components` namespace and are shared across all game types.
+
+### Color `Color`
+
+Color type supporting ARGB component access and multiple string format conversions (`RgbaHex`, `ArgbObject`, etc.). Each game type specifies its default serialization format via `JsonConverterLink` in `AssemblyInfo.cs`.
 
 ### Geometry Types
 
-Types prefixed with `RD` and containing `Point`, `Size`, `Rect`, or `RotatedRect` are planar geometry data types.
+`Point`, `Size`, `Rect`, `RotatedRect` and similar types are all planar geometry data types.
 
 | Suffix | Meaning | Example |
 |---|---|---|
-| `I` | Integer type (all properties are `int`) | `RDPointI.X` |
-| `N` | Non-nullable type (all properties are non-nullable) | `RDSizeN.Height` |
-| `E` | Expression type (all properties are `RDExpression`) | `RDRectE.Size` |
+| (none) | Nullable float | `Point.X` is `float?` |
+| `I` | Nullable integer | `PointI.X` is `int?` |
+| `N` | Non-nullable float | `PointN.X` is `float` |
+| `NI` | Non-nullable integer | `PointNI.X` is `int` |
 
-> `RotatedRect.Angle` is always floating-point and is not constrained by the `I` suffix rule.
+> `RotatedRect.Angle` is always float, regardless of suffix rules.
 
-### Range `RDRange`
+### Range `Range`
 
-A type representing a beat range, commonly used for event queries.
+Represents a time range, commonly used for event queries. Each game type has its own `Range` implementation (e.g., `RhythmBase.RhythmDoctor.Components.Range`) linked to its corresponding time unit.
 
 ```cs
 using RhythmBase.RhythmDoctor.Components;
 
-var result = rdlevel.InRange(new RDRange(rdlevel.DefaultBeat + 10, null));
+var result = rdlevel.InRange(new Range(rdlevel.DefaultBeat + 10, null));
 ```
 
-## Rhythm Doctor Components
+### Enum Collections
 
-### Beat `RDBeat`
+`EnumCollection<TEnum>` and `ReadOnlyEnumCollection<TEnum>` are high-performance enum value collections backed by bitmap storage.
 
-`RDBeat` is a struct that caches the following read-only information:
+- `EnumCollection<TEnum>`: Mutable collection, supports `Add` and `Remove`.
+- `ReadOnlyEnumCollection<TEnum>`: Immutable collection, used for type classification and batch filtering.
 
-- `BeatOnly`: `float`, total beat count from level start (1-based).
-- `Bar` / `Beat`: `int` / `float`, current bar and beat, obtained via deconstruction:
+Both support collection expression syntax:
+
+```cs
+using RhythmBase.Global.Components;
+
+// Collection expression creation
+ReadOnlyEnumCollection<EventType> types = [
+    EventType.AddClassicBeat,
+    EventType.AddFreeTimeBeat,
+    EventType.MoveRow];
+
+// Mutable collection
+EnumCollection<EventType> mutable = [EventType.Tint, EventType.Comment];
+mutable.Add(EventType.MoveRow);
+
+// Set operations
+ReadOnlyEnumCollection<EventType> a = [EventType.Tint, EventType.Comment];
+ReadOnlyEnumCollection<EventType> b = [EventType.Comment, EventType.MoveRow];
+
+var intersect = a.Intersect(b);       // [Comment]
+var union = a.Union(b);               // [Tint, Comment, MoveRow]
+var except = a.Except(b);             // [Tint]
+var symExcept = a.SymmetricExcept(b); // [Tint, MoveRow]
+
+// Membership checks
+bool hasTint = a.Contains(EventType.Tint);           // true
+bool hasAny = a.ContainsAny(b);                      // true
+bool hasAll = a.ContainsAll([EventType.Tint]);        // true
+```
+
+`EnumCollection<TEnum>` can be converted to a read-only collection via `AsReadOnly()`.
+
+## Game-Specific Components
+
+Each game type has its own time units, expressions, rooms, etc. The following uses Rhythm Doctor as an example.
+
+### Time Unit `TickTime`
+
+Each game type implements the `ITickTime<TickTime>` interface, representing a point on the level timeline. Rhythm Doctor's implementation is the `TickTime` struct, caching the following read-only information:
+
+- `BeatOnly`: `float`, total beat count from the start of the level (starting from 1).
+- `Bar` / `Beat`: `int` / `float`, current bar and beat position, obtained via deconstruction:
   ```cs
   (int bar, float beat) = someBeat;
   ```
-- `TimeSpan`: `TimeSpan`, current time.
+- `TimeSpan`: `TimeSpan`, the current moment.
 - `Bpm`: `float`, current BPM.
 - `Cpb`: `int`, current crotchets per bar.
 
-`RDBeat` tries to maintain association with a level, and prioritizes deriving other time units from `BeatOnly`.\
-When not associated, cached values are used for calculations.
+`TickTime` maintains association with the level when possible, preferring to derive other time units from `BeatOnly`.\
+When unassociated, it uses cached values for calculations.
 
 ```cs
-RDLevel level = [];
+Level level = [];
 
 // === Associated with level ===
-RDBeat beat1 = new(level.Calculator, 20);
-RDBeat beat2 = new(level.Calculator, 3, 5);
-RDBeat beat3 = new(level.Calculator, TimeSpan.FromSeconds(15));
-RDBeat beat4 = level.Calculator.BeatOf(20);
-RDBeat beat5 = level.Calculator.BeatOf(3, 5);
-RDBeat beat6 = level.Calculator.BeatOf(TimeSpan.FromSeconds(15));
-// Default beat of the level
-RDBeat beat7 = level.DefaultBeat;
-// Link existing beat to a specified level
-RDBeat beat8 = beat1.WithLink(level);
-RDBeat beat9 = beat2.WithLinkIfNull(level);
+TickTime beat1 = new(level.Calculator, 20);
+TickTime beat2 = new(level.Calculator, 3, 5);
+TickTime beat3 = new(level.Calculator, TimeSpan.FromSeconds(15));
+TickTime beat4 = level.Calculator.BeatOf(20);
+TickTime beat5 = level.Calculator.BeatOf(3, 5);
+TickTime beat6 = level.Calculator.BeatOf(TimeSpan.FromSeconds(15));
+// Level default beat
+TickTime beat7 = level.DefaultBeat;
+// Link an existing beat to a specific level
+TickTime beat8 = beat1.WithLink(level);
+TickTime beat9 = beat2.WithLinkIfNull(level);
 
 // === Not associated with level ===
-RDBeat beat10 = new(20);
-RDBeat beat11 = new(3, 5);
-RDBeat beat12 = new(TimeSpan.FromSeconds(15));
+TickTime beat10 = new(20);
+TickTime beat11 = new(3, 5);
+TickTime beat12 = new(TimeSpan.FromSeconds(15));
 // Tuple implicit conversion
-RDBeat beat13 = (3, 5);
-// Detach association
-RDBeat beat14 = beat1.WithoutLink();
+TickTime beat13 = (3, 5);
+// Break association
+TickTime beat14 = beat1.WithoutLink();
 
-// === Check association status ===
+// === Check association state ===
 bool isLinked = !beat13.IsEmpty;
 ```
 
-When events are added to a level, beat associations are automatically established; when removed, associations are automatically broken.\
-When two associated beats participate in operations, they must point to the same level.
+When an event is added to a level, its time unit automatically associates; when removed, it automatically disassociates.\
+Two associated time units must point to the same level when used in operations.
 
 ```cs
 using RhythmBase.RhythmDoctor.Components;
 
-RDBeat beat1 = level.Calculator.BeatOf(1);
-RDBeat beat2 = beat1.WithoutLink();
+TickTime beat1 = level.Calculator.BeatOf(1);
+TickTime beat2 = beat1.WithoutLink();
 
 Console.WriteLine(beat1.FromSameLevel(beat2));       // False
 Console.WriteLine(beat1.FromSameLevelOrNull(beat2)); // True
 ```
 
-### Expression `RDExpression`
+### Expression `Expression`
 
-Used to store Rhythm Doctor expression strings, supporting simple operations (parsing and evaluation not yet completed).\
-The underlying implementation uses string concatenation, so多层嵌套括号 appearing after multiple operations is normal behavior.
+Rhythm Doctor specific, used to store expression strings with basic arithmetic support (parsing and evaluation not yet complete).\
+Uses string concatenation internally, so multiple operations may produce nested parentheses.
 
 ```cs
 using RhythmBase.RhythmDoctor.Components;
 
-RDExpression exp1 = new("i2+1");
-RDExpression exp2 = new(30);
-RDExpression exp3 = new("25.5");
+Expression exp1 = new("i2+1");
+Expression exp2 = new(30);
+Expression exp3 = new("25.5");
 
-RDExpression result = exp1 - exp2 * exp3;
+Expression result = exp1 - exp2 * exp3;
 
 Console.WriteLine(result); // i2+1-765
 ```
@@ -266,7 +309,7 @@ Console.WriteLine(result); // i2+1-765
 ```cs
 Order order = [2, 0, 3, 1];
 
-RDRoom room = [2, 3];
+Room room = [2, 3];
 
 RDCharacter c1 = RDCharacters.Samurai;
 RDCharacter c2 = "custom_character.png";
@@ -278,182 +321,53 @@ RoomHeight roomHeight = (20, 30, 10, 40);
 
 ## Event System
 
-There are many event types; the following diagram only shows the inheritance relationships of interfaces and base classes.
+All game types implement events via the `IEvent<TType, TBeat>` interface, where `TType` is the event enum type and `TBeat` is the time unit type. Public interfaces are in `RhythmBase.Global.Events`:
 
 ```mermaid
 classDiagram
 	direction LR
-	namespace RhythmBase.Global.Events {
-		class IEvent {
-			<<interface>>
-		}
-		class IDurationEvent {
-			<<interface>>
-			+float Duration
-		}
-		class IEaseEvent {
-			<<interface>>
-			+EaseType Ease
-		}
-		class IFileEvent {
-			<<interface>>
-			+IEnumerable~FileReference~ Files
-		}
-		class IAudioFileEvent {
-			<<interface>>
-			+IEnumerable~FileReference~ AudioFiles
-		}
-		class IImageFileEvent {
-			<<interface>>
-			+IEnumerable~FileReference~ ImageFiles
-		}
+	class IEvent {
+		<<interface>>
 	}
-	namespace RhythmBase.RhythmDoctor.Events {
-		class IBaseEvent_RhythmDoctor {
-			<<interface>>
-			+bool Active
-			+RDBeat Beat
-			+Condition Condition
-			+Tab Tab
-			+string Tag
-			+bool RunTag
-			+EventType Type
-			+int Y
-			+JsonDocument this[string propertyName]
-		}
-		class IColorEvent {
-			<<interface>>
-		}
-		class IBarBeginningEvent {
-			<<interface>>
-		}
-		class IForwardEvent_RhythmDoctor {
-			<<interface>>
-			+string ActualType
-		}
-		class IRoomEvent {
-			<<interface>>
-			+RDRoom Rooms
-		}
-		class ISingleRoomEvent {
-			<<interface>>
-			+RDSingleRoom Room
-		}
-		class ITintEvent {
-			<<interface>>
-			+Border? Border
-			+PaletteColorWithAlpha BorderColor
-			+bool BorderPulse
-			+float BorderPulseMin
-      		+float BorderPulseMax
-    		+int? Opacity
-      		+bool? IsTint
-    		+PaletteColorWithAlpha TintColor
-		}
-		class BaseEvent_RhythmDoctor {
-			<<abstract>>
-		}
-		class BaseBeat {
-			<<abstract>>
-		}
-		class BaseBeatsPerMinute {
-			<<abstract>>
-			+float BeatsPerMinute
-		}
-		class BaseDecorationAction {
-			<<abstract>>
-			+Decoration? Parent
-			+string Target
-			+RDSingleRoom Room
-		}
-		class BaseRowAction {
-			<<abstract>>
-			+Row? Parent
-			+int Index
-			+RDSingleRoom Room
-		}
-		class BaseRowAnimation {
-			<<abstract>>
-		}
-		class BaseWindowEvent {
-			<<abstract>>
-			int TargetWindow
-		}
+	class IDurationEvent {
+		<<interface>>
+		+float Duration
 	}
-	namespace RhythmBase.RhythmDoctor.Adofai {
-		class IBaseEvent_Adofai {
-			<<interface>>
-			+EventType Type
-			+JsonDocument this[string propertyName]
-		}
-		class IBeginningEvent {
-			<<interface>>
-		}
-		class IForwardEvent_Adofai {
-			<<interface>>
-			+string ActualType
-		}
-		class ISingleEvent {
-			<<interface>>
-		}
-		class BaseEvent_Adofai {
-			<<abstract>>
-		}
-		class BaseTileEvent {
-			<<abstract>>
-			+Tile? Parent
-			+bool Active
-		}
-		class BaseTaggedTileEvent {
-			<<abstract>>
-			+float AngleOffset
-			+string EventTag
-		}
+	class IEaseEvent {
+		<<interface>>
+		+EaseType Ease
 	}
+	class IFileEvent {
+		<<interface>>
+		+IEnumerable~FileReference~ Files
+	}
+	class IAudioFileEvent {
+		<<interface>>
+		+IEnumerable~FileReference~ AudioFiles
+	}
+	class IImageFileEvent {
+		<<interface>>
+		+IEnumerable~FileReference~ ImageFiles
+	}
+	class IForwardEvent {
+		<<interface>>
+		+string ActualType
+	}
+
 	IEvent <|.. IDurationEvent
 	IEvent <|.. IFileEvent
-	IEvent <|.. IBaseEvent_RhythmDoctor
-	IEvent <|.. IBaseEvent_Adofai
-
-	IBaseEvent_RhythmDoctor <|.. IBarBeginningEvent
-	IBaseEvent_RhythmDoctor <|.. IForwardEvent_RhythmDoctor
-	IBaseEvent_RhythmDoctor <|.. IRoomEvent
-	IBaseEvent_RhythmDoctor <|.. ISingleRoomEvent
-	IBaseEvent_RhythmDoctor <|.. IColorEvent
-	IBaseEvent_RhythmDoctor <|-- BaseEvent_RhythmDoctor
-
-	BaseEvent_RhythmDoctor <|-- BaseBeatsPerMinute
-	BaseEvent_RhythmDoctor <|-- BaseRowAction
-	BaseEvent_RhythmDoctor <|-- BaseDecorationAction
-	BaseEvent_RhythmDoctor <|-- BaseWindowEvent
-
-	BaseRowAction <|-- BaseBeat
-	BaseRowAction <|-- BaseRowAnimation
-
-	IColorEvent <|.. ITintEvent
-
+	IDurationEvent <|.. IEaseEvent
 	IFileEvent <|.. IAudioFileEvent
 	IFileEvent <|.. IImageFileEvent
-
-	IDurationEvent <|.. IEaseEvent
-	
-	IBaseEvent_Adofai <|.. IBeginningEvent
-	IBaseEvent_Adofai <|.. IForwardEvent_Adofai
-	IBaseEvent_Adofai <|.. ISingleEvent
-	IBaseEvent_Adofai <|.. BaseEvent_Adofai
-
-	BaseEvent_Adofai <|.. BaseTileEvent
-
-	BaseTileEvent <|.. BaseTaggedTileEvent
 ```
 
-You can search or filter event types based on the above class diagram.\
-All events are `record` types, supporting `with` expressions for cloning, and also provide a `CloneAs<TEvent>()` method for cross-type cloning.
+Each game type defines its own event interface (e.g., `IBaseEvent`), base classes (e.g., `BaseEvent`, `BaseRowAction`), and concrete event classes on top of these.\
+You can browse or filter event types by class diagram. All events are `record` types, supporting `with` expression for copying instances.
 
-## Finding and Retrieving Events
+## Finding and Querying Events
 
-`RDLevel` inherits from `OrderedEventCollection<IBaseEvent>`, internally using a red-black tree sorted by beat.\
-Extension methods allow quick filtering by type, interface, beat range, or custom conditions.
+Level inherits from `OrderedEventCollection`, internally using a red-black tree sorted by time.\
+Extension methods allow fast filtering by type, interface, time range, or custom conditions.
 
 ```cs
 using RhythmBase.RhythmDoctor.Extensions;
@@ -462,49 +376,37 @@ using RhythmBase.RhythmDoctor.Components;
 // Filter by type
 var moves = rdlevel.OfEvent<MoveRow>();
 
-// Filter by beat range
+// Filter by time range
 var inRange = rdlevel.InRange(level.Calculator.BeatOf(3), level.Calculator.BeatOf(5));
 
-// Filter by exact beat
+// Filter by exact time
 var atBeat = rdlevel.AtBeat(level.Calculator.BeatOf(2, 1));
 
-// Combined condition: MoveRow events in bars 3~5, rows 0~2
+// Combined conditions
 var list = rdlevel.OfEvent<MoveRow>()
-    .Where(i => 0 <= i.Y && i.Y < 3)
-    .InRange(level.Calculator.BeatOf(3), level.Calculator.BeatOf(5));
+	.Where(i => 0 <= i.Y && i.Y < 3)
+	.InRange(level.Calculator.BeatOf(3), level.Calculator.BeatOf(5));
 ```
 
-`Row` and `Decoration` also hold event collections internally, so the above extension methods apply to rows and decorations as well.
+In Rhythm Doctor, `Row` and `Decoration` also hold event collections, so the above extension methods work on tracks and sprites too.
 
 ```cs
-// Find Tint events on decoration 0 between beat (11,1) and (13,1)
 var list = rdlevel.Decorations[0]
-    .OfEvent<Tint>()
-    .InRange(new RDBeat(11, 1), new RDBeat(13, 1));
+	.OfEvent<Tint>()
+	.InRange(new TickTime(11, 1), new TickTime(13, 1));
 ```
 
-Event navigation methods are also provided for locating adjacent events in the ordered collection:
+Event navigation methods are also available for locating adjacent events in ordered collections:
 
 ```cs
-// Previous event of same type
 var prev = someEvent.Before<MoveRow>();
-// Next event of same type
 var next = someEvent.Next<MoveRow>();
-// Nearest event in front
 var front = someEvent.Front();
 ```
 
-## Creating and Modifying Events
+## Creating, Adding, and Removing Events
 
-All events directly or indirectly implement `IBaseEvent` and inherit from `BaseEvent`.\
-Common base classes and interfaces:
-
-- `BaseRowAction`: Row events (e.g., `MoveRow`, `AddClassicBeat`)
-- `BaseDecorationAction`: Decoration events (e.g., `Move`, `Tint`)
-- `IRoomEvent`: Events with multi-room properties
-
-When creating events, the `Beat` parameter can be unassociated with a level; associations are automatically established when added and broken when removed.\
-If no beat is specified, it defaults to beat 1 of the level.
+When creating events, the time unit parameter can be unassociated with a level; once added to a level, association is automatic, and disassociation occurs on removal.
 
 ```cs
 using RhythmBase.RhythmDoctor.Components;
@@ -520,65 +422,36 @@ rdlevel.Remove(comment);
 Console.WriteLine(comment); // [11,?,?] Comment My_comment.
 ```
 
-When adding, modifying, or removing `SetCrotchetsPerBar` events, the level automatically updates the timeline to ensure other events remain fixed at their absolute beats, while automatically merging or splitting adjacent events with the same CPB to maintain timeline stability.
-
-Row and decoration events must be added via `Add()` on the corresponding row or decoration, but can be removed from any level (level, row, or decoration) via `Remove()`.\
-Repeated additions have no effect. `Comment` and `TintRows` are not subject to this restriction and can be added directly to the level.
-
-```cs
-using RhythmBase.RhythmDoctor.Components;
-using RhythmBase.RhythmDoctor.Events;
-
-using RDLevel rdlevel = RDLevel.Default;
-
-MoveRow tr = new();
-Console.WriteLine(rdlevel); // "" Count = 3
-
-rdlevel.Add(new Comment()); // Count unchanged
-
-rdlevel.Rows[0].Add(tr);
-Console.WriteLine(rdlevel); // "" Count = 4
-
-rdlevel.Remove(tr);
-Console.WriteLine(rdlevel); // "" Count = 3
-```
+In Rhythm Doctor, adding, modifying, or removing `SetCrotchetsPerBar` events automatically updates the timeline.\
+Track and sprite events must be added via `Add()` on the corresponding track or sprite; removal can be called at any level (level, track, or sprite).
 
 ## Custom Events
 
-If built-in event types do not meet your needs, you can inherit from `ForwardEvent` (or `ForwardRowEvent`, `ForwardDecorationEvent`) to implement your own.\
-When reading a level, unknown event types are automatically deserialized into the corresponding `ForwardEvent`.
+If built-in event types are insufficient, you can inherit from `ForwardEvent` (or `ForwardRowEvent`, `ForwardDecorationEvent`).\
+Unknown event types encountered during level loading are automatically deserialized as the corresponding `ForwardEvent`.
+
+Every event provides an indexer `this[string propertyName]` for direct JSON property access:
 
 ```cs
-using Newtonsoft.Json.Linq;
 using RhythmBase.RhythmDoctor.Events;
-using RhythmBase.RhythmDoctor.Components;
 
 public class MyEvent : ForwardEvent
 {
-    public RDPointE? MyProperty
-    {
-        get
-        {
-            var value = Data["myProperty"];
-            return value?.ToObject<RDPointE?>() ?? new RDPointE(0, 0);
-        }
-        set
-        {
-            Data["myProperty"] = value.HasValue
-                ? new JArray(value?.X ?? null, value?.Y ?? null)
-                : null;
-        }
-    }
+	public string MyProperty
+	{
+		get => this["myProperty"].GetString() ?? "";
+		set => this["myProperty"] = JsonDocument.Parse($"\"{value}\"").RootElement;
+	}
 
-    public MyEvent()
-    {
-        ActualType = nameof(MyEvent);
-    }
+	public MyEvent()
+	{
+		ActualType = nameof(MyEvent);
+	}
 }
 ```
 
 Custom events can be read and written like normal events.\
-Note that `Type` remains `EventType.ForwardEvent`, while `ActualType` is the custom type name.
+Note that `Type` remains `EventType.ForwardEvent`; `ActualType` holds the custom type name.
 
 ```cs
 MyEvent myEvent = new();
@@ -589,11 +462,11 @@ Console.WriteLine(myEvent.Type);       // ForwardEvent
 Console.WriteLine(myEvent.ActualType); // MyEvent
 ```
 
-> When undefined event types are encountered during level reading, they are converted to `ForwardEvent`, `ForwardDecorationEvent`, or `ForwardRowEvent` based on their field characteristics.
+> When an undefined event type is encountered during level reading, it is converted to `ForwardEvent`, `ForwardDecorationEvent`, or `ForwardRowEvent` based on field characteristics.
+> Events with a `target` field become `ForwardDecorationEvent`, those with a `row` field become `ForwardRowEvent`, others become `ForwardEvent`.
 
-If existing events are missing properties, you can directly use index access to get or set property values.\
-You can also override existing events to construct a supplemented version of the event model.\
-Serialization prioritizes additional fields, so this feature can also be used to override existing serialization logic.
+If existing events lack properties, you can use the indexer to get or set property values directly.\
+You can also override existing events to create a supplemented event model.
 
 ```cs
 Comment comment1 = new Comment() { ["extraText"] = JsonElement.Parse("\"hello\"") };
@@ -601,80 +474,60 @@ MyComment comment2 = new MyComment() { ExtraText = "hello" };
 
 record MyComment: Comment
 {
-    public string ExtraText
-    {
-        get => this["extraText"].GetString() ?? "";
-        set => this["extraText"] = JsonElement.Parse($"\"{value}\"");
-    }
+	public string ExtraText
+	{
+		get => this["extraText"].GetString() ?? "";
+		set => this["extraText"] = JsonElement.Parse($"\"{value}\"");
+	}
 }
 ```
 
 ## Event Types and Enums
 
-All events have an `EaseType` property. `EventTypeUtils` provides conversion tools between types and enums.
+The source generator automatically produces `EnumConverterExtensions` for each game type, providing conversion methods between enums and types. Each game type's `EventTypeRegistry` provides type classification queries.
 
 ```cs
 using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Events;
-using RhythmBase.RhythmDoctor.Utils;
+using RhythmBase.RhythmDoctor.Converters;
 
-Console.WriteLine(EventType.Tint.ToType());
-// RhythmBase.Events.Tint
+Console.WriteLine(EventType.Tint.ToEnumString()); // "Tint"
+Console.WriteLine("Tint".TryParseEventType(out var t)); // true, t = EventType.Tint
 
-Console.WriteLine(EventTypeUtils.ToType("Tint"));
-// RhythmBase.Events.Tint
-
-Console.WriteLine(EventTypeUtils.ToEnum(typeof(Tint)));
-// Tint
-
-Console.WriteLine(EventTypeUtils.ToEnum<Tint>());
-// Tint
-
-Console.WriteLine(string.Join(", ", EventTypeUtils.ToEnums(typeof(IBarBeginningEvent))));
-// PlaySong, SetCrotchetsPerBar, SetHeartExplodeVolume
+// EventTypeRegistry classification queries
+var decorationTypes = EventTypeRegistry.ToEnums<BaseDecorationAction>();
+var rowTypes = EventTypeRegistry.ToEnums<BaseRowAction>();
 ```
 
-`EventTypeUtils` also provides built-in categorizations:
+# RichText and Dialogue Components
 
-```cs
-using RhythmBase.RhythmDoctor.Utils;
+RichText is in the `RhythmBase.Global.Components.RichText` namespace, supporting styled text fragment combination via the `+` operator, with serialization/deserialization capabilities.
 
-Console.WriteLine(string.Join(",\n", EventTypeUtils.DecorationTypes));
-// Comment, ForwardDecorationEvent, Move, PlayAnimation, SetVisible, Tile, Tint
+- `RichLine<TStyle>`: A complete rich text line.
+- `Phrase<TStyle>`: A single styled fragment.
+- `IRichStringStyle<TStyle>`: Style rule interface.
 
-Console.WriteLine(string.Join(",\n", EventTypeUtils.EventTypeEnumsForCameraFX));
-// MoveCamera, ShakeScreen, FlipScreen, PulseCamera
-```
-
-# Rich Text and Dialogue Components
-
-Rich text components are located in the `RhythmBase.Global.Components.RichText` namespace, supporting the combination of styled text fragments via the `+` operator, with serialization/deserialization capabilities.
-
-- `RDLine<TStyle>`: A complete rich text line.
-- `RDPhrase<TStyle>`: A single styled fragment.
-- `IRDRichStringStyle<TStyle>`: Style rule interface.
-
-All can be implicitly converted from `string` (resulting in unstyled text).
+All can be implicitly converted from `string` (becoming unstyled text).
 
 ```cs
 using RhythmBase.Global.Components.RichText;
 
-RDLine<RDRichStringStyle> line = RDLine<RDRichStringStyle>.Deserialize("Hel<color=#00FF00>lo");
+RichLine<RichStringStyle> line = RichLine<RichStringStyle>.Deserialize("Hel<color=#00FF00>lo");
 
 Console.WriteLine(line.ToString());   // Hello
 Console.WriteLine(line.Serialize());  // Hel<color=lime>lo</color>
 
-line += new RDPhrase<RDRichStringStyle>(" Rhythm") { Style = new() { Color = RDColor.Lime } };
+line += new Phrase<RichStringStyle>(" Rhythm") { Style = new() { Color = Color.Lime } };
 line += " Doctor!";
 
 Console.WriteLine(line.ToString());   // Hello Rhythm Doctor!
 Console.WriteLine(line.Serialize());  // Hel<color=lime>lo Rhythm</color> Doctor!
 ```
 
-Supports index access and modification of fragments:
+Supports accessing and modifying fragments via indexing:
 
 ```cs
-RDLine<RDRichStringStyle> line = RDLine<RDRichStringStyle>.Deserialize("Hel<color=#00FF00>lo Rhythm</color> Doctor!");
+RichLine<RichStringStyle> line = RichLine<RichStringStyle>.Deserialize("Hel<color=#00FF00>lo Rhythm</color> Doctor!");
 
 Console.WriteLine(line[6..].ToString());   // Rhythm Doctor!
 Console.WriteLine(line[6..].Serialize());  // <color=lime>Rhythm</color> Doctor!
@@ -685,42 +538,42 @@ Console.WriteLine(line.ToString());   // Hello and Welcome to Rhythm Doctor!
 Console.WriteLine(line.Serialize());  // Hel<color=lime>lo</color> and Welcome to <color=lime>Rhythm</color> Doctor!
 ```
 
-Additionally provides components adapted to the Rhythm Doctor dialogue format, for modular construction of dialogue text to reduce error rates.
+Dialogue format components are also provided for modular dialogue text construction:
 
 ```cs
 using RhythmBase.Global.Components.RichText;
 
-RDDialogueExchange exchange =
+DialogueExchange exchange =
 [
-    new RDDialogueBlock
-    {
-        Character = "Paige",
-        Expression = "neutral",
-        Content = RDLine<RDDialoguePhraseStyle>.Deserialize("Hel<color=#00FF00>lo [2]<shake>Rhythm</color> Doctor</shake>!"),
-    },
-    new RDDialogueBlock
-    {
-        Character = "Ian",
-        Content = "Hello Paige!",
-    },
-    new RDDialogueBlock
-    {
-        Character = "Paige",
-        Expression = "happy",
-        Content = new RDPhrase<RDDialoguePhraseStyle>("What a good day!")
-        {
-            Events =
-            [
-                new RDDialogueTone(RDDialogueToneType.VerySlow, 6),
-                new RDDialogueTone(RDDialogueToneType.Static, 11),
-            ],
-            Style = new RDDialoguePhraseStyle
-            {
-                Volume = 0.5f,
-                Bold = true,
-            },
-        }
-    }
+	new DialogueBlock
+	{
+		Character = "Paige",
+		Expression = "neutral",
+		Content = RichLine<DialoguePhraseStyle>.Deserialize("Hel<color=#00FF00>lo [2]<shake>Rhythm</color> Doctor</shake>!"),
+	},
+	new DialogueBlock
+	{
+		Character = "Ian",
+		Content = "Hello Paige!",
+	},
+	new DialogueBlock
+	{
+		Character = "Paige",
+		Expression = "happy",
+		Content = new Phrase<DialoguePhraseStyle>("What a good day!")
+		{
+			Events =
+			[
+				new DialogueTone(DialogueToneType.VerySlow, 6),
+				new DialogueTone(DialogueToneType.Static, 11),
+			],
+			Style = new DialoguePhraseStyle
+			{
+				Volume = 0.5f,
+				Bold = true,
+			},
+		}
+	}
 ];
 
 Console.WriteLine(exchange.Serialize());
@@ -731,7 +584,7 @@ Console.WriteLine(exchange.Serialize());
 
 # Easing
 
-After importing `RhythmBase.Global.Components.Easing`, you can directly use the `EaseType` enum and quickly calculate eased values via the `Calculate()` extension method.
+After importing `RhythmBase.Global.Components.Easing`, you can use the `EaseType` enum directly and compute easing values via the `Calculate()` extension method.
 
 ```cs
 using RhythmBase.Global.Components.Easing;
@@ -743,27 +596,17 @@ Console.WriteLine(var1); // 0.07612046748871326
 Console.WriteLine(var2); // 6.5
 ```
 
-> Before calling, please confirm the property value type and apply the appropriate type conversion.
-
-```cs
-using RhythmBase.Global.Components.Easing;
-
-var result = ((EasePropertyPoint)eases["Position"]).GetValue(level.Calculator.BeatOf(3.2f));
-
-Console.WriteLine(result); // [59.759995, 21.840006]
-```
-
 # Utilities
 
 ## Rhythm Doctor
 
-### BeatCalculator
+### Beat Calculator `BeatCalculator`
 
-Automatically created alongside `RDLevel`, accessed via `RDLevel.Calculator`.\
-Used to construct `RDBeat` in an associated state, convert between time units based on the level timeline, and query BPM and CPB at any moment.
+Automatically created with the `Level`, accessed via `Level.Calculator`.\
+Used to construct associated `TickTime` instances, convert between various time units on the level timeline, and query BPM and CPB at any moment.
 
 ```cs
-RDLevel level = [];
+Level level = [];
 BeatCalculator calculator = level.Calculator;
 
 Console.WriteLine(calculator.BarBeatToBeatOnly(3, 1));
@@ -777,12 +620,11 @@ Console.WriteLine(calculator.BeatsPerMinuteOf((3, 1)));
 Console.WriteLine(calculator.CrotchetsPerBarOf((3, 1)));
 ```
 
-Internal cache can be manually refreshed via `BeatCalculator.Refresh()`.
+You can manually refresh the internal cache via `BeatCalculator.Refresh()`.
 
-### RDLang Parser (Deprecated Soon)
+### RDCode Parser `RDLang` (Deprecated)
 
-Provides a `TryRun()` method for executing Rhythm Doctor expressions.\
-If the expression is invalid, returns `false` and the result is `0`.
+Provides a `TryRun()` method for evaluating Rhythm Doctor expressions.
 
 ```cs
 using RhythmBase.RhythmDoctor.Components.RDLang;
@@ -794,65 +636,411 @@ RDLang.TryRun("numMistakesP2+i1", out result);        // 12
 RDLang.TryRun("atLeastRank(A)", out result);          // 1
 ```
 
-This library does not support dynamic level playback, so the following simulation fields are provided:
+## A Dance of Fire and Ice
 
-- `RDVariables.SimulateCurrentRank` — Simulates the level rank for `atLeastRank()`.
-- `RDVariables.SimulateAtLeastNPerfectsSuccessRate` — Simulates the hit success rate for `atLeastNPerfects()`.
+### Beat Calculator `BeatCalculator` (WIP)
 
-### Other Utilities
-
-## Adofai
-
-### BeatCalculator (WIP)
-
-Created alongside `ADLevel`, accessed via `ADLevel.Calculator`.
-
-### Other Utilities
+Created with `ADLevel`, accessed via `ADLevel.Calculator`.
 
 # Examples
 
-## Merging Audio and Visual Levels
+## Merging a Beatmap Level with a VFX Level
 
 ```cs
 using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Extensions;
 
-// Read visual effects level
-using RDLevel vfxLevel = RDLevel.FromFile(@"vfx.rdlevel");
-// Read audio level
-using RDLevel audioLevel = RDLevel.FromFile(@"beat.rdlevel");
+// Load VFX level
+using Level vfxLevel = Level.FromFile(@"vfx.rdlevel");
+// Load beatmap level
+using Level audioLevel = Level.FromFile(@"beat.rdlevel");
 
-// Remove all rows from visual level
+// Remove all tracks from VFX level
 foreach (var row in vfxLevel.Rows.ToList())
-    vfxLevel.Rows.Remove(row);
+	vfxLevel.Rows.Remove(row);
 
-// Copy rows from audio level to visual level
+// Copy tracks from beatmap level to VFX level
 foreach (var row in audioLevel.Rows)
 {
-    Row row2 = new()
-    {
-        Rooms = row.Rooms,
-        Character = row.Character,
-        Sound = row.Sound,
-        RowType = row.RowType
-    };
-    vfxLevel.Rows.Add(row2);
+	Row row2 = new()
+	{
+		Rooms = row.Rooms,
+		Character = row.Character,
+		Sound = row.Sound,
+		RowType = row.RowType
+	};
+	vfxLevel.Rows.Add(row2);
 
-    foreach (var evt in row.OfEvent<BaseBeat>())
-        row2.Add(evt);
+	foreach (var evt in row.OfEvent<BaseBeat>())
+		row2.Add(evt);
 }
 
-// Copy non-row sound events
+// Copy non-track events from sound bar
 foreach (var sound in audioLevel.Where(e =>
-    e.Tab == Tabs.Sounds &&
-    e is not BaseRowAction &&
-    e is not PlaySong &&
-    e is not SetCrotchetsPerBar))
+	e.Tab == Tabs.Sounds &&
+	e is not BaseRowAction &&
+	e is not PlaySong &&
+	e is not SetCrotchetsPerBar))
 {
-    vfxLevel.Add(sound);
+	vfxLevel.Add(sound);
 }
 
 // Save result
 vfxLevel.SaveToFile(@"result.rdlevel");
 ```
+
+---
+
+# II. Implementing a New Level Type
+
+## Overview
+
+The process of adapting a new game can be summarized as:
+
+```
+Define Enum → Define TickTime → Define Event Interface/Base Class → Define Event Subclasses
+→ Define Level → Register AssemblyInfo → Implement Hand-Written Converters → Implement Serialization Methods
+```
+
+The source generator automatically produces the following based on declarations in `AssemblyInfo.cs`:
+- Property-level converters for each event class (`MemberConverter<T>`)
+- Bidirectional type-enum mappings (`EventTypeRegistry`)
+- Converter routing table (`EventConverterMap`)
+- String conversion extension methods for enums (`TryParse` / `ToEnumString`)
+
+The following uses `MyGame` as a hypothetical game type name. The four completed implementations (RhythmDoctor, Adofai, BeatBlock, Rizline) serve as practical references.
+
+## Step 1: Create the Project
+
+Create a .NET class library project and reference the `RhythmBase` NuGet package:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
+    <RootNamespace>RhythmBase</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="RhythmBase" Version="*" />
+  </ItemGroup>
+</Project>
+```
+
+> **`RootNamespace` must be set to `RhythmBase`** to ensure the source generator places generated code in the correct `RhythmBase.{GameType}.Converters` namespace.
+
+## Step 2: Define the Event Type Enum
+
+Create `Enums.cs` and mark it with `[JsonEnumSerializable]`:
+
+```csharp
+namespace RhythmBase.MyGame;
+
+[JsonEnumSerializable]
+public enum EventType
+{
+    Note,
+    Drag,
+    // ... all event types
+    ForwardEvent,            // Fallback compatibility type (optional)
+}
+```
+
+**Rules**:
+- Enum member names must exactly match event class names
+- Fallback compatibility types are fixed: `ForwardEvent`, `ForwardRowEvent`, `ForwardDecorationEvent`
+- Must be marked with `[JsonEnumSerializable]`
+
+**Implementation differences**:
+
+| Implementation | Difference | Syntax |
+|---|---|---|
+| RhythmDoctor | Default PascalCase | `[JsonEnumSerializable]` |
+| BeatBlock | camelCase serialization | `[JsonEnumSerializable(false)]` |
+| Rizline | Numeric member names, serialized as numbers | Member names like `_0`, `_1` |
+| Adofai | Multiple enums coexist | Register `EventType` + `FilterType` separately |
+
+## Step 3: Define the Time Unit (TickTime)
+
+Create a struct implementing `ITickTime<TickTime>`, representing a point on the level timeline:
+
+```csharp
+public struct TickTime : ITickTime<TickTime>
+{
+    public TimeSpan TimeSpan { get; }
+    public float Tick { get; }
+    // ... comparison operators, constructors, etc.
+}
+```
+
+Key design points:
+- Support construction from `float` (beat), `(bar, beat)` tuple, `TimeSpan`, etc.
+- Associate/disassociate with `BeatCalculator` (lazy computation + caching)
+- Support tuple implicit conversion: `(int bar, float beat) => TickTime`
+- Comparison operators (`>`, `<`, `>=`, `<=`, `==`, `!=`)
+
+Reference implementation: `RhythmBase.RhythmDoctor/RhythmDoctor/Components/TickTime.cs`
+
+## Step 4: Define the Event Interface and Base Class
+
+**Event interface** (namespace-scoped):
+
+```csharp
+public interface IBaseEvent : IEvent<EventType, TickTime>
+{
+    bool Active { get; set; }
+    new TickTime TickTime { get; set; }
+    // ... game-specific common properties
+    JsonElement this[string propertyName] { get; set; }
+}
+```
+
+**Event base class**:
+
+```csharp
+public abstract record class BaseEvent : IBaseEvent
+{
+    public abstract EventType Type { get; }
+    public virtual TickTime TickTime { get; set; }
+    public bool Active { get; set; } = true;
+
+    internal Dictionary<string, JsonElement> _extraData = [];
+
+    public JsonElement this[string propertyName]
+    {
+        get => _extraData.TryGetValue(propertyName, out var v) ? v : default;
+        set => _extraData[propertyName] = value;
+    }
+}
+```
+
+The `_extraData` dictionary stores unknown properties, ensuring lossless round-tripping.
+
+**Typical inheritance tree** (choose based on game characteristics):
+
+```
+BaseEvent (abstract)
+├── BaseRowAction (abstract)         # Row event base, with "row" field
+│   ├── BaseBeat (abstract)          # Beat event base
+│   └── ...
+├── BaseDecorationAction (abstract)  # Decoration event base, with "target" field
+├── BaseBeatsPerMinute (abstract)    # BPM event base
+└── ...
+```
+
+Not all games need the row/decoration distinction. Adofai's event tree uses `BaseTileEvent` as the main branch; BeatBlock and Rizline have flatter event trees.
+
+## Step 5: Define Event Subclasses
+
+Each event class is marked with `[JsonObjectSerializable]`:
+
+```csharp
+[JsonObjectSerializable]
+public record class Note : BaseEvent
+{
+    public override EventType Type { get; } = EventType.Note;
+    // ... event-specific properties
+}
+```
+
+**Property attributes**:
+
+| Attribute | Purpose |
+|---|---|
+| `[JsonObjectSerializable]` | Auto-generate serializer |
+| `[JsonObjectHasSerializer(typeof(C))]` | Has custom serializer, still needs mapping |
+| `[JsonObjectNotSerializable]` | No serializer needed (e.g., `ForwardEvent`) |
+| `[JsonObjectSerializationFallback]` | Fallback model for unknown types (globally unique) |
+| `[JsonAlias("name")]` | Alias used in JSON |
+| `[JsonIgnore]` | Ignored during serialization |
+| `[JsonCondition("$&.Prop != value")]` | Conditional write |
+| `[JsonTime(JsonTimeType.Milliseconds)]` | TimeSpan serialized as milliseconds/seconds |
+| `[JsonConverter(typeof(C))]` | Use specified converter |
+
+## Step 6: Define the Level Model
+
+```csharp
+public partial class Level :
+    OrderedEventCollection<IBaseEvent, EventType, TickTime>,
+    IArchiveLevel<Level, IBaseEvent, EventType, TickTime>,
+    // Choose interfaces based on format
+    IChart<TickTime>
+{
+    // ... game-specific components (Settings, Rows, etc.)
+
+    protected override TickTime CreateInstance(float beat) => new TickTime(beat);
+    protected override ReadOnlyEnumCollection<EventType> Types => EventTypeRegistry.Types;
+    protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => EventTypeRegistry.ToEnums(typeof(TTarget));
+}
+```
+
+**Level format selection**:
+
+| Interface | Suitable format | Existing implementations |
+|---|---|---|
+| `ISingleFileLevel` | Single file | RhythmDoctor (`.rdlevel`), Adofai (`.adofai`) |
+| `IArchiveLevel` | Archive | All four |
+| `IJsonLevel` | JSON fully representable | RhythmDoctor, Adofai |
+| `IMultiFileLevel` | Multi-file directory | BeatBlock, Rizline |
+
+Multi-file formats (BeatBlock, Rizline) do not implement `IJsonLevel` because JSON strings cannot fully represent level data distributed across multiple files.
+
+## Step 7: Register AssemblyInfo
+
+Create `AssemblyInfo.cs` in the project root:
+
+```csharp
+[assembly: RhythmBase.JsonConverterId(nameof(RhythmBase.MyGame))]
+
+[assembly: RhythmBase.JsonConverterSourceType(
+    typeof(IBaseEvent),                                    // Event interface
+    typeof(RhythmBase.MyGame.EventType),                   // Event enum
+    typeof(RhythmBase.MyGame.Converters.MemberConverter<>), // Converter base class
+    nameof(IBaseEvent.Type)                                // Enum property name
+)]
+
+// Link custom converters for shared types (as needed)
+[assembly: RhythmBase.JsonConverterLink(typeof(Color), typeof(ColorConverter.RgbaHex))]
+[assembly: RhythmBase.JsonConverterLink(typeof(RichLine<RichStringStyle>), typeof(RichTextConverter<RichStringStyle>))]
+```
+
+**`JsonConverterLink` differences across implementations**:
+
+| Implementation | Color format |
+|---|---|
+| RhythmDoctor | `ColorConverter.RgbaHex` |
+| Adofai | `ColorConverter.RgbaHex` |
+| BeatBlock | `ColorConverter.RgbObject` |
+| Rizline | `ColorConverter.ArgbObject` |
+
+**Multi-target registration** (e.g., Adofai registers both events and filters):
+
+```csharp
+[assembly: RhythmBase.JsonConverterSourceType(typeof(IBaseEvent), typeof(EventType), typeof(MemberConverter<>), nameof(IBaseEvent.Type))]
+[assembly: RhythmBase.JsonConverterSourceType(typeof(IFilter), typeof(FilterType), typeof(FilterMemberConverter<>), nameof(IFilter.Type))]
+```
+
+## Step 8: Create GlobalUsing
+
+Create `GlobalUsing.cs` in the project root:
+
+```csharp
+global using RhythmBase.Global.Components;
+global using RhythmBase.Global.Events;
+global using RhythmBase.Global.Exceptions;
+global using RhythmBase.Global.Extensions;
+global using RhythmBase.Global.Settings;
+global using RhythmBase.Global.Converters.JsonSerialization;
+global using RhythmBase.Global.Utils;
+global using static RhythmBase.Global.Constants.Constants;
+global using static RhythmBase.Global.Converters.EnumConverterExtensions;
+global using static RhythmBase.MyGame.Converters.EnumConverterExtensions;
+```
+
+## Step 9: Implement Hand-Written Converters
+
+The source generator auto-generates event property-level converters, but the following compound types need hand-written converters:
+
+- **LevelConverter**: Reads/writes the entire level
+- **SettingsConverter**: Reads/writes level settings
+- **BaseEventConverter**: Event type routing (dispatches to `ConverterMap` based on the `type` field)
+
+All hand-written converters inherit from `MetadataJsonConverter<T>`, whose `Read`/`Write` accept `MetadataJsonSerializerOptions` (serialization options with attached metadata).
+
+**Converter hierarchy**:
+
+```
+JsonConverter<T>              — .NET framework, handles arbitrary type JSON serialization
+└── MetadataJsonConverter<T>  — RhythmBase, adds metadata awareness
+    ├── LevelConverter        — reads/writes entire level
+    ├── SettingsConverter     — reads/writes settings
+    ├── BaseEventConverter    — event routing
+    └── ...
+
+MemberConverter<T>            — RhythmBase, reads/writes event properties field by field
+├── BaseRowAction<T>          — + "row"
+├── BaseDecorationAction<T>   — + "target"
+└── Concrete event converter  — generated by source generator
+```
+
+Division of labor: **`MetadataJsonConverter` manages the `{ }` boundary; `MemberConverter` manages the fields inside `{ }`.**
+
+## Step 10: Implement Level Serialization Methods
+
+Implement read/write methods in `Level.SerializeMethods.cs` (partial class). Core call chain:
+
+```csharp
+// Reading
+Level? level = FileMainEntryConverter.DeserializeMainEntry<Level>(
+    new StreamDataSource(rdlevelStream), options);
+
+// Writing
+FileMainEntryConverter.SerializeMainEntry(this, stream, options);
+```
+
+**ZIP format** uniformly uses the "extract to temp directory → call FromDirectory" pattern:
+
+```csharp
+public static async Task<Level> FromZipAsync(string filepath, LevelReadSettings? settings = null, ...)
+{
+    DirectoryInfo tempDirectory = new(Path.Combine(
+        GlobalSettings.CachePath, GlobalSettings.CacheDirectoryPrefix + Path.GetRandomFileName()));
+    ZipFile.ExtractToDirectory(stream, tempDirectory.FullName, overwriteFiles: true);
+    Level level = await FromDirectoryAsync(tempDirectory.FullName, settings, cancellationToken);
+    level.ResolvedPath = Path.GetFullPath(filepath);
+    level.Filepath = Path.GetFullPath(filepath);
+    return level;
+}
+```
+
+**Multi-file formats** also need `FromDirectoryAsync` / `SaveToDirectoryAsync` to read/write sub-files by filename convention.
+
+**`Filepath` / `ResolvedPath` / `ResolvedDirectory` properties**: Multi-file formats need `internal set` to allow assignment in `FromZip` / `FromDirectory`.
+
+## Implementation-Specific Notes
+
+### Rhythm Doctor
+
+- Single file format (`.rdlevel`), fully supports `IJsonLevel`
+- Events organized by Row and Decoration
+- Has `BeatCalculator` for beat ↔ time conversion
+- Color uses `RgbaHex` format
+- Reference implementation — consult this project first when adapting new games
+
+### Adofai
+
+- Supports multiple `JsonConverterSourceType`: event system and filter system registered separately
+- Filter types use **structs** (`struct BlurRegular : IFilter`), not classes
+- Color uses `RgbaHex` format
+- Multiple enums defined in one project (`EventType` + `FilterType`)
+
+### BeatBlock
+
+- Enum uses camelCase: `[JsonEnumSerializable(false)]`
+- Multi-file format: `manifest.json` (main) + `level.json` + `chart-*.json` + `tags/`
+- Does not implement `IJsonLevel`
+- Level implements `IDisposable`, requires manual resource management
+- Color uses `RgbObject` format
+- Has `version` field, level has multiple version formats
+- `Filepath` / `ResolvedPath` / `ResolvedDirectory` properties need `internal set`
+
+### Rizline
+
+- Enum members are numeric: e.g., `EventType._0`, serialized as `"0"`
+- Multi-file format: `metadata.json` + `chart*.json`
+- Does not implement `IJsonLevel`
+- Color uses `ArgbObject` format
+- `Filepath` / `ResolvedPath` / `ResolvedDirectory` properties need `internal set`
+
+### Common Notes
+
+1. All events are `record` types, supporting `with` expressions
+2. `_extraData` dictionary stores unknown properties, ensuring lossless round-tripping
+3. The source generator handles most serialization code; hand-written converters are only for complex logic
+4. `ConverterMap` + `ConverterHub` form the complete type routing and serializer registration system
+5. `EventTypeRegistry` provides bidirectional type-enum queries and classification
+6. `ForwardEvent` mechanism ensures backward compatibility for unknown event types
+7. `Path.GetRelativePath` is unavailable on .NET Standard 2.0; use `file.Substring(dir.Length + 1)` instead
+8. Multi-file format `FromZip` needs to set `isZip` / `isExtracted` status fields

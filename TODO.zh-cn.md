@@ -8,7 +8,7 @@
 
 |          | Rhythm Doctor | Adofai          | BeatBlock       | Rizline         | ... |
 | -------- | ------------- | --------------- | --------------- | --------------- | --- |
-| 数据模型 | :blue_square: | :blue_square:   | :blue_square:   | :green_square:  |     |
-| 序列化   | :blue_square: | :blue_square:   | :blue_square:   | :yellow_square: |     |
+| 数据模型 | :blue_square: | :blue_square:   | :blue_square:   | :blue_square:   |     |
+| 序列化   | :blue_square: | :blue_square:   | :blue_square:   | :blue_square:   |     |
 | 时间转换 | :blue_square: | :yellow_square: | :orange_square: | :orange_square: |     |
 | 辅助功能 | :blue_square: | :green_square:  | :green_square:  | :orange_square: |     |
