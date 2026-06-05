@@ -3,6 +3,7 @@ using RhythmBase.BeatBlock.Events;
 using RhythmBase.Global.Settings;
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Reflection.Emit;
 using System.Text.Json;
 
 namespace RhythmBase.BeatBlock.Components;
@@ -95,14 +96,13 @@ partial class Level
                 }
                 catch (JsonException)
                 {
-                    level.Dispose();
                     throw;
                 }
                 catch (Exception ex)
                 {
                     JsonElement element = JsonElement.ParseValue(ref checkpoint);
-                    settings.HandleUnreadableEvent(element, ex.Message);
-                    continue;
+                    settings.OnUnreadableEventEncountered(null, element, ex.Message);
+										continue;
                 }
 #endif
 				if (e == null)

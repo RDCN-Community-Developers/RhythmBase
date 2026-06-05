@@ -13,6 +13,7 @@
 # 忽略 RhythmBase 文件夹
 /FastTest/
 /package/
+/packages/
 /RhythmEdega/
 /RhythmTools/
 /tmp/

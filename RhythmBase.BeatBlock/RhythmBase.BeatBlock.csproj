@@ -22,7 +22,6 @@
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<IsAotCompatible>true</IsAotCompatible>
 		<VerifyReferenceAotCompatibility>true</VerifyReferenceAotCompatibility>
-		<PublishAot Condition="'$(TargetFramework)'=='net8.0'">true</PublishAot>
 		<EmitCompilerGeneratedFiles Condition="'$(Configuration)'=='Debug'">true</EmitCompilerGeneratedFiles>
 	</PropertyGroup>
 	<ItemGroup>

@@ -135,7 +135,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
                     catch (Exception ex)
                     {
                         JsonElement element = JsonElement.ParseValue(ref checkPoint);
-                        ReadSettings.HandleUnreadableEvent(element, ex.Message);
+                        ReadSettings.OnUnreadableEventEncountered(level, element, ex.Message);
                         continue;
                     }
 #endif
