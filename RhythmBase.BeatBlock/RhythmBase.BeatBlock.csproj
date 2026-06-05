@@ -1,15 +1,34 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <RootNamespace>RhythmBase</RootNamespace>
-			<LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="RhythmBase" Version="1.3.11-alpha4" />
-  </ItemGroup>
-
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RootNamespace>RhythmBase</RootNamespace>
+		<AssemblyName>RhythmBase.BeatBlock</AssemblyName>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<Title>RhythmBase.BeatBlock</Title>
+		<Version>1.3.11-alpha4</Version>
+		<Authors>obugs</Authors>
+		<Description>BeatBlock level adapter for RhythmBase. Provides event model, multi-file serialization, and versioned level support for BeatBlock levels.</Description>
+		<PackageProjectUrl>https://github.com/RDCN-Community-Developers/RhythmToolkit</PackageProjectUrl>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageTags>Rhythm Game;BeatBlock</PackageTags>
+		<PackageReleaseNotes>VERSION.md</PackageReleaseNotes>
+		<PackageIcon>RhythmBase_logo_small.png</PackageIcon>
+		<RepositoryUrl>https://github.com/RDCN-Community-Developers/RhythmToolkit.git</RepositoryUrl>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<LangVersion>Preview</LangVersion>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<IsAotCompatible>true</IsAotCompatible>
+		<VerifyReferenceAotCompatibility>true</VerifyReferenceAotCompatibility>
+		<PublishAot Condition="'$(TargetFramework)'=='net8.0'">true</PublishAot>
+		<EmitCompilerGeneratedFiles Condition="'$(Configuration)'=='Debug'">true</EmitCompilerGeneratedFiles>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="RhythmBase" Version="1.3.11-alpha4" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="../README.md;../README.zh-cn.md;../VERSION.md;../VERSION.zh-cn.md;../RhythmBase_logo_small.png;../RhythmBase_logo.png;../RhythmBase_logo_clean.png;../RhythmBase_banner.png;../RhythmBase_banner_clean.png;../LICENSE.txt;" Pack="True" PackagePath="/" />
+	</ItemGroup>
 </Project>

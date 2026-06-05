@@ -9,11 +9,11 @@
 				<Title>RhythmBase</Title>
 				<Version>1.3.11-alpha4</Version>
 				<Authors>obugs</Authors>
-				<Description>A package that can be used to help with the development of support tools for the Rhythm Doctor game levels.</Description>
+				<Description>A package that can be used to help with the development of support tools for the rhythm game levels.</Description>
 				<PackageProjectUrl>https://github.com/RDCN-Community-Developers/RhythmToolkit</PackageProjectUrl>
 				<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 				<PackageReadmeFile>README.md</PackageReadmeFile>
-				<PackageTags>Rhythm Doctor;Adofai;BeatBlock;Rhythm Game</PackageTags>
+				<PackageTags>Rhythm Game</PackageTags>
 				<PackageReleaseNotes>VERSION.md</PackageReleaseNotes>
 				<PackageIcon>RhythmBase_logo_small.png</PackageIcon>
 				<RepositoryUrl>https://github.com/RDCN-Community-Developers/RhythmToolkit.git</RepositoryUrl>
