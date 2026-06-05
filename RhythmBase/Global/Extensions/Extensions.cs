@@ -21,11 +21,12 @@ public static class Extensions
 		/// <returns>The current token type if it matches.</returns>
 		[DebuggerHidden]
 		[StackTraceHidden]
-		public static JsonTokenType ThrowIfNotMatch(ref Utf8JsonReader reader, params ReadOnlyEnumCollection<JsonTokenType> expectedTokenType)
+		public static JsonTokenType ThrowIfNotMatch(ref Utf8JsonReader reader, params ReadOnlySpan<JsonTokenType> expectedTokenType)
 		{
-			if (expectedTokenType.Contains(reader.TokenType))
+			ReadOnlyEnumCollection<JsonTokenType> types = new(expectedTokenType);
+			if (types.Contains(reader.TokenType))
 				return reader.TokenType;
-			string message = $"Expected token {string.Join(", ", expectedTokenType)} but got {reader.TokenType} {(Encoding.UTF8.GetString(reader.ValueSpan.ToArray()))}, at byte position {reader.TokenStartIndex}.";
+			string message = $"Expected token {string.Join(", ", types)} but got {reader.TokenType} {(Encoding.UTF8.GetString(reader.ValueSpan.ToArray()))}, at byte position {reader.TokenStartIndex}.";
 			throw new JsonException(message);
 		}
 	}
