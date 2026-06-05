@@ -164,11 +164,22 @@ public abstract class OrderedEventCollection<TEvent, TType, TTickTime> : ICollec
     [EditorBrowsable(EditorBrowsableState.Advanced)]
     public RedBlackTree<TTickTime, TypedEventCollection<TType, TTickTime>> EventsBeatOrder = [];
     RedBlackTree<TTickTime, TypedEventCollection<TType, TTickTime>> IEventEnumerable<TEvent, TType, TTickTime>.EventsBeatOrder => EventsBeatOrder;
+    /// <summary>Creates a tick/time instance from a raw float beat value.</summary>
+    /// <param name="beat">The raw float beat value.</param>
+    /// <returns>A <typeparamref name="TTickTime"/> instance representing the specified beat.</returns>
     internal protected abstract TTickTime CreateInstance(float beat);
+    /// <summary>Creates a tick range from optional start and end float values.</summary>
+    /// <param name="start">The optional start of the range.</param>
+    /// <param name="end">The optional end of the range.</param>
+    /// <returns>An <see cref="ITickRange{T}"/> representing the specified range.</returns>
     internal protected abstract ITickRange<TTickTime> CreateRange(float? start, float? end);
+    /// <summary>Gets the collection of event types supported by this collection.</summary>
     internal protected abstract ReadOnlyEnumCollection<TType> Types { get; }
     ReadOnlyEnumCollection<TType> IEventEnumerable<TEvent, TType, TTickTime>.Types => Types;
     ITickRange<TTickTime> IEventEnumerable<TEvent, TType, TTickTime>.Range => CreateRange(null, null);
 
+    /// <summary>Gets the event types associated with the specified target type.</summary>
+    /// <typeparam name="TTarget">The target event type to query types for.</typeparam>
+    /// <returns>A <see cref="ReadOnlyEnumCollection{T}"/> of event types for the target.</returns>
     internal protected abstract ReadOnlyEnumCollection<TType> TypesOf<TTarget>() where TTarget : IEvent<TType, TTickTime>;
 }

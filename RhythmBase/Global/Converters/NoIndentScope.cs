@@ -3,19 +3,35 @@ using System.Text.Json;
 
 namespace RhythmBase.Global.Converters;
 
+/// <summary>
+/// Provides a scope for writing JSON objects and arrays without indentation, useful for compact inline
+/// serialization within an otherwise indented JSON document.
+/// </summary>
 public class NoIndentScope : IDisposable
 {
 	private readonly Utf8JsonWriter writer;
 	private readonly MemoryStream stream;
-	private Utf8JsonWriter inlineWriter;
-	private MemoryStream inlineStream;
+	private Utf8JsonWriter? inlineWriter;
+	private MemoryStream? inlineStream;
 	private readonly MetadataJsonSerializerOptions options;
+	/// <summary>
+	/// Initializes a new <see cref="NoIndentScope"/> with the specified encoder and serializer options.
+	/// </summary>
+	/// <param name="encoder">The character encoder to use, or <c>null</c> for the default encoder.</param>
+	/// <param name="options">The metadata-aware serializer options.</param>
 	public NoIndentScope(System.Text.Encodings.Web.JavaScriptEncoder? encoder, MetadataJsonSerializerOptions options)
 	{
 		stream = new MemoryStream();
 		writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = false, Encoder = encoder });
 		this.options = options;
 	}
+	/// <summary>
+	/// Writes a single value as a compact (non-indented) JSON object into the specified writer.
+	/// </summary>
+	/// <typeparam name="T">The type of the value.</typeparam>
+	/// <param name="instance">The target writer to write the raw JSON into.</param>
+	/// <param name="value">The value to serialize.</param>
+	/// <param name="writeValue">A delegate that writes the value to an intermediate writer.</param>
 	public void WriteNoIndentObjectTo<T>(Utf8JsonWriter instance, T value, Action<Utf8JsonWriter, T, MetadataJsonSerializerOptions> writeValue)
 	{
 		stream.SetLength(0);
@@ -25,13 +41,30 @@ public class NoIndentScope : IDisposable
 		instance.WriteRawValue(buffer);
 		writer.Reset();
 	}
+	/// <summary>
+	/// Writes a collection of values as a JSON array, with optional indentation and column alignment.
+	/// </summary>
+	/// <typeparam name="T">The element type.</typeparam>
+	/// <param name="writeSettings">The serializer options controlling indentation and alignment.</param>
+	/// <param name="instance">The target writer.</param>
+	/// <param name="values">The values to serialize as array elements.</param>
+	/// <param name="writeValue">A delegate that writes each element.</param>
 	public void WriteNoIndentArrayTo<T>(MetadataJsonSerializerOptions writeSettings, Utf8JsonWriter instance, IEnumerable<T> values, Action<Utf8JsonWriter, T, MetadataJsonSerializerOptions> writeValue)
 		=> WriteNoIndentArrayTo(writeSettings.WriteIndented, writeSettings.WriteAligned, instance, values, writeValue);
+	/// <summary>
+	/// Writes a collection of values as a JSON array, with optional indentation and column alignment.
+	/// </summary>
+	/// <typeparam name="T">The element type.</typeparam>
+	/// <param name="writeIndented">Whether to indent the output.</param>
+	/// <param name="writeAligned">Whether to align properties across array elements.</param>
+	/// <param name="instance">The target writer.</param>
+	/// <param name="values">The values to serialize as array elements.</param>
+	/// <param name="writeValue">A delegate that writes each element.</param>
 	public void WriteNoIndentArrayTo<T>(bool writeIndented, bool writeAligned, Utf8JsonWriter instance, IEnumerable<T> values, Action<Utf8JsonWriter, T, MetadataJsonSerializerOptions> writeValue)
 	{
 		if (!writeIndented)
 		{
-			foreach(var item in values)
+			foreach (var item in values)
 				writeValue(instance, item, options with { WriteIndented = false });
 			return;
 		}
@@ -100,7 +133,7 @@ public class NoIndentScope : IDisposable
 				writeValue(inlineWriter, values.ElementAt(i), options);
 				inlineWriter.Flush();
 				buffer = inlineStream.GetBuffer().AsSpan(0, (int)inlineStream.Position);
-				Utf8JsonReader tmpReader = new Utf8JsonReader(buffer);
+				Utf8JsonReader tmpReader = new(buffer);
 				elements[i] = JsonElement.ParseValue(ref tmpReader);
 				inlineWriter.Reset();
 				foreach (JsonProperty property in elements[i].EnumerateObject())
@@ -198,9 +231,27 @@ public class NoIndentScope : IDisposable
 			}
 		}
 	}
+	private bool _disposed = false;
+	/// <summary>
+	/// Disposes the scope, releasing any resources held by the internal writers and streams.
+	/// </summary>
+	/// <param name="disposing"></param>
+	protected virtual void Dispose(bool disposing)
+	{
+		if(_disposed) return;
+		if (disposing)
+		{
+			writer.Dispose();
+			stream.Dispose();
+			inlineWriter?.Dispose();
+			inlineStream?.Dispose();
+		}
+		_disposed = true;
+	}
+	/// <inheritdoc/>
 	public void Dispose()
 	{
-		writer.Dispose();
-		stream.Dispose();
+		Dispose(true);
+		GC.SuppressFinalize(this);
 	}
 }

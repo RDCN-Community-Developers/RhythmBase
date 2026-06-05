@@ -210,7 +210,7 @@ public partial class Level :
 	/// <summary>
 	/// Default instance used as a fallback. 
 	/// </summary>
-	public static Level Default => new Level();
+	public static Level Default => new();
 
 	/// <summary>
 	/// Dispose resources held by the level. 

@@ -22,9 +22,9 @@ public interface ITickRange<TTickTime>
     /// <returns>True if the beat is within the range; otherwise, false.</returns>
     public bool Contains(TTickTime b);
     /// <summary>
-    /// Gets the start and end beats of the range using the specified level.
+    /// Gets the start and end beats of the range, using the specified default end time if the range has no end.
     /// </summary>
-    /// <param name="level">The level to use for resolving the beats.</param>
+    /// <param name="endTime">The default end time to use if the range has no explicit end.</param>
     /// <returns>A tuple containing the start and end beats.</returns>
     (TTickTime Start, TTickTime End) GetStartAndEnd(TTickTime endTime);
     /// <summary>
@@ -43,10 +43,10 @@ public interface ITickRange<TTickTime>
     /// <summary>
     /// Gets an infinite beat range.
     /// </summary>
-    public static ITickRange<TTickTime> Infinity { get; }
+    public static abstract ITickRange<TTickTime> Infinity { get; }
     /// <summary>
     /// Gets an empty beat range.
     /// </summary>
-    public static ITickRange<TTickTime> Empty { get; }
+    public static abstract ITickRange<TTickTime> Empty { get; }
 #endif
 }

@@ -153,7 +153,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 		public INamedTypeSymbol RootConverterType;
 		public string TypePropertyName;
 	}
-	List<Exception> exceptions = new List<Exception>();
+	List<Exception> exceptions = new();
 	public void Initialize(IncrementalGeneratorInitializationContext context)
 	{
 		var errors = new HashSet<Diagnostic>();

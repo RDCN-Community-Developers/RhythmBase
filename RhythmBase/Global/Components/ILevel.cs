@@ -2,11 +2,28 @@
 
 namespace RhythmBase.Global.Components;
 
+/// <summary>
+/// Represents a chart that contains beat-based timing information.
+/// </summary>
+/// <typeparam name="TBeat">The type of beat used for timing calculations.</typeparam>
 public interface IChart<TBeat> where TBeat : struct, ITickTime<TBeat>
 {
+    /// <summary>
+    /// Gets the beat calculator associated with this chart.
+    /// </summary>
     IBeatCalculator<TBeat> Calculator { get; }
 }
+/// <summary>
+/// Marker interface for all level types.
+/// </summary>
 public interface ILevel { }
+/// <summary>
+/// Defines the base contract for a level with strongly-typed events, types, and beats.
+/// </summary>
+/// <typeparam name="TSelf">The concrete level type itself.</typeparam>
+/// <typeparam name="TEvent">The event type contained in the level.</typeparam>
+/// <typeparam name="TType">The enum type representing event categories.</typeparam>
+/// <typeparam name="TBeat">The beat type used for timing.</typeparam>
 public interface ILevel<TSelf, TEvent, TType, TBeat> : IDisposable, ILevel
     where TSelf : ILevel<TSelf, TEvent, TType, TBeat>
     where TEvent : IEvent<TType, TBeat>
@@ -24,6 +41,13 @@ public interface ILevel<TSelf, TEvent, TType, TBeat> : IDisposable, ILevel
     static abstract TSelf Default { get; }
 #endif
 }
+/// <summary>
+/// Represents a level that is stored in a single file and supports stream and file I/O.
+/// </summary>
+/// <typeparam name="TSelf">The concrete level type itself.</typeparam>
+/// <typeparam name="TEvent">The event type contained in the level.</typeparam>
+/// <typeparam name="TType">The enum type representing event categories.</typeparam>
+/// <typeparam name="TBeat">The beat type used for timing.</typeparam>
 public interface ISingleFileLevel<TSelf, TEvent, TType, TBeat> : ILevel<TSelf, TEvent, TType, TBeat>
     where TSelf : ILevel<TSelf, TEvent, TType, TBeat>
     where TEvent : IEvent<TType, TBeat>
@@ -104,6 +128,13 @@ public interface ISingleFileLevel<TSelf, TEvent, TType, TBeat> : ILevel<TSelf, T
     /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
     Task SaveToFileAsync(string filepath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default);
 }
+/// <summary>
+/// Represents a level that is stored across multiple files in a directory.
+/// </summary>
+/// <typeparam name="TSelf">The concrete level type itself.</typeparam>
+/// <typeparam name="TEvent">The event type contained in the level.</typeparam>
+/// <typeparam name="TType">The enum type representing event categories.</typeparam>
+/// <typeparam name="TBeat">The beat type used for timing.</typeparam>
 public interface IMultiFileLevel<TSelf, TEvent, TType, TBeat> : ILevel<TSelf, TEvent, TType, TBeat>
     where TSelf : ILevel<TSelf, TEvent, TType, TBeat>
     where TEvent : IEvent<TType, TBeat>
@@ -142,6 +173,10 @@ public interface IMultiFileLevel<TSelf, TEvent, TType, TBeat> : ILevel<TSelf, TE
     /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
     Task SaveToDirectoryAsync(string directoryPath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default);
 }
+/// <summary>
+/// Defines a level format that can be saved and loaded as a ZIP archive containing the level data
+/// and associated resources.
+/// </summary>
 public interface IArchiveLevel<TSelf, TEvent, TType, TBeat> : ILevel<TSelf, TEvent, TType, TBeat>
 where TSelf : ILevel<TSelf, TEvent, TType, TBeat>
 where TEvent : IEvent<TType, TBeat>
@@ -149,11 +184,11 @@ where TType : struct, Enum
 where TBeat : struct, ITickTime<TBeat>
 {
     /// <summary>     
-    /// The resolved file path for reading. Points to the extracted temporary file if the source is an archive; otherwise identical to <see cref="Filepath"/>.
+    /// The resolved file path for reading. Points to the extracted temporary file if the source is an archive; otherwise identical to <c>Filepath</c>.
     /// </summary>
     string ResolvedPath { get; }
     /// <summary>
-    /// The directory containing the resolved file. Points to the temporary extraction directory if the source is an archive; otherwise the directory of <see cref="Filepath"/>.
+    /// The directory containing the resolved file. Points to the temporary extraction directory if the source is an archive; otherwise the directory of <c>Filepath</c>.
     /// </summary>
     string? ResolvedDirectory { get; }
 #if NET8_0_OR_GREATER
@@ -196,6 +231,9 @@ where TBeat : struct, ITickTime<TBeat>
     /// <exception cref="NotImplementedException">Thrown if the level's directory is not set.</exception>
     Task SaveToZipAsync(string filepath, LevelWriteSettings? settings = null, CancellationToken cancellationToken = default);
 }
+/// <summary>
+/// Defines a level format that can be fully represented as a JSON document.
+/// </summary>
 public interface IJsonLevel<TSelf, TEvent, TType, TBeat> : ILevel<TSelf, TEvent, TType, TBeat>
     where TSelf : ILevel<TSelf, TEvent, TType, TBeat>
     where TEvent : IEvent<TType, TBeat>

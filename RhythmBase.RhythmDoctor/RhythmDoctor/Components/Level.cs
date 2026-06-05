@@ -97,7 +97,7 @@ public partial class Level :
         Decorations = new(this);
     }
     /// <inheritdoc/>
-    protected override TickTime CreateInstance(float beat) => new TickTime(beat);
+    protected override TickTime CreateInstance(float beat) => new(beat);
     /// <inheritdoc/>
     protected override ITickRange<TickTime> CreateRange(float? start, float? end) => new Range(
         start is float s ? Calculator.BeatOf(s) : null,

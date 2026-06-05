@@ -6,6 +6,11 @@ using RhythmBase.RhythmDoctor.Extensions;
 using RhythmBase.RhythmDoctor.Utils;
 using System.Text.Json;
 using RhythmBase.RhythmDoctor;
+using RhythmBase.Global.Components;
+using RhythmBase.Global.Converters;
+using RhythmBase.RhythmDoctor.Converters;
+using RhythmBase.Global.Components.RichText;
+using RhythmBase.Global.Components.Vector;
 
 namespace RhythmBase.Test;
 
@@ -215,17 +220,16 @@ namespace RhythmBase.Test;
         [TestMethod]
         public void EventTypeUtilsConvert()
         {
-            Console.WriteLine(EventType.Tint.ToType());                                                // RhythmBase.Events.Tint
-            Console.WriteLine(EventTypeUtils.ToType("Tint"));                                          // RhythmBase.Events.Tint
-            Console.WriteLine(EventTypeUtils.ToEnum(typeof(Tint)));                                    // Tint
-            Console.WriteLine(EventTypeUtils.ToEnum<Tint>());                                          // Tint
-            Console.WriteLine(string.Join(", ", EventTypeUtils.ToEnums(typeof(IBarBeginningEvent))));  // PlaySong,SetCrotchetsPerBar, SetHeartExplodeVolume
-            Console.WriteLine(string.Join(", ", EventTypeUtils.ToEnums<IBarBeginningEvent>()));        // PlaySong,SetCrotchetsPerBar, SetHeartExplodeVolume
+            Console.WriteLine(EventType.Tint.ToType());                                              // RhythmBase.Events.Tint
+            Console.WriteLine(ClassEnumMap.ToEnum(typeof(Tint)));                                    // Tint
+            Console.WriteLine(ClassEnumMap.ToEnum<Tint>());                                          // Tint
+            Console.WriteLine(string.Join(", ", ClassEnumMap.ToEnums(typeof(IBarBeginningEvent))));  // PlaySong,SetCrotchetsPerBar, SetHeartExplodeVolume
+            Console.WriteLine(string.Join(", ", ClassEnumMap.ToEnums<IBarBeginningEvent>()));        // PlaySong,SetCrotchetsPerBar, SetHeartExplodeVolume
         }
         [TestMethod]
         public void EventTypeUtilsStatic()
         {
-            Console.WriteLine(string.Join(",\n", EventTypeUtils.DecorationTypes));
+            Console.WriteLine(string.Join(",\n", ClassEnumMap.DecorationTypes));
             // Comment,
             // CustomDecorationEvent,
             // Move,
@@ -234,13 +238,13 @@ namespace RhythmBase.Test;
             // Tile,
             // Tint
 
-            Console.WriteLine(string.Join(",\n", EventTypeUtils.EventTypeEnumsForCameraFX));
+            Console.WriteLine(string.Join(",\n", ClassEnumMap.EventTypeEnumsForCameraFX));
             // MoveCamera,
             // ShakeScreen,
             // FlipScreen,
             // PulseCamera
 
-            Console.WriteLine(string.Join(",\n", EventTypeUtils.EventTypeEnumsForUtility));
+            Console.WriteLine(string.Join(",\n", ClassEnumMap.EventTypeEnumsForUtility));
             // Comment,
             // TagAction,
             // CallCustomMethod
@@ -400,7 +404,7 @@ namespace RhythmBase.Test;
 
             // All implemented properties need to be bound to and checked for null in the ForwardEvent.ExtraData field.  
 
-            // Implement an RDPointE type property  
+            // Implement an PointN type property  
             public PointN? MyProperty
             {
                 get

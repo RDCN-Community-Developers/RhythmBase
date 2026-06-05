@@ -49,8 +49,11 @@ public partial class ConverterGenerator
 						using System;
 						using System.Runtime.CompilerServices;
 					
-						namespace RhythmBase.{{registryInfo}}.Converters;
-						public static class EnumConverterExtensions
+					namespace RhythmBase.{{registryInfo}}.Converters;
+					/// <summary>
+					/// Provides extension methods for converting enum values to and from their JSON string representations.
+					/// </summary>
+					public static class EnumConverterExtensions
 						{
 							/// <summary>
 							/// Provides extension methods for converting enums to and from string representations.

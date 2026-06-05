@@ -14,7 +14,7 @@ public partial class Level :
     internal bool isZip;
     internal bool isExtracted;
     ///<inheritdoc/>
-    public static Level Default => new Level();
+    public static Level Default => new();
     /// <summary>
     /// Gets or sets the properties of the level.
     /// </summary>

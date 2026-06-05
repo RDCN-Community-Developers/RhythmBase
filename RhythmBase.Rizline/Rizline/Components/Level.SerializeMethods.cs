@@ -17,10 +17,10 @@ partial class Level
 					dataSource.CanGetMemoryDirectly
 					? dataSource.GetMemory()
 					: dataSource.GetMemoryAsync().GetAwaiter().GetResult();
-			Utf8JsonReader reader = new Utf8JsonReader(jsonData.Span, new() { AllowTrailingCommas = true });
+			Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
 			reader.Read();
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
-			Chart chart = new Chart();
+			Chart chart = new();
 			while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 			{
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
@@ -130,7 +130,7 @@ partial class Level
 				else if (propertyName.SequenceEqual("cameraMove"u8))
 				{
 					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
-					CameraMove cameraMove = new CameraMove();
+					CameraMove cameraMove = new();
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 					{
 						JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);

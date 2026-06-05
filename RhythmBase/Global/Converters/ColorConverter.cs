@@ -3,17 +3,34 @@ using System.Text.Json.Serialization;
 
 namespace RhythmBase.Global.Converters;
 
+/// <summary>
+/// Abstract base class for JSON converters that handle <see cref="Color"/> values in various formats.
+/// </summary>
 public abstract class ColorConverter : JsonConverter<Color>
 {
+    /// <summary>
+    /// Specifies the supported color serialization formats.
+    /// </summary>
     public enum ColorFormat
     {
+        /// <summary>JSON object with <c>a</c>, <c>r</c>, <c>g</c>, <c>b</c> properties.</summary>
         ArgbObject,
+        /// <summary>JSON object with <c>r</c>, <c>g</c>, <c>b</c> properties.</summary>
         RgbObject,
+        /// <summary>Hex string in <c>aarrggbb</c> format.</summary>
         ArgbHex,
+        /// <summary>Hex string in <c>#aarrggbb</c> format.</summary>
         HashArgbHex,
+        /// <summary>Hex string in <c>rrggbbaa</c> format.</summary>
         RgbaHex,
+        /// <summary>Hex string in <c>#rrggbbaa</c> format.</summary>
         HashRgbaHex,
     }
+    /// <summary>
+    /// Creates a <see cref="ColorConverter"/> instance for the specified format.
+    /// </summary>
+    /// <param name="format">The desired color format.</param>
+    /// <returns>A new converter instance for the specified format.</returns>
     public static ColorConverter GetInstance(ColorFormat format)
     {
         return format switch
@@ -27,8 +44,10 @@ public abstract class ColorConverter : JsonConverter<Color>
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
         };
     }
+    /// <summary>Converter for <see cref="Color"/> as a JSON object with ARGB components.</summary>
     public class ArgbObject : ColorConverter
     {
+        /// <inheritdoc/>
         public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             Color color = default;
@@ -53,6 +72,7 @@ public abstract class ColorConverter : JsonConverter<Color>
             }
             return color;
         }
+        /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, Color value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
@@ -63,8 +83,10 @@ public abstract class ColorConverter : JsonConverter<Color>
             writer.WriteEndObject();
         }
     }
+    /// <summary>Converter for <see cref="Color"/> as a JSON object with RGB components.</summary>
     public class RgbObject : ColorConverter
     {
+        /// <inheritdoc/>
         public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             Color color = default;
@@ -87,6 +109,7 @@ public abstract class ColorConverter : JsonConverter<Color>
             }
             return color;
         }
+        /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, Color value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
@@ -96,53 +119,65 @@ public abstract class ColorConverter : JsonConverter<Color>
             writer.WriteEndObject();
         }
     }
+    /// <summary>Converter for <see cref="Color"/> as a hex string in <c>aarrggbb</c> format.</summary>
     public class ArgbHex : ColorConverter
     {
+        /// <inheritdoc/>
         public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             string? s = reader.GetString();
             if (string.IsNullOrEmpty(s)) return default;
             return Color.TryFromArgb(s!, out Color c) ? c : default;
         }
+        /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, Color value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.ToString("aarrggbb"));
         }
     }
+    /// <summary>Converter for <see cref="Color"/> as a hex string in <c>#aarrggbb</c> format.</summary>
     public class HashArgbHex : ColorConverter
     {
+        /// <inheritdoc/>
         public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             string? s = reader.GetString();
             if (string.IsNullOrEmpty(s)) return default;
             return Color.TryFromArgb(s!, out Color c) ? c : default;
         }
+        /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, Color value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.ToString("#aarrggbb"));
         }
     }
+    /// <summary>Converter for <see cref="Color"/> as a hex string in <c>rrggbbaa</c> format.</summary>
     public class RgbaHex : ColorConverter
     {
+        /// <inheritdoc/>
         public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             string? s = reader.GetString();
             if (string.IsNullOrEmpty(s)) return default;
             return Color.TryFromRgba(s!, out Color c) ? c : default;
         }
+        /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, Color value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.ToString("rrggbbaa"));
         }
     }
+    /// <summary>Converter for <see cref="Color"/> as a hex string in <c>#rrggbbaa</c> format.</summary>
     public class HashRgbaHex : ColorConverter
     {
+        /// <inheritdoc/>
         public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             string? s = reader.GetString();
             if (string.IsNullOrEmpty(s)) return default;
             return Color.TryFromRgba(s!, out Color c) ? c : default;
         }
+        /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, Color value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.ToString("#rrggbbaa"));
@@ -174,7 +209,7 @@ public abstract class ColorConverter : JsonConverter<Color>
 //            _ => throw new JsonException($"Unexpected level type {type} when parsing Color."),
 //        };
 //    }
-//    public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
+//    /// <inheritdoc/>    public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 //    {
 //        var tokenType = JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.String, JsonTokenType.Null, JsonTokenType.StartObject);
 //        switch (GetColorFormat(options.Type))
@@ -213,7 +248,7 @@ public abstract class ColorConverter : JsonConverter<Color>
 //        }
 //    }
 
-//    public override void Write(Utf8JsonWriter writer, Color value, MetadataJsonSerializerOptions options)
+//    /// <inheritdoc/>    public override void Write(Utf8JsonWriter writer, Color value, MetadataJsonSerializerOptions options)
 //    {
 //        switch (GetColorFormat(options.Type))
 //        {

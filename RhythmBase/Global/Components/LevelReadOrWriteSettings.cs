@@ -15,6 +15,9 @@ public enum ZipFileProcessMethod
     /// </summary>
     AllFiles,
 }
+/// <summary>
+/// Event arguments for an unreadable event that could not be parsed.
+/// </summary>
 public class UnreadableEventArgs(JsonElement Item, string Reason) : EventArgs
 {
     /// <summary>
@@ -26,6 +29,9 @@ public class UnreadableEventArgs(JsonElement Item, string Reason) : EventArgs
     /// </summary>
     public string Reason { get; } = Reason;
 }
+/// <summary>
+/// Event arguments for an inactive event encounter.
+/// </summary>
 public class InactiveEventArgs(IEvent Item) : EventArgs
 {
     /// <summary>
@@ -33,6 +39,9 @@ public class InactiveEventArgs(IEvent Item) : EventArgs
     /// </summary>
     public IEvent Item { get; } = Item;
 }
+/// <summary>
+/// Event arguments for a file reference encounter.
+/// </summary>
 public class FileReferenceArgs(FileReference Reference) : EventArgs
 {
     /// <summary>
@@ -103,14 +112,28 @@ public class LevelReadOrWriteSettings
     /// <param name="item">The JSON element representing the unreadable event.</param>
     /// <param name="reason">A short explanation why the event could not be parsed.</param>
     /// <remarks>
-    /// When configured to store unreadable events, implementations should add an entry to <see cref="UnreadableEvents"/>.
+    /// When configured to store unreadable events, implementations should add an entry via <see cref="UnreadableEventEncountered"/>.
     /// </remarks>
     public void OnUnreadableEventEncountered(ILevel level, JsonElement item, string reason)
         => UnreadableEventEncountered?.Invoke(level, new UnreadableEventArgs(item, reason));
+    /// <summary>
+    /// Raises the <see cref="FileReferenceEncountered"/> event when a file reference is encountered during read/write.
+    /// </summary>
+    /// <param name="level">The level containing the file reference.</param>
+    /// <param name="reference">The file reference that was encountered.</param>
     public void OnFileReferenceEncountered(ILevel level, FileReference reference)
         => FileReferenceEncountered?.Invoke(level, new FileReferenceArgs(reference));
+    /// <summary>
+    /// Occurs when an inactive event is encountered during read/write operations.
+    /// </summary>
     public event EventHandler<InactiveEventArgs>? InactiveEventEncountered;
+    /// <summary>
+    /// Occurs when an unreadable event is encountered during read/write operations.
+    /// </summary>
     public event EventHandler<UnreadableEventArgs>? UnreadableEventEncountered;
+    /// <summary>
+    /// Occurs when a file reference is encountered during read/write operations.
+    /// </summary>
     public event EventHandler<FileReferenceArgs>? FileReferenceEncountered;
 }
 /// <summary>

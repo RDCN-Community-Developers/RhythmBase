@@ -4,13 +4,19 @@ using System.Runtime.CompilerServices;
 
 namespace RhythmBase.Global.Components;
 
+/// <summary>
+/// Provides factory methods for constructing <see cref="EnumCollection{T}"/> and
+/// <see cref="ReadOnlyEnumCollection{T}"/> from collection expressions.
+/// </summary>
 public static class CollectionBuilders
 {
+	/// <summary>Builds an <see cref="EnumCollection{T}"/> from a span of values.</summary>
 	public static EnumCollection<TEnum> BuildEnumCollection<TEnum>(ReadOnlySpan<TEnum> values) where TEnum : unmanaged, Enum
 	{
 		EnumCollection<TEnum> collection = new(values);
 		return collection;
 	}
+	/// <summary>Builds a <see cref="ReadOnlyEnumCollection{T}"/> from a span of values.</summary>
 	public static ReadOnlyEnumCollection<TEnum> BuildReadOnlyEnumCollection<TEnum>(ReadOnlySpan<TEnum> values) where TEnum : unmanaged, Enum
 	{
 		ReadOnlyEnumCollection<TEnum> collection = new(values);
@@ -29,8 +35,8 @@ public unsafe struct EnumCollection<TEnum> : IEnumerable<TEnum> where TEnum : un
 	private readonly ulong signMask;
 	internal ulong[] _lowerBits;
 	internal ulong[] _upperBits;
-	private readonly ulong[] Lower => _lowerBits ?? Array.Empty<ulong>();
-	private readonly ulong[] Upper => _upperBits ?? Array.Empty<ulong>();
+	private readonly ulong[] Lower => _lowerBits ?? [];
+	private readonly ulong[] Upper => _upperBits ?? [];
 	private static ulong ComputeSignMask()
 	{
 		int bitWidth = sizeof(TEnum) * 8;

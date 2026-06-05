@@ -21,7 +21,7 @@ public struct ColorIndex
     /// </summary>
     /// <param name="value">The byte value.</param>
     /// <returns>A <see cref="ColorIndex"/> with the specified value.</returns>
-    public static implicit operator ColorIndex(byte value) => new ColorIndex { Value = value };
+    public static implicit operator ColorIndex(byte value) => new() { Value = value };
     /// <summary>
     /// Implicitly converts a <see cref="ColorIndex"/> to a <see cref="byte"/>.
     /// </summary>

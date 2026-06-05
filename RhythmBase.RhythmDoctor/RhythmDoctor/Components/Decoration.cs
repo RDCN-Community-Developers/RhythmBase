@@ -80,7 +80,7 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction, EventType
         _id = GetHashCode().ToString();
     }
     /// <inheritdoc/>
-    protected override TickTime CreateInstance(float beat) => new TickTime(beat);
+    protected override TickTime CreateInstance(float beat) => new(beat);
     /// <inheritdoc/>
     protected override ITickRange<TickTime> CreateRange(float? start, float? end) => new Range(
         start.HasValue ? new TickTime(start.Value) : null,

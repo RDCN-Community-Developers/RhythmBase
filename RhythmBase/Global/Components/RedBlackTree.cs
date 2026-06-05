@@ -1,12 +1,25 @@
 namespace RhythmBase.Global.Components;
 
+/// <summary>
+/// Represents a node in a <see cref="RedBlackTree{TKey, TValue}"/>.
+/// </summary>
+/// <typeparam name="TKey">The type of the key.</typeparam>
+/// <typeparam name="TValue">The type of the value.</typeparam>
+/// <param name="key">The key for this node.</param>
+/// <param name="value">The value for this node.</param>
 public class RedBlackNode<TKey, TValue>(TKey key, TValue value) where TKey : IComparable<TKey>
 {
+    /// <summary>The key of this node.</summary>
     public TKey Key = key;
+    /// <summary>The value of this node.</summary>
     public TValue Value = value;
+    /// <summary>The left child node, or <c>null</c>.</summary>
     public RedBlackNode<TKey, TValue>? Left = null;
+    /// <summary>The right child node, or <c>null</c>.</summary>
     public RedBlackNode<TKey, TValue>? Right = null;
+    /// <summary>The parent node, or <c>null</c> for the root.</summary>
     public RedBlackNode<TKey, TValue>? Parent = null;
+    /// <summary>Whether this node is red (<c>true</c>) or black (<c>false</c>).</summary>
     public bool IsRed = true;
 }
 /// <summary>
@@ -29,6 +42,11 @@ public class RedBlackTree<TKey, TValue> : ICollection<KeyValuePair<TKey, TValue>
         return node != null;
     }
 
+    /// <summary>
+    /// Finds the node with the specified key, or <c>null</c> if not found.
+    /// </summary>
+    /// <param name="key">The key to search for.</param>
+    /// <returns>The node, or <c>null</c>.</returns>
     public RedBlackNode<TKey, TValue>? FindNode(TKey key)
     {
         RedBlackNode<TKey, TValue>? current = _root;

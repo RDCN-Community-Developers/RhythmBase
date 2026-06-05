@@ -9,12 +9,8 @@ internal abstract class MemberConverter<TEvent> : EventMemberConverterBase where
 	public sealed override IBaseEvent ReadProperties(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options)
 	{
 		TEvent value = new();
-		while (reader.Read())
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.EndObject)
-			{
-				return value;
-			}
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
 			if (propertyName.IsEmpty)

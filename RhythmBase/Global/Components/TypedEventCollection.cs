@@ -48,12 +48,16 @@ public class TypedEventCollection<TType, TBeat> : IEnumerable<IEvent>
     }
     [EditorBrowsable(EditorBrowsableState.Never)]
     internal static TType EventTypeOf(IEvent item) => ((item as IEvent<TType, TBeat>) ?? throw new NotImplementedException()).Type;
+    /// <summary>Determines whether this bucket contains any event of the specified type.</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public bool ContainsType(TType type) => _types.Contains(type);
+    /// <summary>Determines whether this bucket contains any event of the specified types.</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public bool ContainsTypes(TType[] types) => _types.ContainsAny(types);
+    /// <summary>Determines whether this bucket contains any event matching the given type collection.</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public bool ContainsTypes(ReadOnlyEnumCollection<TType> types) => _types.AsReadOnly().ContainsAny(types);
+    /// <summary>Compares the insertion order of two events within this bucket.</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public bool CompareTo(IEvent item1, IEvent item2) =>
         list.IndexOf(item1) < list.IndexOf(item2);

@@ -485,7 +485,7 @@ public class BeatCalculator : IBeatCalculator<TickTime>
     /// <param name="beat1">The starting beat.</param>
     /// <param name="beat2">The ending beat.</param>
     /// <returns>The resulting interval.</returns>
-    public Components.Range IntervalOf(TickTime beat1, TickTime beat2) => new Components.Range(new(this, beat1), new(this, beat2));
+    public Components.Range IntervalOf(TickTime beat1, TickTime beat2) => new(new(this, beat1), new(this, beat2));
 
     /// <summary>
     /// Creates a <see cref="Components.Range"/> representing the interval between two bar/beat pairs.

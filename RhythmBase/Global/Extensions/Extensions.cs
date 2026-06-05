@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Diagnostics.CodeAnalysis;
 
 namespace RhythmBase.Global.Extensions;
 
@@ -12,6 +13,12 @@ public static class Extensions
 {
 	extension(JsonException)
 	{
+		/// <summary>
+		/// Throws a <see cref="JsonException"/> if the reader's current token type does not match any of the expected types.
+		/// </summary>
+		/// <param name="reader">The JSON reader to check.</param>
+		/// <param name="expectedTokenType">The acceptable token types.</param>
+		/// <returns>The current token type if it matches.</returns>
 		[DebuggerHidden]
 		[StackTraceHidden]
 		public static JsonTokenType ThrowIfNotMatch(ref Utf8JsonReader reader, params ReadOnlyEnumCollection<JsonTokenType> expectedTokenType)

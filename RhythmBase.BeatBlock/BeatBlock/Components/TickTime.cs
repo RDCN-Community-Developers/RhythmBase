@@ -41,22 +41,16 @@ public struct TickTime : ITickTime<TickTime>
         Tick = beatOnly;
     }
 }
-public struct BBRange : ITickRange<TickTime>
+public struct Range : ITickRange<TickTime>
 {
     public TickTime? Start { get; }
     public TickTime? End { get; }
 
-    public BBRange(TickTime? start, TickTime? end)
+    public Range(TickTime? start, TickTime? end)
     {
         Start = start;
         End = end;
     }
-    public BBRange(float? start, float? end)
-    {
-        Start = start.HasValue ? new TickTime(start.Value) : null;
-        End = end.HasValue ? new TickTime(end.Value) : null;
-    }
-
     public bool Contains(TickTime b)
     {
         return Start?.CompareTo(b) <= 0 && End?.CompareTo(b) >= 0;
@@ -75,5 +69,9 @@ public struct BBRange : ITickRange<TickTime>
     public ITickRange<TickTime> Union(ITickRange<TickTime> other)
     {
         throw new NotImplementedException();
-    }
+	}
+#if NET8_0_OR_GREATER
+  static ITickRange<TickTime> ITickRange<TickTime>.Infinity => new Range(null, null);
+	static ITickRange<TickTime> ITickRange<TickTime>.Empty => new Range(new(), new());
+#endif
 }

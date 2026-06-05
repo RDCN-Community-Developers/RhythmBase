@@ -10,11 +10,11 @@ public class CharacterMap
     /// <summary>
     /// Gets the regular character map.
     /// </summary>
-    public static readonly CharacterMap Regular = new CharacterMap("regular");
+    public static readonly CharacterMap Regular = new("regular");
     /// <summary>
     /// Gets the full character map.
     /// </summary>
-    public static readonly CharacterMap Full = new CharacterMap("full");
+    public static readonly CharacterMap Full = new("full");
     /// <summary>
     /// Gets the map string.
     /// </summary>

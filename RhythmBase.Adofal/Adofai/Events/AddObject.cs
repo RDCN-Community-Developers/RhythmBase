@@ -71,7 +71,7 @@ public class AddObject : BaseTileEvent, IBeginningEvent
 	/// <summary>
 	/// Gets or sets a value indicating whether the track icon is flipped.
 	/// </summary>
-	public bool TrackIconFlpped { get; set; } = false;
+	public bool TrackIconFlipped { get; set; } = false;
 	/// <summary>  
 	/// Gets or sets a value indicating whether the track has a red swirl.  
 	/// </summary>  

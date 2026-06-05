@@ -4,8 +4,13 @@ using System.Text.Json.Serialization;
 
 namespace RhythmBase.Global.Converters;
 
+/// <summary>
+/// Converts a <see cref="RichLine{TRichTextStyle}"/> to and from its serialized string form.
+/// </summary>
+/// <typeparam name="TRichTextStyle">The rich text style type that defines formatting rules.</typeparam>
 public class RichTextConverter<TRichTextStyle> : JsonConverter<RichLine<TRichTextStyle>> where TRichTextStyle : IRichStringStyle<TRichTextStyle>, new()
 {
+	/// <inheritdoc/>
 	public override RichLine<TRichTextStyle> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
 #if NETSTANDARD2_0
@@ -15,6 +20,7 @@ public class RichTextConverter<TRichTextStyle> : JsonConverter<RichLine<TRichTex
 #endif
 	}
 
+	/// <inheritdoc/>
 	public override void Write(Utf8JsonWriter writer, RichLine<TRichTextStyle> value, JsonSerializerOptions options)
 	{
 		writer.WriteStringValue(value.Serialize());

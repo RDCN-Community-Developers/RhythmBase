@@ -19,11 +19,11 @@ public struct TickTime : ITickTime<TickTime>
 		Tick = tick;
 	}
 }
-public struct RiRange : ITickRange<TickTime>
+public struct Range : ITickRange<TickTime>
 {
 	public TickTime? Start { get; }
 	public TickTime? End { get; }
-	public RiRange(TickTime? start, TickTime? end)
+	public Range(TickTime? start, TickTime? end)
 	{
 		Start = start;
 		End = end;
@@ -46,4 +46,8 @@ public struct RiRange : ITickRange<TickTime>
 	{
 		throw new NotImplementedException();
 	}
+#if NET8_0_OR_GREATER
+	static ITickRange<TickTime> ITickRange<TickTime>.Infinity => new Range(null, null);
+	static ITickRange<TickTime> ITickRange<TickTime>.Empty => new Range(new(), new());
+#endif
 }

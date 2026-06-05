@@ -71,9 +71,9 @@ public class Chart :
 	protected override ReadOnlyEnumCollection<EventType> Types => ClassEnumMap.ToEnums<IChartEvent>();
 
     internal ChartCollection? _parent;
-    protected override TickTime CreateInstance(float beat) => new TickTime(beat);
+    protected override TickTime CreateInstance(float beat) => new(beat);
 
-	protected override ITickRange<TickTime> CreateRange(float? start, float? end) => new BBRange(start, end);
+	protected override ITickRange<TickTime> CreateRange(float? start, float? end) => new Range(start is null ? null : new TickTime( start.Value), end is null ? null : new TickTime(end.Value));
 
 	protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>()
     {

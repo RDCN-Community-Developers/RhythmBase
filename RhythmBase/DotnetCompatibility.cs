@@ -2,27 +2,6 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 
 #pragma warning disable IDE0130
-#if !NET10_0_OR_GREATER
-namespace System.Text.Json
-{
-	internal static class JsonElementExtensions
-	{
-		extension(JsonElement)
-		{
-			public static JsonElement Parse(string json)
-			{
-				using var doc = JsonDocument.Parse(json);
-				return doc.RootElement.Clone();
-			}
-			public static JsonElement Parse(ReadOnlySpan<byte> json)
-			{
-				using var doc = JsonDocument.Parse(new ReadOnlyMemory<byte>([.. json]));
-				return doc.RootElement.Clone();
-			}
-		}
-	}
-}
-#endif
 #if NETSTANDARD2_0
 namespace System
 {
@@ -253,13 +232,9 @@ namespace System.Runtime.CompilerServices
 	internal sealed class RequiredMemberAttribute : Attribute { }
 	[AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	internal sealed class CompilerFeatureRequiredAttribute : Attribute
+	internal sealed class CompilerFeatureRequiredAttribute(string featureName) : Attribute
 	{
-		public CompilerFeatureRequiredAttribute(string featureName)
-		{
-			FeatureName = featureName;
-		}
-		public string FeatureName { get; }
+		public string FeatureName { get; } = featureName;
 		public bool IsOptional { get; init; }
 		public const string RefStructs = nameof(RefStructs);
 		public const string RequiredMembers = nameof(RequiredMembers);

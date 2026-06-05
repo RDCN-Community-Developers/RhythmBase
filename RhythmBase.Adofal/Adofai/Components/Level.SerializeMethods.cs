@@ -25,7 +25,7 @@ partial class Level
 		if (string.IsNullOrEmpty(this.ResolvedDirectory))
 			throw new NotImplementedException();
 		settings ??= new LevelWriteSettings();
-		HashSet<FileReference> files = new HashSet<FileReference>();
+		HashSet<FileReference> files = new();
 		void AddFileReference(object? sender, FileReferenceArgs args) => files.Add(args.Reference);
 		settings.FileReferenceEncountered += AddFileReference;
 		bool loadAssets = settings.LoadAssets;

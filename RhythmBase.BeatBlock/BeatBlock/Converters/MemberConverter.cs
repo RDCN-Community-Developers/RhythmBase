@@ -6,8 +6,8 @@ namespace RhythmBase.BeatBlock.Converters;
 
 internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 {
-	private LevelReadSettings _rs = new LevelReadSettings();
-	private LevelWriteSettings _ws = new LevelWriteSettings();
+	private LevelReadSettings _rs = new();
+	private LevelWriteSettings _ws = new();
 	public BaseEventConverter WithReadSettings(LevelReadSettings settings)
 	{
 		_rs = settings;
