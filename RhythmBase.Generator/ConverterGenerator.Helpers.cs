@@ -388,8 +388,8 @@ public partial class ConverterGenerator
 			else if (type.TypeKind == TypeKind.Enum)
 			{
 				if (
-					type.GetAttributes().FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)) is not null &&
-					attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) is not INamedTypeSymbol dft)
+					!attrs.Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) &&
+					type.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
 					sb.Append($$"""{ if (global::RhythmBase.Global.Converters.EnumConverter.TryParse(reader.GetString(), out {{type.ToDisplayString()}} enumValue{{index}})) {{valueAccess}} = enumValue{{index}}; }""");
 				else
 					// - 非枚举或无需序列化器
@@ -407,17 +407,14 @@ public partial class ConverterGenerator
 							var list = new {{listType}}();
 							if (reader.TokenType == JsonTokenType.StartArray)
 							{
-								while (reader.Read())
+								while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 								{
-									if (reader.TokenType == JsonTokenType.EndArray)
-										break;
 				""");
 				if (elementType.SpecialType is not SpecialType.None)
 					sb.Append($$"""  var elementValue = reader.Get{{GetJsonReadMethod(elementType)}}();""");
 				else if (elementType.TypeKind == TypeKind.Enum)
 					if (
-						type.GetAttributes().FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)) is not null &&
-						attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) is not INamedTypeSymbol dft)
+						elementType.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
 						sb.Append($$"""  global::RhythmBase.Global.Converters.EnumConverter.TryParse(reader.GetString(), out {{elementType.ToDisplayString()}} elementValue);""");
 					else
 						// - 非枚举或无需序列化器
@@ -537,8 +534,8 @@ public partial class ConverterGenerator
 			else if (type.TypeKind == TypeKind.Enum)
 			{
 				if (
-					type.GetAttributes().FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)) is not null &&
-					attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) is not INamedTypeSymbol dft)
+					!attrs.Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) &&
+					type.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
 					sb.Append($"writer.WriteString(\"{alias}\"u8, {valueAccess}.ToEnumUtf8String());");
 				else
 					// - 非枚举或无需序列化器
@@ -562,8 +559,7 @@ public partial class ConverterGenerator
 					sb.Append($$"""  writer.Write{{GetJsonWriterMethod(elementType)}}Value({{itemVar}});""");
 				else if (elementType.TypeKind == TypeKind.Enum)
 					if (
-						type.GetAttributes().FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)) is not null &&
-						attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) is not INamedTypeSymbol dft)
+						elementType.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
 						sb.Append($$"""  writer.WriteStringValue({{itemVar}}.ToEnumUtf8String());""");
 					else
 						// - 非枚举或无需序列化器

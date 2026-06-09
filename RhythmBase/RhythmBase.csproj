@@ -7,7 +7,7 @@
 				<AssemblyName>RhythmBase</AssemblyName>
 				<GenerateDocumentationFile>True</GenerateDocumentationFile>
 				<Title>RhythmBase</Title>
-				<Version>1.3.11-alpha4</Version>
+				<Version>1.3.11-alpha5</Version>
 				<Authors>obugs</Authors>
 				<Description>A package that can be used to help with the development of support tools for the rhythm game levels.</Description>
 				<PackageProjectUrl>https://github.com/RDCN-Community-Developers/RhythmToolkit</PackageProjectUrl>
@@ -23,7 +23,7 @@
 				<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 				<IsAotCompatible>true</IsAotCompatible>
 				<VerifyReferenceAotCompatibility>true</VerifyReferenceAotCompatibility>
-				<EmitCompilerGeneratedFiles Condition="'$(Configuration)'=='Debug'" >true</EmitCompilerGeneratedFiles>
+				<EmitCompilerGeneratedFiles Condition="'$(Configuration)'=='Debug'">true</EmitCompilerGeneratedFiles>
 		</PropertyGroup>
 		<ItemGroup>
 				<PackageReference Include="System.Text.Json" Version="9.0.0" />

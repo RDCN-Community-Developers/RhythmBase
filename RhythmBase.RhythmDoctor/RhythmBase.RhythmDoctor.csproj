@@ -7,7 +7,7 @@
 		<AssemblyName>RhythmBase.RhythmDoctor</AssemblyName>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<Title>RhythmBase.RhythmDoctor</Title>
-		<Version>1.3.11-alpha4</Version>
+		<Version>1.3.11-alpha5</Version>
 		<Authors>obugs</Authors>
 		<Description>Rhythm Doctor level adapter for RhythmBase. Provides complete event model, serialization, and beat calculator for Rhythm Doctor levels.</Description>
 		<PackageProjectUrl>https://github.com/RDCN-Community-Developers/RhythmToolkit</PackageProjectUrl>
@@ -26,7 +26,7 @@
 		<EmitCompilerGeneratedFiles Condition="'$(Configuration)'=='Debug'">true</EmitCompilerGeneratedFiles>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="RhythmBase" Version="1.3.11-alpha4" />
+		<PackageReference Include="RhythmBase" Version="1.3.11-alpha5" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="../README.md;../README.zh-cn.md;../VERSION.md;../VERSION.zh-cn.md;../RhythmBase_logo_small.png;../RhythmBase_logo.png;../RhythmBase_logo_clean.png;../RhythmBase_banner.png;../RhythmBase_banner_clean.png;../LICENSE.txt;" Pack="True" PackagePath="/" />
