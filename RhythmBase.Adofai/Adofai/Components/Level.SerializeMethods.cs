@@ -65,9 +65,9 @@ partial class Level
 			level.Filepath = level.ResolvedPath = Path.GetFullPath(filepath);
 			return level;
 		}
-		switch (settings.ZipFileProcessMethod)
+		switch (settings.ZipProcessingMode)
 		{
-			case ZipFileProcessMethod.AllFiles:
+			case ZipProcessingMode.AllEntries:
 				DirectoryInfo tempDirectory = new(Path.Combine(GlobalSettings.CachePath, "RhythmBaseTemp_" + Path.GetRandomFileName()));
 				tempDirectory.Create();
 				try
@@ -101,7 +101,7 @@ partial class Level
 					throw new RhythmBaseException("Cannot extract the file.", ex2);
 				}
 				break;
-			case ZipFileProcessMethod.LevelFileOnly:
+			case ZipProcessingMode.RootEntriesOnly:
 				try
 				{
 					using FileStream zipStream = new(filepath, FileMode.Open, FileAccess.Read);

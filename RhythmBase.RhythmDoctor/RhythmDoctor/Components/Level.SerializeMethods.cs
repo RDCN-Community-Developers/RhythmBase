@@ -104,9 +104,9 @@ partial class Level
 				throw new NotSupportedException($"File type '{extension}' is not supported. Use {nameof(FromFileAsync)} instead.");
 			throw new RhythmBaseException($"File type '{extension}' is not supported.");
 		}
-		switch (settings.ZipFileProcessMethod)
+		switch (settings.ZipProcessingMode)
 		{
-			case ZipFileProcessMethod.AllFiles:
+			case ZipProcessingMode.AllEntries:
 				DirectoryInfo tempDirectory = new(Path.Combine(GlobalSettings.CachePath, "RhythmBaseTemp_Zip_" + Path.GetRandomFileName()));
 				tempDirectory.Create();
 				try
@@ -144,7 +144,7 @@ partial class Level
 #endif
 				}
 				break;
-			case ZipFileProcessMethod.LevelFileOnly:
+			case ZipProcessingMode.RootEntriesOnly:
 				try
 				{
 					using FileStream zipStream = new(filepath, FileMode.Open, FileAccess.Read);
