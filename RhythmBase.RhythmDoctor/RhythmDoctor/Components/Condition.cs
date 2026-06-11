@@ -138,11 +138,7 @@ public class Condition
 			}
 			else
 			{
-				globalIndex = c switch
-				{
-					'p' or 'f' or 'n' or 'o' => c,
-					_ => throw new RhythmBaseException($"Illegal condition: {text}."),
-				};
+				globalIndex = c;
 				++i;
 			}
 			//while (i < text.Length && char.IsDigit(text[i]))
