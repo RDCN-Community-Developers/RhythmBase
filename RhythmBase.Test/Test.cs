@@ -3,6 +3,7 @@ using RhythmBase.Global.Extensions;
 using RhythmBase.Global.Settings;
 using RhythmBase.RhythmDoctor;
 using RhythmBase.RhythmDoctor.Components;
+using RhythmBase.RhythmDoctor.Converters;
 using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Extensions;
 using RhythmBase.RhythmDoctor.Utils;
@@ -39,13 +40,13 @@ public sealed class Test
 		level.Rows.Add(new() { RowType = RowType.Oneshot });
 		level.Decorations.Add([]);
 		Dictionary<Tab, int> count = [];
-		foreach (EventType type in ((EventType[])Enum.GetValues(typeof(EventType))).Where(i => !EventTypeUtils.CustomTypes.Contains(i)))
+		foreach (EventType type in ((EventType[])Enum.GetValues(typeof(EventType))).Where(i => !EventTypeRegistry.CustomTypes.Contains(i)))
 		{
-			if (EventTypeUtils.CustomTypes.Contains(type))
+			if (EventTypeRegistry.CustomTypes.Contains(type))
 				continue;
 			if (type == EventType.AdvanceText)
 				continue;
-			IBaseEvent? e = (IBaseEvent?)Activator.CreateInstance(EventTypeUtils.ToType(type));
+			IBaseEvent? e = (IBaseEvent?)Activator.CreateInstance(EventTypeRegistry.ToType(type));
 			if (e is null)
 				continue;
 			if (e.GetType().Name != e.Type.ToEnumString())
@@ -93,8 +94,11 @@ public sealed class Test
 			{
 				InactiveEventsHandling = InactiveEventsHandling.Ignore,
 				UnreadableEventsHandling = UnreadableEventHandling.Store,
-				ZipFileProcessMethod = ZipFileProcessMethod.AllFiles,
+				ZipProcessingMode = ZipProcessingMode.AllEntries,
 				LoadAssets = false,
+			};
+			settings.FileReferenceEncountered += (s, e) => 			{
+				Console.WriteLine($"Encountered file reference: {e.Reference.Path}");
 			};
 			Console.WriteLine("|Action\t|Read\t|Write|");
 			Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
@@ -110,10 +114,6 @@ public sealed class Test
 					level.SaveToFile("out.rdlevel");
 				writeTime = sw.Elapsed.TotalMilliseconds;
 				Console.WriteLine($"{writeTime,10} ms\t|");
-				foreach (var file in settings.FileReferences)
-				{
-					Console.WriteLine($"Cached file: {file.Path}");
-				}
 				results.Add((readTime, writeTime));
 			}
 			Console.WriteLine(string.Join(",", results.Select(i => i.Item1)));
@@ -202,7 +202,7 @@ public sealed class Test
 	public void EventTypeCollectionsTest()
 	{
 		var allTypes = (EventType[])Enum.GetValues(typeof(EventType));
-		foreach (var type in EventTypeUtils.CustomTypes)
+		foreach (var type in EventTypeRegistry.CustomTypes)
 			Console.WriteLine(type);
 	}
 	[TestMethod]
@@ -256,6 +256,6 @@ public sealed class Test
 	{
 		Level level = Level.Default;
 		level.Add(new Tutorial.MyEvent());
-            ReadOnlyEnumCollection<EventType> eventTypes = EventTypeUtils.CustomTypes;
+            ReadOnlyEnumCollection<EventType> eventTypes = EventTypeRegistry.CustomTypes;
 	}
 }

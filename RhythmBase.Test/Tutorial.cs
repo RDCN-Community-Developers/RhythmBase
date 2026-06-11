@@ -65,7 +65,7 @@ namespace RhythmBase.Test;
                 UnreadableEventsHandling = UnreadableEventHandling.Store,
                 // Unzip all files in a zip level pack into the cache path below
                 // This is usually the faster option
-                ZipFileProcessMethod = ZipFileProcessMethod.AllFiles,
+                ZipProcessingMode = ZipProcessingMode.AllEntries,
                 // Load asset paths when reading or writing the level
                 LoadAssets = true,
             };
