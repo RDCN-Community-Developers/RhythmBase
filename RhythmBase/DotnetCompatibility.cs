@@ -48,6 +48,14 @@ namespace System
 			}
 
 		}
+		extension(ObjectDisposedException)
+		{
+			public static void ThrowIf([DoesNotReturnIf(true)] bool condition, object instance)
+			{
+				if (condition)
+					throw new ObjectDisposedException(instance.GetType().FullName);
+			}
+		}
 	}
 	internal readonly struct Index(int value, bool fromEnd = false) : IEquatable<Index>
 	{
@@ -185,6 +193,8 @@ namespace System.Diagnostics
 		[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		internal sealed class NotNullAttribute : Attribute { }
+		[AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+		internal sealed class DoesNotReturnIfAttribute(bool parameterValue) : Attribute { }
 		[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false)]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		internal sealed class AllowNullAttribute : Attribute
