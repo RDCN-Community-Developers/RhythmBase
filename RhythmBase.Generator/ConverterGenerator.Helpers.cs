@@ -352,6 +352,12 @@ public partial class ConverterGenerator
 
 			string valueAccess = $"value.{prop.Property.ToDisplayParts().Last()}";
 			sb.AppendLine($$"""{{(index == 0 ? "" : "else ")}}if (propertyName.SequenceEqual("{{alias}}"u8))""");
+			if (isNullable)
+				sb.AppendLine($$"""
+							{
+								if (reader.TokenType == JsonTokenType.Null) value.{{prop.Property.ToDisplayParts().Last()}} = null;
+								else
+					""");
 
 			var type = UnwarpNullable(prop.Property.Type);
 
@@ -431,7 +437,10 @@ public partial class ConverterGenerator
 			}
 			else
 				sb.Append($$"""{{valueAccess}} = TypeConverterRegistry.Read<{{type.ToDisplayString()}}>(ref reader, options);""");
-			sb.AppendLine();
+			if (isNullable)
+				sb.AppendLine(" }");
+			else
+				sb.AppendLine();
 			index++;
 		}
 		sb.AppendLine("""
@@ -913,7 +922,7 @@ public static partial class EventTypeRegistry
 			{
 				var info = infos[i];
 				if (info.ClassTypeEnum.GetAttributes().Any(a => a.AttributeClass?.Equals(jsonEnumAttrSmp, SymbolEqualityComparer.Default) ?? false))
-				sb.AppendLine($$"""
+					sb.AppendLine($$"""
 		if (global::RhythmBase.Global.Converters.EnumConverter.TryParse(type, out {{info.ClassTypeEnum.ToDisplayString()}} result{{i}}))
 			return result{{i}}.ToType();
 """);

@@ -9,10 +9,7 @@ internal class AudioConverter : JsonConverter<Audio>
 {
 	public override Audio? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
-		if(reader.TokenType != JsonTokenType.StartObject)
-		{
-			throw new JsonException("Expected StartObject token");
-		}
+		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 		Audio audio = new();
 		while (reader.Read())
 		{
