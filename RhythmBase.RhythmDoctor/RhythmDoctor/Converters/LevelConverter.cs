@@ -42,12 +42,6 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 					foreach (FileReference file in level.Settings.GetAllFileReferences())
 						if (!file.IsEmpty && file.IsExist(DirectoryName!))
 							ReadSettings.OnFileReferenceEncountered(level, file);
-				if (level.Settings.Version < MinimumSupportedVersionRhythmDoctor)
-#if DEBUG
-					Console.WriteLine($"Current version {level.Settings.Version} is too low.");
-#else
-                    throw new VersionTooLowException(MinimumSupportedVersionRhythmDoctor);
-#endif
 			}
 			else if (reader.ValueSpan.SequenceEqual("rows"u8))
 			{
