@@ -1,6 +1,7 @@
 using RhythmBase.Global.Converters;
 using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Components.Conditions;
+using System.Text;
 using System.Text.Json;
 
 namespace RhythmBase.RhythmDoctor.Converters;
@@ -48,16 +49,13 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 	}
 	public override BaseConditional? Read(ref Utf8JsonReader reader, Type objectType, MetadataJsonSerializerOptions serializer)
 	{
-		if (reader.TokenType != JsonTokenType.StartObject)
-			throw new JsonException($"Expected StartObject token, but got {reader.TokenType}.");
+		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 		ReadOnlySpan<byte> type = default;
 		string tag = "";
 		string name = "";
 		Utf8JsonReader checkpoint = reader;
-		while (reader.Read())
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.EndObject)
-				break;
 			if (reader.TokenType == JsonTokenType.PropertyName)
 			{
 				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
@@ -96,12 +94,18 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 			conditional = ReadPlayerMode(ref reader, serializer);
 		else if (type.SequenceEqual("TimesExecuted"u8))
 			conditional = ReadTimesExecuted(ref reader, serializer);
-		else if (type.SequenceEqual("narration"u8))
+		else if (type.SequenceEqual("narration"u8) || type.SequenceEqual("Narration"u8))
 			conditional = ReadNarration(ref reader, serializer);
 		else if (type.SequenceEqual("Accessibility"u8))
 			conditional = ReadAccessibility(ref reader, serializer);
 		else
+		{
+#if DEBUG
+			Console.WriteLine($"Unknown condition type: {Encoding.UTF8.GetString(type)}");
+#endif
+			reader.Skip();
 			return null;
+		}
 		reader.Read();
 		conditional.Name = name;
 		conditional.Tag = tag;
