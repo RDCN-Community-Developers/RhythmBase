@@ -3,6 +3,7 @@ using System.IO;
 
 namespace RhythmBase.Global.Components
 {
+
 	public class JsonCompactStream : Stream
 	{
 		private const string SeekNotSupported = "This stream does not support seeking.";
@@ -261,16 +262,28 @@ namespace RhythmBase.Global.Components
 							buffer[i++] = b;
 							_scanIdx = (_scanIdx + 1) % _buffer.Length;
 						}
-						else if (_allowNewlinesInStrings && (b == (byte)'\n' || b == (byte)'\r'))
+						else if (_allowNewlinesInStrings && (b == (byte)'\n' || b == (byte)'\r' || b == (byte)'\t' || b == (byte)'\b'))
 						{
 							buffer[i++] = (byte)'\\';
 							if (i >= buffer.Length)
 							{
-								_pendingByte = b == (byte)'\n' ? (byte)'n' : (byte)'r';
+								_pendingByte = b switch
+								{
+									(byte)'\n' => (byte)'n',
+									(byte)'\r' => (byte)'r',
+									(byte)'\t' => (byte)'t',
+									_ => (byte)'b',
+								};
 								_scanIdx = (_scanIdx + 1) % _buffer.Length;
 								return i;
 							}
-							buffer[i++] = b == (byte)'\n' ? (byte)'n' : (byte)'r';
+							buffer[i++] = b switch
+							{
+								(byte)'\n' => (byte)'n',
+								(byte)'\r' => (byte)'r',
+								(byte)'\t' => (byte)'t',
+								_ => (byte)'b',
+							};
 							_scanIdx = (_scanIdx + 1) % _buffer.Length;
 						}
 						else

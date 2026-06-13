@@ -40,7 +40,10 @@ public class StreamDataSource : IJsonDataSource
     public StreamDataSource(Stream stream)
     {
         MemoryStream ms = new();
-        using JsonCompactStream escStream = new(stream);
+        using JsonCompactStream escStream = new(stream,
+          allowNewlinesInStrings: true,
+          allowImplicitComma: true,
+          allowTrailingComma: true);
         escStream.CopyTo(ms);
         ms.Position = 0;
         this.stream = ms;
