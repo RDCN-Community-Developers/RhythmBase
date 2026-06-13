@@ -24,7 +24,12 @@ public static class JsonSerializerOptionsUtils
     /// <returns>A new <see cref="MetadataJsonSerializerOptions"/> instance.</returns>
     public static MetadataJsonSerializerOptions GetJsonSerializerOptionsForRead(LevelReadSettings settings)
     {
-        MetadataJsonSerializerOptions options = new() { JsonSerializerOptions = new(JsonSerializerOptionsUtils.options), Strictness = settings.Strictness };
+        MetadataJsonSerializerOptions options = new()
+				{
+					JsonSerializerOptions = new(JsonSerializerOptionsUtils.options),
+					Strictness = settings.Strictness,
+          UpgradeToLatest = settings.UpgradeToLatest,
+				};
         return options;
     }
     /// <summary>

@@ -45,6 +45,8 @@ public record class AddClassicBeat : BaseBeat
 	/// Gets or sets the audio content associated with this instance.
 	/// </summary>
 	public Audio? Sound { get; set; } = null;
+	[JsonCondition($"$&.{nameof(Legacy)}")]
+	public bool Legacy { get; set; } = false;
 	/// <summary>
 	/// Gets or sets the classic beat pattern.
 	/// <remark>

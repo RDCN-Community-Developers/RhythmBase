@@ -181,4 +181,5 @@ public class LevelReadSettings : LevelReadOrWriteSettings
 	/// </summary>
 	public ZipProcessingMode ZipProcessingMode { get; set; }
 	public JsonStrictness Strictness { get; set; } = JsonStrictness.Strict;
+	public bool UpgradeToLatest { get; set; } = true;
 }

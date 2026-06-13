@@ -27,6 +27,8 @@ public record class ChangePlayersRows : BaseEvent
 	/// Gets or sets the list of CPU markers.
 	/// </summary>
 	public Characters[] CpuMarkers { get; set; } = new Characters[16];
+	[JsonCondition($"!$&.{nameof(FlashOnBeat)}")]
+	public bool FlashOnBeat { get; set; } = true;
 	/// <inheritdoc />
 	public override EventType Type => EventType.ChangePlayersRows;
 

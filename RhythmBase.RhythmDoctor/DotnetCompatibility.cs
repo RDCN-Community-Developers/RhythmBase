@@ -150,6 +150,8 @@ namespace System
 			public static float Abs(float value) => Math.Abs(value);
 			public static float Round(float value) => (float)Math.Round(value);
 			public static float Pi => (float)Math.PI;
+			public static float Max(float val1, float val2) => Math.Max(val1, val2);
+			public static float Min(float val1, float val2) => Math.Min(val1, val2);
 			public static float Ieee754Remainder(float dividend, float divisor) => (float)Math.IEEERemainder(dividend, divisor);
 		}
 	}

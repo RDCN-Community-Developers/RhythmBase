@@ -30,6 +30,7 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
 						int.TryParse(reader.GetString(), out v1) ? v1 :
 						0;
 				}
+				options.Version = settings.Version;
 			}
 			else if (propertyName.SequenceEqual("artist"u8))
 				settings.Artist = reader.GetString() ?? "";

@@ -1,19 +1,21 @@
 using System.Collections.ObjectModel;
 
-namespace RhythmBase.RhythmDoctor.Constants;
+namespace RhythmBase.RhythmDoctor;
 
 /// <summary>
 /// Provides constant values in the Rhythm Doctor game.
 /// </summary>
 public static class Constants
-{   /// <summary>
-		/// Bitmask flags that describe the capabilities and application targets of a VFX preset.
-		/// </summary>
-		/// <remarks>
-		/// The values are intended to be combined using bitwise operators to express multiple attributes
-		/// (for example: <c>MultiRooms | EnableIntensity</c>). The underlying storage type is <see cref="short"/>.
-		/// Use bitwise checks (for example, <c>(attributes &amp; VfxAttribute.EnableIntensity) != 0</c>) to test for features.
-		/// </remarks>
+{
+	public const int DefaultVersion = 67;
+	/// <summary>
+	/// Bitmask flags that describe the capabilities and application targets of a VFX preset.
+	/// </summary>
+	/// <remarks>
+	/// The values are intended to be combined using bitwise operators to express multiple attributes
+	/// (for example: <c>MultiRooms | EnableIntensity</c>). The underlying storage type is <see cref="short"/>.
+	/// Use bitwise checks (for example, <c>(attributes &amp; VfxAttribute.EnableIntensity) != 0</c>) to test for features.
+	/// </remarks>
 	public enum VfxAttribute : short
 	{
 		/// <summary>
@@ -176,4 +178,29 @@ public static class Constants
 		[VfxPreset.MiawMiaw] = VfxAttribute.MultiRooms | VfxAttribute.Disabled,
 		[VfxPreset.DisableAll] = VfxAttribute.MultiRooms | VfxAttribute.Disabled,
 	});
+
+	public static readonly string[] LevelFileExtensions = new[] { ".json", ".rdlevel" };
+	public static readonly string[] LevelZipExtensions = new[] { ".zip", ".rdzip" };
+	public static readonly string[] ImageFileExtensions = new[] { ".png", ".jpg", ".jpeg", ".bmp", ".gif" };
+	public static readonly string[] WaveFileExtensions = new[] { ".wav", ".mp3", ".ogg", ".aac" };
+	public static bool IsLevelFile(string filename)
+	{
+		string extension = Path.GetExtension(filename).ToLowerInvariant();
+		return LevelFileExtensions.Contains(extension);
+	}
+	public static bool IsLevelZip(string filename)
+	{
+		string extension = Path.GetExtension(filename).ToLowerInvariant();
+		return LevelZipExtensions.Contains(extension);
+	}
+	public static bool IsImageFile(string filename)
+	{
+		string extension = Path.GetExtension(filename).ToLowerInvariant();
+		return ImageFileExtensions.Contains(extension);
+	}
+	public static bool IsWaveFile(string filename)
+	{
+		string extension = Path.GetExtension(filename).ToLowerInvariant();
+		return WaveFileExtensions.Contains(extension);
+	}
 }

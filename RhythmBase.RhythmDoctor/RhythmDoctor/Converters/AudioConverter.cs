@@ -1,3 +1,4 @@
+using RhythmBase.Global.Converters;
 using RhythmBase.RhythmDoctor.Components;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -5,13 +6,15 @@ using System.Text.Json.Serialization;
 namespace RhythmBase.RhythmDoctor.Converters;
 
 [JsonConverterFor(typeof(Audio))]
-internal class AudioConverter : JsonConverter<Audio>
+internal class AudioConverter : MetadataJsonConverter<Audio>
 {
-	public override Audio? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+	public override Audio? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 	{
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject, JsonTokenType.String);
 		Audio audio = new();
-		if(reader.TokenType == JsonTokenType.String)
+		int version = options.Version;
+		bool upgrade = options.UpgradeToLatest;
+		if (reader.TokenType == JsonTokenType.String)
 		{
 			audio.Filename = reader.GetString() ?? "";
 			return audio;
@@ -22,9 +25,24 @@ internal class AudioConverter : JsonConverter<Audio>
 			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
 			reader.Read();
 			if (propertyName.SequenceEqual("filename"u8))
-				audio.Filename = reader.GetString() ?? "";
+			{
+				string filename = reader.GetString() ?? "";
+				audio.Filename = upgrade && version <= 42
+					? (FileReference)(filename switch
+					{
+						"Stick" => "StickOld",
+						"ClosedHat" => "ClosedHatOld",
+						_ => filename
+					})
+					: (FileReference)filename;
+			}
 			else if (propertyName.SequenceEqual("volume"u8))
-				audio.Volume = reader.GetInt32();
+			{
+				var volume = reader.GetInt32();
+				if (upgrade && version <= 9)				
+					volume = (int)(volume / 0.4f);				
+				audio.Volume = volume;
+			}
 			else if (propertyName.SequenceEqual("pitch"u8))
 				audio.Pitch = reader.GetInt32();
 			else if (propertyName.SequenceEqual("pan"u8))
@@ -37,17 +55,17 @@ internal class AudioConverter : JsonConverter<Audio>
 		return audio;
 	}
 
-	public override void Write(Utf8JsonWriter writer, Audio value, JsonSerializerOptions options)
+	public override void Write(Utf8JsonWriter writer, Audio value, MetadataJsonSerializerOptions options)
 	{
 		writer.WriteStartObject();
 		writer.WriteString("filename"u8, value.Filename);
-		if(value.Volume != 100)
+		if (value.Volume != 100)
 			writer.WriteNumber("volume"u8, value.Volume);
-		if(value.Pitch != 100)
+		if (value.Pitch != 100)
 			writer.WriteNumber("pitch"u8, value.Pitch);
-		if(value.Pan != 0)
+		if (value.Pan != 0)
 			writer.WriteNumber("pan"u8, value.Pan);
-		if(value.Offset != TimeSpan.Zero)
+		if (value.Offset != TimeSpan.Zero)
 			writer.WriteNumber("offset"u8, value.Offset.TotalMilliseconds);
 		writer.WriteEndObject();
 	}

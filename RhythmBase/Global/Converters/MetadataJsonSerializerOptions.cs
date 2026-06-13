@@ -25,6 +25,8 @@ public record class MetadataJsonSerializerOptions
 	/// </summary>
 	public bool WriteIndented { get => JsonSerializerOptions.WriteIndented; init => JsonSerializerOptions.WriteIndented = value; }
 	public JsonStrictness Strictness { get; init; } = JsonStrictness.Strict;
+	public int Version { get; set; } = 0;
+	public bool UpgradeToLatest { get; set; } = true;
 }
 public enum JsonStrictness
 {
