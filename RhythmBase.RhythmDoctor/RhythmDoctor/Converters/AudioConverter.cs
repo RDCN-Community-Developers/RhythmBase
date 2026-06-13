@@ -9,18 +9,16 @@ internal class AudioConverter : JsonConverter<Audio>
 {
 	public override Audio? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
-		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
+		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject, JsonTokenType.String);
 		Audio audio = new();
-		while (reader.Read())
+		if(reader.TokenType == JsonTokenType.String)
 		{
-			if (reader.TokenType == JsonTokenType.EndObject)
-			{
-				return audio;
-			}
-			if (reader.TokenType != JsonTokenType.PropertyName)
-			{
-				throw new JsonException("Expected PropertyName token");
-			}
+			audio.Filename = reader.GetString() ?? "";
+			return audio;
+		}
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+		{
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
 			reader.Read();
 			if (propertyName.SequenceEqual("filename"u8))
@@ -36,7 +34,7 @@ internal class AudioConverter : JsonConverter<Audio>
 			else
 				throw new JsonException($"Unknown property: {reader.GetString()}");
 		}
-		throw new JsonException("Expected EndObject token");
+		return audio;
 	}
 
 	public override void Write(Utf8JsonWriter writer, Audio value, JsonSerializerOptions options)

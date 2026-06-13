@@ -37,6 +37,8 @@ public sealed class JsonObjectSerializationFallbackAttribute : Attribute { }
 /// </summary>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public sealed class JsonIgnoreAttribute : Attribute { }
+[AttributeUsage(AttributeTargets.Property, AllowMultiple = true, Inherited = false)]
+public sealed class JsonFlattenAttribute(string property, string? alias = null, JsonFlattenMode mode = JsonFlattenMode.ReadWrite) : Attribute { }
 /// <summary>
 /// Specifies a conditional expression that determines whether a property should be serialized.
 /// </summary>
@@ -113,4 +115,13 @@ public enum JsonTimeType
     Milliseconds,
     /// <summary>Serialize as seconds (floating-point).</summary>
     Seconds,
+}
+[Flags]
+public enum JsonFlattenMode
+{
+    /// <summary>Do not flatten; serialize nested objects as JSON objects.</summary>
+    None,
+    ReadOnly = 1,
+    WriteOnly = 2,
+    ReadWrite = ReadOnly | WriteOnly,
 }

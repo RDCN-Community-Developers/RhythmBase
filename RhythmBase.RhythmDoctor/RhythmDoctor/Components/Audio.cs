@@ -28,6 +28,7 @@ public class Audio
 	/// <summary>
 	/// Gets or sets the offset of the audio.
 	/// </summary>
+	[JsonTime(JsonTimeType.Milliseconds)]
 	public TimeSpan Offset { get; set; } = TimeSpan.Zero;
 	/// <summary>
 	/// Gets a value indicating whether the file is a valid audio file based on its extension.

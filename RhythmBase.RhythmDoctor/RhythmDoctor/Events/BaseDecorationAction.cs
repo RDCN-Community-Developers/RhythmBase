@@ -1,9 +1,11 @@
 using RhythmBase.RhythmDoctor.Components;
+using RhythmBase.RhythmDoctor.Converters;
 namespace RhythmBase.RhythmDoctor.Events;
 
 /// <summary>
 /// Represents the base class for decoration actions.
 /// </summary>
+[JsonObjectHasSerializer(typeof(RDMemberConverter.BaseDecorationAction<>))]
 public abstract record class BaseDecorationAction : BaseEvent, IBaseEvent
 {
 	/// <summary>
