@@ -1,3 +1,4 @@
+using RhythmBase.Global.Converters;
 using RhythmBase.RhythmDoctor.Components;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -29,20 +30,24 @@ internal class RoomConverter : JsonConverter<Room>
 	}
 }
 [JsonConverterFor(typeof(SingleRoom))]
-internal class SingleRoomConverter : JsonConverter<SingleRoom>
+internal class SingleRoomConverter : MetadataJsonConverter<SingleRoom>
 {
-	public override SingleRoom Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+	public override SingleRoom Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 	{
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 		reader.Read();
-		byte index = reader.GetByte();
-		SingleRoom result = new(index);
-		reader.Read();
-		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
+		SingleRoom result;
+		if (options.Strictness == JsonStrictness.Strict || reader.TokenType == JsonTokenType.Number)
+		{
+			byte index = reader.GetByte();
+			result = new(index);
+			reader.Read();
+		}
+		else result = SingleRoom.Default;
 		return result;
 	}
 
-	public override void Write(Utf8JsonWriter writer, SingleRoom value, JsonSerializerOptions options)
+	public override void Write(Utf8JsonWriter writer, SingleRoom value, MetadataJsonSerializerOptions options)
 	{
 		writer.WriteStartArray();
 		writer.WriteNumberValue(value.Value);
