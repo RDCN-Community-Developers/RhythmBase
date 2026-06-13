@@ -26,12 +26,8 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		baseEventConverter.WithReadSettings(ReadSettings);
 		Level level = [];
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
-		reader.Read();
-		while (true)
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-
-			if (reader.TokenType == JsonTokenType.EndObject)
-				break;
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 			if (reader.ValueSpan.SequenceEqual("settings"u8))
 			{
@@ -64,7 +60,6 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 									ReadSettings.OnFileReferenceEncountered(level, DirectoryName + Path.DirectorySeparatorChar + file);
 					}
 				}
-				reader.Read();
 			}
 			else if (reader.ValueSpan.SequenceEqual("decorations"u8))
 			{
@@ -87,7 +82,6 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 									ReadSettings.OnFileReferenceEncountered(level, DirectoryName + Path.DirectorySeparatorChar + file);
 					}
 				}
-				reader.Read();
 			}
 			else if (reader.ValueSpan.SequenceEqual("events"u8))
 			{
@@ -153,7 +147,6 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 									ReadSettings.OnFileReferenceEncountered(level, file);
 					}
 				}
-				reader.Read();
 				foreach (AdvanceText? at in advanceTexts)
 				{
 					int targetId = at["id"].GetInt32();
@@ -182,7 +175,6 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 					level.Bookmarks.Add(e);
 					reader.Read();
 				}
-				reader.Read();
 			}
 			else if (reader.ValueSpan.SequenceEqual("colorPalette"u8))
 			{
@@ -200,7 +192,6 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 					level.ColorPalette[colorIndex] = color;
 					colorIndex++;
 				}
-				reader.Read();
 			}
 			else if (reader.ValueSpan.SequenceEqual("conditionals"u8))
 			{
@@ -215,7 +206,6 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 					if (e != null)
 						level.Conditionals.Add(e);
 				}
-				reader.Read();
 			}
 			else
 			{

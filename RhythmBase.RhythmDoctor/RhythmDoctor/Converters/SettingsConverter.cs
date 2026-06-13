@@ -14,15 +14,23 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
 	{
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 		Settings settings = new();
-		while (reader.Read())
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.EndObject)
-			{ reader.Read(); return settings; }
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
 			reader.Read();
 			if (propertyName.SequenceEqual("version"u8))
-				settings.Version = reader.GetInt32();
+			{
+				if (options.Strictness == JsonStrictness.Strict)
+					settings.Version = reader.GetInt32();
+				else
+				{
+					settings.Version =
+						(reader.TokenType == JsonTokenType.Number && reader.TryGetInt32(out int v1)) ? v1 :
+						int.TryParse(reader.GetString(), out v1) ? v1 :
+						0;
+				}
+			}
 			else if (propertyName.SequenceEqual("artist"u8))
 				settings.Artist = reader.GetString() ?? "";
 			else if (propertyName.SequenceEqual("song"u8))
@@ -93,11 +101,9 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
 					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.Number);
 					ranks[i] = reader.GetInt32();
 				}
-				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray) {
-#if DEBUG
-					Console.WriteLine($"Unexpected token in rankMaxMistakes array: {reader.TokenType} \"{Encoding.UTF8.GetString(reader.ValueSpan)}\"");
-#endif
-					if(options.Strictness == JsonStrictness.Strict)
+				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+				{
+					if (options.Strictness == JsonStrictness.Strict)
 						throw new JsonException($"Unexpected token in rankMaxMistakes array: {reader.TokenType} \"{Encoding.UTF8.GetString(reader.ValueSpan)}\"");
 				}
 				settings.RankMaxMistakes = ranks;
@@ -114,9 +120,6 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
 				}
 				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 				{
-#if DEBUG
-					Console.WriteLine($"Unexpected token in rankMaxMistakes array: {reader.TokenType} \"{Encoding.UTF8.GetString(reader.ValueSpan)}\"");
-#endif
 					if (options.Strictness == JsonStrictness.Strict)
 						throw new JsonException($"Unexpected token in rankDescription array: {reader.TokenType} \"{Encoding.UTF8.GetString(reader.ValueSpan)}\"");
 				}
@@ -146,9 +149,14 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
 				settings.Mods = mods;
 			}
 			else
-				settings._extraData[System.Text.Encoding.UTF8.GetString(propertyName)] = JsonElement.ParseValue(ref reader);
+			{
+				var key = Encoding.UTF8.GetString(propertyName);
+				var elem = JsonElement.ParseValue(ref reader);
+				Console.WriteLine($"Unknown: {key} {elem.GetRawText()}");
+				settings._extraData[key] = elem;
+			}
 		}
-		throw new JsonException("Unexpected end of JSON.");
+		return settings;
 	}
 	public override void Write(Utf8JsonWriter writer, Settings value, MetadataJsonSerializerOptions options)
 	{
