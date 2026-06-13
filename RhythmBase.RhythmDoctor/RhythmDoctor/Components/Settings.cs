@@ -123,6 +123,8 @@ public class Settings
 	/// Mods enabled for the level.  
 	/// </summary>  
 	public List<string> Mods { get; set; } = [];
+	public string? CustomClass { get; set; }
+
 	/// <summary>
 	/// Gets or sets the JSON element associated with the specified property name.
 	/// </summary>

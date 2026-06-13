@@ -7,6 +7,15 @@ using System.Text;
 
 namespace RhythmBase.RhythmDoctor.Converters;
 
+//public static class SettingsTrigger
+//{
+//	public static event Action<string>? OnTrigger;
+//	public static void Trigger(string message)
+//	{
+//		OnTrigger?.Invoke(message);
+//	}
+//}
+
 [JsonConverterFor(typeof(Settings))]
 internal class SettingsConverter : MetadataJsonConverter<Settings>
 {
@@ -149,11 +158,15 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
 				}
 				settings.Mods = mods;
 			}
+			else if (propertyName.SequenceEqual("customClass"u8))
+			{
+				settings.CustomClass = reader.GetString();
+			}
 			else
 			{
 				var key = Encoding.UTF8.GetString(propertyName);
 				var elem = JsonElement.ParseValue(ref reader);
-				Console.WriteLine($"Unknown: {key} {elem.GetRawText()}");
+				//SettingsTrigger.Trigger($"ExtraData: {settings.Song} {key} = \"{elem}\"");
 				settings._extraData[key] = elem;
 			}
 		}
@@ -226,6 +239,9 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
 				writer.WriteStringValue(mod ?? "");
 			writer.WriteEndArray();
 		}
+
+		if(value.CustomClass != null)
+			writer.WriteString("customClass"u8, value.CustomClass);
 
 		// ExtraData
 		if (value._extraData != null)
