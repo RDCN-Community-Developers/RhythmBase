@@ -180,4 +180,5 @@ public class LevelReadSettings : LevelReadOrWriteSettings
 	/// Gets or sets the method used to process zip files.
 	/// </summary>
 	public ZipProcessingMode ZipProcessingMode { get; set; }
+	public JsonStrictness Strictness { get; set; } = JsonStrictness.Strict;
 }
