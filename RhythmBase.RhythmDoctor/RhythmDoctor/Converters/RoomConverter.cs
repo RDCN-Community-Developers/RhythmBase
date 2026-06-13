@@ -6,9 +6,9 @@ using System.Text.Json.Serialization;
 namespace RhythmBase.RhythmDoctor.Converters;
 
 [JsonConverterFor(typeof(Room))]
-internal class RoomConverter : JsonConverter<Room>
+internal class RoomConverter : MetadataJsonConverter<Room>
 {
-	public override Room Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+	public override Room Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 	{
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 		Room result = new();
@@ -16,12 +16,17 @@ internal class RoomConverter : JsonConverter<Room>
 			if (reader.TokenType == JsonTokenType.EndArray)
 				break;
 			else
-				result[reader.GetByte()] = true;
+			{
+				if (options.Strictness == JsonStrictness.Strict)
+					result[reader.GetByte()] = true;
+				else if (reader.TryGetByte(out byte index))
+					result[index] = true;
+			}
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndArray);
 		return result;
 	}
 
-	public override void Write(Utf8JsonWriter writer, Room value, JsonSerializerOptions options)
+	public override void Write(Utf8JsonWriter writer, Room value, MetadataJsonSerializerOptions options)
 	{
 		writer.WriteStartArray();
 		foreach (byte item in value.Rooms)
