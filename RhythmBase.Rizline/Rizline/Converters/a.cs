@@ -9,11 +9,11 @@ namespace RhythmBase.Rizline.Converters
 {
 	internal class HoldConverter : MemberConverterBaseNote<RhythmBase.Rizline.Events.Hold>
 	{
-		protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref RhythmBase.Rizline.Events.Hold value, global::RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
+		protected override bool Read(ref Utf8JsonReader reader, ref RhythmBase.Rizline.Events.Hold value, global::RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
 		{
-			if (base.Read(ref reader, propertyName, ref value, options))
+			if (base.Read(ref reader, ref value, options))
 				return true;
-			if (propertyName.SequenceEqual("otherInformations"u8))
+			if (reader.ValueTextEquals("otherInformations"u8) && reader.Read())
 			{
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				reader.Read();

@@ -6,11 +6,11 @@ namespace RhythmBase.Adofai.Converters;
 
 internal class MemberConverterBaseTileEvent<TEvent> : MemberConverter<TEvent> where TEvent : BaseTileEvent, new()
 {
-	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
+	protected override bool Read(ref Utf8JsonReader reader, ref TEvent value, MetadataJsonSerializerOptions options)
 	{
-		if (base.Read(ref reader, propertyName, ref value, options))
+		if (base.Read(ref reader, ref value, options))
 			return true;
-		if (propertyName.SequenceEqual("floor"u8))
+		if (reader.ValueTextEquals("floor"u8) && reader.Read())
 			value._floor = reader.GetInt32();
 		else
 			return false;
@@ -19,13 +19,13 @@ internal class MemberConverterBaseTileEvent<TEvent> : MemberConverter<TEvent> wh
 }
 internal class MemberConverterBaseTaggedTileEvent<TEvent> : MemberConverterBaseTileEvent<TEvent> where TEvent : BaseTaggedTileEvent, new()
 {
-	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
+	protected override bool Read(ref Utf8JsonReader reader, ref TEvent value, MetadataJsonSerializerOptions options)
 	{
-		if (base.Read(ref reader, propertyName, ref value, options))
+		if (base.Read(ref reader, ref value, options))
 			return true;
-		if (propertyName.SequenceEqual("eventTag"u8))
+		if (reader.ValueTextEquals("eventTag"u8) && reader.Read())
 			value.EventTag = reader.GetString() ?? "";
-		else if (propertyName.SequenceEqual("angleOffset"u8))
+		else if (reader.ValueTextEquals("angleOffset"u8) && reader.Read())
 			value.AngleOffset = reader.GetSingle();
 		else
 			return false;
@@ -40,33 +40,33 @@ internal class MemberConverterBaseTaggedTileEvent<TEvent> : MemberConverterBaseT
 }
 internal class MemberConverterSetFilterAdvanced : MemberConverterBaseTaggedTileEvent<SetFilterAdvanced>
 {
-	protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref SetFilterAdvanced value, MetadataJsonSerializerOptions options)
+	protected override bool Read(ref Utf8JsonReader reader, ref SetFilterAdvanced value, MetadataJsonSerializerOptions options)
 	{
 		string filter = "";
 		FilterType filterType = default;
-		if (base.Read(ref reader, propertyName, ref value, options))
+		if (base.Read(ref reader, ref value, options))
 			return true;
-		if (propertyName.SequenceEqual("filter"u8))
+		if (reader.ValueTextEquals("filter"u8) && reader.Read())
 		{
 			filter = reader.GetString() ?? "";
 			if (string.IsNullOrEmpty(filter) || !EnumConverter.TryParse(filter, out filterType))
 				return false;
 		}
-		else if (propertyName.SequenceEqual("enabled"u8))
+		else if (reader.ValueTextEquals("enabled"u8) && reader.Read())
 			value.Enabled = reader.GetBoolean();
-		else if (propertyName.SequenceEqual("disableOthers"u8))
+		else if (reader.ValueTextEquals("disableOthers"u8) && reader.Read())
 			value.DisableOthers = reader.GetBoolean();
-		else if (propertyName.SequenceEqual("duration"u8))
+		else if (reader.ValueTextEquals("duration"u8) && reader.Read())
 			value.Duration = reader.GetSingle();
-		else if (propertyName.SequenceEqual("ease"u8) && EnumConverter.TryParse(reader.ValueSpan, out Global.Components.Easing.EaseType enumValue0))
+		else if (reader.ValueTextEquals("ease"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out Global.Components.Easing.EaseType enumValue0))
 			value.Ease = enumValue0;
-		else if (propertyName.SequenceEqual("targetType"u8) && EnumConverter.TryParse(reader.ValueSpan, out TargetType enumValue1))
+		else if (reader.ValueTextEquals("targetType"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out TargetType enumValue1))
 			value.TargetType = enumValue1;
-		else if (propertyName.SequenceEqual("plane"u8) && EnumConverter.TryParse(reader.ValueSpan, out Plane enumValue2))
+		else if (reader.ValueTextEquals("plane"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out Plane enumValue2))
 			value.Plane = enumValue2;
-		else if (propertyName.SequenceEqual("targetTag"u8))
+		else if (reader.ValueTextEquals("targetTag"u8) && reader.Read())
 			value.TargetTag = reader.GetString() ?? "";
-		else if (propertyName.SequenceEqual("filterProperties"u8))
+		else if (reader.ValueTextEquals("filterProperties"u8) && reader.Read())
 		{
 			ReadOnlySpan<byte> json = [(byte)'{', .. Encoding.UTF8.GetBytes(reader.GetString() ?? ""), (byte)'}'];
 			Utf8JsonReader subReader = new(json);

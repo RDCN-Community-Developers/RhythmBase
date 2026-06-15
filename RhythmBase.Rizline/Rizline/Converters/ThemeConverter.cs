@@ -13,9 +13,7 @@ internal class ThemeConverter : MetadataJsonConverter<Theme>
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-			reader.Read();
-			if (propertyName.SequenceEqual("colorsList"u8))
+			if (reader.ValueTextEquals("colorsList"u8) && reader.Read())
 			{
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				reader.Read();

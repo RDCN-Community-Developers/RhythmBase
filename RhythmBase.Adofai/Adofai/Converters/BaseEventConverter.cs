@@ -7,7 +7,7 @@ namespace RhythmBase.Adofai.Converters;
 		public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 		{
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
-			ReadOnlySpan<byte> type = default;
+			string? type = null;
 			Utf8JsonReader checkpoint = reader;
 			while (reader.Read())
 			{
@@ -15,10 +15,10 @@ namespace RhythmBase.Adofai.Converters;
 					break;
 				if (reader.TokenType == JsonTokenType.PropertyName)
 				{
-					if (reader.ValueSpan.SequenceEqual("eventType"u8))
+					if (reader.ValueTextEquals("eventType"u8))
 					{
 						reader.Read();
-						type = reader.ValueSpan;
+						type = reader.GetString();
 						break;
 					}
 					else
@@ -29,7 +29,7 @@ namespace RhythmBase.Adofai.Converters;
 			}
 			reader = checkpoint; IBaseEvent e;
 			if (!EnumConverter.TryParse(type, out EventType typeEnum))
-				e = ReadForwardEvent(ref reader, typeToConvert, options) ?? new ForwardEvent() { ActualType = type.ToString() ?? "" };
+				e = ReadForwardEvent(ref reader, typeToConvert, options) ?? new ForwardEvent() { ActualType = type ?? "" };
 			else
 				e = EventConverterMap.GetConverter(typeEnum).ReadProperties(ref reader, options);
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndObject);

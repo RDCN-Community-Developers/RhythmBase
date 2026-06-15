@@ -13,28 +13,22 @@ partial class Level
 	{
 		public static void DeserializeChart(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, Level level, LevelReadSettings settings)
 		{
-			ReadOnlyMemory<byte> jsonData =
-					dataSource.CanGetMemoryDirectly
-					? dataSource.GetMemory()
-					: dataSource.GetMemoryAsync().GetAwaiter().GetResult();
-			Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
+			Utf8JsonReader reader = new(dataSource.GetSequence(), new() { AllowTrailingCommas = true });
 			reader.Read();
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 			Chart chart = new();
 			while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 			{
-				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-				reader.Read();
-				if (propertyName.SequenceEqual("fileVersion"u8))
-					chart.FileVersion = reader.GetInt32();
-				else if (propertyName.SequenceEqual("songsName"u8))
-					chart.SongsName = reader.GetString() ?? "";
-				else if (propertyName.SequenceEqual("chartDelayMs"u8))
-					chart.Delay = TimeSpan.FromMilliseconds(reader.GetDouble());
-				else if (propertyName.SequenceEqual("offset"u8))
-					chart.Offset = TimeSpan.FromMilliseconds(reader.GetDouble());
-				else if (propertyName.SequenceEqual("themes"u8))
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
+			if (reader.ValueTextEquals("fileVersion"u8) && reader.Read())
+				chart.FileVersion = reader.GetInt32();
+			else if (reader.ValueTextEquals("songsName"u8) && reader.Read())
+				chart.SongsName = reader.GetString() ?? "";
+			else if (reader.ValueTextEquals("chartDelayMs"u8) && reader.Read())
+				chart.Delay = TimeSpan.FromMilliseconds(reader.GetDouble());
+			else if (reader.ValueTextEquals("offset"u8) && reader.Read())
+				chart.Offset = TimeSpan.FromMilliseconds(reader.GetDouble());
+			else if (reader.ValueTextEquals("themes"u8) && reader.Read())
 				{
 					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					reader.Read();
@@ -42,7 +36,7 @@ partial class Level
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 						chart.Themes.RiztimeThemes.Add(TypeConverterRegistry.Read<Theme>(ref reader, options));
 				}
-				else if (propertyName.SequenceEqual("challengeTimes"u8))
+				else if (reader.ValueTextEquals("challengeTimes"u8) && reader.Read())
 				{
 					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
@@ -56,9 +50,9 @@ partial class Level
 						chart.ChallengeTimes.Add(e);
 					}
 				}
-				else if (propertyName.SequenceEqual("bPM"u8))
+				else if (reader.ValueTextEquals("bPM"u8) && reader.Read())
 					chart.Bpm = reader.GetSingle();
-				else if (propertyName.SequenceEqual("bpmShifts"u8))
+				else if (reader.ValueTextEquals("bpmShifts"u8) && reader.Read())
 				{
 					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
@@ -72,13 +66,13 @@ partial class Level
 						chart.BpmShifts.Add(e);
 					}
 				}
-				else if (propertyName.SequenceEqual("lines"u8))
+				else if (reader.ValueTextEquals("lines"u8) && reader.Read())
 				{
 					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 						chart.Lines.Add(TypeConverterRegistry.Read<Line>(ref reader, options));
 				}
-				else if (propertyName.SequenceEqual("canvasMoves"u8))
+				else if (reader.ValueTextEquals("canvasMoves"u8) && reader.Read())
 				{
 					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
@@ -88,11 +82,9 @@ partial class Level
 						while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 						{
 							JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-							ReadOnlySpan<byte> cmPropertyName = reader.ValueSpan;
-							reader.Read();
-							if (cmPropertyName.SequenceEqual("index"u8))
+							if (reader.ValueTextEquals("index"u8) && reader.Read())
 								canvasMove.Index = reader.GetInt32();
-							else if (cmPropertyName.SequenceEqual("xPositionKeyPoints"u8))
+							else if (reader.ValueTextEquals("xPositionKeyPoints"u8) && reader.Read())
 							{
 								while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 								{
@@ -105,7 +97,7 @@ partial class Level
 									canvasMove.XPosition.Add(e);
 								}
 							}
-							else if (cmPropertyName.SequenceEqual("speedKeyPoints"u8))
+							else if (reader.ValueTextEquals("speedKeyPoints"u8) && reader.Read())
 							{
 								while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 								{
@@ -120,23 +112,21 @@ partial class Level
 							}
 							else
 #if DEBUG
-								throw new JsonException($"Unexpected property in canvasMoves: {Encoding.UTF8.GetString(cmPropertyName.ToArray())}");
+								throw new JsonException($"Unexpected property in canvasMoves: {reader.GetString()}");
 #else
 								reader.Skip();
 #endif
 						}
 					}
 				}
-				else if (propertyName.SequenceEqual("cameraMove"u8))
+				else if (reader.ValueTextEquals("cameraMove"u8) && reader.Read())
 				{
 					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 					CameraMove cameraMove = new();
 					while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 					{
 						JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-						ReadOnlySpan<byte> cmPropertyName = reader.ValueSpan;
-						reader.Read();
-						if (cmPropertyName.SequenceEqual("scaleKeyPoints"u8))
+						if (reader.ValueTextEquals("scaleKeyPoints"u8) && reader.Read())
 						{
 							while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 							{
@@ -149,7 +139,7 @@ partial class Level
 								cameraMove.Scales.Add(e);
 							}
 						}
-						else if (cmPropertyName.SequenceEqual("xPositionKeyPoints"u8))
+						else if (reader.ValueTextEquals("xPositionKeyPoints"u8) && reader.Read())
 						{
 							while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 							{
@@ -164,7 +154,7 @@ partial class Level
 						}
 						else
 #if DEBUG
-							throw new JsonException($"Unexpected property in cameraMoves: {Encoding.UTF8.GetString(cmPropertyName.ToArray())}");
+							throw new JsonException($"Unexpected property in cameraMoves: {reader.GetString()}");
 #else
 							reader.Skip();
 #endif
@@ -173,7 +163,7 @@ partial class Level
 				}
 				else
 #if DEBUG
-					throw new JsonException($"Unexpected property in chart: {Encoding.UTF8.GetString(propertyName.ToArray())}");
+					throw new JsonException($"Unexpected property in chart: {reader.GetString()}");
 #else
 					reader.Skip();
 #endif

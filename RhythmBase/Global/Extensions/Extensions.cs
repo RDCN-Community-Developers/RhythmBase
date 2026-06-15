@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Buffers;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -19,14 +20,16 @@ public static class Extensions
 		/// <param name="reader">The JSON reader to check.</param>
 		/// <param name="expectedTokenType">The acceptable token types.</param>
 		/// <returns>The current token type if it matches.</returns>
+		[Conditional("DEBUG")]
 		[DebuggerHidden]
 		[StackTraceHidden]
-		public static JsonTokenType ThrowIfNotMatch(ref Utf8JsonReader reader, params ReadOnlySpan<JsonTokenType> expectedTokenType)
+		public static void ThrowIfNotMatch(ref Utf8JsonReader reader, params ReadOnlySpan<JsonTokenType> expectedTokenType)
 		{
 			ReadOnlyEnumCollection<JsonTokenType> types = new(expectedTokenType);
 			if (types.Contains(reader.TokenType))
-				return reader.TokenType;
-			string message = $"Expected token {string.Join(", ", types)} but got {reader.TokenType} {(Encoding.UTF8.GetString(reader.ValueSpan.ToArray()))}, at byte position {reader.TokenStartIndex}.";
+				return;
+			byte[] result = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan.ToArray();
+			string message = $"Expected token {string.Join(", ", types)} but got {reader.TokenType} {Encoding.UTF8.GetString(result)}, at byte position {reader.TokenStartIndex}.";
 			throw new JsonException(message);
 		}
 	}

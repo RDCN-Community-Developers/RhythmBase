@@ -25,7 +25,7 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 	public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 	{
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
-		ReadOnlySpan<byte> type = default;
+		string? type = null;
 
 		Utf8JsonReader checkpoint = reader;
 		while (reader.Read())
@@ -34,10 +34,10 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 				break;
 			if (reader.TokenType == JsonTokenType.PropertyName)
 			{
-				if (reader.ValueSpan.SequenceEqual("type"u8))
+				if (reader.ValueTextEquals("type"u8))
 				{
 					reader.Read();
-					type = reader.ValueSpan;
+					type = reader.GetString();
 					break;
 				}
 				else
@@ -48,7 +48,7 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 		}
 		reader = checkpoint; IBaseEvent e;
 		if (!EnumConverter.TryParse(type, out EventType typeEnum))
-			e = ReadForwardEvent(ref reader) ?? new ForwardEvent() { ActualType = type.ToString() ?? "" };
+			e = ReadForwardEvent(ref reader) ?? new ForwardEvent() { ActualType = type ?? "" };
 		else
 			e = EventConverterMap.GetConverter(typeEnum).WithReadSettings(_rs).ReadProperties(ref reader, options);
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndObject);
@@ -108,17 +108,25 @@ internal abstract class MemberConverter<TEvent> : EventInstanceConverterBase whe
 				return value;
 			}
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-			if (propertyName.IsEmpty)
-				throw new JsonException("Property name cannot be null.");
-			reader.Read();
-			if (propertyName.SequenceEqual("time"u8))
+			if (reader.ValueTextEquals("time"u8))
+			{
+				reader.Read();
 				time = reader.GetSingle();
-			else if (propertyName.SequenceEqual("angle"u8))
+			}
+			else if (reader.ValueTextEquals("angle"u8))
+			{
+				reader.Read();
 				angle = reader.GetSingle();
-			else if (propertyName.SequenceEqual("type"u8))
+			}
+			else if (reader.ValueTextEquals("type"u8))
+			{
+				reader.Read();
 				continue;
-			else if (!Read(ref reader, propertyName, ref value, options))
+			}
+		else
+		{
+			string pn = reader.GetString()!;
+			if (!Read(ref reader, ref value, options))
 			{
 #if DEBUG
 				//if (!(
@@ -128,10 +136,10 @@ internal abstract class MemberConverter<TEvent> : EventInstanceConverterBase whe
 				//	))
 				//	Console.WriteLine($"The key {Encoding.UTF8.GetString([.. propertyName])} of {value.Type} not found.");
 #endif
-				value[
-						Encoding.UTF8.GetString(propertyName)
-						] = JsonElement.ParseValue(ref reader);
+				reader.Read();
+				value[pn] = JsonElement.ParseValue(ref reader);
 			}
+		}
 		}
 		return value;
 	}
@@ -147,16 +155,16 @@ internal abstract class MemberConverter<TEvent> : EventInstanceConverterBase whe
 		}
 		writer.WriteEndObject();
 	}
-	protected virtual bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
+	protected virtual bool Read(ref Utf8JsonReader reader, ref TEvent value, MetadataJsonSerializerOptions options)
 	{
 		bool result = true;
-		if (propertyName.SequenceEqual("angle"u8))
+		if (reader.ValueTextEquals("angle"u8) && reader.Read())
 			value.Angle = reader.GetSingle();
-		else if (propertyName.SequenceEqual("time"u8))
+		else if (reader.ValueTextEquals("time"u8) && reader.Read())
 			value.Time = reader.GetSingle();
-		else if (propertyName.SequenceEqual("variant"u8))
+		else if (reader.ValueTextEquals("variant"u8) && reader.Read())
 			value.Variant = reader.GetString();
-		else if (propertyName.SequenceEqual("order"u8))
+		else if (reader.ValueTextEquals("order"u8) && reader.Read())
 			value.Order = reader.GetInt32();
 		else
 			result = false;

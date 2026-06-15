@@ -27,26 +27,24 @@ internal class SoundSubTypeCollectionConverter : JsonConverter<SoundSubTypeColle
 					break;
 				if (reader.TokenType != JsonTokenType.PropertyName)
 					throw new JsonException("Expected PropertyName token");
-				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-				reader.Read();
-				if (propertyName.SequenceEqual("groupSubtype"u8) && Global.Converters.EnumConverter.TryParse(reader.ValueSpan, out SoundType result1))
+				if (reader.ValueTextEquals("groupSubtype"u8) && reader.Read() && Global.Converters.EnumConverter.TryParse(ref reader, out SoundType result1))
 					item.GroupSubtype = result1;
-				else if (propertyName.SequenceEqual("used"u8))
+				else if (reader.ValueTextEquals("used"u8) && reader.Read())
 					item.Used = reader.GetBoolean();
-				else if (propertyName.SequenceEqual("filename"u8))
+				else if (reader.ValueTextEquals("filename"u8) && reader.Read())
 					item.Filename = reader.GetString() ?? string.Empty;
-				else if (propertyName.SequenceEqual("volume"u8))
+				else if (reader.ValueTextEquals("volume"u8) && reader.Read())
 					item.Volume = reader.GetInt32();
-				else if (propertyName.SequenceEqual("pitch"u8))
+				else if (reader.ValueTextEquals("pitch"u8) && reader.Read())
 					item.Pitch = reader.GetInt32();
-				else if (propertyName.SequenceEqual("pan"u8))
+				else if (reader.ValueTextEquals("pan"u8) && reader.Read())
 					item.Pan = reader.GetInt32();
-				else if (propertyName.SequenceEqual("offset"u8))
+				else if (reader.ValueTextEquals("offset"u8) && reader.Read())
 					item.Offset = TimeSpan.FromMilliseconds(reader.GetSingle());
 				else
 				{
 #if DEBUG
-					Console.WriteLine(Encoding.UTF8.GetString([.. propertyName]));
+					Console.WriteLine($"Found unknown property '{reader.GetString()}' in {nameof(SoundSubTypeCollection)}");
 #endif
 					reader.Skip();
 				}

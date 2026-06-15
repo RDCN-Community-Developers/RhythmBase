@@ -9,10 +9,10 @@ internal class PaletteColorWithAlphaConverter : JsonConverter<PaletteColorWithAl
 {
 	public override PaletteColorWithAlpha Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
-		ReadOnlySpan<byte> t = reader.ValueSpan;
-		return t.Length == 0
+		string? t = reader.GetString();
+		return string.IsNullOrEmpty(t)
 			? default
-			: (t is [0x70, 0x61, 0x6c, ..])
+			: t.StartsWith("pal")
 			? new(int.Parse(t[3..]))
 			: new(Color.FromRgba(t));
 	}

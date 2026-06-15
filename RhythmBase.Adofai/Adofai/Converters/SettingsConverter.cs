@@ -21,46 +21,93 @@ internal class SettingsConverter : JsonConverter<Settings>
                 break;
             if (reader.TokenType != JsonTokenType.PropertyName)
                 throw new JsonException($"Expected PropertyName token, but got {reader.TokenType}.");
-            ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-            reader.Read();
-            if (propertyName.SequenceEqual("version"u8))
-                settings.Version = reader.GetInt32();
-            else if (propertyName.SequenceEqual("artist"u8))
-                settings.Artist = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("specialArtistType"u8) && EnumConverter.TryParse(reader.ValueSpan, out SpecialArtistTypes specialArtistTypes))
-                settings.SpecialArtistType = specialArtistTypes;
-            else if (propertyName.SequenceEqual("artistPermission"u8))
-                settings.ArtistPermission = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("song"u8))
-                settings.Song = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("author"u8))
-                settings.Author = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("separateCountdownTime"u8))
-                settings.SeparateCountdownTime = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("previewImage"u8))
-                settings.PreviewImage = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("previewIcon"u8))
-                settings.PreviewIcon = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("previewIconColor"u8) && Color.TryFromRgba(reader.ValueSpan, out Color color))
-                settings.PreviewIconColor = color;
-            else if (propertyName.SequenceEqual("previewSongStart"u8))
-                settings.PreviewSongStart = reader.GetInt32();
-            else if (propertyName.SequenceEqual("previewSongDuration"u8))
-                settings.PreviewSongDuration = reader.GetInt32();
-            else if (propertyName.SequenceEqual("seizureWarning"u8))
-                settings.SeizureWarning = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("levelDesc"u8))
-                settings.LevelDesc = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("levelTags"u8))
-                settings.LevelTags = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("artistLinks"u8))
-                settings.ArtistLinks = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("speedTrialAim"u8))
-                settings.SpeedTrialAim = reader.GetSingle();
-            else if (propertyName.SequenceEqual("difficulty"u8))
-                settings.Difficulty = reader.GetInt32();
-            else if (propertyName.SequenceEqual("requiredMods"u8))
+            if (reader.ValueTextEquals("version"u8))
             {
+                reader.Read();
+                settings.Version = reader.GetInt32();
+            }
+            else if (reader.ValueTextEquals("artist"u8))
+            {
+                reader.Read();
+                settings.Artist = reader.GetString() ?? string.Empty;
+            }
+            else if (reader.ValueTextEquals("specialArtistType"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out SpecialArtistTypes specialArtistTypes))
+                settings.SpecialArtistType = specialArtistTypes;
+            else if (reader.ValueTextEquals("artistPermission"u8))
+            {
+                reader.Read();
+                settings.ArtistPermission = reader.GetString() ?? string.Empty;
+            }
+            else if (reader.ValueTextEquals("song"u8))
+            {
+                reader.Read();
+                settings.Song = reader.GetString() ?? string.Empty;
+            }
+            else if (reader.ValueTextEquals("author"u8))
+            {
+                reader.Read();
+                settings.Author = reader.GetString() ?? string.Empty;
+            }
+            else if (reader.ValueTextEquals("separateCountdownTime"u8))
+            {
+                reader.Read();
+                settings.SeparateCountdownTime = reader.GetBoolean();
+            }
+            else if (reader.ValueTextEquals("previewImage"u8))
+            {
+                reader.Read();
+                settings.PreviewImage = reader.GetString() ?? string.Empty;
+            }
+            else if (reader.ValueTextEquals("previewIcon"u8))
+            {
+                reader.Read();
+                settings.PreviewIcon = reader.GetString() ?? string.Empty;
+            }
+            else if (reader.ValueTextEquals("previewIconColor"u8) && reader.Read() && Color.TryFromRgba(ref reader, out Color color))
+                settings.PreviewIconColor = color;
+            else if (reader.ValueTextEquals("previewSongStart"u8))
+            {
+                reader.Read();
+                settings.PreviewSongStart = reader.GetInt32();
+            }
+            else if (reader.ValueTextEquals("previewSongDuration"u8))
+            {
+                reader.Read();
+                settings.PreviewSongDuration = reader.GetInt32();
+            }
+            else if (reader.ValueTextEquals("seizureWarning"u8))
+            {
+                reader.Read();
+                settings.SeizureWarning = reader.GetBoolean();
+            }
+            else if (reader.ValueTextEquals("levelDesc"u8))
+            {
+                reader.Read();
+                settings.LevelDesc = reader.GetString() ?? string.Empty;
+            }
+            else if (reader.ValueTextEquals("levelTags"u8))
+            {
+                reader.Read();
+                settings.LevelTags = reader.GetString() ?? string.Empty;
+            }
+            else if (reader.ValueTextEquals("artistLinks"u8))
+            {
+                reader.Read();
+                settings.ArtistLinks = reader.GetString() ?? string.Empty;
+            }
+            else if (reader.ValueTextEquals("speedTrialAim"u8))
+            {
+                reader.Read();
+                settings.SpeedTrialAim = reader.GetSingle();
+            }
+            else if (reader.ValueTextEquals("difficulty"u8))
+            {
+                reader.Read();
+                settings.Difficulty = reader.GetInt32();
+            }
+            else if (reader.ValueTextEquals("requiredMods"u8))
+            {
+                reader.Read();
                 if (reader.TokenType != JsonTokenType.StartArray)
                     throw new JsonException($"Expected StartArray token, but got {reader.TokenType}.");
                 while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
@@ -70,124 +117,244 @@ internal class SettingsConverter : JsonConverter<Settings>
                     settings.RequiredMods.Add(reader.GetString() ?? string.Empty);
                 }
             }
-            else if (propertyName.SequenceEqual("songFilename"u8))
+            else if (reader.ValueTextEquals("songFilename"u8))
+            {
+                reader.Read();
                 settings.SongFilename = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("bpm"u8))
+            }
+            else if (reader.ValueTextEquals("bpm"u8))
+            {
+                reader.Read();
                 settings.Bpm = reader.GetSingle();
-            else if (propertyName.SequenceEqual("volume"u8))
+            }
+            else if (reader.ValueTextEquals("volume"u8))
+            {
+                reader.Read();
                 settings.Volume = reader.GetInt32();
-            else if (propertyName.SequenceEqual("offset"u8))
+            }
+            else if (reader.ValueTextEquals("offset"u8))
+            {
+                reader.Read();
                 settings.Offset = reader.GetInt32();
-            else if (propertyName.SequenceEqual("pitch"u8))
+            }
+            else if (reader.ValueTextEquals("pitch"u8))
+            {
+                reader.Read();
                 settings.Pitch = reader.GetInt32();
-            else if (propertyName.SequenceEqual("hitsound"u8))
+            }
+            else if (reader.ValueTextEquals("hitsound"u8))
+            {
+                reader.Read();
                 settings.Hitsound = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("hitsoundVolume"u8))
+            }
+            else if (reader.ValueTextEquals("hitsoundVolume"u8))
+            {
+                reader.Read();
                 settings.HitsoundVolume = reader.GetInt32();
-            else if (propertyName.SequenceEqual("countdownTicks"u8))
+            }
+            else if (reader.ValueTextEquals("countdownTicks"u8))
+            {
+                reader.Read();
                 settings.CountdownTicks = reader.GetInt32();
-            else if (propertyName.SequenceEqual("tileShape"u8) && EnumConverter.TryParse(reader.ValueSpan, out TileShape tileShape))
+            }
+            else if (reader.ValueTextEquals("tileShape"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out TileShape tileShape))
                 settings.TileShape = tileShape;
-            else if (propertyName.SequenceEqual("trackColorType"u8) && EnumConverter.TryParse(reader.ValueSpan, out TrackColorType trackColorType))
+            else if (reader.ValueTextEquals("trackColorType"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out TrackColorType trackColorType))
                 settings.TrackColorType = trackColorType;
-            else if (propertyName.SequenceEqual("trackColor"u8) && Color.TryFromRgba(reader.ValueSpan, out Color trackColor))
+            else if (reader.ValueTextEquals("trackColor"u8) && reader.Read() && Color.TryFromRgba(ref reader, out Color trackColor))
                 settings.TrackColor = trackColor;
-            else if (propertyName.SequenceEqual("secondaryTrackColor"u8) && Color.TryFromRgba(reader.ValueSpan, out Color secondaryTrackColor))
+            else if (reader.ValueTextEquals("secondaryTrackColor"u8) && reader.Read() && Color.TryFromRgba(ref reader, out Color secondaryTrackColor))
                 settings.SecondaryTrackColor = secondaryTrackColor;
-            else if (propertyName.SequenceEqual("trackColorAnimDuration"u8))
+            else if (reader.ValueTextEquals("trackColorAnimDuration"u8))
+            {
+                reader.Read();
                 settings.TrackColorAnimDuration = reader.GetSingle();
-            else if (propertyName.SequenceEqual("trackColorPulse"u8) && EnumConverter.TryParse(reader.ValueSpan, out TrackColorPulse trackColorPulse))
+            }
+            else if (reader.ValueTextEquals("trackColorPulse"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out TrackColorPulse trackColorPulse))
                 settings.TrackColorPulse = trackColorPulse;
-            else if (propertyName.SequenceEqual("trackPulseLength"u8))
+            else if (reader.ValueTextEquals("trackPulseLength"u8))
+            {
+                reader.Read();
                 settings.TrackPulseLength = reader.GetInt32();
-            else if (propertyName.SequenceEqual("trackStyle"u8) && EnumConverter.TryParse(reader.ValueSpan, out TrackStyle trackStyle))
+            }
+            else if (reader.ValueTextEquals("trackStyle"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out TrackStyle trackStyle))
                 settings.TrackStyle = trackStyle;
-            else if (propertyName.SequenceEqual("trackTexture"u8))
+            else if (reader.ValueTextEquals("trackTexture"u8))
+            {
+                reader.Read();
                 settings.TrackTexture = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("trackTextureScale"u8))
+            }
+            else if (reader.ValueTextEquals("trackTextureScale"u8))
+            {
+                reader.Read();
                 settings.TrackTextureScale = reader.GetInt16();
-            else if (propertyName.SequenceEqual("trackGlowIntensity"u8))
+            }
+            else if (reader.ValueTextEquals("trackGlowIntensity"u8))
+            {
+                reader.Read();
                 settings.TrackGlowIntensity = reader.GetInt32();
-            else if (propertyName.SequenceEqual("trackAnimation"u8) && EnumConverter.TryParse(reader.ValueSpan, out TrackAnimationType trackAnimation))
+            }
+            else if (reader.ValueTextEquals("trackAnimation"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out TrackAnimationType trackAnimation))
                 settings.TrackAnimation = trackAnimation;
-            else if (propertyName.SequenceEqual("beatsAhead"u8))
+            else if (reader.ValueTextEquals("beatsAhead"u8))
+            {
+                reader.Read();
                 settings.BeatsAhead = reader.GetInt32();
-            else if (propertyName.SequenceEqual("trackDisappearAnimation"u8) && EnumConverter.TryParse(reader.ValueSpan, out TrackDisappearAnimationType trackDisappearAnimation))
+            }
+            else if (reader.ValueTextEquals("trackDisappearAnimation"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out TrackDisappearAnimationType trackDisappearAnimation))
                 settings.TrackDisappearAnimation = trackDisappearAnimation;
-            else if (propertyName.SequenceEqual("beatsBehind"u8))
+            else if (reader.ValueTextEquals("beatsBehind"u8))
+            {
+                reader.Read();
                 settings.BeatsBehind = reader.GetInt32();
-            else if (propertyName.SequenceEqual("backgroundColor"u8) && Color.TryFromRgba(reader.ValueSpan, out Color backgroundColor))
+            }
+            else if (reader.ValueTextEquals("backgroundColor"u8) && reader.Read() && Color.TryFromRgba(ref reader, out Color backgroundColor))
                 settings.BackgroundColor = backgroundColor;
-            else if (propertyName.SequenceEqual("showDefaultBGIfNoImage"u8))
+            else if (reader.ValueTextEquals("showDefaultBGIfNoImage"u8))
+            {
+                reader.Read();
                 settings.ShowDefaultBGIfNoImage = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("showDefaultBGTile"u8))
+            }
+            else if (reader.ValueTextEquals("showDefaultBGTile"u8))
+            {
+                reader.Read();
                 settings.ShowDefaultBGTile = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("defaultBGTileColor"u8) && Color.TryFromRgba(reader.ValueSpan, out Color defaultBGTileColor))
+            }
+            else if (reader.ValueTextEquals("defaultBGTileColor"u8) && reader.Read() && Color.TryFromRgba(ref reader, out Color defaultBGTileColor))
                 settings.DefaultBGTileColor = defaultBGTileColor;
-            else if (propertyName.SequenceEqual("defaultBGShapeType"u8) && EnumConverter.TryParse(reader.ValueSpan, out DefaultBGTileShapeType defaultBGShapeType))
+            else if (reader.ValueTextEquals("defaultBGShapeType"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out DefaultBGTileShapeType defaultBGShapeType))
                 settings.DefaultBGTileShapeType = defaultBGShapeType;
-            else if (propertyName.SequenceEqual("defaultBGShapeColor"u8) && Color.TryFromRgba(reader.ValueSpan, out Color defaultBGShapeColor))
+            else if (reader.ValueTextEquals("defaultBGShapeColor"u8) && reader.Read() && Color.TryFromRgba(ref reader, out Color defaultBGShapeColor))
                 settings.DefaultBGShapeColor = defaultBGShapeColor;
-            else if (propertyName.SequenceEqual("bgImage"u8))
+            else if (reader.ValueTextEquals("bgImage"u8))
+            {
+                reader.Read();
                 settings.BgImage = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("bgImageColor"u8) && Color.TryFromRgba(reader.ValueSpan, out Color bgImageColor))
+            }
+            else if (reader.ValueTextEquals("bgImageColor"u8) && reader.Read() && Color.TryFromRgba(ref reader, out Color bgImageColor))
                 settings.BgImageColor = bgImageColor;
-            else if (propertyName.SequenceEqual("parallax"u8))
+            else if (reader.ValueTextEquals("parallax"u8))
+            {
+                reader.Read();
                 settings.Parallax = pointsConverter.Read(ref reader, typeof(PointNI), options);
-            else if (propertyName.SequenceEqual("bgDisplayMode"u8) && EnumConverter.TryParse(reader.ValueSpan, out BgDisplayMode bgDisplayMode))
+            }
+            else if (reader.ValueTextEquals("bgDisplayMode"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out BgDisplayMode bgDisplayMode))
                 settings.BgDisplayMode = bgDisplayMode;
-            else if (propertyName.SequenceEqual("imageSmoothing"u8))
+            else if (reader.ValueTextEquals("imageSmoothing"u8))
+            {
+                reader.Read();
                 settings.ImageSmoothing = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("lockRot"u8))
+            }
+            else if (reader.ValueTextEquals("lockRot"u8))
+            {
+                reader.Read();
                 settings.LockRot = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("loopBG"u8))
+            }
+            else if (reader.ValueTextEquals("loopBG"u8))
+            {
+                reader.Read();
                 settings.LoopBG = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("scalingRatio"u8))
+            }
+            else if (reader.ValueTextEquals("scalingRatio"u8))
+            {
+                reader.Read();
                 settings.ScalingRatio = reader.GetInt32();
-            else if (propertyName.SequenceEqual("relativeTo"u8) && EnumConverter.TryParse(reader.ValueSpan, out CameraRelativeTo cameraRelativeTo))
+            }
+            else if (reader.ValueTextEquals("relativeTo"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out CameraRelativeTo cameraRelativeTo))
                 settings.RelativeTo = cameraRelativeTo;
-            else if (propertyName.SequenceEqual("position"u8))
+            else if (reader.ValueTextEquals("position"u8))
+            {
+                reader.Read();
                 settings.Position = pointsConverter.Read(ref reader, typeof(PointNI), options);
-            else if (propertyName.SequenceEqual("rotation"u8))
+            }
+            else if (reader.ValueTextEquals("rotation"u8))
+            {
+                reader.Read();
                 settings.Rotation = reader.GetInt32();
-            else if (propertyName.SequenceEqual("zoom"u8))
+            }
+            else if (reader.ValueTextEquals("zoom"u8))
+            {
+                reader.Read();
                 settings.Zoom = reader.GetInt32();
-            else if (propertyName.SequenceEqual("pulseOnFloor"u8))
+            }
+            else if (reader.ValueTextEquals("pulseOnFloor"u8))
+            {
+                reader.Read();
                 settings.PulseOnFloor = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("bgVideo"u8))
+            }
+            else if (reader.ValueTextEquals("bgVideo"u8))
+            {
+                reader.Read();
                 settings.BgVideo = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("loopVideo"u8))
+            }
+            else if (reader.ValueTextEquals("loopVideo"u8))
+            {
+                reader.Read();
                 settings.LoopVideo = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("vidOffset"u8))
+            }
+            else if (reader.ValueTextEquals("vidOffset"u8))
+            {
+                reader.Read();
                 settings.VidOffset = reader.GetInt32();
-            else if (propertyName.SequenceEqual("floorIconOutlines"u8))
+            }
+            else if (reader.ValueTextEquals("floorIconOutlines"u8))
+            {
+                reader.Read();
                 settings.FloorIconOutlines = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("stickToFloors"u8))
+            }
+            else if (reader.ValueTextEquals("stickToFloors"u8))
+            {
+                reader.Read();
                 settings.StickToFloors = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("planetEase"u8) && EnumConverter.TryParse(reader.ValueSpan, out EaseType planetEase))
+            }
+            else if (reader.ValueTextEquals("planetEase"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out EaseType planetEase))
                 settings.PlanetEase = planetEase;
-            else if (propertyName.SequenceEqual("planetEaseParts"u8))
+            else if (reader.ValueTextEquals("planetEaseParts"u8))
+            {
+                reader.Read();
                 settings.PlanetEaseParts = reader.GetInt32();
-            else if (propertyName.SequenceEqual("planetEasePartBehavior"u8) && EnumConverter.TryParse(reader.ValueSpan, out EasePartBehaviors planetEasePartBehavior))
+            }
+            else if (reader.ValueTextEquals("planetEasePartBehavior"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out EasePartBehaviors planetEasePartBehavior))
                 settings.PlanetEasePartBehavior = planetEasePartBehavior;
-            else if (propertyName.SequenceEqual("defaultTextColor"u8) && Color.TryFromRgba(reader.ValueSpan, out Color defaultTextColor))
+            else if (reader.ValueTextEquals("defaultTextColor"u8) && reader.Read() && Color.TryFromRgba(ref reader, out Color defaultTextColor))
                 settings.DefaultTextColor = defaultTextColor;
-            else if (propertyName.SequenceEqual("defaultTextShadowColor"u8) && Color.TryFromRgba(reader.ValueSpan, out Color defaultTextShadowColor))
+            else if (reader.ValueTextEquals("defaultTextShadowColor"u8) && reader.Read() && Color.TryFromRgba(ref reader, out Color defaultTextShadowColor))
                 settings.DefaultTextShadowColor = defaultTextShadowColor;
-            else if (propertyName.SequenceEqual("congratsText"u8))
+            else if (reader.ValueTextEquals("congratsText"u8))
+            {
+                reader.Read();
                 settings.CongratsText = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("perfectText"u8))
+            }
+            else if (reader.ValueTextEquals("perfectText"u8))
+            {
+                reader.Read();
                 settings.PerfectText = reader.GetString() ?? string.Empty;
-            else if (propertyName.SequenceEqual("legacyFlash"u8))
+            }
+            else if (reader.ValueTextEquals("legacyFlash"u8))
+            {
+                reader.Read();
                 settings.LegacyFlash = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("legacyCamRelativeTo"u8))
+            }
+            else if (reader.ValueTextEquals("legacyCamRelativeTo"u8))
+            {
+                reader.Read();
                 settings.LegacyCamRelativeTo = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("legacySpriteTiles"u8))
+            }
+            else if (reader.ValueTextEquals("legacySpriteTiles"u8))
+            {
+                reader.Read();
                 settings.LegacySpriteTiles = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("legacyTween"u8))
+            }
+            else if (reader.ValueTextEquals("legacyTween"u8))
+            {
+                reader.Read();
                 settings.LegacyTween = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("disableV15Features"u8))
+            }
+            else if (reader.ValueTextEquals("disableV15Features"u8))
+            {
+                reader.Read();
                 settings.DisableV15Features = reader.GetBoolean();
+            }
             else
                 reader.Skip();
         }

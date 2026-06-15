@@ -8,9 +8,9 @@ namespace RhythmBase.Rizline.Converters
 {
 	internal class MemberConverterBaseNote<T> : MemberConverter<T> where T : BaseNote, new()
 	{
-		protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref T value, MetadataJsonSerializerOptions options)
+		protected override bool Read(ref Utf8JsonReader reader, ref T value, MetadataJsonSerializerOptions options)
 		{
-			return base.Read(ref reader, propertyName, ref value, options);
+			return base.Read(ref reader, ref value, options);
 		}
 		protected override void Write(Utf8JsonWriter writer, ref T value, MetadataJsonSerializerOptions options)
 		{

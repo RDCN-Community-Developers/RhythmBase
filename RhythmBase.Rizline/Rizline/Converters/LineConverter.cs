@@ -15,59 +15,57 @@ namespace RhythmBase.Rizline.Converters
 			Line line = new();
 			while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 			{
-				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-				reader.Read();
-				if (propertyName.SequenceEqual("linePoints"u8))
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
+			if (reader.ValueTextEquals("linePoints"u8) && reader.Read())
+			{
+				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 				{
-					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-					{
-						LinePoint e = EventConverterMap
-							.GetConverter(EventType.LinePoint)
-							.ReadProperties(ref reader, options)
-							as LinePoint
-							?? throw new JsonException("Failed to read a LinePoint event.");
-						line.LinePoints.Add(e);
-					}
-				}
-				else if (propertyName.SequenceEqual("notes"u8))
-				{
-					JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
-					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-					{
-						//reader.Skip();// line.Notes.Add(TypeConverterRegistry.Read<Note>(ref reader, options));
-						var note = instanceConverter.Read(ref reader, typeof(BaseNote), options);
-						if (note is BaseNote n)
-							line.Notes.Add(n);
-						else
-							throw new JsonException("Failed to read a Note event.");
-					}
-				}
-				else if (propertyName.SequenceEqual("judgeRingColor"u8))
-				{
-					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-					{
-						JudgeRingColor e = EventConverterMap
-						.GetConverter(EventType.JudgeRingColor)
+					LinePoint e = EventConverterMap
+						.GetConverter(EventType.LinePoint)
 						.ReadProperties(ref reader, options)
-						as JudgeRingColor
-						?? throw new JsonException("Failed to read a JudgeRingColor event.");
-						line.JudgeRingColor.Add(e);
-					}
+						as LinePoint
+						?? throw new JsonException("Failed to read a LinePoint event.");
+					line.LinePoints.Add(e);
 				}
-				else if (propertyName.SequenceEqual("lineColor"u8))
+			}
+			else if (reader.ValueTextEquals("notes"u8) && reader.Read())
+			{
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
+				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 				{
-					while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-					{
-						LineColor e = EventConverterMap
-						.GetConverter(EventType.LineColor)
-						.ReadProperties(ref reader, options)
-						as LineColor
-						?? throw new JsonException("Failed to read a LineColor event.");
-						line.LineColor.Add(e);
-					}
+					//reader.Skip();// line.Notes.Add(TypeConverterRegistry.Read<Note>(ref reader, options));
+					var note = instanceConverter.Read(ref reader, typeof(BaseNote), options);
+					if (note is BaseNote n)
+						line.Notes.Add(n);
+					else
+						throw new JsonException("Failed to read a Note event.");
 				}
-				else
+			}
+			else if (reader.ValueTextEquals("judgeRingColor"u8) && reader.Read())
+			{
+				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+				{
+					JudgeRingColor e = EventConverterMap
+					.GetConverter(EventType.JudgeRingColor)
+					.ReadProperties(ref reader, options)
+					as JudgeRingColor
+					?? throw new JsonException("Failed to read a JudgeRingColor event.");
+					line.JudgeRingColor.Add(e);
+				}
+			}
+			else if (reader.ValueTextEquals("lineColor"u8) && reader.Read())
+			{
+				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+				{
+					LineColor e = EventConverterMap
+					.GetConverter(EventType.LineColor)
+					.ReadProperties(ref reader, options)
+					as LineColor
+					?? throw new JsonException("Failed to read a LineColor event.");
+					line.LineColor.Add(e);
+				}
+			}
+			else
 					reader.Skip();
 			}
 			return line;

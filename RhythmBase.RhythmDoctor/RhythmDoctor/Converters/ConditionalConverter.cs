@@ -50,63 +50,57 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 	public override BaseConditional? Read(ref Utf8JsonReader reader, Type objectType, MetadataJsonSerializerOptions serializer)
 	{
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
-		ReadOnlySpan<byte> type = default;
+		string? type = null;
 		string tag = "";
 		string name = "";
 		Utf8JsonReader checkpoint = reader;
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.PropertyName)
+			if (reader.TokenType != JsonTokenType.PropertyName)
+				continue;
+			if (reader.ValueTextEquals("type"u8) && reader.Read())
 			{
-				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-				if (propertyName.SequenceEqual("type"u8))
-				{
-					reader.Read();
-					type = reader.ValueSpan;
-					if (type.IsEmpty)
-						return null;
-				}
-				else if (propertyName.SequenceEqual("name"u8))
-				{
-					reader.Read();
-					name = reader.GetString() ?? "";
-				}
-				else if (propertyName.SequenceEqual("tag"u8))
-				{
-					reader.Read();
-					tag = reader.GetString() ?? "";
-				}
-				else
-				{
-					reader.Skip();
-				}
+				type = reader.GetString();
+				if (string.IsNullOrEmpty(type))
+					return null;
+			}
+			else if (reader.ValueTextEquals("name"u8) && reader.Read())
+			{
+				name = reader.GetString() ?? "";
+			}
+			else if (reader.ValueTextEquals("tag"u8) && reader.Read())
+			{
+				tag = reader.GetString() ?? "";
+			}
+			else
+			{
+				reader.Skip();
 			}
 		}
 		reader = checkpoint;
 		BaseConditional conditional;
-		if (type.SequenceEqual("Custom"u8))
+		if (type == "Custom")
 			conditional = ReadCustom(ref reader, serializer);
-		else if (type.SequenceEqual("Language"u8))
+		else if (type == "Language")
 			conditional = ReadLanguage(ref reader, serializer);
-		else if (type.SequenceEqual("LastHit"u8))
+		else if (type == "LastHit")
 			conditional = ReadLastHit(ref reader, serializer);
-		else if (type.SequenceEqual("PlayerMode"u8))
+		else if (type == "PlayerMode")
 			conditional = ReadPlayerMode(ref reader, serializer);
-		else if (type.SequenceEqual("TimesExecuted"u8))
+		else if (type == "TimesExecuted")
 			conditional = ReadTimesExecuted(ref reader, serializer);
-		else if (type.SequenceEqual("narration"u8) || type.SequenceEqual("Narration"u8))
+		else if (type == "narration" || type == "Narration")
 			conditional = ReadNarration(ref reader, serializer);
-		else if (type.SequenceEqual("Accessibility"u8))
+		else if (type == "Accessibility")
 			conditional = ReadAccessibility(ref reader, serializer);
 		else
 		{
 #if DEBUG
-			Console.WriteLine($"Unknown condition type: {Encoding.UTF8.GetString(type)}");
+			Console.WriteLine($"Unknown condition type: {type}");
 #endif
 			reader.Skip();
 			return null;
 		}
-		reader.Read();
 		conditional.Name = name;
 		conditional.Tag = tag;
 		return conditional;
@@ -114,16 +108,15 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 	private static CustomCondition ReadCustom(ref Utf8JsonReader reader, MetadataJsonSerializerOptions _)
 	{
 		CustomCondition condition = new();
-		while (reader.Read())
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.EndObject)
-				break;
 			if (reader.TokenType == JsonTokenType.PropertyName)
 			{
-				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-				reader.Read();
-				if (propertyName.SequenceEqual("expression"u8))
+				if (reader.ValueTextEquals("expression"u8))
+				{
+					reader.Read();
 					condition.Expression = reader.GetString() ?? string.Empty;
+				}
 			}
 		}
 		return condition;
@@ -131,15 +124,11 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 	private static LanguageCondition ReadLanguage(ref Utf8JsonReader reader, MetadataJsonSerializerOptions _)
 	{
 		LanguageCondition condition = new();
-		while (reader.Read())
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.EndObject)
-				break;
 			if (reader.TokenType == JsonTokenType.PropertyName)
 			{
-				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-				reader.Read();
-				if (propertyName.SequenceEqual("Language"u8) && EnumConverter.TryParse(reader.ValueSpan, out LanguageCondition.Language languages))
+				if (reader.ValueTextEquals("Language"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out LanguageCondition.Language languages))
 					condition.TargetLanguage = languages;
 			}
 		}
@@ -148,17 +137,16 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 	private static LastHitCondition ReadLastHit(ref Utf8JsonReader reader, MetadataJsonSerializerOptions _)
 	{
 		LastHitCondition condition = new();
-		while (reader.Read())
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.EndObject)
-				break;
 			if (reader.TokenType == JsonTokenType.PropertyName)
 			{
-				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-				reader.Read();
-				if (propertyName.SequenceEqual("row"u8))
+				if (reader.ValueTextEquals("row"u8))
+				{
+					reader.Read();
 					condition.Row = reader.GetSByte();
-				else if (propertyName.SequenceEqual("result"u8) && EnumConverter.TryParse(reader.ValueSpan, out LastHitCondition.HitResult result))
+				}
+				else if (reader.ValueTextEquals("result"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out LastHitCondition.HitResult result))
 					condition.Result = result;
 			}
 		}
@@ -167,16 +155,15 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 	private static PlayerModeCondition ReadPlayerMode(ref Utf8JsonReader reader, MetadataJsonSerializerOptions _)
 	{
 		PlayerModeCondition condition = new();
-		while (reader.Read())
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.EndObject)
-				break;
 			if (reader.TokenType == JsonTokenType.PropertyName)
 			{
-				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-				reader.Read();
-				if (propertyName.SequenceEqual("twoPlayerMode"u8))
+				if (reader.ValueTextEquals("twoPlayerMode"u8))
+				{
+					reader.Read();
 					condition.TwoPlayerMode = reader.GetBoolean();
+				}
 			}
 		}
 		return condition;
@@ -184,16 +171,15 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 	private static TimesExecutedCondition ReadTimesExecuted(ref Utf8JsonReader reader, MetadataJsonSerializerOptions _)
 	{
 		TimesExecutedCondition condition = new();
-		while (reader.Read())
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.EndObject)
-				break;
 			if (reader.TokenType == JsonTokenType.PropertyName)
 			{
-				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-				reader.Read();
-				if (propertyName.SequenceEqual("maxTimes"u8))
+				if (reader.ValueTextEquals("maxTimes"u8))
+				{
+					reader.Read();
 					condition.MaxTimes = reader.GetInt32();
+				}
 			}
 		}
 		return condition;
@@ -201,16 +187,15 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 	private static NarrationCondition ReadNarration(ref Utf8JsonReader reader, MetadataJsonSerializerOptions _)
 	{
 		NarrationCondition condition = new();
-		while (reader.Read())
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.EndObject)
-				break;
 			if (reader.TokenType == JsonTokenType.PropertyName)
 			{
-				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-				reader.Read();
-				if (propertyName.SequenceEqual("narrationEnabled"u8))
+				if (reader.ValueTextEquals("narrationEnabled"u8))
+				{
+					reader.Read();
 					condition.NarrationEnabled = reader.GetBoolean();
+				}
 			}
 		}
 		return condition;
@@ -218,15 +203,11 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 	private static AccessibilityCondition ReadAccessibility(ref Utf8JsonReader reader, MetadataJsonSerializerOptions _)
 	{
 		AccessibilityCondition condition = new();
-		while (reader.Read())
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.EndObject)
-				break;
 			if (reader.TokenType == JsonTokenType.PropertyName)
 			{
-				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-				reader.Read();
-				if (propertyName.SequenceEqual("effectType"u8) && EnumConverter.TryParse(reader.ValueSpan, out EffectType effectType))
+				if (reader.ValueTextEquals("effectType"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out EffectType effectType))
 					condition.TargetEffectType = effectType;
 			}
 		}

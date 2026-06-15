@@ -16,7 +16,7 @@ public record class HideRow : BaseRowAction
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.String, JsonTokenType.True, JsonTokenType.False);
 			return reader.TokenType switch
 			{
-				JsonTokenType.String => TryParse(reader.ValueSpan, out ShowTargetType result) ? result : ShowTargetType.Hidden,
+				JsonTokenType.String => TryParse(ref reader, out ShowTargetType result) ? result : ShowTargetType.Hidden,
 				JsonTokenType.True => ShowTargetType.Visible,
 				JsonTokenType.False => ShowTargetType.Hidden,
 				_ => ShowTargetType.Hidden,

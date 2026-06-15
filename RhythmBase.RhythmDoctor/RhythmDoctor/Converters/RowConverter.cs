@@ -10,14 +10,10 @@ internal class RowConverter : MetadataJsonConverter<Row>
     public override Row? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
     {
         Row result = [];
-        while (reader.Read())
+        while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
         {
-            if (reader.TokenType == JsonTokenType.EndObject)
-                break;
             JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-            ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-            reader.Read();
-            if (propertyName.SequenceEqual("character"u8))
+            if (reader.ValueTextEquals("character"u8) && reader.Read())
             {
                 string character = reader.GetString() ?? "";
                 if (character.StartsWith("custom:"))
@@ -25,30 +21,32 @@ internal class RowConverter : MetadataJsonConverter<Row>
                 else if (EnumConverter.TryParse(character, out Characters rdc))
                     result.Character = rdc;
             }
-            else if (propertyName.SequenceEqual("cpuMarker"u8) && EnumConverter.TryParse(reader.ValueSpan, out Characters value0))
+            else if (reader.ValueTextEquals("cpuMarker"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out Characters value0))
                 result.CpuMarker = value0;
-            else if (propertyName.SequenceEqual("rowType"u8) && EnumConverter.TryParse(reader.ValueSpan, out RowType value1))
+            else if (reader.ValueTextEquals("rowType"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out RowType value1))
                 result.RowType = value1;
-            else if (propertyName.SequenceEqual("rooms"u8))
+            else if (reader.ValueTextEquals("rooms"u8) && reader.Read())
                 result.Room = TypeConverterRegistry.Read<SingleRoom>(ref reader, options);
-            else if (propertyName.SequenceEqual("hideAtStart"u8))
+            else if (reader.ValueTextEquals("hideAtStart"u8) && reader.Read())
                 result.HideAtStart = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("player"u8) && EnumConverter.TryParse(reader.ValueSpan, out PlayerType value2))
+            else if (reader.ValueTextEquals("player"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out PlayerType value2))
                 result.Player = value2;
-            else if (propertyName.SequenceEqual("muteBeats"u8))
+            else if (reader.ValueTextEquals("muteBeats"u8) && reader.Read())
                 result.MuteBeats = reader.GetBoolean();
-            else if (propertyName.SequenceEqual("rowToMimic"u8))
+            else if (reader.ValueTextEquals("rowToMimic"u8) && reader.Read())
                 result.RowToMimic = reader.GetSByte();
-            else if (propertyName.SequenceEqual("pulseSound"u8))
+            else if (reader.ValueTextEquals("pulseSound"u8) && reader.Read())
                 result.Sound.Filename = reader.GetString() ?? "";
-            else if (propertyName.SequenceEqual("pulseSoundVolume"u8))
+            else if (reader.ValueTextEquals("pulseSoundVolume"u8) && reader.Read())
                 result.Sound.Volume = reader.GetInt32();
-            else if (propertyName.SequenceEqual("pulseSoundPitch"u8))
+            else if (reader.ValueTextEquals("pulseSoundPitch"u8) && reader.Read())
                 result.Sound.Pitch = reader.GetInt32();
-            else if (propertyName.SequenceEqual("pulseSoundPan"u8))
+            else if (reader.ValueTextEquals("pulseSoundPan"u8) && reader.Read())
                 result.Sound.Pan = reader.GetInt32();
-            else if (propertyName.SequenceEqual("pulseSoundOffset"u8))
+            else if (reader.ValueTextEquals("pulseSoundOffset"u8) && reader.Read())
                 result.Sound.Offset = TimeSpan.FromMilliseconds(reader.GetDouble());
+            else
+                reader.Skip();
         }
         return result;
     }

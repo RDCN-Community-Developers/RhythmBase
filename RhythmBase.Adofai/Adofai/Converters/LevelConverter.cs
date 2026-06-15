@@ -25,7 +25,7 @@ internal class LevelConverter : MetadataJsonConverter<Level>
 			if (reader.TokenType == JsonTokenType.EndObject)
 				break;
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-			if (reader.ValueSpan.SequenceEqual("angleData"u8))
+			if (reader.ValueTextEquals("angleData"u8))
 			{
 				reader.Read();
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
@@ -45,7 +45,7 @@ internal class LevelConverter : MetadataJsonConverter<Level>
 				reader.Read();
 				isTileLoad = true;
 			}
-			else if (reader.ValueSpan.SequenceEqual("settings"u8))
+			else if (reader.ValueTextEquals("settings"u8))
 			{
 				reader.Read();
 				level.Settings = settingsConverter.Read(ref reader, typeof(Settings), options.JsonSerializerOptions) ?? new();
@@ -56,7 +56,7 @@ internal class LevelConverter : MetadataJsonConverter<Level>
 					throw new VersionTooLowException(MinimumSupportedVersionAdofai);
 #endif
 			}
-			else if (reader.ValueSpan.SequenceEqual("actions"u8))
+			else if (reader.ValueTextEquals("actions"u8))
 			{
 				reader.Read();
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
@@ -78,7 +78,7 @@ internal class LevelConverter : MetadataJsonConverter<Level>
 				}
 				reader.Read();
 			}
-			else if (reader.ValueSpan.SequenceEqual("decorations"u8))
+			else if (reader.ValueTextEquals("decorations"u8))
 			{
 				reader.Read();
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);

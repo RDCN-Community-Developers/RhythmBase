@@ -16,7 +16,7 @@ internal class CpuTypeGroupConverter : MetadataJsonConverter<Characters[]>
 		{
 			if(reader.TokenType == JsonTokenType.String)
 			{
-				group[i] = EnumConverter.TryParse(reader.ValueSpan, out Characters type) ? type : Characters.None;
+				group[i] = EnumConverter.TryParse(ref reader, out Characters type) ? type : Characters.None;
 			}
 			else
 			{

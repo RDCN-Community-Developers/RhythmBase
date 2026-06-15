@@ -12,22 +12,21 @@ internal abstract class MemberConverter<TEvent> : EventMemberConverterBase where
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-			if (propertyName.IsEmpty)
-				throw new JsonException("Property name cannot be null");
-			reader.Read();
-			if (propertyName.SequenceEqual("eventType"u8))
+			if (reader.ValueTextEquals("eventType"u8))
+			{
+				reader.Read();
 				continue;
-			else if (!Read(ref reader, propertyName, ref value, options))
+			}
+			string pn = reader.GetString() ?? "";
+			if (!Read(ref reader, ref value, options))
 			{
 #if DEBUG
 				if (!(false
 					))
-					Console.WriteLine($"The key {Encoding.UTF8.GetString([.. propertyName])} of {value.Type} not found.");
+					Console.WriteLine($"The key {pn} of {value.Type} not found.");
 #endif
-				value[
-					Encoding.UTF8.GetString(propertyName)
-					] = JsonElement.ParseValue(ref reader);
+				reader.Read();
+				value[pn] = JsonElement.ParseValue(ref reader);
 			}
 		}
 		return value;
@@ -44,7 +43,7 @@ internal abstract class MemberConverter<TEvent> : EventMemberConverterBase where
 		}
 		writer.WriteEndObject();
 	}
-	protected virtual bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
+	protected virtual bool Read(ref Utf8JsonReader reader, ref TEvent value, MetadataJsonSerializerOptions options)
 	{
 		bool result = false;
 		return result;

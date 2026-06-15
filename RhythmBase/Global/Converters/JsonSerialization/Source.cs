@@ -11,71 +11,85 @@ namespace RhythmBase.Global.Converters.JsonSerialization;
 public interface IJsonDataSource
 {
     /// <summary>
-    /// Asynchronously obtains the JSON data as a <see cref="ReadOnlyMemory{T}"/> of UTF-8 bytes.
+    /// Asynchronously obtains the JSON data as a <see cref="ReadOnlySequence{T}"/> of UTF-8 bytes.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The JSON data as UTF-8 bytes.</returns>
-    ValueTask<ReadOnlyMemory<byte>> GetMemoryAsync(CancellationToken cancellationToken = default);
+    /// <returns>The JSON data as a sequence of UTF-8 byte segments.</returns>
+    ValueTask<ReadOnlySequence<byte>> GetSequenceAsync(CancellationToken cancellationToken = default);
     /// <summary>
-    /// Synchronously obtains the JSON data as a <see cref="ReadOnlyMemory{T}"/> of UTF-8 bytes.
+    /// Synchronously obtains the JSON data as a <see cref="ReadOnlySequence{T}"/> of UTF-8 bytes.
     /// </summary>
-    /// <returns>The JSON data as UTF-8 bytes.</returns>
-    ReadOnlyMemory<byte> GetMemory();
-    /// <summary>
-    /// Gets a value indicating whether <see cref="GetMemory"/> can return data directly without buffering.
-    /// </summary>
-    bool CanGetMemoryDirectly { get; }
+    /// <returns>The JSON data as a sequence of UTF-8 byte segments.</returns>
+    ReadOnlySequence<byte> GetSequence();
 }
+
 /// <summary>
-/// An <see cref="IJsonDataSource"/> backed by a <see cref="Stream"/>. The stream is fully buffered
-/// into memory on construction, with special character escaping applied.
+/// An <see cref="IJsonDataSource"/> backed by a <see cref="Stream"/>. The stream is processed
+/// through a <see cref="JsonCompactStream"/> and buffered in segmented chunks to avoid large
+/// contiguous allocations.
 /// </summary>
 public class StreamDataSource : IJsonDataSource
 {
-    private readonly Stream stream;
+    private readonly ReadOnlySequence<byte> dataSequence;
+
+    private sealed class JsonSegment : ReadOnlySequenceSegment<byte>
+    {
+        public JsonSegment(ReadOnlyMemory<byte> memory)
+        {
+            Memory = memory;
+        }
+
+        public JsonSegment Append(ReadOnlyMemory<byte> memory)
+        {
+            var next = new JsonSegment(memory)
+            {
+                RunningIndex = RunningIndex + Memory.Length
+            };
+            Next = next;
+            return next;
+        }
+    }
+
     /// <summary>
     /// Initializes a new instance of <see cref="StreamDataSource"/> from the specified stream.
     /// </summary>
     /// <param name="stream">The stream containing JSON data.</param>
     public StreamDataSource(Stream stream)
     {
-        MemoryStream ms = new();
         using JsonCompactStream escStream = new(stream,
-          allowNewlinesInStrings: true,
-          allowImplicitComma: true,
-          allowTrailingComma: true);
-        escStream.CopyTo(ms);
-        ms.Position = 0;
-        this.stream = ms;
-    }
-    /// <inheritdoc/>
-    public bool CanGetMemoryDirectly => false;
-    /// <inheritdoc/>
-    public ReadOnlyMemory<byte> GetMemory()
-    {
-        throw new NotSupportedException();
-    }
-    /// <inheritdoc/>
-    public async ValueTask<ReadOnlyMemory<byte>> GetMemoryAsync(CancellationToken cancellationToken = default)
-    {
-        byte[] buffer = ArrayPool<byte>.Shared.Rent((int)stream.Length);
+            allowNewlinesInStrings: true,
+            allowImplicitComma: true,
+            allowTrailingComma: true);
+
+        var head = new JsonSegment(ReadOnlyMemory<byte>.Empty);
+        var current = head;
+        const int chunkSize = 65536;
+
+        byte[] rentBuf = ArrayPool<byte>.Shared.Rent(chunkSize);
         try
         {
-            int bytesRead = 3;
-            // bom
-            await stream.ReadAsync(buffer, 0, 3, cancellationToken);
-            if (buffer is [0xEF, 0xBB, 0xBF, ..])
-                bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length - 3, cancellationToken);
-            else
-                bytesRead += await stream.ReadAsync(buffer, 3, buffer.Length - 3, cancellationToken);
-            return new ReadOnlyMemory<byte>(buffer, 0, bytesRead);
+            int read;
+            while ((read = escStream.Read(rentBuf, 0, rentBuf.Length)) > 0)
+            {
+                byte[] owned = new byte[read];
+                Buffer.BlockCopy(rentBuf, 0, owned, 0, read);
+                current = current.Append(owned);
+            }
         }
-        catch
+        finally
         {
-            ArrayPool<byte>.Shared.Return(buffer);
-            throw;
+            ArrayPool<byte>.Shared.Return(rentBuf);
         }
+
+        dataSequence = new ReadOnlySequence<byte>(head, 0, current, current.Memory.Length);
     }
+
+    /// <inheritdoc/>
+    public ReadOnlySequence<byte> GetSequence() => dataSequence;
+
+    /// <inheritdoc/>
+    public ValueTask<ReadOnlySequence<byte>> GetSequenceAsync(CancellationToken cancellationToken = default)
+        => new(dataSequence);
 }
 
 /// <summary>
@@ -84,6 +98,7 @@ public class StreamDataSource : IJsonDataSource
 public class JsonDocumentDataSource : IJsonDataSource
 {
     private readonly JsonDocument jsonDocument;
+
     /// <summary>
     /// Initializes a new instance of <see cref="JsonDocumentDataSource"/> from the specified document.
     /// </summary>
@@ -92,25 +107,23 @@ public class JsonDocumentDataSource : IJsonDataSource
     {
         this.jsonDocument = jsonDocument;
     }
+
     /// <inheritdoc/>
-    public bool CanGetMemoryDirectly => true;
+    public ReadOnlySequence<byte> GetSequence()
+        => new(Encoding.UTF8.GetBytes(jsonDocument.RootElement.GetRawText()));
+
     /// <inheritdoc/>
-    public ReadOnlyMemory<byte> GetMemory()
-    {
-        return Encoding.UTF8.GetBytes(jsonDocument.RootElement.GetRawText());
-    }
-    /// <inheritdoc/>
-    public ValueTask<ReadOnlyMemory<byte>> GetMemoryAsync(CancellationToken cancellationToken = default)
-    {
-        return new(GetMemory());
-    }
+    public ValueTask<ReadOnlySequence<byte>> GetSequenceAsync(CancellationToken cancellationToken = default)
+        => new(GetSequence());
 }
+
 /// <summary>
 /// An <see cref="IJsonDataSource"/> backed by a pre-loaded <see cref="ReadOnlyMemory{T}"/> of UTF-8 bytes.
 /// </summary>
 public class ReadOnlyMemoryDataSource : IJsonDataSource
 {
     private readonly ReadOnlyMemory<byte> jsonData;
+
     /// <summary>
     /// Initializes a new instance of <see cref="ReadOnlyMemoryDataSource"/> from the specified byte memory.
     /// </summary>
@@ -119,16 +132,11 @@ public class ReadOnlyMemoryDataSource : IJsonDataSource
     {
         this.jsonData = jsonData;
     }
+
     /// <inheritdoc/>
-    public bool CanGetMemoryDirectly => true;
+    public ReadOnlySequence<byte> GetSequence() => new(jsonData);
+
     /// <inheritdoc/>
-    public ReadOnlyMemory<byte> GetMemory()
-    {
-        return jsonData;
-    }
-    /// <inheritdoc/>
-    public ValueTask<ReadOnlyMemory<byte>> GetMemoryAsync(CancellationToken cancellationToken = default)
-    {
-        return new(jsonData);
-    }
+    public ValueTask<ReadOnlySequence<byte>> GetSequenceAsync(CancellationToken cancellationToken = default)
+        => new(new ReadOnlySequence<byte>(jsonData));
 }

@@ -20,6 +20,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 	internal LevelReadSettings ReadSettings { get; set; } = new LevelReadSettings();
 	internal LevelWriteSettings WriteSettings { get; set; } = new LevelWriteSettings();
 	internal string? DirectoryName { get; set; }
+
 	public override Level? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 	{
 		reader.Read();
@@ -29,63 +30,51 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-			if (reader.ValueSpan.SequenceEqual("settings"u8))
+			if (reader.ValueTextEquals("settings"u8) && reader.Read())
 			{
-				reader.Read();
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 				level.Settings = settingsConverter.Read(ref reader, typeof(Settings), options) ?? new();
-				if (ReadSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
-					foreach (FileReference file in level.Settings.GetAllFileReferences())
+				if (!ReadSettings.LoadAssets || string.IsNullOrEmpty(DirectoryName)) continue;
+				foreach (FileReference file in level.Settings.GetAllFileReferences())
+					if (!file.IsEmpty && file.IsExist(DirectoryName!))
+						ReadSettings.OnFileReferenceEncountered(level, file);
+			}
+			else if (reader.ValueTextEquals("rows"u8) && reader.Read())
+			{
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
+				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+				{
+					Row? e = rowConverter.Read(ref reader, typeof(Row), options);
+					if (e == null) continue;
+					level.Rows.Add(e);
+					string assPath = DirectoryName + e.Character.CustomCharacter;
+					if (!ReadSettings.LoadAssets || string.IsNullOrEmpty(DirectoryName)) continue;
+					foreach (FileReference file in e.Character.GetAllPossibleFileReferences())
 						if (!file.IsEmpty && file.IsExist(DirectoryName!))
 							ReadSettings.OnFileReferenceEncountered(level, file);
-			}
-			else if (reader.ValueSpan.SequenceEqual("rows"u8))
-			{
-				reader.Read();
-				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
-				while (reader.Read())
-				{
-					if (reader.TokenType == JsonTokenType.EndArray)
-						break;
-					Row? e = rowConverter.Read(ref reader, typeof(Row), options);
-					if (e != null)
-					{
-						level.Rows.Add(e);
-						string assPath = DirectoryName + e.Character.CustomCharacter;
-						if (ReadSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
-							foreach (FileReference file in e.Character.GetAllPossibleFileReferences())
-								if (!file.IsEmpty && file.IsExist(DirectoryName!))
-									ReadSettings.OnFileReferenceEncountered(level, file);
-								else if (file.IsExist(assPath))
-									ReadSettings.OnFileReferenceEncountered(level, DirectoryName + Path.DirectorySeparatorChar + file);
-					}
+						else if (file.IsExist(assPath))
+							ReadSettings.OnFileReferenceEncountered(level, DirectoryName + Path.DirectorySeparatorChar + file);
 				}
 			}
-			else if (reader.ValueSpan.SequenceEqual("decorations"u8))
+			else if (reader.ValueTextEquals("decorations"u8) && reader.Read())
 			{
-				reader.Read();
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
-				while (reader.Read())
+				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 				{
-					if (reader.TokenType == JsonTokenType.EndArray)
-						break;
 					Decoration? e = decorationConverter.Read(ref reader, typeof(Decoration), options);
-					if (e != null)
-					{
-						level.Decorations.Add(e);
-						string assPath = DirectoryName + e.Character.CustomCharacter;
-						if (ReadSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
-							foreach (FileReference file in e.Character.GetAllPossibleFileReferences())
-								if (!file.IsEmpty && file.IsExist(DirectoryName!))
-									ReadSettings.OnFileReferenceEncountered(level, file);
-								else if (file.IsExist(assPath))
-									ReadSettings.OnFileReferenceEncountered(level, DirectoryName + Path.DirectorySeparatorChar + file);
-					}
+					if (e == null) continue;
+					level.Decorations.Add(e);
+					string assPath = DirectoryName + e.Character.CustomCharacter;
+					if (!ReadSettings.LoadAssets || string.IsNullOrEmpty(DirectoryName)) continue;
+					foreach (FileReference file in e.Character.GetAllPossibleFileReferences())
+						if (!file.IsEmpty && file.IsExist(DirectoryName!))
+							ReadSettings.OnFileReferenceEncountered(level, file);
+						else if (file.IsExist(assPath))
+							ReadSettings.OnFileReferenceEncountered(level, DirectoryName + Path.DirectorySeparatorChar + file);
 				}
 			}
-			else if (reader.ValueSpan.SequenceEqual("events"u8))
+			else if (reader.ValueTextEquals("events"u8) && reader.Read())
 			{
-				reader.Read();
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				Dictionary<int, FloatingText> floatingTexts = [];
 				List<AdvanceText> advanceTexts = [];
@@ -110,35 +99,35 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 						throw;
 					}
 #else
-                    Utf8JsonReader checkPoint = reader;
-                    try
-                    {
-                        e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
-                    }
-                    catch (JsonException)
-                    {
-                        level.Dispose();
-                        throw;
-                    }
-                    catch (Exception ex)
-                    {
-                        JsonElement element = JsonElement.ParseValue(ref checkPoint);
-                        ReadSettings.OnUnreadableEventEncountered(level, element, ex.Message);
-                        continue;
-                    }
+          Utf8JsonReader checkPoint = reader;
+          try
+          {
+              e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
+          }
+          catch (JsonException)
+          {
+              level.Dispose();
+              throw;
+          }
+          catch (Exception ex)
+          {
+              JsonElement element = JsonElement.ParseValue(ref checkPoint);
+              ReadSettings.OnUnreadableEventEncountered(level, element, ex.Message);
+              continue;
+          }
 #endif
 					if (e == null)
 						continue;
 					level.Add(e);
-					if (e is FloatingText ft)
+					if (e is FloatingText ft && ft._extraData.TryGetValue("id", out JsonElement v1))
 					{
-						JsonElement v1 = ft["id"];
 						int v2 = v1.GetInt32();
 						floatingTexts[v2] = ft;
 						ft._extraData.Remove("id");
 					}
 					else if (e is AdvanceText at)
 						advanceTexts.Add(at);
+
 					if (e is IFileEvent fe)
 					{
 						if (ReadSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
@@ -147,10 +136,12 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 									ReadSettings.OnFileReferenceEncountered(level, file);
 					}
 				}
+
 				foreach (AdvanceText? at in advanceTexts)
 				{
-					int targetId = at["id"].GetInt32();
-					if (floatingTexts.TryGetValue(targetId, out FloatingText? ft))
+					if (at._extraData.TryGetValue("id", out JsonElement je) &&
+					    je.TryGetInt32(out int targetId) &&
+					    floatingTexts.TryGetValue(targetId, out FloatingText? ft))
 					{
 						at.Parent = ft;
 						ft.Children.Add(at);
@@ -158,13 +149,18 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 					}
 					else
 					{
-						ReadSettings.OnUnreadableEventEncountered(level, JsonElement.Parse(at.ToJsonString()), $"AdvanceText references non-existent FloatingText id {targetId}.");
+						if (at._extraData.TryGetValue("id", out je) &&
+						    je.TryGetInt32(out targetId))
+							ReadSettings.OnUnreadableEventEncountered(level, JsonElement.Parse(at.ToJsonString()),
+								$"AdvanceText references non-existent FloatingText id {targetId}.");
+						else
+							ReadSettings.OnUnreadableEventEncountered(level, JsonElement.Parse(at.ToJsonString()),
+								$"AdvanceText don't has field id.");
 					}
 				}
 			}
-			else if (reader.ValueSpan.SequenceEqual("bookmarks"u8))
+			else if (reader.ValueTextEquals("bookmarks"u8) && reader.Read())
 			{
-				reader.Read();
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				reader.Read();
 				while (true)
@@ -176,9 +172,8 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 					reader.Read();
 				}
 			}
-			else if (reader.ValueSpan.SequenceEqual("colorPalette"u8))
+			else if (reader.ValueTextEquals("colorPalette"u8) && reader.Read())
 			{
-				reader.Read();
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				int colorIndex = 0;
 				while (reader.Read())
@@ -187,21 +182,18 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 					{
 						break;
 					}
+
 					string? e = reader.GetString();
 					Color color = e is null ? default : Color.FromRgba(e);
 					level.ColorPalette[colorIndex] = color;
 					colorIndex++;
 				}
 			}
-			else if (reader.ValueSpan.SequenceEqual("conditionals"u8))
+			else if (reader.ValueTextEquals("conditionals"u8) && reader.Read())
 			{
-				reader.Read();
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
-				reader.Read();
-				while (true)
+				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 				{
-					if (reader.TokenType == JsonTokenType.EndArray)
-						break;
 					BaseConditional? e = conditionalConverter.Read(ref reader, typeof(BaseConditional), options);
 					if (e != null)
 						level.Conditionals.Add(e);
@@ -212,8 +204,10 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 				reader.Skip();
 			}
 		}
+
 		return level;
 	}
+
 	public override void Write(Utf8JsonWriter writer, Level value, MetadataJsonSerializerOptions options)
 	{
 		baseEventConverter.WithWriteSettings(WriteSettings);
@@ -221,7 +215,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		MetadataJsonSerializerOptions localOptions = new()
 		{
 			JsonSerializerOptions = new(options.JsonSerializerOptions)
-			{ WriteIndented = false, }
+				{ WriteIndented = false, }
 		};
 		byte[] bytes = GetIndentByte(writer, options.JsonSerializerOptions.IndentCharacter, 2);
 		ReadOnlySpan<byte> sl;
@@ -235,7 +229,8 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 
 		writer.WritePropertyName("rows");
 		writer.WriteStartArray();
-		using Utf8JsonWriter noIndentWriter = new(stream, new JsonWriterOptions { Indented = false, Encoder = options.JsonSerializerOptions.Encoder });
+		using Utf8JsonWriter noIndentWriter = new(stream,
+			new JsonWriterOptions { Indented = false, Encoder = options.JsonSerializerOptions.Encoder });
 		using NoIndentScope noIndentScope = new(options.JsonSerializerOptions.Encoder, localOptions);
 		noIndentScope.WriteNoIndentArrayTo(options, writer, value.Rows, (writer, row, options) =>
 		{
@@ -291,5 +286,6 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		writer.WriteEndObject();
 	}
 
-	private static byte[] GetIndentByte(Utf8JsonWriter writer, char indentChar, int indentSize) => Encoding.UTF8.GetBytes(Environment.NewLine + new string(indentChar, writer.CurrentDepth * indentSize));
+	private static byte[] GetIndentByte(Utf8JsonWriter writer, char indentChar, int indentSize) =>
+		Encoding.UTF8.GetBytes(Environment.NewLine + new string(indentChar, writer.CurrentDepth * indentSize));
 }

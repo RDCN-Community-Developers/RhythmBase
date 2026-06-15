@@ -556,18 +556,14 @@ public partial class ConverterGenerator : IIncrementalGenerator
 				public static T DeserializeMainEntry<T>(RhythmBase.Global.Converters.JsonSerialization.IJsonDataSource dataSource, RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
 						where T : new()
 				{
-					ReadOnlyMemory<byte> jsonData =
-							dataSource.CanGetMemoryDirectly
-							? dataSource.GetMemory()
-							: dataSource.GetMemoryAsync().GetAwaiter().GetResult();
-					Utf8JsonReader reader = new(jsonData.Span,
+					Utf8JsonReader reader = new(dataSource.GetSequence(),
 							new() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip });
 					return RhythmBase.{{registryId}}.Converters.TypeConverterRegistry.Read<T>(ref reader, options) ?? new();
 				}
 				public static async Task<T> DeserializeMainEntryAsync<T>(RhythmBase.Global.Converters.JsonSerialization.IJsonDataSource dataSource, RhythmBase.Global.Converters.MetadataJsonSerializerOptions options, CancellationToken cancellationToken = default)
 						where T : new()
 				{
-					Utf8JsonReader reader = new((await dataSource.GetMemoryAsync(cancellationToken)).Span,
+					Utf8JsonReader reader = new(await dataSource.GetSequenceAsync(cancellationToken),
 							new() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip });
 					return RhythmBase.{{registryId}}.Converters.TypeConverterRegistry.Read<T>(ref reader, options) ?? new();
 				}

@@ -57,16 +57,26 @@ public abstract class ColorConverter : JsonConverter<Color>
                 if (reader.TokenType == JsonTokenType.EndObject)
                 { return color; }
                 JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-                ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-                reader.Read();
-                if (propertyName.SequenceEqual("a"u8) || propertyName.SequenceEqual("alpha"u8))
+                if (reader.ValueTextEquals("a"u8) || reader.ValueTextEquals("alpha"u8))
+                {
+                    reader.Read();
                     color.A = reader.GetByte();
-                else if (propertyName.SequenceEqual("r"u8) || propertyName.SequenceEqual("red"u8))
+                }
+                else if (reader.ValueTextEquals("r"u8) || reader.ValueTextEquals("red"u8))
+                {
+                    reader.Read();
                     color.R = reader.GetByte();
-                else if (propertyName.SequenceEqual("g"u8) || propertyName.SequenceEqual("green"u8))
+                }
+                else if (reader.ValueTextEquals("g"u8) || reader.ValueTextEquals("green"u8))
+                {
+                    reader.Read();
                     color.G = reader.GetByte();
-                else if (propertyName.SequenceEqual("b"u8) || propertyName.SequenceEqual("blue"u8))
+                }
+                else if (reader.ValueTextEquals("b"u8) || reader.ValueTextEquals("blue"u8))
+                {
+                    reader.Read();
                     color.B = reader.GetByte();
+                }
                 else
                     reader.Skip();
             }
@@ -96,14 +106,21 @@ public abstract class ColorConverter : JsonConverter<Color>
                 if (reader.TokenType == JsonTokenType.EndObject)
                 { return color; }
                 JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-                ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-                reader.Read();
-                if (propertyName.SequenceEqual("r"u8) || propertyName.SequenceEqual("red"u8))
+                if (reader.ValueTextEquals("r"u8) || reader.ValueTextEquals("red"u8))
+                {
+                    reader.Read();
                     color.R = reader.GetByte();
-                else if (propertyName.SequenceEqual("g"u8) || propertyName.SequenceEqual("green"u8))
+                }
+                else if (reader.ValueTextEquals("g"u8) || reader.ValueTextEquals("green"u8))
+                {
+                    reader.Read();
                     color.G = reader.GetByte();
-                else if (propertyName.SequenceEqual("b"u8) || propertyName.SequenceEqual("blue"u8))
+                }
+                else if (reader.ValueTextEquals("b"u8) || reader.ValueTextEquals("blue"u8))
+                {
+                    reader.Read();
                     color.B = reader.GetByte();
+                }
                 else
                     reader.Skip();
             }

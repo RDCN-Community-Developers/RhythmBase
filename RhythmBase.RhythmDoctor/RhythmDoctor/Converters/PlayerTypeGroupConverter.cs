@@ -18,7 +18,7 @@ internal class PlayerTypeGroupConverter : MetadataJsonConverter<PlayerTypeGroup>
 			{
 				reader.Read();
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.String);
-				group[i] = RhythmBase.Global.Converters.EnumConverter.TryParse(reader.ValueSpan, out PlayerType type) ? type : PlayerType.NoChange;
+				group[i] = RhythmBase.Global.Converters.EnumConverter.TryParse(ref reader, out PlayerType type) ? type : PlayerType.NoChange;
 			}
 		else
 		{
@@ -26,7 +26,7 @@ internal class PlayerTypeGroupConverter : MetadataJsonConverter<PlayerTypeGroup>
 			while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 			{
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.String);
-				group[i] = RhythmBase.Global.Converters.EnumConverter.TryParse(reader.ValueSpan, out PlayerType type) ? type : PlayerType.NoChange;
+				group[i] = RhythmBase.Global.Converters.EnumConverter.TryParse(ref reader, out PlayerType type) ? type : PlayerType.NoChange;
 				i++;
 			}
 		}

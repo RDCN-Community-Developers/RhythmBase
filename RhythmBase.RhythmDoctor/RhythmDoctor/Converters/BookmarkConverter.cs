@@ -27,22 +27,24 @@ internal class BookmarkConverter() : MetadataJsonConverter<Bookmark>
 				break;
 			if (reader.TokenType == JsonTokenType.PropertyName)
 			{
-				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-				reader.Read();
-				switch (propertyName)
+				if (reader.ValueTextEquals("bar"u8))
 				{
-					case var p when p.SequenceEqual("bar"u8):
-						bar = reader.GetInt32();
-						break;
-					case var p when p.SequenceEqual("beat"u8):
-						beat = reader.GetSingle();
-						break;
-					case var p when p.SequenceEqual("color"u8):
-						color = (Bookmark.BookmarkColors)reader.GetInt32();
-						break;
-					default:
-						reader.Skip();
-						break;
+					reader.Read();
+					bar = reader.GetInt32();
+				}
+				else if (reader.ValueTextEquals("beat"u8))
+				{
+					reader.Read();
+					beat = reader.GetSingle();
+				}
+				else if (reader.ValueTextEquals("color"u8))
+				{
+					reader.Read();
+					color = (Bookmark.BookmarkColors)reader.GetInt32();
+				}
+				else
+				{
+					reader.Skip();
 				}
 			}
 		}

@@ -210,17 +210,17 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 	public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 	{
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
-		ReadOnlySpan<byte> type = default;
+		string? type = null;
 
 		Utf8JsonReader checkpoint = reader;
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
 			if (reader.TokenType == JsonTokenType.PropertyName)
 			{
-				if (reader.ValueSpan.SequenceEqual("type"u8))
+				if (reader.ValueTextEquals("type"u8))
 				{
 					reader.Read();
-					type = reader.ValueSpan;
+					type = reader.GetString();
 					break;
 				}
 				else
@@ -230,8 +230,8 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 			}
 		}
 		reader = checkpoint; IBaseEvent e;
-		if (!EnumConverter.TryParse(type, out EventType typeEnum))
-			e = ReadForwardEvent(ref reader) ?? (new ForwardEvent() { ActualType = type.ToString() ?? "" });
+		if (type is null || !Enum.TryParse(type, true, out EventType typeEnum))
+			e = ReadForwardEvent(ref reader) ?? (new ForwardEvent() { ActualType = type ?? "" });
 		else
 			e = EventConverterMap.GetConverter(typeEnum).WithReadSettings(_rs).ReadProperties(ref reader, options);
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndObject);

@@ -10,16 +10,16 @@ internal partial class RDMemberConverter
 {
 		internal abstract class BaseRowAction<TEvent> : MemberConverter<TEvent> where TEvent : BaseRowAction, new()
 		{
-				protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
-				{
-						if (base.Read(ref reader, propertyName, ref value, options))
-								return true;
-						if (propertyName.SequenceEqual("row"u8))
-								value._row = reader.GetInt32();
-						else
-								return false;
+		protected override bool Read(ref Utf8JsonReader reader, ref TEvent value, MetadataJsonSerializerOptions options)
+		{
+				if (base.Read(ref reader, ref value, options))
 						return true;
-				}
+				if (reader.ValueTextEquals("row"u8) && reader.Read())
+						value._row = reader.GetInt32();
+				else
+						return false;
+				return true;
+		}
 				protected override void Write(Utf8JsonWriter writer, ref TEvent value, MetadataJsonSerializerOptions options)
 				{
 						base.Write(writer, ref value, options);
@@ -31,11 +31,11 @@ internal partial class RDMemberConverter
 		}
 		internal abstract class BaseDecorationAction<TEvent> : MemberConverter<TEvent> where TEvent : BaseDecorationAction, new()
 		{
-				protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
+				protected override bool Read(ref Utf8JsonReader reader, ref TEvent value, MetadataJsonSerializerOptions options)
 				{
-						if (base.Read(ref reader, propertyName, ref value, options))
+						if (base.Read(ref reader, ref value, options))
 								return true;
-						if (propertyName.SequenceEqual("target"u8))
+						if (reader.ValueTextEquals("target"u8) && reader.Read())
 								value._decoId = reader.GetString() ?? "";
 						else
 								return false;
@@ -50,9 +50,9 @@ internal partial class RDMemberConverter
 		}
 		internal abstract class BaseBeatsPerMinute<TEvent> : MemberConverter<TEvent> where TEvent : BaseBeatsPerMinute, new()
 		{
-				protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
+				protected override bool Read(ref Utf8JsonReader reader, ref TEvent value, MetadataJsonSerializerOptions options)
 				{
-						return base.Read(ref reader, propertyName, ref value, options);
+						return base.Read(ref reader, ref value, options);
 				}
 				protected override void Write(Utf8JsonWriter writer, ref TEvent value, MetadataJsonSerializerOptions options)
 				{
@@ -61,9 +61,9 @@ internal partial class RDMemberConverter
 		}
 		internal abstract class BaseWindowEvent<TEvent> : MemberConverter<TEvent> where TEvent : BaseWindowEvent, new()
 		{
-				protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
+				protected override bool Read(ref Utf8JsonReader reader, ref TEvent value, MetadataJsonSerializerOptions options)
 				{
-						return base.Read(ref reader, propertyName, ref value, options);
+						return base.Read(ref reader, ref value, options);
 				}
 				protected override void Write(Utf8JsonWriter writer, ref TEvent value, MetadataJsonSerializerOptions options)
 				{
@@ -72,33 +72,33 @@ internal partial class RDMemberConverter
 		}
 		internal class SetVFXPreset : MemberConverter<Events.SetVFXPreset>
 		{
-				protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref Events.SetVFXPreset value, MetadataJsonSerializerOptions options)
+				protected override bool Read(ref Utf8JsonReader reader, ref Events.SetVFXPreset value, MetadataJsonSerializerOptions options)
 				{
-						if (base.Read(ref reader, propertyName, ref value, options))
+						if (base.Read(ref reader, ref value, options))
 								return true;
-						if (propertyName.SequenceEqual("rooms"u8))
+						if (reader.ValueTextEquals("rooms"u8) && reader.Read())
 								value.Rooms = TypeConverterRegistry.Read<Room>(ref reader, options);
-						else if (propertyName.SequenceEqual("preset"u8))
-								if (reader.TokenType is JsonTokenType.String && EnumConverter.TryParse(reader.ValueSpan, out VfxPreset enumValue0))
+						else if (reader.ValueTextEquals("preset"u8) && reader.Read())
+								if (reader.TokenType is JsonTokenType.String && EnumConverter.TryParse(ref reader, out VfxPreset enumValue0))
 										value.Preset = enumValue0;
 								else if (reader.TokenType is JsonTokenType.Number && reader.TryGetInt32(out int intValue0))
 										value.Preset = (VfxPreset)intValue0;
 								else
 										value.Preset = default;
-						else if (propertyName.SequenceEqual("enable"u8))
+						else if (reader.ValueTextEquals("enable"u8) && reader.Read())
 								if (reader.TokenType is JsonTokenType.True or JsonTokenType.False)
 										value.Enable = reader.GetBoolean();
 								else if (reader.TokenType is JsonTokenType.String)
 										value.Enable = "Enabled" == reader.GetString();
 								else
 										value.Enable = false;
-						else if (propertyName.SequenceEqual("threshold"u8))
+						else if (reader.ValueTextEquals("threshold"u8) && reader.Read())
 								value.Threshold = reader.GetSingle();
-						else if (propertyName.SequenceEqual("intensity"u8))
+						else if (reader.ValueTextEquals("intensity"u8) && reader.Read())
 								value.Intensity = reader.GetSingle();
-						else if (propertyName.SequenceEqual("color"u8))
+						else if (reader.ValueTextEquals("color"u8) && reader.Read())
 								value.Color = TypeConverterRegistry.Read<PaletteColor>(ref reader, options);
-						else if (propertyName.SequenceEqual("floatX"u8))
+						else if (reader.ValueTextEquals("floatX"u8) && reader.Read())
 						{
 								if (reader.TokenType is not JsonTokenType.Null)
 								{
@@ -107,7 +107,7 @@ internal partial class RDMemberConverter
 										value.Amount = p;
 								}
 						}
-						else if (propertyName.SequenceEqual("floatY"u8))
+						else if (reader.ValueTextEquals("floatY"u8) && reader.Read())
 						{
 								if (reader.TokenType is not JsonTokenType.Null)
 								{
@@ -116,18 +116,18 @@ internal partial class RDMemberConverter
 										value.Amount = p;
 								}
 						}
-						else if (propertyName.SequenceEqual("amount"u8))
+						else if (reader.ValueTextEquals("amount"u8) && reader.Read())
 								value.Amount = TypeConverterRegistry.Read<Point>(ref reader, options);
-						else if (propertyName.SequenceEqual("speedPerc"u8))
+						else if (reader.ValueTextEquals("speedPerc"u8) && reader.Read())
 								value.SpeedPercentage = reader.GetSingle();
-						else if (propertyName.SequenceEqual("ease"u8))
-								if (reader.TokenType is JsonTokenType.String && EnumConverter.TryParse(reader.ValueSpan, out Global.Components.Easing.EaseType enumValue1))
+						else if (reader.ValueTextEquals("ease"u8) && reader.Read())
+								if (reader.TokenType is JsonTokenType.String && EnumConverter.TryParse(ref reader, out Global.Components.Easing.EaseType enumValue1))
 										value.Ease = enumValue1;
 								else if (reader.TokenType is JsonTokenType.Number && reader.TryGetInt32(out int intValue1))
 										value.Ease = (Global.Components.Easing.EaseType)intValue1;
 								else
 										value.Ease = default;
-						else if (propertyName.SequenceEqual("duration"u8))
+						else if (reader.ValueTextEquals("duration"u8) && reader.Read())
 								value.Duration = reader.GetSingle();
 						else return false;
 						return true;

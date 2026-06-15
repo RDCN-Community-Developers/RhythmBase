@@ -1,4 +1,5 @@
 ﻿using RhythmBase.Rizline.Events;
+using System.Text;
 using System.Text.Json;
 
 namespace RhythmBase.Rizline.Converters;
@@ -56,15 +57,21 @@ internal abstract class MemberConverter<TEvent> : MemberConverter where TEvent :
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-			reader.Read();
-			if (propertyName.SequenceEqual("type"u8))
+			if (reader.ValueTextEquals("type"u8))
+			{
+				reader.Read();
 				continue;
-			else if (!Read(ref reader, propertyName, ref value, options))
+			}
+		else
+		{
+			string pn = reader.GetString()!;
+			if (!Read(ref reader, ref value, options))
 			{
 				//value[System.Text.Encoding.UTF8.GetString(propertyName)] = JsonDocument.ParseValue(ref reader).RootElement.Clone();
+				reader.Read();
 				reader.Skip();
 			}
+		}
 		}
 		return value;
 	}
@@ -75,10 +82,10 @@ internal abstract class MemberConverter<TEvent> : MemberConverter where TEvent :
 		Write(writer, ref v, options);
 		writer.WriteEndObject();
 	}
-	protected virtual bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
+	protected virtual bool Read(ref Utf8JsonReader reader, ref TEvent value, MetadataJsonSerializerOptions options)
 	{
 		bool result = true;
-		if (propertyName.SequenceEqual("time"u8))
+		if (reader.ValueTextEquals("time"u8) && reader.Read())
 			value.TickTime = new(reader.GetSingle());
 		else
 			result = false;

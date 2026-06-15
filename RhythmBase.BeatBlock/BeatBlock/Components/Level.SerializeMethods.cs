@@ -15,35 +15,25 @@ partial class Level
 	{
 		public static void DeserializeLevel(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, Chart variant, LevelReadSettings settings)
 		{
-			ReadOnlyMemory<byte> jsonData =
-					dataSource.CanGetMemoryDirectly
-					? dataSource.GetMemory()
-					: dataSource.GetMemoryAsync().GetAwaiter().GetResult();
-			Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
+			Utf8JsonReader reader = new(dataSource.GetSequence(), new() { AllowTrailingCommas = true });
 			reader.Read();
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 			while (reader.Read())
 			{
-				if (reader.TokenType == JsonTokenType.EndObject)
-					break;
-				ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-				reader.Read();
-				if (propertyName.SequenceEqual("events"u8))
-					foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
-						variant.Add(e);
-				else
-				{
-					reader.Skip();
-				}
+			if (reader.TokenType == JsonTokenType.EndObject)
+				break;
+			if (reader.ValueTextEquals("events"u8) && reader.Read())
+				foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
+					variant.Add(e);
+			else
+			{
+				reader.Skip();
+			}
 			}
 		}
 		public static void DeserializeChart(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, Chart variant, LevelReadSettings settings)
 		{
-			ReadOnlyMemory<byte> jsonData =
-					dataSource.CanGetMemoryDirectly
-					? dataSource.GetMemory()
-					: dataSource.GetMemoryAsync().GetAwaiter().GetResult();
-			Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
+			Utf8JsonReader reader = new(dataSource.GetSequence(), new() { AllowTrailingCommas = true });
 			reader.Read();
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 			foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
@@ -54,11 +44,7 @@ partial class Level
 		}
 		public static void DeserializeTag(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, TagEventCollection collection, LevelReadSettings settings)
 		{
-			ReadOnlyMemory<byte> jsonData =
-					dataSource.CanGetMemoryDirectly
-					? dataSource.GetMemory()
-					: dataSource.GetMemoryAsync().GetAwaiter().GetResult();
-			Utf8JsonReader reader = new(jsonData.Span, new() { AllowTrailingCommas = true });
+			Utf8JsonReader reader = new(dataSource.GetSequence(), new() { AllowTrailingCommas = true });
 			reader.Read();
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 			foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))

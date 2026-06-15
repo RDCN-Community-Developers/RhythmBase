@@ -18,22 +18,22 @@ internal class DecorationConverter : MetadataJsonConverter<Decoration>
 				break;
 			if (reader.TokenType == JsonTokenType.PropertyName)
 			{
-				if (reader.ValueSpan.SequenceEqual("id"u8))
+				if (reader.ValueTextEquals("id"u8))
 				{
 					reader.Read();
 					decoration.Id = reader.GetString() ?? "";
 				}
-				else if (reader.ValueSpan.SequenceEqual("rooms"u8))
+				else if (reader.ValueTextEquals("rooms"u8))
 				{
 					reader.Read();
 					decoration.Room = TypeConverterRegistry.Read<SingleRoom>(ref reader, options);
 				}
-				else if (reader.ValueSpan.SequenceEqual("filename"u8))
+				else if (reader.ValueTextEquals("filename"u8))
 				{
 					reader.Read();
 					decoration.Character = reader.GetString() ?? "";
 				}
-				else if (reader.ValueSpan.SequenceEqual("character"u8))
+				else if (reader.ValueTextEquals("character"u8))
 				{
 					reader.Read();
 					string character = reader.GetString() ?? "";
@@ -42,23 +42,23 @@ internal class DecorationConverter : MetadataJsonConverter<Decoration>
 					else
 						decoration.Character = character;
 				}
-				else if (reader.ValueSpan.SequenceEqual("preview"u8))
+				else if (reader.ValueTextEquals("preview"u8))
 				{
 					reader.Read();
 					decoration.Preview = reader.GetBoolean();
 				}
-				else if (reader.ValueSpan.SequenceEqual("depth"u8))
+				else if (reader.ValueTextEquals("depth"u8))
 				{
 					reader.Read();
 					decoration.Depth = reader.GetInt32();
 				}
-				else if (reader.ValueSpan.SequenceEqual("filter"u8))
+				else if (reader.ValueTextEquals("filter"u8))
 				{
 					reader.Read();
-					if (EnumConverter.TryParse(reader.ValueSpan, out Filter result))
+					if (EnumConverter.TryParse(ref reader, out Filter result))
 						decoration.Filter = result;
 				}
-				else if (reader.ValueSpan.SequenceEqual("visible"u8))
+				else if (reader.ValueTextEquals("visible"u8))
 				{
 					reader.Read();
 					decoration.Visible = reader.GetBoolean();

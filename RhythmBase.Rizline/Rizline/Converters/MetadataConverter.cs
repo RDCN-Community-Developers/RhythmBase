@@ -15,24 +15,22 @@ internal class MetadataConverter : MetadataJsonConverter<Level>
 		{
 			if (reader.TokenType == JsonTokenType.EndObject)
 				break;
-			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-			reader.Read();
-			if (propertyName.SequenceEqual("title"u8))
-				level.Title = reader.GetString() ?? "";
-			else if (propertyName.SequenceEqual("composer"u8))
-				level.Composer = reader.GetString() ?? "";
-			else if (propertyName.SequenceEqual("difficulty"u8))
-				level.Difficulty = reader.GetInt32();
-			else if (propertyName.SequenceEqual("level"u8))
-				level.Lv = reader.GetInt32();
-			else if (propertyName.SequenceEqual("maxHit"u8))
-				level.MaxHit = reader.GetInt32();
-			else if (propertyName.SequenceEqual("maxScore"u8))
-				level.MaxScore = reader.GetInt32();
-			else if (propertyName.SequenceEqual("previewTime"u8))
-				level.PreviewTime = TimeSpan.FromSeconds(reader.GetDouble());
-			else
+		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
+		if (reader.ValueTextEquals("title"u8) && reader.Read())
+			level.Title = reader.GetString() ?? "";
+		else if (reader.ValueTextEquals("composer"u8) && reader.Read())
+			level.Composer = reader.GetString() ?? "";
+		else if (reader.ValueTextEquals("difficulty"u8) && reader.Read())
+			level.Difficulty = reader.GetInt32();
+		else if (reader.ValueTextEquals("level"u8) && reader.Read())
+			level.Lv = reader.GetInt32();
+		else if (reader.ValueTextEquals("maxHit"u8) && reader.Read())
+			level.MaxHit = reader.GetInt32();
+		else if (reader.ValueTextEquals("maxScore"u8) && reader.Read())
+			level.MaxScore = reader.GetInt32();
+		else if (reader.ValueTextEquals("previewTime"u8) && reader.Read())
+			level.PreviewTime = TimeSpan.FromSeconds(reader.GetDouble());
+		else
 				reader.Skip();
 		}
 		return level;

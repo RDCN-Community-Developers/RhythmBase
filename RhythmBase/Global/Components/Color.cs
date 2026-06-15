@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Numerics;
+using System.Text.Json;
 
 namespace RhythmBase.Global.Components;
 
@@ -318,6 +319,29 @@ public partial struct Color(uint hex) :
 				color = default;
 				return false;
 		}
+	}
+	/// <summary>
+	/// Attempts to parse the current JSON token value as a hex RGBA color string.
+	/// Works with <see cref="ReadOnlySequence{T}"/>-backed readers without allocating.
+	/// </summary>
+	/// <param name="reader">The JSON reader positioned at a string token containing a hex color.</param>
+	/// <param name="color">When this method returns, contains the resulting <see cref="Color"/> if the conversion was successful;
+	/// otherwise, the default value of <see cref="Color"/>.</param>
+	/// <returns><see langword="true"/> if the conversion was successful; otherwise, <see langword="false"/>.</returns>
+	public static bool TryFromRgba(ref Utf8JsonReader reader, out Color color)
+	{
+		var seq = reader.ValueSequence;
+		if (seq.IsSingleSegment)
+			return TryFromRgba(seq.First.Span, out color);
+		Span<byte> buf = stackalloc byte[16];
+		int offset = 0;
+		var position = seq.Start;
+		while (seq.TryGet(ref position, out ReadOnlyMemory<byte> memory) && !memory.IsEmpty)
+		{
+			memory.Span.CopyTo(buf[offset..]);
+			offset += memory.Length;
+		}
+		return TryFromRgba(buf[..offset], out color);
 	}
 	/// <summary>
 	/// Creates an Color instance from ARGB values.

@@ -17,27 +17,34 @@ internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEve
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-			reader.Read();
-			if (propertyName.SequenceEqual("bar"u8))
-				bar = reader.GetInt32();
-			else if (propertyName.SequenceEqual("beat"u8))
-				beat = reader.GetSingle();
-			else if (propertyName.SequenceEqual("type"u8))
-				continue;
-			else if (!Read(ref reader, propertyName, ref value, options))
+			if (reader.ValueTextEquals("bar"u8) && reader.Read())
 			{
+				bar = reader.GetInt32();
+			}
+			else if (reader.ValueTextEquals("beat"u8) && reader.Read())
+			{
+				beat = reader.GetSingle();
+			}
+			else if (reader.ValueTextEquals("type"u8) && reader.Read())
+			{
+				continue;
+			}
+			else
+			{
+				if (!Read(ref reader, ref value, options))
+				{
 #if DEBUG
-				//if (!(
-				//	(value is FloatingText && propertyName.SequenceEqual("times"u8)) ||
-				//	(value is FloatingText && propertyName.SequenceEqual("id"u8)) ||
-				//	(value is AdvanceText && propertyName.SequenceEqual("id"u8))
-				//	))
-				//	Console.WriteLine($"The key {Encoding.UTF8.GetString([.. propertyName])} of {value.Type} not found.");
+					//if (!(
+					//	(value is FloatingText && propertyName == "times") ||
+					//	(value is FloatingText && propertyName == "id") ||
+					//	(value is AdvanceText && propertyName == "id")
+					//	))
+					//	Console.WriteLine($"The key {Encoding.UTF8.GetString(propertyName)} of {value.Type} not found.");
 #endif
-				value[
-	Encoding.UTF8.GetString(propertyName)
-	] = JsonElement.ParseValue(ref reader);
+					string propertyName = reader.GetString() ?? "";
+					reader.Read();
+					value[propertyName] = JsonElement.ParseValue(ref reader);
+				}
 			}
 		}
 		value.TickTime = new(bar, beat);
@@ -55,18 +62,18 @@ internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEve
 		}
 		writer.WriteEndObject();
 	}
-	protected virtual bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TEvent value, MetadataJsonSerializerOptions options)
+	protected virtual bool Read(ref Utf8JsonReader reader, ref TEvent value, MetadataJsonSerializerOptions options)
 	{
 		bool result = true;
-		if (propertyName.SequenceEqual("y"u8))
+		if (reader.ValueTextEquals("y"u8) && reader.Read())
 			value.Y = reader.GetInt32();
-		else if (propertyName.SequenceEqual("tag"u8))
+		else if (reader.ValueTextEquals("tag"u8) && reader.Read())
 			value.Tag = reader.GetString() ?? string.Empty;
-		else if (propertyName.SequenceEqual("runTag"u8))
+		else if (reader.ValueTextEquals("runTag"u8) && reader.Read())
 			value.RunTag = reader.GetBoolean();
-		else if (propertyName.SequenceEqual("if"u8))
+		else if (reader.ValueTextEquals("if"u8) && reader.Read())
 			value.Condition = Condition.Deserialize(reader.GetString() ?? string.Empty);
-		else if (propertyName.SequenceEqual("active"u8))
+		else if (reader.ValueTextEquals("active"u8) && reader.Read())
 			value.Active = reader.GetBoolean();
 		else
 			result = false;

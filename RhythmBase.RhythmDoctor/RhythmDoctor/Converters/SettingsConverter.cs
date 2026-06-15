@@ -26,10 +26,9 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-			reader.Read();
-			if (propertyName.SequenceEqual("version"u8))
+			if (reader.ValueTextEquals("version"u8))
 			{
+				reader.Read();
 				if (options.Strictness == JsonStrictness.Strict)
 					settings.Version = reader.GetInt32();
 				else
@@ -41,68 +40,69 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
 				}
 				options.Version = settings.Version;
 			}
-			else if (propertyName.SequenceEqual("artist"u8))
+			else if (reader.ValueTextEquals("artist"u8) && reader.Read())
 				settings.Artist = reader.GetString() ?? "";
-			else if (propertyName.SequenceEqual("song"u8))
+			else if (reader.ValueTextEquals("song"u8) && reader.Read())
 				settings.Song = RichLine<RichStringStyle>
 #if NETSTANDARD
 						.Empty
 #endif
 						.Deserialize(reader.GetString() ?? "");
-			else if (propertyName.SequenceEqual("specialArtistType"u8) && EnumConverter.TryParse(reader.ValueSpan, out SpecialArtistTypes value))
+			else if (reader.ValueTextEquals("specialArtistType"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out SpecialArtistTypes value))
 				settings.SpecialArtistType = value;
-			else if (propertyName.SequenceEqual("artistPermission"u8))
+			else if (reader.ValueTextEquals("artistPermission"u8) && reader.Read())
 				settings.ArtistPermission = reader.GetString() ?? "";
-			else if (propertyName.SequenceEqual("artistLinks"u8))
+			else if (reader.ValueTextEquals("artistLinks"u8) && reader.Read())
 				settings.ArtistLinks = reader.GetString() ?? "";
-			else if (propertyName.SequenceEqual("author"u8))
+			else if (reader.ValueTextEquals("author"u8) && reader.Read())
 				settings.Author = RichLine<RichStringStyle>
 #if NETSTANDARD
 						.Empty
 #endif
 						.Deserialize(reader.GetString() ?? "");
-			else if (propertyName.SequenceEqual("difficulty"u8) && EnumConverter.TryParse(reader.ValueSpan, out DifficultyLevel difficulty))
+			else if (reader.ValueTextEquals("difficulty"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out DifficultyLevel difficulty))
 				settings.Difficulty = difficulty;
-			else if (propertyName.SequenceEqual("seizureWarning"u8))
+			else if (reader.ValueTextEquals("seizureWarning"u8) && reader.Read())
 				settings.SeizureWarning = reader.GetBoolean();
-			else if (propertyName.SequenceEqual("previewImage"u8))
+			else if (reader.ValueTextEquals("previewImage"u8) && reader.Read())
 				settings.PreviewImage = reader.GetString() ?? "";
-			else if (propertyName.SequenceEqual("syringeIcon"u8))
+			else if (reader.ValueTextEquals("syringeIcon"u8) && reader.Read())
 				settings.SyringeIcon = reader.GetString() ?? "";
-			else if (propertyName.SequenceEqual("previewSong"u8))
+			else if (reader.ValueTextEquals("previewSong"u8) && reader.Read())
 				settings.PreviewSong = reader.GetString() ?? "";
-			else if (propertyName.SequenceEqual("previewSongStartTime"u8))
+			else if (reader.ValueTextEquals("previewSongStartTime"u8) && reader.Read())
 				settings.PreviewSongStartTime = TimeSpan.FromSeconds(reader.GetSingle());
-			else if (propertyName.SequenceEqual("previewSongDuration"u8))
+			else if (reader.ValueTextEquals("previewSongDuration"u8) && reader.Read())
 				settings.PreviewSongDuration = TimeSpan.FromSeconds(reader.GetSingle());
-			else if (propertyName.SequenceEqual("songNameHue"u8))
+			else if (reader.ValueTextEquals("songNameHue"u8) && reader.Read())
 				settings.SongNameHueOrGrayscale = reader.GetSingle();
-			else if (propertyName.SequenceEqual("songLabelGrayscale"u8))
+			else if (reader.ValueTextEquals("songLabelGrayscale"u8) && reader.Read())
 				settings.SongLabelGrayscale = reader.GetBoolean();
-			else if (propertyName.SequenceEqual("description"u8))
+			else if (reader.ValueTextEquals("description"u8) && reader.Read())
 				settings.Description = RichLine<RichStringStyle>
 #if NETSTANDARD
 						.Empty
 #endif
 						.Deserialize(reader.GetString() ?? "");
-			else if (propertyName.SequenceEqual("tags"u8))
+			else if (reader.ValueTextEquals("tags"u8) && reader.Read())
 				settings.Tags = RichLine<RichStringStyle>
 #if NETSTANDARD
 						.Empty
 #endif
 						.Deserialize(reader.GetString() ?? "");
-			else if (propertyName.SequenceEqual("separate2PLevelFilename"u8))
+			else if (reader.ValueTextEquals("separate2PLevelFilename"u8) && reader.Read())
 				settings.Separate2PLevelFilename = reader.GetString() ?? "";
-			else if (propertyName.SequenceEqual("canBePlayedOn"u8) && EnumConverter.TryParse(reader.ValueSpan, out LevelPlayedMode playedMode))
+			else if (reader.ValueTextEquals("canBePlayedOn"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out LevelPlayedMode playedMode))
 				settings.CanBePlayedOn = playedMode;
-			else if (propertyName.SequenceEqual("firstBeatBehavior"u8) && EnumConverter.TryParse(reader.ValueSpan, out FirstBeatBehaviors firstBeatBehavior))
+			else if (reader.ValueTextEquals("firstBeatBehavior"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out FirstBeatBehaviors firstBeatBehavior))
 				settings.FirstBeatBehavior = firstBeatBehavior;
-			else if (propertyName.SequenceEqual("multiplayerAppearance"u8) && EnumConverter.TryParse(reader.ValueSpan, out MultiplayerAppearances multiplayerAppearance))
+			else if (reader.ValueTextEquals("multiplayerAppearance"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out MultiplayerAppearances multiplayerAppearance))
 				settings.MultiplayerAppearance = multiplayerAppearance;
-			else if (propertyName.SequenceEqual("levelVolume"u8))
+			else if (reader.ValueTextEquals("levelVolume"u8) && reader.Read())
 				settings.LevelVolume = reader.GetSingle();
-			else if (propertyName.SequenceEqual("rankMaxMistakes"u8))
+			else if (reader.ValueTextEquals("rankMaxMistakes"u8))
 			{
+				reader.Read();
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				int[] ranks = new int[4];
 				for (int i = 0; i < 4; i++)
@@ -114,12 +114,13 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
 				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 				{
 					if (options.Strictness == JsonStrictness.Strict)
-						throw new JsonException($"Unexpected token in rankMaxMistakes array: {reader.TokenType} \"{Encoding.UTF8.GetString(reader.ValueSpan)}\"");
+						throw new JsonException($"Unexpected token in rankMaxMistakes array: {reader.TokenType} \"{reader.GetString()}\"");
 				}
 				settings.RankMaxMistakes = ranks;
 			}
-			else if (propertyName.SequenceEqual("rankDescription"u8))
+			else if (reader.ValueTextEquals("rankDescription"u8))
 			{
+				reader.Read();
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				string[] descriptions = new string[6];
 				for (int i = 0; i < 6; i++)
@@ -131,12 +132,13 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
 				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 				{
 					if (options.Strictness == JsonStrictness.Strict)
-						throw new JsonException($"Unexpected token in rankDescription array: {reader.TokenType} \"{Encoding.UTF8.GetString(reader.ValueSpan)}\"");
+						throw new JsonException($"Unexpected token in rankDescription array: {reader.TokenType} \"{reader.GetString()}\"");
 				}
 				settings.RankDescription = descriptions;
 			}
-			else if (propertyName.SequenceEqual("mods"u8))
+			else if (reader.ValueTextEquals("mods"u8))
 			{
+				reader.Read();
 				List<string> mods = [];
 				if (reader.TokenType == JsonTokenType.StartArray)
 				{
@@ -158,13 +160,14 @@ internal class SettingsConverter : MetadataJsonConverter<Settings>
 				}
 				settings.Mods = mods;
 			}
-			else if (propertyName.SequenceEqual("customClass"u8))
+			else if (reader.ValueTextEquals("customClass"u8) && reader.Read())
 			{
 				settings.CustomClass = reader.GetString();
 			}
 			else
 			{
-				var key = Encoding.UTF8.GetString(propertyName);
+				var key = reader.GetString() ?? "";
+				reader.Read();
 				var elem = JsonElement.ParseValue(ref reader);
 				//SettingsTrigger.Trigger($"ExtraData: {settings.Song} {key} = \"{elem}\"");
 				settings._extraData[key] = elem;

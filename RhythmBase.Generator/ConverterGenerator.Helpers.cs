@@ -49,6 +49,7 @@ public partial class ConverterGenerator
 					#nullable enable
 						using System;
 						using System.Runtime.CompilerServices;
+						using System.Text.Json;
 					
 					namespace RhythmBase.{{registryInfo}}.Converters;
 					/// <summary>
@@ -120,6 +121,41 @@ public partial class ConverterGenerator
 				{
 					sb1.AppendLine($$"""
 								{{(isFirst ? "" : "else ")}}if (value.SequenceEqual("{{GetStringName(field, pascalCase)}}"u8))
+								{
+									result = {{field.ToDisplayString()}};
+									return true;
+								}
+					""");
+					isFirst = false;
+				}
+				sb1.AppendLine("""
+								else
+								{
+									result = default;
+									return false;
+								}
+							}
+
+					""");
+
+				// TryParse(ref Utf8JsonReader)
+				sb1.AppendLine($$"""
+							/// <summary>
+							/// Attempts to parse the current JSON token value to a <see cref="{{fullName}}"/> enum value.
+							/// Works with <see cref="ReadOnlySequence{T}"/>-backed readers without allocating.
+							/// </summary>
+							/// <param name="reader">The JSON reader positioned at a string token.</param>
+							/// <param name="result">When this method returns, contains the parsed <see cref="{{fullName}}"/> value if parsing succeeded; otherwise, the default value.</param>
+							/// <returns><c>true</c> if parsing succeeded; otherwise, <c>false</c>.</returns>
+							[MethodImpl(MethodImplOptions.AggressiveInlining)]
+							public static bool TryParse(ref Utf8JsonReader reader, out {{fullName}} result)
+							{
+					""");
+				isFirst = true;
+				foreach (var field in e.members.OrderBy(i => i.Name))
+				{
+					sb1.AppendLine($$"""
+								{{(isFirst ? "" : "else ")}}if (reader.ValueTextEquals("{{GetStringName(field, pascalCase)}}"u8))
 								{
 									result = {{field.ToDisplayString()}};
 									return true;
@@ -317,7 +353,7 @@ public partial class ConverterGenerator
 
 
 		sb.AppendLine("""
-								if (base.Read(ref reader, propertyName, ref value, options))
+								if (base.Read(ref reader, ref value, options))
 									return true;
 						""");
 		int index = 0;
@@ -354,7 +390,7 @@ public partial class ConverterGenerator
 
 			string valueAccess = $"value.{prop.Property.ToDisplayParts().Last()}";
 			{
-				sb.AppendLine($$"""{{(index == 0 ? "" : "else ")}}if (propertyName.SequenceEqual("{{alias}}"u8))""");
+				sb.AppendLine($$"""{{(index == 0 ? "" : "else ")}}if (reader.ValueTextEquals("{{alias}}"u8) && reader.Read())""");
 				if (isNullable)
 					sb.AppendLine($$"""
 							{ if (reader.TokenType == JsonTokenType.Null) value.{{prop.Property.ToDisplayParts().Last()}} = null;
@@ -387,7 +423,7 @@ public partial class ConverterGenerator
 					string flatValueAccess = $"value.{prop.Property.Name}.{subPropName}";
 					string parentAccess = $"value.{prop.Property.Name}";
 
-					sb.AppendLine($$"""else if (propertyName.SequenceEqual("{{aliasName}}"u8))""");
+					sb.AppendLine($$"""else if (reader.ValueTextEquals("{{aliasName}}"u8) && reader.Read())""");
 					if (isNullable)
 					{
 						sb.AppendLine($$"""
@@ -966,7 +1002,7 @@ public partial class ConverterGenerator
 						classCvtrSb.AppendLine($$"""
 						internal class {{t.Name}}Converter : {{baseConverterName}}
 						{
-							protected override bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref {{t.ToDisplayString()}} value, global::RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
+							protected override bool Read(ref Utf8JsonReader reader, ref {{t.ToDisplayString()}} value, global::RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
 							{
 						""");
 						GenerateReadBody(compilation, classCvtrSb, id, c1, classGenMap);

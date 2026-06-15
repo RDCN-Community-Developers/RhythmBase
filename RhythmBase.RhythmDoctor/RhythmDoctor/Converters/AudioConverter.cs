@@ -1,3 +1,4 @@
+using System.Text;
 using RhythmBase.Global.Converters;
 using RhythmBase.RhythmDoctor.Components;
 using System.Text.Json;
@@ -22,9 +23,7 @@ internal class AudioConverter : MetadataJsonConverter<Audio>
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-			reader.Read();
-			if (propertyName.SequenceEqual("filename"u8))
+			if (reader.ValueTextEquals("filename"u8) && reader.Read())
 			{
 				string filename = reader.GetString() ?? "";
 				audio.Filename = upgrade && version <= 42
@@ -36,18 +35,18 @@ internal class AudioConverter : MetadataJsonConverter<Audio>
 					})
 					: (FileReference)filename;
 			}
-			else if (propertyName.SequenceEqual("volume"u8))
+			else if (reader.ValueTextEquals("volume"u8) && reader.Read())
 			{
 				var volume = reader.GetInt32();
 				if (upgrade && version <= 9)				
 					volume = (int)(volume / 0.4f);				
 				audio.Volume = volume;
 			}
-			else if (propertyName.SequenceEqual("pitch"u8))
+			else if (reader.ValueTextEquals("pitch"u8) && reader.Read())
 				audio.Pitch = reader.GetInt32();
-			else if (propertyName.SequenceEqual("pan"u8))
+			else if (reader.ValueTextEquals("pan"u8) && reader.Read())
 				audio.Pan = reader.GetInt32();
-			else if (propertyName.SequenceEqual("offset"u8))
+			else if (reader.ValueTextEquals("offset"u8) && reader.Read())
 				audio.Offset = TimeSpan.FromMilliseconds(reader.GetDouble());
 			else
 				throw new JsonException($"Unknown property: {reader.GetString()}");

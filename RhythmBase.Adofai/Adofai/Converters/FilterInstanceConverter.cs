@@ -16,17 +16,16 @@ internal abstract class FilterMemberConverter<TFilter> : FilterMemberConverterBa
 		TFilter value = new();
 		while (reader.TokenType is JsonTokenType.PropertyName)
 		{
-			ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-			if (propertyName.IsEmpty)
-				throw new JsonException("Property name cannot be null");
-			reader.Read();
-			if (!Read(ref reader, propertyName, ref value, options))
+			string pn = reader.GetString() ?? "";
+			if (!Read(ref reader, ref value, options))
 			{
 #if DEBUG
 				if (!(false
 					))
-					Console.WriteLine($"The key {Encoding.UTF8.GetString([.. propertyName])} of {value.GetType().Name} not found.");
+					Console.WriteLine($"The key {pn} of {value.GetType().Name} not found.");
 #endif
+				reader.Read();
+				reader.Skip();
 			}
 		}
 		return value;
@@ -36,6 +35,6 @@ internal abstract class FilterMemberConverter<TFilter> : FilterMemberConverterBa
 		TFilter f = (TFilter)value;
 		Write(writer, ref f, options);
 	}
-	protected virtual bool Read(ref Utf8JsonReader reader, ReadOnlySpan<byte> propertyName, ref TFilter value, MetadataJsonSerializerOptions options) { return false; }
+	protected virtual bool Read(ref Utf8JsonReader reader, ref TFilter value, MetadataJsonSerializerOptions options) { return false; }
 	protected virtual void Write(Utf8JsonWriter writer, ref TFilter value, MetadataJsonSerializerOptions options) { }
 }

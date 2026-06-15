@@ -16,46 +16,42 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
             if (reader.TokenType == JsonTokenType.EndObject)
                 break;
             JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-            ReadOnlySpan<byte> propertyName = reader.ValueSpan;
-            reader.Read();
-            if (propertyName.SequenceEqual("defaultVariant"u8))
+            if (reader.ValueTextEquals("defaultVariant"u8) && reader.Read())
                 level.DefaultVariant = reader.TokenType == JsonTokenType.String ? reader.GetString() : null;
-            else if (propertyName.SequenceEqual("metadata"u8))
+            else if (reader.ValueTextEquals("metadata"u8) && reader.Read())
             {
                 while (reader.Read())
                 {
                     if (reader.TokenType == JsonTokenType.EndObject)
                         break;
                     JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-                    ReadOnlySpan<byte> metadataPropertyName = reader.ValueSpan;
-                    reader.Read();
-                    if (metadataPropertyName.SequenceEqual("artist"u8))
+                    if (reader.ValueTextEquals("artist"u8) && reader.Read())
                         level.Metadata.Artist = reader.GetString() ?? "";
-                    else if (metadataPropertyName.SequenceEqual("artistLink"u8))
+                    else if (reader.ValueTextEquals("artistLink"u8) && reader.Read())
                         level.Metadata.ArtistLink = reader.GetString() ?? "";
-                    else if (metadataPropertyName.SequenceEqual("bg"u8))
+                    else if (reader.ValueTextEquals("bg"u8) && reader.Read())
                         level.Metadata.IsBackgroundEnabled = reader.GetBoolean();
-                    else if (metadataPropertyName.SequenceEqual("charter"u8))
+                    else if (reader.ValueTextEquals("charter"u8) && reader.Read())
                         level.Metadata.Charter = reader.GetString() ?? "";
-                    else if (metadataPropertyName.SequenceEqual("description"u8))
+                    else if (reader.ValueTextEquals("description"u8) && reader.Read())
                         level.Metadata.Description = reader.GetString() ?? "";
-                    else if (metadataPropertyName.SequenceEqual("difficulty"u8))
+                    else if (reader.ValueTextEquals("difficulty"u8) && reader.Read())
                         level.Metadata.Difficulty = reader.GetInt32();
-                    else if (metadataPropertyName.SequenceEqual("startLoop"u8))
+                    else if (reader.ValueTextEquals("startLoop"u8) && reader.Read())
                         level.Metadata.StartLoop = reader.GetInt32();
-                    else if (metadataPropertyName.SequenceEqual("endLoop"u8))
+                    else if (reader.ValueTextEquals("endLoop"u8) && reader.Read())
                         level.Metadata.EndLoop = reader.GetInt32();
-                    else if (metadataPropertyName.SequenceEqual("lightWarning"u8))
+                    else if (reader.ValueTextEquals("lightWarning"u8) && reader.Read())
                         level.Metadata.LightWarning = reader.GetBoolean();
-                    else if (metadataPropertyName.SequenceEqual("loopPointsEnable"u8))
+                    else if (reader.ValueTextEquals("loopPointsEnable"u8) && reader.Read())
                         level.Metadata.LoopPointsEnable = reader.GetBoolean();
-                    else if (metadataPropertyName.SequenceEqual("lyricsWarning"u8))
+                    else if (reader.ValueTextEquals("lyricsWarning"u8) && reader.Read())
                         level.Metadata.LyricsWarning = reader.GetBoolean();
-                    else if (metadataPropertyName.SequenceEqual("songName"u8))
+                    else if (reader.ValueTextEquals("songName"u8) && reader.Read())
                         level.Metadata.SongName = reader.GetString() ?? "";
-                    else if (metadataPropertyName.SequenceEqual("source"u8))
+                    else if (reader.ValueTextEquals("source"u8) && reader.Read())
                         level.Metadata.Source = reader.GetString() ?? "";
-                    else if (metadataPropertyName.SequenceEqual("bgData"u8))
+                    else if (reader.ValueTextEquals("bgData"u8) && reader.Read())
                     {
                         JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
                         while (reader.Read())
@@ -63,25 +59,23 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
                             if (reader.TokenType == JsonTokenType.EndObject)
                                 break;
                             JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-                            ReadOnlySpan<byte> bgDataPropertyName = reader.ValueSpan;
-                            reader.Read();
-                            if (bgDataPropertyName.SequenceEqual("redChannel"u8))
+                            if (reader.ValueTextEquals("redChannel"u8) && reader.Read())
                                 level.Metadata.BackgroundData.RedChannel = TypeConverterRegistry.Read<Color>(ref reader, options);
-                            else if (bgDataPropertyName.SequenceEqual("greenChannel"u8))
+                            else if (reader.ValueTextEquals("greenChannel"u8) && reader.Read())
                                 level.Metadata.BackgroundData.GreenChannel = TypeConverterRegistry.Read<Color>(ref reader, options);
-                            else if (bgDataPropertyName.SequenceEqual("blueChannel"u8))
+                            else if (reader.ValueTextEquals("blueChannel"u8) && reader.Read())
                                 level.Metadata.BackgroundData.BlueChannel = TypeConverterRegistry.Read<Color>(ref reader, options);
-                            else if (bgDataPropertyName.SequenceEqual("yellowChannel"u8))
+                            else if (reader.ValueTextEquals("yellowChannel"u8) && reader.Read())
                                 level.Metadata.BackgroundData.YellowChannel = TypeConverterRegistry.Read<Color>(ref reader, options);
-                            else if (bgDataPropertyName.SequenceEqual("cyanChannel"u8))
+                            else if (reader.ValueTextEquals("cyanChannel"u8) && reader.Read())
                                 level.Metadata.BackgroundData.CyanChannel = TypeConverterRegistry.Read<Color>(ref reader, options);
-                            else if (bgDataPropertyName.SequenceEqual("magentaChannel"u8))
+                            else if (reader.ValueTextEquals("magentaChannel"u8) && reader.Read())
                                 level.Metadata.BackgroundData.MagentaChannel = TypeConverterRegistry.Read<Color>(ref reader, options);
-                            else if (bgDataPropertyName.SequenceEqual("hideCranky"u8))
+                            else if (reader.ValueTextEquals("hideCranky"u8) && reader.Read())
                                 level.Metadata.BackgroundData.HideCranky = reader.GetBoolean();
-                            else if (bgDataPropertyName.SequenceEqual("image"u8))
+                            else if (reader.ValueTextEquals("image"u8) && reader.Read())
                                 level.Metadata.BackgroundData.Image = TypeConverterRegistry.Read<FileReference>(ref reader, options);
-                            else if (bgDataPropertyName.SequenceEqual("resultsImage"u8))
+                            else if (reader.ValueTextEquals("resultsImage"u8) && reader.Read())
                                 level.Metadata.BackgroundData.ResultsImage = TypeConverterRegistry.Read<FileReference>(ref reader, options);
                             else
                                 reader.Skip();
@@ -91,7 +85,7 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
                         reader.Skip();
                 }
             }
-            else if (propertyName.SequenceEqual("properties"u8))
+            else if (reader.ValueTextEquals("properties"u8) && reader.Read())
             {
                 JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
                 while (reader.Read())
@@ -99,23 +93,21 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
                     if (reader.TokenType == JsonTokenType.EndObject)
                         break;
                     JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-                    ReadOnlySpan<byte> propertiesPropertyName = reader.ValueSpan;
-                    reader.Read();
-                    if (propertiesPropertyName.SequenceEqual("formatVersion"u8))
+                    if (reader.ValueTextEquals("formatVersion"u8) && reader.Read())
                         level.Properties.FormatVersion = reader.GetInt32();
-                    else if (propertiesPropertyName.SequenceEqual("offset"u8))
+                    else if (reader.ValueTextEquals("offset"u8) && reader.Read())
                         level.Properties.Offset = reader.GetInt32();
-                    else if (propertiesPropertyName.SequenceEqual("startingBeat"u8))
+                    else if (reader.ValueTextEquals("startingBeat"u8) && reader.Read())
                         level.Properties.StartingBeat = reader.GetInt32();
-                    else if (propertiesPropertyName.SequenceEqual("loadBeat"u8))
+                    else if (reader.ValueTextEquals("loadBeat"u8) && reader.Read())
                         level.Properties.LoadBeat = reader.GetInt32();
-                    else if (propertiesPropertyName.SequenceEqual("formatVersion"u8))
+                    else if (reader.ValueTextEquals("formatVersion"u8) && reader.Read())
                         level.Properties.FormatVersion = reader.GetInt32();
                     else
                         reader.Skip();
                 }
             }
-            else if (propertyName.SequenceEqual("variants"u8))
+            else if (reader.ValueTextEquals("variants"u8) && reader.Read())
             {
                 JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
                 List<Chart> variants = [];
@@ -132,23 +124,21 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
                         if (reader.TokenType == JsonTokenType.EndObject)
                             break;
                         JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-                        ReadOnlySpan<byte> variantPropertyName = reader.ValueSpan;
-                        reader.Read();
-                        if (variantPropertyName.SequenceEqual("charter"u8))
+                        if (reader.ValueTextEquals("charter"u8) && reader.Read())
                             variant.Charter = reader.GetString() ?? "";
-                        else if (variantPropertyName.SequenceEqual("difficulty"u8))
+                        else if (reader.ValueTextEquals("difficulty"u8) && reader.Read())
                             variant.Difficulty = reader.GetInt32();
-                        else if (variantPropertyName.SequenceEqual("display"u8))
+                        else if (reader.ValueTextEquals("display"u8) && reader.Read())
                             variant.Display = reader.GetString() ?? "";
-                        else if (variantPropertyName.SequenceEqual("extra"u8))
+                        else if (reader.ValueTextEquals("extra"u8) && reader.Read())
                             variant.Extra = reader.GetBoolean();
-                        else if (variantPropertyName.SequenceEqual("hidden"u8))
+                        else if (reader.ValueTextEquals("hidden"u8) && reader.Read())
                             variant.Hidden = reader.GetBoolean();
-                        else if (variantPropertyName.SequenceEqual("name"u8))
+                        else if (reader.ValueTextEquals("name"u8) && reader.Read())
                             variant.Name = reader.GetString() ?? "";
-                        else if (variantPropertyName.SequenceEqual("slot"u8))
+                        else if (reader.ValueTextEquals("slot"u8) && reader.Read())
                             index = reader.GetInt32();
-                        else if (variantPropertyName.SequenceEqual("levelFile"u8))
+                        else if (reader.ValueTextEquals("levelFile"u8) && reader.Read())
                             variant.LevelFile = reader.GetString();
                         else
                             reader.Skip();
