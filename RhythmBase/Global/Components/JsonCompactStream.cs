@@ -463,30 +463,32 @@ namespace RhythmBase.Global.Components
 
 			if (_scanEnd < overlapEnd)
 			{
-				int read1 = _baseStream.Read(_buffer, overlapEnd, _buffer.Length - overlapEnd);
-				if (read1 < _buffer.Length - overlapEnd)
+				int total1 = 0;
+				int target1 = _buffer.Length - overlapEnd;
+				while (total1 < target1)
 				{
-					_isEndOfStream = true;
-					_scanEnd = overlapEnd + read1;
-					return;
+					int read1 = _baseStream.Read(_buffer, overlapEnd + total1, target1 - total1);
+					if (read1 == 0) { _isEndOfStream = true; _scanEnd = overlapEnd + total1; return; }
+					total1 += read1;
 				}
 
-				int read2 = _baseStream.Read(_buffer, 0, _scanEnd);
-				if (read2 < _scanEnd)
+				int total2 = 0;
+				while (total2 < _scanEnd)
 				{
-					_isEndOfStream = true;
-					_scanEnd = read2;
-					return;
+					int read2 = _baseStream.Read(_buffer, total2, _scanEnd - total2);
+					if (read2 == 0) { _isEndOfStream = true; _scanEnd = total2; return; }
+					total2 += read2;
 				}
 			}
 			else
 			{
-				int read = _baseStream.Read(_buffer, overlapEnd, _scanEnd - overlapEnd);
-				if (read < _scanEnd - overlapEnd)
+				int total = 0;
+				int target = _scanEnd - overlapEnd;
+				while (total < target)
 				{
-					_isEndOfStream = true;
-					_scanEnd = overlapEnd + read;
-					return;
+					int read = _baseStream.Read(_buffer, overlapEnd + total, target - total);
+					if (read == 0) { _isEndOfStream = true; _scanEnd = overlapEnd + total; return; }
+					total += read;
 				}
 			}
 

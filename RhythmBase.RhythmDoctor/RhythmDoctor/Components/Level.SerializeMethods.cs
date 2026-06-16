@@ -149,7 +149,7 @@ partial class Level
 				{
 					using FileStream zipStream = new(filepath, FileMode.Open, FileAccess.Read);
 					using ZipArchive archive = new(zipStream, ZipArchiveMode.Read);
-					ZipArchiveEntry? entry = archive.GetEntry("main.rdlevel") ?? throw new RhythmBaseException("Cannot find the level file.");
+					ZipArchiveEntry entry = archive.GetEntry("main.rdlevel") ?? throw new RhythmBaseException("Cannot find the level file.");
 					using Stream stream = entry.Open();
 					level = await FromStreamAsync(stream, settings, cancellationToken);
 					level.Filepath = Path.GetFullPath(filepath);
