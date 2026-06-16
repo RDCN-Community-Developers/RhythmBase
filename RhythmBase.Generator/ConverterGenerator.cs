@@ -553,7 +553,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 
 			public class FileMainEntryConverter
 			{
-				private static readonly JsonReaderOptions _readerOptions = new() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip };
+				private static readonly JsonReaderOptions _readerOptions = new();
 				public static T DeserializeMainEntry<T>(RhythmBase.Global.Converters.JsonSerialization.IJsonDataSource dataSource, RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
 						where T : new()
 				{

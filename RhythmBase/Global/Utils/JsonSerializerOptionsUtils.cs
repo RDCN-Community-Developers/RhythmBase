@@ -9,14 +9,6 @@ namespace RhythmBase.Global.Utils;
 /// </summary>
 public static class JsonSerializerOptionsUtils
 {
-    private static readonly JsonSerializerOptions options;
-    static JsonSerializerOptionsUtils()
-    {
-        options = new()
-        {
-            AllowTrailingCommas = true,                
-        };
-    }
     /// <summary>
     /// Creates <see cref="MetadataJsonSerializerOptions"/> configured for deserializing a level file.
     /// </summary>
@@ -26,7 +18,7 @@ public static class JsonSerializerOptionsUtils
     {
         MetadataJsonSerializerOptions options = new()
 				{
-					JsonSerializerOptions = new(JsonSerializerOptionsUtils.options),
+					JsonSerializerOptions = new(),
 					Strictness = settings.Strictness,
           UpgradeToLatest = settings.UpgradeToLatest,
 				};
@@ -39,7 +31,7 @@ public static class JsonSerializerOptionsUtils
     /// <returns>A new <see cref="MetadataJsonSerializerOptions"/> instance.</returns>
     public static MetadataJsonSerializerOptions GetJsonSerializerOptionsForWrite(LevelWriteSettings settings)
     {
-        MetadataJsonSerializerOptions options = new() { JsonSerializerOptions = new(JsonSerializerOptionsUtils.options), WriteAligned = settings.WriteAligned };
+        MetadataJsonSerializerOptions options = new() { JsonSerializerOptions = new(), WriteAligned = settings.WriteAligned };
         options.JsonSerializerOptions.WriteIndented = settings.WriteIndented;
         if (settings.EnableUnsafeRelaxedJsonEscaping)
             options.JsonSerializerOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;

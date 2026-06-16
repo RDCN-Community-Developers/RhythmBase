@@ -12,7 +12,7 @@ namespace RhythmBase.BeatBlock.Components;
 partial class Level
 {
 	private static readonly BaseEventConverter baseEventConverter = new();
-	private static readonly JsonReaderOptions _readerOptions = new() { AllowTrailingCommas = true };
+	private static readonly JsonReaderOptions _readerOptions = new();
 	private static class FileConverter
 	{
 		public static void DeserializeLevel(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, Chart variant, LevelReadSettings settings)

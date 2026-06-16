@@ -10,7 +10,7 @@ namespace RhythmBase.Rizline.Components;
 
 partial class Level
 {
-	private static readonly JsonReaderOptions _readerOptions = new() { AllowTrailingCommas = true };
+	private static readonly JsonReaderOptions _readerOptions = new();
 	private static class FileConverter
 	{
 		public static void DeserializeChart(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, Level level, LevelReadSettings settings)

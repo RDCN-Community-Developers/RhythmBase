@@ -550,12 +550,6 @@ public static partial class Extensions
 	}
 
 	private static readonly BaseEventConverter evc = new();
-	private static readonly JsonSerializerOptions options = new()
-	{
-		WriteIndented = true,
-		DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-		AllowTrailingCommas = true,
-	};
 	extension(IBaseEvent e)
 	{
 		/// <summary>
@@ -578,7 +572,7 @@ public static partial class Extensions
 		/// <returns>A JSON string representation of the <see cref="IBaseEvent"/> instance.</returns>
 		public string ToJsonString(JsonSerializerOptions? options = null)
 		{
-			options ??= new JsonSerializerOptions(options ?? Extensions.options);
+			options ??= new();
 			using MemoryStream stream = new();
 			using Utf8JsonWriter writer = new(stream, new JsonWriterOptions { Indented = options.WriteIndented, });
 			evc.Write(writer, e, options);
@@ -595,7 +589,7 @@ public static partial class Extensions
 		/// langword="null"/>.</returns>
 		public static IBaseEvent? FromJsonString(string json, JsonSerializerOptions? options = null)
 		{
-			options ??= new JsonSerializerOptions(options ?? Extensions.options);
+			options ??= new();
 			Utf8JsonReader reader = new(Encoding.UTF8.GetBytes(json));
 			reader.Read();
 			return evc.Read(ref reader, typeof(IBaseEvent), options);
