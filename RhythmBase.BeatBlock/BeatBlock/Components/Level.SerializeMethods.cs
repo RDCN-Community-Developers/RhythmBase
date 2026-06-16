@@ -1,6 +1,7 @@
 ﻿using RhythmBase.BeatBlock.Converters;
 using RhythmBase.BeatBlock.Events;
 using RhythmBase.Global.Settings;
+using System;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Reflection.Emit;
@@ -11,11 +12,15 @@ namespace RhythmBase.BeatBlock.Components;
 partial class Level
 {
 	private static readonly BaseEventConverter baseEventConverter = new();
+	private static readonly JsonReaderOptions _readerOptions = new() { AllowTrailingCommas = true };
 	private static class FileConverter
 	{
 		public static void DeserializeLevel(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, Chart variant, LevelReadSettings settings)
 		{
-			Utf8JsonReader reader = new(dataSource.GetSequence(), new() { AllowTrailingCommas = true });
+			var seq = dataSource.GetSequence();
+			Utf8JsonReader reader = seq.IsSingleSegment
+				? new Utf8JsonReader(seq.First.Span, _readerOptions)
+				: new Utf8JsonReader(seq, _readerOptions);
 			reader.Read();
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 			while (reader.Read())
@@ -33,7 +38,10 @@ partial class Level
 		}
 		public static void DeserializeChart(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, Chart variant, LevelReadSettings settings)
 		{
-			Utf8JsonReader reader = new(dataSource.GetSequence(), new() { AllowTrailingCommas = true });
+			var seq = dataSource.GetSequence();
+			Utf8JsonReader reader = seq.IsSingleSegment
+				? new Utf8JsonReader(seq.First.Span, _readerOptions)
+				: new Utf8JsonReader(seq, _readerOptions);
 			reader.Read();
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 			foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
@@ -44,7 +52,10 @@ partial class Level
 		}
 		public static void DeserializeTag(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, TagEventCollection collection, LevelReadSettings settings)
 		{
-			Utf8JsonReader reader = new(dataSource.GetSequence(), new() { AllowTrailingCommas = true });
+			var seq = dataSource.GetSequence();
+			Utf8JsonReader reader = seq.IsSingleSegment
+				? new Utf8JsonReader(seq.First.Span, _readerOptions)
+				: new Utf8JsonReader(seq, _readerOptions);
 			reader.Read();
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 			foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))

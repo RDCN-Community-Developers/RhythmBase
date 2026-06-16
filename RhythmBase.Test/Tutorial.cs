@@ -421,7 +421,7 @@ namespace RhythmBase.Test;
                     // Save the content in the Data field  
                     ExtraData["myProperty"] =
                         value.HasValue ?
-                        JsonElement.Parse($$"""{"x": {{value.Value.X}}, "y": {{value.Value.Y}}}""") :
+                        JsonDocument.Parse($$"""{"x": {{value.Value.X}}, "y": {{value.Value.Y}}}""").RootElement :
                         default;
                 }
             }

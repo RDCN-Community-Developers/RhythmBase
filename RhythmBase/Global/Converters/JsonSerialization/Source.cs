@@ -58,16 +58,36 @@ public class StreamDataSource : IJsonDataSource
     {
         using JsonCompactStream escStream = new(stream,
             allowNewlinesInStrings: true,
-            allowImplicitComma: true,
-            allowTrailingComma: true);
+            lenientComma: true);
 
-        var head = new JsonSegment(ReadOnlyMemory<byte>.Empty);
-        var current = head;
         const int chunkSize = 65536;
-
         byte[] rentBuf = ArrayPool<byte>.Shared.Rent(chunkSize);
         try
         {
+            int firstRead = escStream.Read(rentBuf, 0, rentBuf.Length);
+            if (firstRead == 0)
+            {
+                dataSequence = ReadOnlySequence<byte>.Empty;
+                return;
+            }
+
+            if (firstRead < rentBuf.Length)
+            {
+                // Small file: first read didn't fill buffer, file is fully read
+                byte[] single = new byte[firstRead];
+                Buffer.BlockCopy(rentBuf, 0, single, 0, firstRead);
+                dataSequence = new ReadOnlySequence<byte>(single);
+                return;
+            }
+
+            // Large file: first read filled buffer, build linked list from chunks
+            var head = new JsonSegment(ReadOnlyMemory<byte>.Empty);
+            var current = head;
+
+            byte[] firstOwned = new byte[firstRead];
+            Buffer.BlockCopy(rentBuf, 0, firstOwned, 0, firstRead);
+            current = current.Append(firstOwned);
+
             int read;
             while ((read = escStream.Read(rentBuf, 0, rentBuf.Length)) > 0)
             {
@@ -75,13 +95,13 @@ public class StreamDataSource : IJsonDataSource
                 Buffer.BlockCopy(rentBuf, 0, owned, 0, read);
                 current = current.Append(owned);
             }
+
+            dataSequence = new ReadOnlySequence<byte>(head, 0, current, current.Memory.Length);
         }
         finally
         {
             ArrayPool<byte>.Shared.Return(rentBuf);
         }
-
-        dataSequence = new ReadOnlySequence<byte>(head, 0, current, current.Memory.Length);
     }
 
     /// <inheritdoc/>

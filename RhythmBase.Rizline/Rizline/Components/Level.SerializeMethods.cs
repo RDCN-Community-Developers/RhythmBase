@@ -1,6 +1,7 @@
 ﻿using RhythmBase.Rizline.Converters;
 using RhythmBase.Rizline.Events;
 using RhythmBase.Global.Settings;
+using System;
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
@@ -9,11 +10,15 @@ namespace RhythmBase.Rizline.Components;
 
 partial class Level
 {
+	private static readonly JsonReaderOptions _readerOptions = new() { AllowTrailingCommas = true };
 	private static class FileConverter
 	{
 		public static void DeserializeChart(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, Level level, LevelReadSettings settings)
 		{
-			Utf8JsonReader reader = new(dataSource.GetSequence(), new() { AllowTrailingCommas = true });
+			var seq = dataSource.GetSequence();
+			Utf8JsonReader reader = seq.IsSingleSegment
+				? new Utf8JsonReader(seq.First.Span, _readerOptions)
+				: new Utf8JsonReader(seq, _readerOptions);
 			reader.Read();
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 			Chart chart = new();

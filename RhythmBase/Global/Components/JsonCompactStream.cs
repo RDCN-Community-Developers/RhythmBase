@@ -1,5 +1,12 @@
 ﻿using System;
 using System.IO;
+#if NET8_0_OR_GREATER
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+using System.Runtime.Intrinsics.Arm;
+#endif
 
 namespace RhythmBase.Global.Components
 {
@@ -35,11 +42,9 @@ namespace RhythmBase.Global.Components
 		private int _kwIndex;
 
 		private readonly bool _allowNewlinesInStrings;
-		private readonly bool _allowTrailingComma;
-		private readonly bool _allowImplicitComma;
+		private readonly bool _lenientComma;
 
 		private bool _lastWasValue;
-		private bool _pendingComma;
 		private int _pendingByte = -1;
 
 		public override bool CanRead => !_disposed;
@@ -55,11 +60,10 @@ namespace RhythmBase.Global.Components
 
 		public JsonCompactStream(
 			Stream stream,
-			int bufferSize = 1024,
+			int bufferSize = 8192,
 			bool leaveOpen = false,
 			bool allowNewlinesInStrings = false,
-			bool allowTrailingComma = false,
-			bool allowImplicitComma = false)
+			bool lenientComma = false)
 		{
 			ArgumentNullException.ThrowIfNull(stream, nameof(stream));
 			if (bufferSize < 1) throw new ArgumentOutOfRangeException(nameof(bufferSize), "Buffer size must be greater than 0.");
@@ -68,8 +72,7 @@ namespace RhythmBase.Global.Components
 			_windowSize = bufferSize;
 			_leaveOpen = leaveOpen;
 			_allowNewlinesInStrings = allowNewlinesInStrings;
-			_allowTrailingComma = allowTrailingComma;
-			_allowImplicitComma = allowImplicitComma;
+			_lenientComma = lenientComma;
 			_buffer = new byte[bufferSize + _overlapSize];
 
 			int totalRead = 0;
@@ -106,7 +109,7 @@ namespace RhythmBase.Global.Components
 
 		public
 #if NET8_0_OR_GREATER
-			override 
+			override
 #endif
 			int Read(Span<byte> buffer)
 		{
@@ -128,32 +131,121 @@ namespace RhythmBase.Global.Components
 					SwitchBuffer();
 				}
 
-				byte b = _buffer[_scanIdx];
-
-				if (_pendingComma)
+#if NET8_0_OR_GREATER
+				// ── SIMD fast path ──────────────────────────────────────────
+				if ((Sse2.IsSupported || AdvSimd.IsSupported) && _pendingByte < 0)
 				{
-					if (b == (byte)' ' || b == (byte)'\t' || b == (byte)'\n' || b == (byte)'\r')
+					int contiguous = Math.Min(
+						RingDistance(_scanIdx, _scanEnd),
+						_buffer.Length - _scanIdx);
+
+					if (contiguous >= Vector128<byte>.Count)
 					{
-						_scanIdx = (_scanIdx + 1) % _buffer.Length;
-						continue;
-					}
-					if (b == (byte)']' || b == (byte)'}')
-					{
-						_pendingComma = false;
-					}
-					else
-					{
-						buffer[i++] = (byte)',';
-						_pendingComma = false;
-						if (i >= buffer.Length)
+						ref byte scanStart = ref _buffer[_scanIdx];
+						bool advanced = false;
+
+						if (_parserState == ParserState.InString)
 						{
-							_pendingByte = -1;
-							return i;
+							// Bulk-copy string content up to the next " or \
+							int str = ScanStringContent(ref scanStart, contiguous, _allowNewlinesInStrings);
+							if (str > 0)
+							{
+								int copy = Math.Min(str, buffer.Length - i);
+								_buffer.AsSpan(_scanIdx, copy).CopyTo(buffer[i..]);
+								i += copy;
+								_scanIdx = (_scanIdx + copy) % _buffer.Length;
+								advanced = true;
+							}
 						}
+						else if (_parserState == ParserState.Normal)
+						{
+							// 1) Skip whitespace
+							int ws = ScanWhitespace(ref scanStart, contiguous);
+							if (ws > 0)
+							{
+								_scanIdx = (_scanIdx + ws) % _buffer.Length;
+								contiguous -= ws;
+								scanStart = ref _buffer[_scanIdx];
+							}
+
+							if (contiguous >= Vector128<byte>.Count)
+							{
+								byte first = _buffer[_scanIdx];
+
+								// 2) Insert implicit comma before value if needed
+								if (_lenientComma && _lastWasValue && IsValueStart(first) && i < buffer.Length)
+								{
+									buffer[i++] = (byte)',';
+									_lastWasValue = false;
+								}
+
+								// 3) Found " → full string lifecycle
+								if (first == (byte)'"')
+								{
+									if (i < buffer.Length)
+									{
+										buffer[i++] = (byte)'"';
+										_scanIdx = (_scanIdx + 1) % _buffer.Length;
+										contiguous--;
+										if (contiguous > 0)
+										{
+											ref byte strStart = ref _buffer[_scanIdx];
+											int contentLen = ScanStringContent(ref strStart, contiguous, _allowNewlinesInStrings);
+											if (contentLen > 0)
+											{
+												int copy = Math.Min(contentLen, buffer.Length - i);
+												_buffer.AsSpan(_scanIdx, copy).CopyTo(buffer[i..]);
+												i += copy;
+												_scanIdx = (_scanIdx + copy) % _buffer.Length;
+											}
+										}
+										_parserState = ParserState.InString;
+										advanced = true;
+									}
+								}
+								// 4) Found digit/- → batch copy value content
+								else if (first == (byte)'-' || (first >= (byte)'0' && first <= (byte)'9'))
+								{
+									int val = ScanValueContent(ref scanStart, contiguous);
+									if (val > 0)
+									{
+										int copy = Math.Min(val, buffer.Length - i);
+										_buffer.AsSpan(_scanIdx, copy).CopyTo(buffer[i..]);
+										i += copy;
+										_scanIdx = (_scanIdx + copy) % _buffer.Length;
+										_parserState = ParserState.InValue;
+										advanced = true;
+									}
+								}
+							}
+
+							if (!advanced && ws > 0)
+								advanced = true;
+						}
+						else if (_parserState == ParserState.InValue)
+						{
+							int val = ScanValueContent(ref scanStart, contiguous);
+							if (val > 0)
+							{
+								int copy = Math.Min(val, buffer.Length - i);
+								_buffer.AsSpan(_scanIdx, copy).CopyTo(buffer[i..]);
+								i += copy;
+								_scanIdx = (_scanIdx + copy) % _buffer.Length;
+								advanced = true;
+							}
+						}
+
+						if (advanced) continue;
 					}
 				}
+				// ── end SIMD fast path ──────────────────────────────────────
+#endif
 
-				if (_allowImplicitComma && _lastWasValue && !_pendingComma && IsValueStart(b))
+				if (i >= buffer.Length) break;
+
+				byte b = _buffer[_scanIdx];
+
+				if (_lenientComma && _lastWasValue && IsValueStart(b))
 				{
 					buffer[i++] = (byte)',';
 					_lastWasValue = false;
@@ -186,12 +278,8 @@ namespace RhythmBase.Global.Components
 								_scanIdx = (_scanIdx + 1) % _buffer.Length;
 								break;
 							case (byte)',':
-								_lastWasValue = false;
-								if (_allowTrailingComma)
-								{
-									_pendingComma = true;
+								if (_lenientComma)
 									_scanIdx = (_scanIdx + 1) % _buffer.Length;
-								}
 								else
 								{
 									buffer[i++] = b;
@@ -404,5 +492,150 @@ namespace RhythmBase.Global.Components
 
 			_scanEnd = (_scanEnd + _windowSize) % _buffer.Length;
 		}
+
+		// ── SIMD scan helpers (NET8+) ────────────────────────────────────
+
+#if NET8_0_OR_GREATER
+		/// <summary>
+		/// Scans string content for the first byte that needs special handling:
+		/// <c>"</c>, <c>\</c>, and optionally <c>\n \r \t \b</c>.
+		/// Returns the number of bytes that can be copied directly.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static int ScanStringContent(ref byte start, int maxLen, bool escapeSpecialWhitespace)
+		{
+			int i = 0;
+			var vQuote = Vector128.Create((byte)'"');
+			var vBackslash = Vector128.Create((byte)'\\');
+
+			if (escapeSpecialWhitespace)
+			{
+				var vNL = Vector128.Create((byte)'\n');
+				var vCR = Vector128.Create((byte)'\r');
+				var vTab = Vector128.Create((byte)'\t');
+				var vBS = Vector128.Create((byte)'\b');
+
+				while (i + Vector128<byte>.Count <= maxLen)
+				{
+					var vec = Vector128.LoadUnsafe(ref start, (nuint)i);
+					uint bits = (uint)Vector128.ExtractMostSignificantBits(
+						Vector128.Equals(vec, vQuote)
+						| Vector128.Equals(vec, vBackslash)
+						| Vector128.Equals(vec, vNL)
+						| Vector128.Equals(vec, vCR)
+						| Vector128.Equals(vec, vTab)
+						| Vector128.Equals(vec, vBS));
+					if (bits != 0)
+						return i + BitOperations.TrailingZeroCount(bits);
+					i += Vector128<byte>.Count;
+				}
+			}
+			else
+			{
+				while (i + Vector128<byte>.Count <= maxLen)
+				{
+					var vec = Vector128.LoadUnsafe(ref start, (nuint)i);
+					uint bits = (uint)Vector128.ExtractMostSignificantBits(
+						Vector128.Equals(vec, vQuote)
+						| Vector128.Equals(vec, vBackslash));
+					if (bits != 0)
+						return i + BitOperations.TrailingZeroCount(bits);
+					i += Vector128<byte>.Count;
+				}
+			}
+
+			// Scalar tail
+			while (i < maxLen)
+			{
+				byte b = Unsafe.Add(ref start, (nuint)i);
+				if (b == '"' || b == '\\') break;
+				if (escapeSpecialWhitespace && (b == '\n' || b == '\r' || b == '\t' || b == '\b')) break;
+				i++;
+			}
+			return i;
+		}
+
+		/// <summary>
+		/// Scans for the first non-whitespace byte.
+		/// Returns the number of whitespace bytes to skip.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static int ScanWhitespace(ref byte start, int maxLen)
+		{
+			int i = 0;
+			var vSpace = Vector128.Create((byte)' ');
+			var vTab = Vector128.Create((byte)'\t');
+			var vNL = Vector128.Create((byte)'\n');
+			var vCR = Vector128.Create((byte)'\r');
+
+			while (i + Vector128<byte>.Count <= maxLen)
+			{
+				var vec = Vector128.LoadUnsafe(ref start, (nuint)i);
+				uint wsBits = (uint)Vector128.ExtractMostSignificantBits(
+					Vector128.Equals(vec, vSpace)
+					| Vector128.Equals(vec, vTab)
+					| Vector128.Equals(vec, vNL)
+					| Vector128.Equals(vec, vCR));
+				uint allBits = (1u << Vector128<byte>.Count) - 1;
+				if (wsBits != allBits)
+					return i + BitOperations.TrailingZeroCount(~wsBits & allBits);
+				i += Vector128<byte>.Count;
+			}
+
+			// Scalar tail
+			while (i < maxLen)
+			{
+				byte b = Unsafe.Add(ref start, (nuint)i);
+				if (b != ' ' && b != '\t' && b != '\n' && b != '\r') break;
+				i++;
+			}
+			return i;
+		}
+
+		/// <summary>
+		/// Scans a JSON numeric value for the first byte that terminates it.
+		/// Valid value bytes: <c>0-9 . e E + -</c>.
+		/// Returns the number of value bytes before termination.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static int ScanValueContent(ref byte start, int maxLen)
+		{
+			int i = 0;
+			var vDot = Vector128.Create((byte)'.');
+			var vE = Vector128.Create((byte)'e');
+			var vEE = Vector128.Create((byte)'E');
+			var vPlus = Vector128.Create((byte)'+');
+			var vMinus = Vector128.Create((byte)'-');
+			var vZero = Vector128.Create((byte)'0');
+			var vNine = Vector128.Create((byte)'9');
+
+			while (i + Vector128<byte>.Count <= maxLen)
+			{
+				var vec = Vector128.LoadUnsafe(ref start, (nuint)i);
+				uint valBits = (uint)Vector128.ExtractMostSignificantBits(
+					Vector128.Equals(vec, vDot)
+					| Vector128.Equals(vec, vE)
+					| Vector128.Equals(vec, vEE)
+					| Vector128.Equals(vec, vPlus)
+					| Vector128.Equals(vec, vMinus)
+					| (Vector128.GreaterThanOrEqual(vec, vZero)
+					   & Vector128.LessThanOrEqual(vec, vNine)));
+				uint allBits = (1u << Vector128<byte>.Count) - 1;
+				if (valBits != allBits)
+					return i + BitOperations.TrailingZeroCount(~valBits & allBits);
+				i += Vector128<byte>.Count;
+			}
+
+			// Scalar tail
+			while (i < maxLen)
+			{
+				byte b = Unsafe.Add(ref start, (nuint)i);
+				if (!((b >= '0' && b <= '9') || b == '.' || b == 'e' || b == 'E' || b == '+' || b == '-'))
+					break;
+				i++;
+			}
+			return i;
+		}
+#endif
 	}
 }

@@ -95,6 +95,7 @@ public sealed class Test
 				InactiveEventsHandling = InactiveEventsHandling.Ignore,
 				UnreadableEventsHandling = UnreadableEventHandling.Store,
 				ZipProcessingMode = ZipProcessingMode.AllEntries,
+				Strictness = Global.Converters.JsonStrictness.Relaxed,
 				LoadAssets = false,
 			};
 			settings.FileReferenceEncountered += (s, e) => 			{
