@@ -237,18 +237,18 @@ public class BeatCalculator : IBeatCalculator<TickTime>
             else
                 allEvents.Insert(newBeat, node.Value);
         }
-        Bookmark[] bookmarks = [.. allBookmarks.Where(b => b.Beat.Tick >= st)];
+        Bookmark[] bookmarks = [.. allBookmarks.Where(b => b.Tick.Tick >= st)];
         foreach (Bookmark bookmark in bookmarks)
         {
-            (int bar, _) = bookmark.Beat;
+            (int bar, _) = bookmark.Tick;
             int offset = (
                 (nextCpbBeat is CpbCache nextCpbNotNull2 && bar > nextCpbNotNull2.Bar)
                 ? (nextCpbNotNull2.Bar - target.Bar)
                 : (bar - target.Bar)
                 ) * diffBeatPerBar; // 这个小节需要迁移的节拍数
             allBookmarks.Remove(bookmark);
-            TickTime newBeat = bookmark.Beat + offset;
-            allBookmarks.Add(bookmark with { Beat = newBeat });
+            TickTime newBeat = bookmark.Tick + offset;
+            allBookmarks.Add(bookmark with { Tick = newBeat });
         }
     }
     internal void AddBpmAt(BpmCache bpm)

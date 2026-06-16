@@ -6,9 +6,9 @@ namespace RhythmBase.RhythmDoctor.Components;
 	public record struct Bookmark
 	{
 		/// <summary>
-		/// Gets or sets the beat where the bookmark is located.
+		/// Gets or sets the tick where the bookmark is located.
 		/// </summary>
-		public TickTime Beat { get; set; }
+		public TickTime Tick { get; set; }
 		/// <summary>
 		/// Gets or sets the color of the bookmark.
 		/// </summary>
@@ -17,7 +17,7 @@ namespace RhythmBase.RhythmDoctor.Components;
 		/// Returns a string that represents the current bookmark.
 		/// </summary>
 		/// <returns>A string that represents the current bookmark.</returns>
-		public readonly override string ToString() => $"{Beat}, {Color}";
+		public readonly override string ToString() => $"{Tick}, {Color}";
 		/// <summary>
 		/// Specifies the colors available for bookmarks.
 		/// </summary>

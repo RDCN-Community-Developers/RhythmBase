@@ -9,7 +9,7 @@ internal class BookmarkConverter() : MetadataJsonConverter<Bookmark>
 {
 	public override void Write(Utf8JsonWriter writer, Bookmark value, MetadataJsonSerializerOptions serializer)
 	{
-		(int bar, float beat) = value.Beat;
+		(int bar, float beat) = value.Tick;
 		writer.WriteStartObject();
 		writer.WriteNumber("bar", bar);
 		writer.WriteNumber("beat", beat);
@@ -50,7 +50,7 @@ internal class BookmarkConverter() : MetadataJsonConverter<Bookmark>
 		}
 		return new Bookmark
 		{
-			Beat = new(bar, beat),
+			Tick = new(bar, beat),
 			Color = color,
 		};
 	}
