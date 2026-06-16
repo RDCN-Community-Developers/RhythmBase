@@ -83,7 +83,7 @@ public partial class Level :
 	public Color[] ColorPalette
 	{
 		get => colorPalette;
-		internal set => colorPalette = value.Length == 21 ? value : throw new RhythmBaseException();
+		internal set => colorPalette = value.Length == 21 ? value : throw new InvalidOperationException();
 	}
 
 	/// <inheritdoc/>
@@ -276,7 +276,7 @@ public partial class Level :
 	public bool Remove(IBaseEvent item, BeatChangeStrategy strategy = BeatChangeStrategy.Default)
 	{
 		bool success;
-		BaseEvent bs = item as BaseEvent ?? throw new RhythmBaseException("Inner exception that shouldn't happen");
+		BaseEvent bs = item as BaseEvent ?? throw new InvalidOperationException("Inner exception that shouldn't happen");
 		if (item is BaseDecorationAction decoAction)
 		{
 			RemoveInternal(decoAction);
@@ -346,7 +346,7 @@ public partial class Level :
 
 	internal bool AddDirectlyInternal(IBaseEvent item)
 	{
-		BaseEvent e = item as BaseEvent ?? throw new RhythmBaseException("Inner exception that shouldn't happen");
+		BaseEvent e = item as BaseEvent ?? throw new InvalidOperationException("Inner exception that shouldn't happen");
 		e._beat._calculator = Calculator;
 		if (base.Contains(e)) return false;
 		base.Add(e);
@@ -381,7 +381,7 @@ public partial class Level :
 
 	internal bool RemoveDirectlyInternal(IBaseEvent item)
 	{
-		BaseEvent e = item as BaseEvent ?? throw new RhythmBaseException("Inner exception that shouldn't happen");
+		BaseEvent e = item as BaseEvent ?? throw new InvalidOperationException("Inner exception that shouldn't happen");
 		if (!base.Contains(e)) return false;
 		base.Remove(e);
 		return true;

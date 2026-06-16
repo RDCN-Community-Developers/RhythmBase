@@ -46,7 +46,7 @@ namespace RhythmBase.Adofai.Components;
 			get
 			{
 				IfNullThrowException();
-				throw new RhythmBaseException();
+				throw new InvalidOperationException();
 			}
 		}
 		/// <summary>
@@ -127,7 +127,7 @@ namespace RhythmBase.Adofai.Components;
 			{
 				if (@throw)
 				{
-					throw new RhythmBaseException("Beats must come from the same ADLevel.");
+					throw new InvalidOperationException("Beats must come from the same ADLevel.");
 				}
 				fromSameLevel = false;
 			}

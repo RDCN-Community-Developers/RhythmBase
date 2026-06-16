@@ -1186,7 +1186,7 @@ public static partial class EventTypeRegistry
 	public static Type ToType(this {{info.ClassTypeEnum.ToDisplayString()}} type)
 	{
 		if (_enum2type{{indexPostfix}} == null)
-			return Type.GetType($"{{info.ClassType.ContainingNamespace.ToDisplayString()}}.{type}") ?? throw new RhythmBaseException(
+			return Type.GetType($"{{info.ClassType.ContainingNamespace.ToDisplayString()}}.{type}") ?? throw new InvalidOperationException(
 					$"Illegal Type: {type}.");
 		if (_enum2type{{indexPostfix}}.TryGetValue(type, out Type t))
 			return t;

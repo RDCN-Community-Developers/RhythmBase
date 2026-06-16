@@ -220,7 +220,7 @@ public static partial class Extensions
 		/// </summary>
 		/// <returns></returns>
 		/// <exception cref="NotImplementedException"></exception>
-		/// <exception cref="RhythmBaseException"></exception>
+		/// <exception cref="InvalidOperationException"></exception>
 		public SortedDictionary<float, int[]> GetRowBeatStatus()
 		{
 			SortedDictionary<float, int[]> L = [];
@@ -255,7 +255,7 @@ public static partial class Extensions
 				case RowType.Oneshot:
 					throw new NotImplementedException();
 				default:
-					throw new RhythmBaseException("How");
+					throw new InvalidOperationException("How");
 			}
 			return L;
 		}
@@ -269,7 +269,7 @@ public static partial class Extensions
 			if (rowType != RowType.Classic)
 			{
 				if (rowType != RowType.Oneshot)
-					throw new RhythmBaseException("How?");
+					throw new InvalidOperationException("How?");
 				Beats = e.OneshotBeats();
 			}
 			else
@@ -601,18 +601,18 @@ public static partial class Extensions
 	/// <para>-1 if <paramref name="e"/> should be ordered before <paramref name="obj"/>.</para>
 	/// <para>1 if <paramref name="e"/> should be ordered after <paramref name="obj"/>.</para>
 	/// </returns>
-	/// <exception cref="RhythmBaseException">
+	/// <exception cref="InvalidOperationException">
 	/// Thrown if either event has an empty beat, or if the event order cannot be determined.
 	/// </exception>
 	public static int CompareTo(this BaseEvent e, BaseEvent obj)
 	{
 		if (e.TickTime.IsEmpty || obj.TickTime.IsEmpty)
-			throw new RhythmBaseException("Cannot compare events with empty beats.");
+			throw new InvalidOperationException("Cannot compare events with empty beats.");
 		if (ReferenceEquals(e, obj))
 			return 0;
 		if (e.TickTime == obj.TickTime)
 		{
-			TypedEventCollection<EventType, TickTime> list = (e._beat.BaseLevel?.EventsBeatOrder[e.TickTime]) ?? throw new RhythmBaseException("How?");
+			TypedEventCollection<EventType, TickTime> list = (e._beat.BaseLevel?.EventsBeatOrder[e.TickTime]) ?? throw new InvalidOperationException("How?");
 			return list.CompareTo(e, obj) ? -1 : 1;
 		}
 		return e.TickTime.CompareTo(obj.TickTime);

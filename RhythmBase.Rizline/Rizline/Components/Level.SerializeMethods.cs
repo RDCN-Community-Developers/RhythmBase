@@ -19,6 +19,8 @@ partial class Level
 			Utf8JsonReader reader = seq.IsSingleSegment
 				? new Utf8JsonReader(seq.First.Span, _readerOptions)
 				: new Utf8JsonReader(seq, _readerOptions);
+			try
+			{
 			reader.Read();
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 			Chart chart = new();
@@ -174,6 +176,15 @@ partial class Level
 #endif
 			}
 			level.Charts.Add(chart);
+			}
+			catch (JsonException ex) { WrapAndThrow(ex, dataSource, reader.BytesConsumed); }
+		}
+		private static void WrapAndThrow(JsonException ex, IJsonDataSource dataSource, long bytesConsumed)
+		{
+			long originalPos = dataSource.MapToInputPosition(bytesConsumed);
+			if (originalPos >= 0)
+				throw new JsonException($"{ex.Message}\n  at processed byte position {bytesConsumed}, original stream byte position ~{originalPos}", ex);
+			throw new JsonException($"{ex.Message}\n  at processed byte position {bytesConsumed}", ex);
 		}
 
 		internal static void WriteChartToStream(Stream stream, NoIndentScope noIndentScope, Chart chart, LevelWriteSettings settings, MetadataJsonSerializerOptions options)
@@ -253,7 +264,7 @@ partial class Level
 		catch (Exception ex)
 		{
 			tempDirectory.Delete(true);
-			throw new RhythmBaseException("Cannot extract the file.", ex);
+			throw new InvalidDataException("Cannot extract the file.", ex);
 		}
 	}
 	/// <inheritdoc/>

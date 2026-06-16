@@ -62,7 +62,7 @@ public struct Range : ITickRange<TickTime>
 		this = default;
 		if (start != null && end != null && !((TickTime)start).FromSameLevelOrNull((TickTime)end))
 		{
-			throw new RhythmBaseException("RDIndexes must come from the same RDLevel.");
+			throw new InvalidOperationException("RDIndexes must come from the same RDLevel.");
 		}
 		if (start != null && end != null && start > end)
 		{

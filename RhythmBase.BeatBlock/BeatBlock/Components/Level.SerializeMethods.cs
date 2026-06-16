@@ -21,6 +21,8 @@ partial class Level
 			Utf8JsonReader reader = seq.IsSingleSegment
 				? new Utf8JsonReader(seq.First.Span, _readerOptions)
 				: new Utf8JsonReader(seq, _readerOptions);
+			try
+			{
 			reader.Read();
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 			while (reader.Read())
@@ -35,6 +37,8 @@ partial class Level
 				reader.Skip();
 			}
 			}
+			}
+			catch (JsonException ex) { WrapAndThrow(ex, dataSource, reader.BytesConsumed); }
 		}
 		public static void DeserializeChart(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, Chart variant, LevelReadSettings settings)
 		{
@@ -42,6 +46,8 @@ partial class Level
 			Utf8JsonReader reader = seq.IsSingleSegment
 				? new Utf8JsonReader(seq.First.Span, _readerOptions)
 				: new Utf8JsonReader(seq, _readerOptions);
+			try
+			{
 			reader.Read();
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 			foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
@@ -49,6 +55,8 @@ partial class Level
 				variant.Add(e);
 			}
 			reader.Read();
+			}
+			catch (JsonException ex) { WrapAndThrow(ex, dataSource, reader.BytesConsumed); }
 		}
 		public static void DeserializeTag(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, TagEventCollection collection, LevelReadSettings settings)
 		{
@@ -56,6 +64,8 @@ partial class Level
 			Utf8JsonReader reader = seq.IsSingleSegment
 				? new Utf8JsonReader(seq.First.Span, _readerOptions)
 				: new Utf8JsonReader(seq, _readerOptions);
+			try
+			{
 			reader.Read();
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 			foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
@@ -63,6 +73,15 @@ partial class Level
 				collection.Add(e);
 			}
 			reader.Read();
+			}
+			catch (JsonException ex) { WrapAndThrow(ex, dataSource, reader.BytesConsumed); }
+		}
+		private static void WrapAndThrow(JsonException ex, IJsonDataSource dataSource, long bytesConsumed)
+		{
+			long originalPos = dataSource.MapToInputPosition(bytesConsumed);
+			if (originalPos >= 0)
+				throw new JsonException($"{ex.Message}\n  at processed byte position {bytesConsumed}, original stream byte position ~{originalPos}", ex);
+			throw new JsonException($"{ex.Message}\n  at processed byte position {bytesConsumed}", ex);
 		}
 		private static List<IBaseEvent> DeserializeEvents(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options, LevelReadSettings settings)
 		{
@@ -264,7 +283,7 @@ partial class Level
 		catch (Exception ex)
 		{
 			tempDirectory.Delete(true);
-			throw new RhythmBaseException("Cannot extract the file.", ex);
+			throw new InvalidDataException("Cannot extract the file.", ex);
 		}
 	}
 	/// <inheritdoc/>

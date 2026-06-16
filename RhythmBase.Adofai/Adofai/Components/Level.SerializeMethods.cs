@@ -59,7 +59,7 @@ partial class Level
 		if (extension != ".zip")
 		{
 			if (extension != ".adofai")
-				throw new RhythmBaseException("File not supported.");
+				throw new NotSupportedException("File not supported.");
 			using FileStream stream = File.Open(filepath, FileMode.Open, FileAccess.Read);
 			level = FromStream(stream, settings);
 			level.Filepath = level.ResolvedPath = Path.GetFullPath(filepath);
@@ -88,7 +88,7 @@ partial class Level
 						}
 					}
 					if (adlevelPath == null)
-						throw new RhythmBaseException("No Adofai file has been found.");
+						throw new FileNotFoundException("No Adofai file has been found.");
 					level = FromFile(adlevelPath, settings);
 					level.ResolvedPath = Path.GetFullPath(adlevelPath);
 					level.Filepath = Path.GetFullPath(filepath);
@@ -98,7 +98,7 @@ partial class Level
 				catch (Exception ex2)
 				{
 					tempDirectory.Delete(true);
-					throw new RhythmBaseException("Cannot extract the file.", ex2);
+					throw new InvalidDataException("Cannot extract the file.", ex2);
 				}
 				break;
 			case ZipProcessingMode.RootEntriesOnly:
@@ -106,7 +106,7 @@ partial class Level
 				{
 					using FileStream zipStream = new(filepath, FileMode.Open, FileAccess.Read);
 					using ZipArchive archive = new(zipStream, ZipArchiveMode.Read);
-					ZipArchiveEntry? entry = archive.GetEntry("main.rdlevel") ?? throw new RhythmBaseException("Cannot find the level file.");
+					ZipArchiveEntry? entry = archive.GetEntry("main.rdlevel") ?? throw new FileNotFoundException("Cannot find the level file.");
 					using Stream stream = entry.Open();
 					level = await FromStreamAsync(stream, settings, cancellationToken);
 					level.Filepath = Path.GetFullPath(filepath);
@@ -115,11 +115,11 @@ partial class Level
 				}
 				catch (Exception ex2)
 				{
-					throw new RhythmBaseException("Cannot extract the file.", ex2);
+					throw new InvalidDataException("Cannot extract the file.", ex2);
 				}
 				break;
 			default:
-				throw new RhythmBaseException(extension + " is not supported.");
+				throw new NotSupportedException(extension + " is not supported.");
 		}
 		return level;
 	}

@@ -21,6 +21,13 @@ public interface IJsonDataSource
     /// </summary>
     /// <returns>The JSON data as a sequence of UTF-8 byte segments.</returns>
     ReadOnlySequence<byte> GetSequence();
+    /// <summary>
+    /// Maps a byte position in the processed (compacted) JSON data back to an approximate
+    /// byte position in the original source stream. Returns <c>-1</c> if mapping is unavailable.
+    /// </summary>
+    /// <param name="processedPosition">The byte position from <see cref="Utf8JsonReader.BytesConsumed"/> or <see cref="Utf8JsonReader.TokenStartIndex"/>.</param>
+    /// <returns>The approximate byte position in the original stream, or <c>-1</c> if unavailable.</returns>
+    long MapToInputPosition(long processedPosition);
 }
 
 /// <summary>
@@ -31,6 +38,7 @@ public interface IJsonDataSource
 public class StreamDataSource : IJsonDataSource
 {
     private readonly ReadOnlySequence<byte> dataSequence;
+    private readonly (long output, long input)[] _positionMap;
 
     private sealed class JsonSegment : ReadOnlySequenceSegment<byte>
     {
@@ -68,6 +76,7 @@ public class StreamDataSource : IJsonDataSource
             if (firstRead == 0)
             {
                 dataSequence = ReadOnlySequence<byte>.Empty;
+                _positionMap = Array.Empty<(long, long)>();
                 return;
             }
 
@@ -77,6 +86,7 @@ public class StreamDataSource : IJsonDataSource
                 byte[] single = new byte[firstRead];
                 Buffer.BlockCopy(rentBuf, 0, single, 0, firstRead);
                 dataSequence = new ReadOnlySequence<byte>(single);
+                _positionMap = escStream.PositionMap.ToArray();
                 return;
             }
 
@@ -97,11 +107,35 @@ public class StreamDataSource : IJsonDataSource
             }
 
             dataSequence = new ReadOnlySequence<byte>(head, 0, current, current.Memory.Length);
+            _positionMap = escStream.PositionMap.ToArray();
         }
         finally
         {
             ArrayPool<byte>.Shared.Return(rentBuf);
         }
+    }
+
+    /// <inheritdoc/>
+    public long MapToInputPosition(long processedPosition)
+    {
+        if (_positionMap.Length == 0) return -1;
+
+        int lo = 0, hi = _positionMap.Length - 1;
+        int best = 0;
+        while (lo <= hi)
+        {
+            int mid = (lo + hi) >>> 1;
+            if (_positionMap[mid].output <= processedPosition)
+            {
+                best = mid;
+                lo = mid + 1;
+            }
+            else
+            {
+                hi = mid - 1;
+            }
+        }
+        return _positionMap[best].input;
     }
 
     /// <inheritdoc/>
@@ -135,6 +169,9 @@ public class JsonDocumentDataSource : IJsonDataSource
     /// <inheritdoc/>
     public ValueTask<ReadOnlySequence<byte>> GetSequenceAsync(CancellationToken cancellationToken = default)
         => new(GetSequence());
+
+    /// <inheritdoc/>
+    public long MapToInputPosition(long processedPosition) => -1;
 }
 
 /// <summary>
@@ -159,4 +196,7 @@ public class ReadOnlyMemoryDataSource : IJsonDataSource
     /// <inheritdoc/>
     public ValueTask<ReadOnlySequence<byte>> GetSequenceAsync(CancellationToken cancellationToken = default)
         => new(new ReadOnlySequence<byte>(jsonData));
+
+    /// <inheritdoc/>
+    public long MapToInputPosition(long processedPosition) => processedPosition;
 }

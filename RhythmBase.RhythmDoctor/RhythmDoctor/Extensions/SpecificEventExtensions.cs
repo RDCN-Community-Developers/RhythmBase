@@ -60,11 +60,11 @@ public static partial class Extensions
 		/// <summary>
 		/// Returns the pulse beat of the specified 0-based index.
 		/// </summary>
-		/// <exception cref="T:RhythmBase.Global.Exceptions.RhythmBaseException">THIS IS 7TH BEAT GAMES!</exception>
+		/// <exception cref="InvalidOperationException">THIS IS 7TH BEAT GAMES!</exception>
 		public TickTime BeatOf(byte index)
 		{
 			if (index >= 7)
-				throw new RhythmBaseException("THIS IS 7TH BEAT GAMES!");
+				throw new InvalidOperationException("THIS IS 7TH BEAT GAMES!");
 			SetRowXs x = e.Parent?.OfEvent<SetRowXs>().LastOrDefault(i => i.Active && e.IsBehind(i)) ?? new();
 			float synco = 0 <= x.SyncoBeat && x.SyncoBeat < (sbyte)index ? (float)((x.SyncoSwing == 0f) ? 0.5 : ((double)x.SyncoSwing)) : 0f;
 			return e.TickTime.DurationOffset(e.Tick * (index - synco));
@@ -253,7 +253,7 @@ public static partial class Extensions
 									case PulseAction.Remove:
 										return false;
 									default:
-										throw new RhythmBaseException("Unknown PulseAction");
+										throw new InvalidOperationException("Unknown PulseAction");
 								}
 								if (pulseIndexMin > pulseIndexMax)
 									return false;

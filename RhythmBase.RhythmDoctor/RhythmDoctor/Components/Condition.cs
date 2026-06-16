@@ -113,7 +113,7 @@ public class Condition
 	/// </summary>
 	/// <param name="text">The text to load the condition from.</param>
 	/// <returns>A new instance of the <see cref="Condition"/> class.</returns>
-	/// <exception cref="RhythmBaseException">Thrown when the condition is illegal.</exception>
+	/// <exception cref="FormatException">Thrown when the condition is illegal.</exception>
 	public static Condition Deserialize(string text)
 	{
 		// "p&f&~n&~o&1&~2&3d4.5"
@@ -157,7 +157,7 @@ public class Condition
 				o[index] = enabled;
 				break;
 			}
-			throw new RhythmBaseException($"Illegal condition: {text}.");
+			throw new FormatException($"Illegal condition: {text}.");
 		}
 		float duration = 0;
 		i++;

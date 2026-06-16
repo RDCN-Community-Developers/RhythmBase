@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Exception thrown when an invalid RD beat is encountered.
 	/// </summary>
-	public class InvalidRDBeatException : RhythmBaseException
+	public class InvalidRDBeatException : InvalidOperationException
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="InvalidRDBeatException"/> class.

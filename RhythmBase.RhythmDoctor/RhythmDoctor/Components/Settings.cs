@@ -109,7 +109,7 @@ public class Settings
 	public int[] RankMaxMistakes
 	{
 		get => rankMaxMistakes;
-		set => rankMaxMistakes = value.Length == 4 ? value : throw new RhythmBaseException();
+		set => rankMaxMistakes = value.Length == 4 ? value : throw new InvalidOperationException();
 	}
 	/// <summary>  
 	/// Description of each rank.  
@@ -117,7 +117,7 @@ public class Settings
 	public string[] RankDescription
 	{
 		get => rankDescription;
-		set => rankDescription = value.Length == 6 ? value : throw new RhythmBaseException();
+		set => rankDescription = value.Length == 6 ? value : throw new InvalidOperationException();
 	}
 	/// <summary>  
 	/// Mods enabled for the level.  

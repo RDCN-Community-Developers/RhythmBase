@@ -554,6 +554,13 @@ public partial class ConverterGenerator : IIncrementalGenerator
 			public class FileMainEntryConverter
 			{
 				private static readonly JsonReaderOptions _readerOptions = new();
+				private static void WrapAndThrow(JsonException ex, RhythmBase.Global.Converters.JsonSerialization.IJsonDataSource dataSource, long bytesConsumed)
+				{
+					long originalPos = dataSource.MapToInputPosition(bytesConsumed);
+					if (originalPos >= 0)
+						throw new JsonException($"{ex.Message}\n  at original stream byte position ~{originalPos}", ex);
+					throw new JsonException($"{ex.Message}\n  at processed byte position {bytesConsumed}", ex);
+				}
 				public static T DeserializeMainEntry<T>(RhythmBase.Global.Converters.JsonSerialization.IJsonDataSource dataSource, RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
 						where T : new()
 				{
@@ -561,7 +568,11 @@ public partial class ConverterGenerator : IIncrementalGenerator
 					Utf8JsonReader reader = seq.IsSingleSegment
 						? new Utf8JsonReader(seq.First.Span, _readerOptions)
 						: new Utf8JsonReader(seq, _readerOptions);
+					try
+					{
 					return RhythmBase.{{registryId}}.Converters.TypeConverterRegistry.Read<T>(ref reader, options) ?? new();
+					}
+					catch (JsonException ex) { WrapAndThrow(ex, dataSource, reader.BytesConsumed); return default!; }
 				}
 				public static async Task<T> DeserializeMainEntryAsync<T>(RhythmBase.Global.Converters.JsonSerialization.IJsonDataSource dataSource, RhythmBase.Global.Converters.MetadataJsonSerializerOptions options, CancellationToken cancellationToken = default)
 						where T : new()
@@ -570,7 +581,11 @@ public partial class ConverterGenerator : IIncrementalGenerator
 					Utf8JsonReader reader = seq.IsSingleSegment
 						? new Utf8JsonReader(seq.First.Span, _readerOptions)
 						: new Utf8JsonReader(seq, _readerOptions);
+					try
+					{
 					return RhythmBase.{{registryId}}.Converters.TypeConverterRegistry.Read<T>(ref reader, options) ?? new();
+					}
+					catch (JsonException ex) { WrapAndThrow(ex, dataSource, reader.BytesConsumed); return default!; }
 				}
 				public static void SerializeMainEntry<T>(T mainEntry, Stream stream, RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
 				{

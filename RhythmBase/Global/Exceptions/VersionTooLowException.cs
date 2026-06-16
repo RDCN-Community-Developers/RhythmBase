@@ -3,7 +3,7 @@ namespace RhythmBase.Global.Exceptions;
 /// <summary>
 /// Exception thrown when the version is too low.
 /// </summary>
-public class VersionTooLowException : RhythmBaseException
+public class VersionTooLowException : InvalidOperationException
 {
 	/// <summary>
 	/// Gets the error message.

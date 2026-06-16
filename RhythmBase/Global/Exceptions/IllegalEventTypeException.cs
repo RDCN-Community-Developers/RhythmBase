@@ -3,7 +3,7 @@ namespace RhythmBase.Global.Exceptions;
 /// <summary>
 /// Exception thrown when an illegal event type is encountered.
 /// </summary>
-public class IllegalEventTypeException : RhythmBaseException
+public class IllegalEventTypeException : InvalidOperationException
 {
 	/// <summary>
 	/// Gets the error message that explains the reason for the exception.

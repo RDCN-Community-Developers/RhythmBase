@@ -234,7 +234,7 @@ public struct TickTime :ITickTime<TickTime>
 	/// <returns></returns>
 	public static bool FromSameLevel(TickTime a, TickTime b, bool @throw = false) =>
 		(a._calculator?.Equals(b._calculator) ?? true)
-		|| (@throw ? throw new RhythmBaseException("Beats must come from the same RDLevel.") : false);
+		|| (@throw ? throw new InvalidOperationException("Beats must come from the same RDLevel.") : false);
 	/// <summary>
 	/// Determine if two beats are from the same level.
 	/// <br />
@@ -282,14 +282,14 @@ public struct TickTime :ITickTime<TickTime>
 	/// to the specified calculator.</remarks>
 	/// <param name="calculator">The <see cref="BeatCalculator"/> instance to associate with this beat. This parameter cannot be null.</param>
 	/// <returns>The current <see cref="TickTime"/> instance with the linked <see cref="BeatCalculator"/>.</returns>
-	/// <exception cref="RhythmBaseException">Thrown if the beat is already linked to a different <see cref="BeatCalculator"/>.</exception>
+	/// <exception cref="InvalidOperationException">Thrown if the beat is already linked to a different <see cref="BeatCalculator"/>.</exception>
 	public readonly TickTime WithLink(BeatCalculator calculator)
 	{
 		TickTime result = this;
 		if (result._calculator == null)
 			result._calculator = calculator;
 		else if (!ReferenceEquals(result._calculator, calculator))
-			throw new RhythmBaseException("The beat is already linked to another level.");
+			throw new InvalidOperationException("The beat is already linked to another level.");
 		return result;
     }
 	/// <summary>
@@ -528,7 +528,7 @@ public struct TickTime :ITickTime<TickTime>
 			return (right._isBeatLoaded ? left.Tick.CompareTo(right._beat)
 				: right._isBarBeatLoaded ? CompareInternal(left._b_bar, left._b_beat, right._b_bar, right._b_beat)
 				: right._isTimeSpanLoaded ? left.Tick.CompareTo(left._calculator.TimeSpanToBeatOnly(right.TimeSpan))
-				: throw new RhythmBaseException("The beat cannot be compared."));
+				: throw new InvalidOperationException("The beat cannot be compared."));
 		}
 
 		if (right._calculator != null)
@@ -538,10 +538,10 @@ public struct TickTime :ITickTime<TickTime>
 			return (left._isBeatLoaded ? left._beat.CompareTo(right.Tick)
 				: left._isBarBeatLoaded ? CompareInternal(left._b_bar, left._b_beat, right._b_bar, right._b_beat)
 				: left._isTimeSpanLoaded ? right.Tick.CompareTo(right._calculator.TimeSpanToBeatOnly(left.TimeSpan))
-				: throw new RhythmBaseException("The beat cannot be compared."));
+				: throw new InvalidOperationException("The beat cannot be compared."));
 		}
 
-		throw new RhythmBaseException("The beat cannot be compared.");
+		throw new InvalidOperationException("The beat cannot be compared.");
 	}
 	/// <inheritdoc/>
 	public override string ToString()

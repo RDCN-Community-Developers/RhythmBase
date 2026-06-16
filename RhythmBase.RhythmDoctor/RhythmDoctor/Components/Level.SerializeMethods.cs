@@ -87,7 +87,7 @@ partial class Level
 		{
 			if (extension is ".rdlevel" or ".json")
 				throw new NotSupportedException($"File type '{extension}' is not supported. Use {nameof(FromFile)} instead.");
-			throw new RhythmBaseException($"File type '{extension}' is not supported.");
+			throw new NotSupportedException($"File type '{extension}' is not supported.");
 		}
 		return FromZipAsync(filepath, settings).GetAwaiter().GetResult();
 	}
@@ -102,7 +102,7 @@ partial class Level
 		{
 			if (extension is ".rdlevel" or ".json")
 				throw new NotSupportedException($"File type '{extension}' is not supported. Use {nameof(FromFileAsync)} instead.");
-			throw new RhythmBaseException($"File type '{extension}' is not supported.");
+			throw new NotSupportedException($"File type '{extension}' is not supported.");
 		}
 		switch (settings.ZipProcessingMode)
 		{
@@ -115,7 +115,7 @@ partial class Level
 					using Stream stream = File.OpenRead(filepath);
 					ZipFile.ExtractToDirectory(stream, tempDirectory.FullName, overwriteFiles: true);
 #elif NETSTANDARD2_0_OR_GREATER
-                    ZipFile.ExtractToDirectory(filepath, tempDirectory.FullName);
+					ZipFile.ExtractToDirectory(filepath, tempDirectory.FullName);
 #endif
 					string? rdlevelPath = null;
 					foreach (FileInfo? file in tempDirectory.GetFiles())
@@ -127,42 +127,32 @@ partial class Level
 						}
 					}
 					if (rdlevelPath == null)
-						throw new RhythmBaseException("No RDLevel file has been found.");
+						throw new FileNotFoundException("No RDLevel file has been found.");
 					level = await FromFileAsync(rdlevelPath, settings, cancellationToken);
 					level.ResolvedPath = Path.GetFullPath(rdlevelPath);
 					level.Filepath = Path.GetFullPath(filepath);
 					level.isZip = true;
 					level.isExtracted = true;
 				}
-				catch (Exception ex2)
+				catch (Exception)
 				{
 					tempDirectory.Delete(true);
-#if DEBUG
 					throw;
-#else
-                    throw new RhythmBaseException("Cannot extract the file.", ex2);
-#endif
 				}
 				break;
 			case ZipProcessingMode.RootEntriesOnly:
-				try
-				{
-					using FileStream zipStream = new(filepath, FileMode.Open, FileAccess.Read);
-					using ZipArchive archive = new(zipStream, ZipArchiveMode.Read);
-					ZipArchiveEntry entry = archive.GetEntry("main.rdlevel") ?? throw new RhythmBaseException("Cannot find the level file.");
-					using Stream stream = entry.Open();
-					level = await FromStreamAsync(stream, settings, cancellationToken);
-					level.Filepath = Path.GetFullPath(filepath);
-					level.isZip = true;
+{				using FileStream zipStream = new(filepath, FileMode.Open, FileAccess.Read);
+				using ZipArchive archive = new(zipStream, ZipArchiveMode.Read);
+				ZipArchiveEntry entry = archive.GetEntry("main.rdlevel") ?? throw new FileNotFoundException("Cannot find the level file.");
+				using Stream stream = entry.Open();
+				level = await FromStreamAsync(stream, settings, cancellationToken);
+				level.Filepath = Path.GetFullPath(filepath);
+				level.isZip = true;
 					level.isExtracted = false;
-				}
-				catch (Exception ex2)
-				{
-					throw new RhythmBaseException("Cannot extract the file.", ex2);
 				}
 				break;
 			default:
-				throw new RhythmBaseException(extension + " is not supported.");
+				throw new NotSupportedException(extension + " is not supported.");
 		}
 		return level;
 	}

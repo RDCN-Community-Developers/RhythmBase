@@ -23,7 +23,7 @@ public class Row : OrderedEventCollection<BaseRowAction, EventType, TickTime>, I
     /// <summary>
     /// Gets the index of the row.
     /// </summary>
-    public int Index => Parent?.Rows.IndexOf(this) ?? throw new RhythmBaseException();
+    public int Index => Parent?.Rows.IndexOf(this) ?? throw new InvalidOperationException();
     /// <summary>
     /// Gets or sets the rooms associated with the row.
     /// </summary>

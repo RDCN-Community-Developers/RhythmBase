@@ -47,6 +47,17 @@ namespace RhythmBase.Global.Components
 		private bool _lastWasValue;
 		private int _pendingByte = -1;
 
+		private long _totalInputBytes;
+		private long _totalOutputBytes;
+		private readonly List<(long output, long input)> _checkpoints = new();
+
+		/// <summary>
+		/// Gets the position mapping checkpoints recorded during processing.
+		/// Each entry is (outputPosition, inputPosition) representing the cumulative
+		/// bytes written to output and read from input at that point.
+		/// </summary>
+		public IReadOnlyList<(long output, long input)> PositionMap => _checkpoints;
+
 		public override bool CanRead => !_disposed;
 		public override bool CanSeek => false;
 		public override bool CanWrite => false;
@@ -363,7 +374,8 @@ namespace RhythmBase.Global.Components
 									_ => (byte)'b',
 								};
 								_scanIdx = (_scanIdx + 1) % _buffer.Length;
-								return i;
+			_totalOutputBytes += i;
+			return i;
 							}
 							buffer[i++] = b switch
 							{
@@ -460,6 +472,7 @@ namespace RhythmBase.Global.Components
 		private void SwitchBuffer()
 		{
 			int overlapEnd = (_scanEnd + _overlapSize) % _buffer.Length;
+			int bytesRead = 0;
 
 			if (_scanEnd < overlapEnd)
 			{
@@ -468,7 +481,7 @@ namespace RhythmBase.Global.Components
 				while (total1 < target1)
 				{
 					int read1 = _baseStream.Read(_buffer, overlapEnd + total1, target1 - total1);
-					if (read1 == 0) { _isEndOfStream = true; _scanEnd = overlapEnd + total1; return; }
+					if (read1 == 0) { _isEndOfStream = true; _scanEnd = overlapEnd + total1; goto record; }
 					total1 += read1;
 				}
 
@@ -476,9 +489,10 @@ namespace RhythmBase.Global.Components
 				while (total2 < _scanEnd)
 				{
 					int read2 = _baseStream.Read(_buffer, total2, _scanEnd - total2);
-					if (read2 == 0) { _isEndOfStream = true; _scanEnd = total2; return; }
+					if (read2 == 0) { _isEndOfStream = true; _scanEnd = total2; goto record; }
 					total2 += read2;
 				}
+				bytesRead = total1 + total2;
 			}
 			else
 			{
@@ -487,12 +501,17 @@ namespace RhythmBase.Global.Components
 				while (total < target)
 				{
 					int read = _baseStream.Read(_buffer, overlapEnd + total, target - total);
-					if (read == 0) { _isEndOfStream = true; _scanEnd = overlapEnd + total; return; }
+					if (read == 0) { _isEndOfStream = true; _scanEnd = overlapEnd + total; goto record; }
 					total += read;
 				}
+				bytesRead = total;
 			}
 
 			_scanEnd = (_scanEnd + _windowSize) % _buffer.Length;
+
+		record:
+			_totalInputBytes += bytesRead;
+			_checkpoints.Add((_totalOutputBytes, _totalInputBytes));
 		}
 
 		// ── SIMD scan helpers (NET8+) ────────────────────────────────────

@@ -140,7 +140,7 @@ public struct Room :
 	/// </summary>
 	/// <param name="room">The Room instance to convert.</param>
 	/// <returns>A SingleRoom instance.</returns>
-	/// <exception cref="RhythmBaseException">Thrown when the Room contains more than one room.</exception>
+	/// <exception cref="InvalidCastException">Thrown when the Room contains more than one room.</exception>
 	public static explicit operator SingleRoom(Room room) =>
 		room.Rooms.Length == 1
 			? new SingleRoom(room.Rooms[0])

@@ -81,7 +81,9 @@ public interface ISingleFileLevel<TSelf, TEvent, TType, TBeat> : ILevel<TSelf, T
     /// <param name="filepath">The path to the file to read.</param>
     /// <param name="settings">Optional settings that control how the level is read. If not provided, default settings are used.</param>
     /// <returns>An <typeparamref name="TSelf"/> instance representing the data read from the file.</returns>
-    /// <exception cref="RhythmBaseException">Thrown if the file format is not supported, if no level file is found in the archive, or if an error occurs during
+    /// <exception cref="NotSupportedException">Thrown if the file format is not supported.</exception>
+    /// <exception cref="FileNotFoundException">Thrown if no level file is found in the archive.</exception>
+    /// <exception cref="InvalidDataException">Thrown if an error occurs during
     /// file extraction.</exception>
     static abstract TSelf FromFile(string filepath, LevelReadSettings? settings = null);
     /// <summary>
@@ -97,7 +99,9 @@ public interface ISingleFileLevel<TSelf, TEvent, TType, TBeat> : ILevel<TSelf, T
     /// <returns>A task that represents the asynchronous operation. The task result contains the loaded <typeparamref name="TSelf"/> instance. 
     /// If the file contains no data or deserialization results in null, the task result will be an empty <typeparamref name="TSelf"/>
     /// instance.</returns>
-    /// <exception cref="RhythmBaseException">Thrown if the file format is unsupported, if no file is found in a compressed archive, or if an
+    /// <exception cref="NotSupportedException">Thrown if the file format is unsupported.</exception>
+    /// <exception cref="FileNotFoundException">Thrown if no file is found in a compressed archive.</exception>
+    /// <exception cref="InvalidDataException">Thrown if an
     /// error occurs during extraction.</exception>
     static abstract Task<TSelf> FromFileAsync(string filepath, LevelReadSettings? settings = null, CancellationToken cancellationToken = default);
 #endif
