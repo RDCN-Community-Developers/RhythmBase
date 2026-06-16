@@ -1,5 +1,6 @@
 using RhythmBase.Global.Components.Easing;
 using RhythmBase.Global.Components.Vector;
+using static RhythmBase.Adofai.Constants;
 namespace RhythmBase.Adofai.Components;
 
 	/// <summary>
@@ -10,7 +11,7 @@ namespace RhythmBase.Adofai.Components;
 		/// <summary>
 		/// Gets or sets the version of the level.
 		/// </summary>
-		public int Version { get; set; } = DefaultVersionAdofai;
+		public int Version { get; set; } = DefaultVersion;
 		/// <summary>
 		/// Gets or sets the name of the artist of the song.
 		/// </summary>

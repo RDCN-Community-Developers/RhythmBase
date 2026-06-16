@@ -1,6 +1,7 @@
 using RhythmBase.Adofai.Events;
 using RhythmBase.Adofai.Extensions;
 using RhythmBase.Adofai.Utils;
+using static RhythmBase.Adofai.Constants;
 
 namespace RhythmBase.Adofai.Components;
 
@@ -72,7 +73,7 @@ public partial class Level :
             Level level = [.. new Tile().Repeat(10)];
             level.Settings = new()
             {
-                Version = DefaultVersionAdofai,
+                Version = DefaultVersion,
             };
             return level;
         }

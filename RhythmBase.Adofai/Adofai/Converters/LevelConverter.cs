@@ -1,6 +1,7 @@
 using RhythmBase.Adofai.Components;
 using RhythmBase.Adofai.Events;
 using System.Text.Json;
+using static RhythmBase.Adofai.Constants;
 namespace RhythmBase.Adofai.Converters;
 
 [JsonConverterFor(typeof(Level))]
@@ -49,11 +50,11 @@ internal class LevelConverter : MetadataJsonConverter<Level>
 			{
 				reader.Read();
 				level.Settings = settingsConverter.Read(ref reader, typeof(Settings), options.JsonSerializerOptions) ?? new();
-				if (level.Settings.Version < MinimumSupportedVersionAdofai)
+				if (level.Settings.Version < MinimumSupportedVersion)
 #if DEBUG
 					Console.WriteLine($"Current version {level.Settings.Version} is too low.");
 #else
-					throw new VersionTooLowException(MinimumSupportedVersionAdofai);
+					throw new VersionTooLowException(MinimumSupportedVersion);
 #endif
 			}
 			else if (reader.ValueTextEquals("actions"u8))

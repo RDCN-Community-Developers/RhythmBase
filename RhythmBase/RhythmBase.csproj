@@ -32,4 +32,7 @@
 				<None Include="../CONTRIBUTION.zh-cn.md" Pack="False" />
 				<None Include="../README.md;../README.zh-cn.md;../VERSION.md;../VERSION.zh-cn.md;../RhythmBase_logo_small.png;../RhythmBase_logo.png;../RhythmBase_logo_clean.png;../RhythmBase_banner.png;../RhythmBase_banner_clean.png;../LICENSE.txt;" Pack="True" PackagePath="/" />
 		</ItemGroup>
+		<ItemGroup>
+		  <Folder Include="Global\Constants\" />
+		</ItemGroup>
 </Project>

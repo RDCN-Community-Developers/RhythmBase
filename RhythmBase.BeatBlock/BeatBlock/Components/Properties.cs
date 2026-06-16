@@ -1,5 +1,6 @@
-﻿namespace RhythmBase.BeatBlock.Components;
+﻿using static RhythmBase.BeatBlock.Constants;
 
+namespace RhythmBase.BeatBlock.Components;
 /// <summary>
 /// Represents the properties of a BeatBlock level.
 /// </summary>
@@ -21,5 +22,5 @@ public record class Properties
     /// <summary>
     /// Gets or sets the format version of the level.
     /// </summary>
-    public int FormatVersion { get; set; } = DefaultVersionBeatBlock;
+    public int FormatVersion { get; set; } = DefaultVersion;
 }

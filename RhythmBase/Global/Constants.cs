@@ -1,4 +1,4 @@
-namespace RhythmBase.Global.Constants;
+namespace RhythmBase.Global;
 /// <summary>
 /// Provides a collection of constants used throughout the application for versioning and compatibility checks.
 /// </summary>
@@ -7,36 +7,6 @@ namespace RhythmBase.Global.Constants;
 /// effectively.</remarks>
 public static partial class Constants
 {
-	/// <summary>
-	/// Represents the minimum supported version of the A Dance of Fire and Ice (ADOFAI) game required by this application.
-	/// </summary>
-	public const int MinimumSupportedVersionAdofai = 15;
-
-	/// <summary>
-	/// The default Adofai format version assumed when creating or exporting content.
-	/// </summary>
-	public const int DefaultVersionAdofai = 15;
-
-	/// <summary>
-	/// Represents the minimum supported version of the Rhythm Doctor application required for compatibility.
-	/// </summary>
-	public const int MinimumSupportedVersionRhythmDoctor = 54;
-
-	/// <summary>
-	/// The default Rhythm Doctor version used when no explicit target version is specified.
-	/// </summary>
-	public const int DefaultVersionRhythmDoctor = 67;
-
-	/// <summary>
-	/// Represents the minimum supported version of the Rhythm Doctor application required for compatibility.
-	/// </summary>
-	public const int MinimumSupportedVersionBeatBlock = 14;
-
-	/// <summary>
-	/// The default Rhythm Doctor version used when no explicit target version is specified.
-	/// </summary>
-	public const int DefaultVersionBeatBlock = 18;
-
 	/// <summary>
 	/// Represents the tolerance level used for floating-point comparisons.
 	/// </summary>

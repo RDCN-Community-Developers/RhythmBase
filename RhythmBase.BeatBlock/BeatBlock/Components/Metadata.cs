@@ -2,6 +2,7 @@
 using RhythmBase.BeatBlock.Events;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using static RhythmBase.BeatBlock.Constants;
 
 namespace RhythmBase.BeatBlock.Components;
 public record class Metadata
@@ -61,7 +62,7 @@ public class Chart :
     public int Slot => _parent?._variants.IndexOf(this) ?? -1;
     [MemberNotNullWhen(false, nameof(LevelFile))]
     public bool IsUsingDefaultLevel { get; private set; } = true;
-    public int FormatVersion => DefaultVersionBeatBlock;
+    public int FormatVersion => DefaultVersion;
     public string? LevelFile { get; set; }
     internal Chart() { }
     public Chart(string name)
