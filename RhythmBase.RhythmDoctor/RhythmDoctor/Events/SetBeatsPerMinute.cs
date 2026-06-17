@@ -7,6 +7,7 @@ namespace RhythmBase.RhythmDoctor.Events;
 public record class SetBeatsPerMinute : BaseBeatsPerMinute
 {
 	/// <inheritdoc/>
+	[JsonAlias("beatsPerMinute")]
 	public override float BeatsPerMinute { get => base.BeatsPerMinute; set => base.BeatsPerMinute = value; }
 	/// <inheritdoc/>
 	public override EventType Type => EventType.SetBeatsPerMinute;

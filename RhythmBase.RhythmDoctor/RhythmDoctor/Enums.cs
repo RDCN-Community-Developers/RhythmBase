@@ -1382,7 +1382,8 @@ public enum HeartExplodeIntervalType
 	/// <summary>
 	/// Gather and ceiling.
 	/// </summary>
-	GatherAndCeil
+	GatherAndCeil,
+	Disabled,
 }
 /// <summary>  
 /// Defines the types of waves.  

@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace RhythmBase.RhythmDoctor.Converters;
 
-internal abstract class MemberConverterBase : Global.Converters.MemberConverter<IBaseEvent>{ }
+internal abstract class MemberConverterBase : Global.Converters.MemberConverter<IBaseEvent> { }
 internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEvent : IBaseEvent, new()
 {
 	public sealed override IBaseEvent ReadProperties(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options)
@@ -37,18 +37,41 @@ internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEve
 				bool hasSeq = reader.HasValueSequence;
 				if (!Read(ref reader, ref value, options))
 				{
-#if DEBUG
-					//if (!(
-					//	(value is FloatingText && propertyName == "times") ||
-					//	(value is FloatingText && propertyName == "id") ||
-					//	(value is AdvanceText && propertyName == "id")
-					//	))
-					//	Console.WriteLine($"The key {Encoding.UTF8.GetString(propertyName)} of {value.Type} not found.");
-#endif
 					byte[] propertyNameArray = hasSeq ? seq.ToArray() : span.ToArray();
 					string propertyName = Encoding.UTF8.GetString(propertyNameArray);
+					// 忽略的属性，主要是为了兼容旧版本的事件数据
+					if ((
+						(value is FloatingText && propertyName == "times") ||
+						(value is FloatingText && propertyName == "id") ||
+						(value is AdvanceText && propertyName == "id") ||
+						(value is PlaySound && propertyName == "isCustom") ||
+						(value is MaskRoom && propertyName == "contentMode") ||
+						(value is MaskRoom && propertyName == "rooms") ||
+						(value is TintRows && propertyName == "borderOpacity") || // 1
+						(value is TintRows && propertyName == "tintOpacity") || // 1
+						(value is TintRows && propertyName == "effectSound") || 
+						(value is Tint && propertyName == "borderOpacity") || // 1
+						(value is Tint && propertyName == "tintOpacity") || // 1
+						(value is PaintHands && propertyName == "borderOpacity") || // 1
+						(value is PaintHands && propertyName == "tintOpacity") || // 1
+						(value is NewWindowDance && propertyName == "rooms") ||
+						(value is NewWindowDance && propertyName == "usePosition") ||
+						(value is AddOneshotBeat && propertyName == "squareSound") ||
+						(value is SetGameSound && propertyName == "sounds") ||
+						(value is SetClapSounds && propertyName == "p1Used") ||
+						(value is SetClapSounds && propertyName == "p2Used") ||
+						(value is SetClapSounds && propertyName == "cpuUsed") ||
+						(value is SetVFXPreset && propertyName == "xySpeed")
+
+						))
+					{
+						reader.Skip();
+						continue;
+					}
 					value[propertyName] = JsonElement.ParseValue(ref reader);
-					Console.WriteLine($"{value.Type}\t{propertyName} : {value[propertyName]}");
+#if DEBUG
+					Console.WriteLine($"{options.Version}\t| {value.Type}\t| {propertyName} => ({value[propertyName].ValueKind}){value[propertyName]}");
+#endif
 				}
 			}
 		}

@@ -28,6 +28,19 @@ public record class MetadataJsonSerializerOptions
 	public int Version { get; set; } = 0;
 	public bool UpgradeToLatest { get; set; } = true;
 }
+public class UnknownFieldReadArgs<T> : EventArgs
+{
+	public bool IsHandled { get; set; }
+	public string FieldName { get; }
+	public T Object { get; }
+	public JsonElement Value { get; }
+	public UnknownFieldReadArgs(string fieldName, ref T @object, JsonElement value)
+	{
+		FieldName = fieldName;
+		Object = @object;
+		Value = value;
+	}
+}
 public enum JsonStrictness
 {
 	Strict,

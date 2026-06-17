@@ -11,6 +11,11 @@ public record class SetBeatSound : BaseRowAction, IAudioFileEvent
 	/// <summary>
 	/// Gets or sets the audio sound for the beat.
 	/// </summary>
+	[JsonFlatten(nameof(Audio.Filename), mode: JsonFlattenMode.ReadOnly)]
+	[JsonFlatten(nameof(Audio.Volume), mode: JsonFlattenMode.ReadOnly)]
+	[JsonFlatten(nameof(Audio.Pitch), mode: JsonFlattenMode.ReadOnly)]
+	[JsonFlatten(nameof(Audio.Pan), mode: JsonFlattenMode.ReadOnly)]
+	[JsonFlatten(nameof(Audio.Offset), mode: JsonFlattenMode.ReadOnly)]
 	public Audio Sound { get; set; } = new()
 	{
 		Filename = "Shaker",

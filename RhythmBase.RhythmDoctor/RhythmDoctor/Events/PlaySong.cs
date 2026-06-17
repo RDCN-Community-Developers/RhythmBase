@@ -40,6 +40,11 @@ public record class PlaySong : BaseBeatsPerMinute, IBarBeginningEvent, IAudioFil
 	/// <summary>
 	/// Gets or sets the song to be played.
 	/// </summary>
+	[JsonFlatten(nameof(Audio.Filename), mode: JsonFlattenMode.ReadOnly)]
+	[JsonFlatten(nameof(Audio.Volume), mode: JsonFlattenMode.ReadOnly)]
+	[JsonFlatten(nameof(Audio.Pitch), mode: JsonFlattenMode.ReadOnly)]
+	[JsonFlatten(nameof(Audio.Pan), mode: JsonFlattenMode.ReadOnly)]
+	[JsonFlatten(nameof(Audio.Offset), mode: JsonFlattenMode.ReadOnly)]
 	public Audio Song { get; set; } = new()
 	{
 		Filename = "sndOrientalTechno"
