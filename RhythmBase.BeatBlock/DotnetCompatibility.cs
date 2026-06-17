@@ -69,6 +69,14 @@ namespace System
 			}
 
 		}
+		extension(ObjectDisposedException)
+		{
+			public static void ThrowIf([DoesNotReturnIf(true)] bool condition, object instance)
+			{
+				if (condition)
+					throw new ObjectDisposedException(instance.GetType().FullName);
+			}
+		}
 	}
 	internal readonly struct Index(int value, bool fromEnd = false) : IEquatable<Index>
 	{
@@ -150,6 +158,8 @@ namespace System
 			public static float Abs(float value) => Math.Abs(value);
 			public static float Round(float value) => (float)Math.Round(value);
 			public static float Pi => (float)Math.PI;
+			public static float Max(float val1, float val2) => Math.Max(val1, val2);
+			public static float Min(float val1, float val2) => Math.Min(val1, val2);
 			public static float Ieee754Remainder(float dividend, float divisor) => (float)Math.IEEERemainder(dividend, divisor);
 		}
 	}
@@ -194,71 +204,59 @@ namespace System
 		}
 	}
 }
-namespace System.Diagnostics.CodeAnalysis
+namespace System.Diagnostics
 {
-	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]
-	[EditorBrowsable(EditorBrowsableState.Never)]
-	internal class NotNullWhenAttribute(bool returnValue) : Attribute
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Struct, Inherited = false)]
+	public sealed class StackTraceHiddenAttribute : Attribute { }
+	namespace CodeAnalysis
 	{
-		public bool ReturnValue { get; } = returnValue;
-	}
-	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]
-	[EditorBrowsable(EditorBrowsableState.Never)]
-	internal sealed class NotNullAttribute : Attribute
-	{
-	}
-	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false)]
-	[EditorBrowsable(EditorBrowsableState.Never)]
-	internal sealed class AllowNullAttribute : Attribute
-	{ }
-	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
-	[EditorBrowsable(EditorBrowsableState.Never)]
-	internal sealed class MemberNotNullAttribute : Attribute
-	{
-		public MemberNotNullAttribute(string member) => Members = [member];
-		public MemberNotNullAttribute(params string[] members) => Members = members;
-		public string[] Members { get; }
-	}
-	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
-	[EditorBrowsable(EditorBrowsableState.Never)]
-	internal
-					sealed class MemberNotNullWhenAttribute : Attribute
-	{
-		public MemberNotNullWhenAttribute(bool returnValue, string member)
+		[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		internal class NotNullWhenAttribute(bool returnValue) : Attribute { }
+		[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		internal sealed class NotNullAttribute : Attribute { }
+		[AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+		internal sealed class DoesNotReturnIfAttribute(bool parameterValue) : Attribute { }
+		[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false)]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		internal sealed class AllowNullAttribute : Attribute
+		{ }
+		[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		internal sealed class MemberNotNullAttribute : Attribute
 		{
-			ReturnValue = returnValue;
-			Members = [member];
+			public MemberNotNullAttribute(string member) => Members = [member];
+			public MemberNotNullAttribute(params string[] members) => Members = members;
+			public string[] Members { get; }
 		}
-		public MemberNotNullWhenAttribute(bool returnValue, params string[] members)
+		[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		internal sealed class MemberNotNullWhenAttribute : Attribute
 		{
-			ReturnValue = returnValue;
-			Members = members;
+			public MemberNotNullWhenAttribute(bool returnValue, string member)
+			{
+				ReturnValue = returnValue;
+				Members = [member];
+			}
+			public MemberNotNullWhenAttribute(bool returnValue, params string[] members)
+			{
+				ReturnValue = returnValue;
+				Members = members;
+			}
+			public bool ReturnValue { get; }
+			public string[] Members { get; }
 		}
-		public bool ReturnValue { get; }
-		public string[] Members { get; }
-	}
-	[AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
-	[EditorBrowsable(EditorBrowsableState.Never)]
-	internal
-					sealed class MaybeNullWhenAttribute(bool returnValue) : Attribute
-	{
-		public bool ReturnValue { get; } = returnValue;
-	}
-	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
-	[EditorBrowsable(EditorBrowsableState.Never)]
-	internal sealed class CallerArgumentExpressionAttribute : Attribute
-	{
-		public string ParameterName { get; }
+		[AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		internal sealed class MaybeNullWhenAttribute(bool returnValue) : Attribute { }
+		[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		internal sealed class CallerArgumentExpressionAttribute(string parameterName) : Attribute { }
 
-		public CallerArgumentExpressionAttribute(string parameterName)
-		{
-			ParameterName = parameterName;
-		}
+		[AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
+		internal sealed class SetsRequiredMembersAttribute : Attribute { }
 	}
-
-	[AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
-	internal sealed class SetsRequiredMembersAttribute : Attribute
-	{ }
 }
 namespace System.Runtime.CompilerServices
 {
@@ -267,13 +265,9 @@ namespace System.Runtime.CompilerServices
 	internal sealed class RequiredMemberAttribute : Attribute { }
 	[AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	internal sealed class CompilerFeatureRequiredAttribute : Attribute
+	internal sealed class CompilerFeatureRequiredAttribute(string featureName) : Attribute
 	{
-		public CompilerFeatureRequiredAttribute(string featureName)
-		{
-			FeatureName = featureName;
-		}
-		public string FeatureName { get; }
+		public string FeatureName { get; } = featureName;
 		public bool IsOptional { get; init; }
 		public const string RefStructs = nameof(RefStructs);
 		public const string RequiredMembers = nameof(RequiredMembers);

@@ -530,7 +530,7 @@ public partial class ConverterGenerator
 			if (
 				!attrs.Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) &&
 				type.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
-				sb.Append($$"""{ if (global::RhythmBase.Global.Converters.EnumConverter.TryParse(reader.GetString(), out {{type.ToDisplayString()}} enumValue{{index}})) {{valueAccess}} = enumValue{{index}}; }""");
+				sb.Append($$"""{ if (global::RhythmBase.Global.Converters.EnumConverter.TryParse(ref reader, out {{type.ToDisplayString()}} enumValue{{index}})) {{valueAccess}} = enumValue{{index}}; else return false; }""");
 			else
 				// - 非枚举或无需序列化器
 				sb.Append($$"""{{valueAccess}} = ({{type.ToDisplayString()}})reader.GetInt64();""");

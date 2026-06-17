@@ -1,6 +1,7 @@
 using RhythmBase.Global.Converters;
 using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Events;
+using System.Buffers;
 using System.Text;
 using System.Text.Json;
 
@@ -31,6 +32,9 @@ internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEve
 			}
 			else
 			{
+				var span = reader.ValueSpan;
+				var seq = reader.ValueSequence;
+				bool hasSeq = reader.HasValueSequence;
 				if (!Read(ref reader, ref value, options))
 				{
 #if DEBUG
@@ -41,9 +45,10 @@ internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEve
 					//	))
 					//	Console.WriteLine($"The key {Encoding.UTF8.GetString(propertyName)} of {value.Type} not found.");
 #endif
-					string propertyName = reader.GetString() ?? "";
-					reader.Read();
+					byte[] propertyNameArray = hasSeq ? seq.ToArray() : span.ToArray();
+					string propertyName = Encoding.UTF8.GetString(propertyNameArray);
 					value[propertyName] = JsonElement.ParseValue(ref reader);
+					Console.WriteLine($"{value.Type}\t{propertyName} : {value[propertyName]}");
 				}
 			}
 		}

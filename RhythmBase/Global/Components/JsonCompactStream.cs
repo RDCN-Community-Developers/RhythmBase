@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 #if NET8_0_OR_GREATER
 using System.Numerics;
@@ -53,8 +54,6 @@ namespace RhythmBase.Global.Components
 
 		/// <summary>
 		/// Gets the position mapping checkpoints recorded during processing.
-		/// Each entry is (outputPosition, inputPosition) representing the cumulative
-		/// bytes written to output and read from input at that point.
 		/// </summary>
 		public IReadOnlyList<(long output, long input)> PositionMap => _checkpoints;
 
@@ -260,7 +259,11 @@ namespace RhythmBase.Global.Components
 				{
 					buffer[i++] = (byte)',';
 					_lastWasValue = false;
-					if (i >= buffer.Length) return i;
+					if (i >= buffer.Length)
+					{
+						_totalOutputBytes += i;
+						return i;
+					}
 				}
 
 				switch (_parserState)
@@ -374,8 +377,8 @@ namespace RhythmBase.Global.Components
 									_ => (byte)'b',
 								};
 								_scanIdx = (_scanIdx + 1) % _buffer.Length;
-			_totalOutputBytes += i;
-			return i;
+								_totalOutputBytes += i;
+								return i;
 							}
 							buffer[i++] = b switch
 							{
@@ -437,6 +440,7 @@ namespace RhythmBase.Global.Components
 						break;
 				}
 			}
+			_totalOutputBytes += i;
 			return i;
 		}
 

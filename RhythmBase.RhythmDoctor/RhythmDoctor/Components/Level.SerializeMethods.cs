@@ -63,8 +63,7 @@ partial class Level
 	{
 		settings ??= new LevelReadSettings();
 		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
-		Level? level;
-		level = await FileMainEntryConverter.DeserializeMainEntryAsync<Level>(new StreamDataSource(rdlevelStream), options, cancellationToken);
+		Level? level = await FileMainEntryConverter.DeserializeMainEntryAsync<Level>(new StreamDataSource(rdlevelStream), options, cancellationToken);
 		return level ?? [];
 	}
 	/// <inheritdoc/>
@@ -141,13 +140,14 @@ partial class Level
 				}
 				break;
 			case ZipProcessingMode.RootEntriesOnly:
-{				using FileStream zipStream = new(filepath, FileMode.Open, FileAccess.Read);
-				using ZipArchive archive = new(zipStream, ZipArchiveMode.Read);
-				ZipArchiveEntry entry = archive.GetEntry("main.rdlevel") ?? throw new FileNotFoundException("Cannot find the level file.");
-				using Stream stream = entry.Open();
-				level = await FromStreamAsync(stream, settings, cancellationToken);
-				level.Filepath = Path.GetFullPath(filepath);
-				level.isZip = true;
+				{
+					using FileStream zipStream = new(filepath, FileMode.Open, FileAccess.Read);
+					using ZipArchive archive = new(zipStream, ZipArchiveMode.Read);
+					ZipArchiveEntry entry = archive.GetEntry("main.rdlevel") ?? throw new FileNotFoundException("Cannot find the level file.");
+					using Stream stream = entry.Open();
+					level = await FromStreamAsync(stream, settings, cancellationToken);
+					level.Filepath = Path.GetFullPath(filepath);
+					level.isZip = true;
 					level.isExtracted = false;
 				}
 				break;

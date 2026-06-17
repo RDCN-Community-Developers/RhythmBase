@@ -73,116 +73,104 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 							ReadSettings.OnFileReferenceEncountered(level, DirectoryName + Path.DirectorySeparatorChar + file);
 				}
 			}
-			else if (reader.ValueTextEquals("events"u8) && reader.Read())
+		else if (reader.ValueTextEquals("events"u8) && reader.Read())
+		{
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
+			Dictionary<int, FloatingText> floatingTexts = [];
+			List<AdvanceText> advanceTexts = [];
+			JsonElement[]? data = [];
+			List<JsonDocument> maybeIllegalAt = [];
+			int index = 0;
+			while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 			{
-				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
-				Dictionary<int, FloatingText> floatingTexts = [];
-				List<AdvanceText> advanceTexts = [];
-				JsonElement[]? data = [];
-				List<JsonDocument> maybeIllegalAt = [];
-				reader.Read();
-				int index = 0;
-				while (true)
-				{
-					if (reader.TokenType == JsonTokenType.EndArray)
-						break;
-					IBaseEvent? e = null;
+				IBaseEvent? e = null;
 #if DEBUG
-					try
-					{
-						e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
-						index++;
-					}
-					catch (Exception)
-					{
-						Debug.Print($"Current index: {index}");
-						throw;
-					}
-#else
-          Utf8JsonReader checkPoint = reader;
-          try
-          {
-              e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
-          }
-          catch (JsonException)
-          {
-              level.Dispose();
-              throw;
-          }
-          catch (Exception ex)
-          {
-              JsonElement element = JsonElement.ParseValue(ref checkPoint);
-              ReadSettings.OnUnreadableEventEncountered(level, element, ex.Message);
-              continue;
-          }
-#endif
-					if (e == null)
-						continue;
-					level.Add(e);
-					if (e is FloatingText ft && ft._extraData.TryGetValue("id", out JsonElement v1))
-					{
-						int v2 = v1.GetInt32();
-						floatingTexts[v2] = ft;
-						ft._extraData.Remove("id");
-					}
-					else if (e is AdvanceText at)
-						advanceTexts.Add(at);
-
-					if (e is IFileEvent fe)
-					{
-						if (ReadSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
-							foreach (FileReference file in fe.Files)
-								if (!file.IsEmpty && file.IsExist(DirectoryName!))
-									ReadSettings.OnFileReferenceEncountered(level, file);
-					}
-				}
-
-				foreach (AdvanceText? at in advanceTexts)
+				try
 				{
-					if (at._extraData.TryGetValue("id", out JsonElement je) &&
-					    je.TryGetInt32(out int targetId) &&
-					    floatingTexts.TryGetValue(targetId, out FloatingText? ft))
-					{
-						at.Parent = ft;
-						ft.Children.Add(at);
-						at._extraData.Remove("id");
-					}
-					else
-					{
-						if (at._extraData.TryGetValue("id", out je) &&
-						    je.TryGetInt32(out targetId))
-							ReadSettings.OnUnreadableEventEncountered(level, JsonElement.Parse(at.ToJsonString()),
-								$"AdvanceText references non-existent FloatingText id {targetId}.");
-						else
-							ReadSettings.OnUnreadableEventEncountered(level, JsonElement.Parse(at.ToJsonString()),
-								$"AdvanceText don't has field id.");
-					}
+					e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
+					index++;
+				}
+				catch (Exception)
+				{
+					Console.WriteLine($"Current index: {index}");
+					throw;
+				}
+#else
+				Utf8JsonReader checkPoint = reader;
+				try
+				{
+						e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
+				}
+				catch (JsonException)
+				{
+						level.Dispose();
+						throw;
+				}
+				catch (Exception ex)
+				{
+						JsonElement element = JsonElement.ParseValue(ref checkPoint);
+						ReadSettings.OnUnreadableEventEncountered(level, element, ex.Message);
+						continue;
+				}
+#endif
+				if (e == null)
+					continue;
+				level.Add(e);
+				if (e is FloatingText ft && ft._extraData.TryGetValue("id", out JsonElement v1))
+				{
+					int v2 = v1.GetInt32();
+					floatingTexts[v2] = ft;
+					ft._extraData.Remove("id");
+				}
+				else if (e is AdvanceText at)
+					advanceTexts.Add(at);
+
+				if (e is IFileEvent fe)
+				{
+					if (ReadSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
+						foreach (FileReference file in fe.Files)
+							if (!file.IsEmpty && file.IsExist(DirectoryName!))
+								ReadSettings.OnFileReferenceEncountered(level, file);
 				}
 			}
+
+			foreach (AdvanceText? at in advanceTexts)
+			{
+				if (at._extraData.TryGetValue("id", out JsonElement je) &&
+				    je.TryGetInt32(out int targetId) &&
+				    floatingTexts.TryGetValue(targetId, out FloatingText? ft))
+				{
+					at.Parent = ft;
+					ft.Children.Add(at);
+					at._extraData.Remove("id");
+				}
+				else
+				{
+					if (at._extraData.TryGetValue("id", out je) &&
+					    je.TryGetInt32(out targetId))
+						ReadSettings.OnUnreadableEventEncountered(level, JsonElement.Parse(at.ToJsonString()),
+							$"AdvanceText references non-existent FloatingText id {targetId}.");
+					else
+						ReadSettings.OnUnreadableEventEncountered(level, JsonElement.Parse(at.ToJsonString()),
+							$"AdvanceText don't has field id.");
+				}
+			}
+		}
 			else if (reader.ValueTextEquals("bookmarks"u8) && reader.Read())
 			{
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
-				reader.Read();
-				while (true)
+				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 				{
-					if (reader.TokenType == JsonTokenType.EndArray)
-						break;
 					Bookmark e = bookmarkConverter.Read(ref reader, typeof(Bookmark), options);
 					level.Bookmarks.Add(e);
-					reader.Read();
 				}
 			}
 			else if (reader.ValueTextEquals("colorPalette"u8) && reader.Read())
 			{
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				int colorIndex = 0;
-				while (reader.Read())
+				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 				{
-					if (reader.TokenType == JsonTokenType.EndArray)
-					{
-						break;
-					}
-
 					string? e = reader.GetString();
 					Color color = e is null ? default : Color.FromRgba(e);
 					level.ColorPalette[colorIndex] = color;
@@ -215,7 +203,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		MetadataJsonSerializerOptions localOptions = new()
 		{
 			JsonSerializerOptions = new(options.JsonSerializerOptions)
-				{ WriteIndented = false, }
+			{ WriteIndented = false, }
 		};
 		byte[] bytes = GetIndentByte(writer, options.JsonSerializerOptions.IndentCharacter, 2);
 		ReadOnlySpan<byte> sl;

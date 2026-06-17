@@ -211,7 +211,6 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 	{
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 		string? type = null;
-
 		Utf8JsonReader checkpoint = reader;
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
@@ -235,7 +234,6 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 		else
 			e = EventConverterMap.GetConverter(typeEnum).WithReadSettings(_rs).ReadProperties(ref reader, options);
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndObject);
-		reader.Read();
 		if (options.UpgradeToLatest && options.Version < EventUpgraterCollection.MaxVersion && EventUpgraterCollection.TypeHasUpgrater.Contains(e.Type))
 			foreach (var upgrater in EventUpgraterCollection.GetUpgraters(options.Version, e.Type))
 				upgrater.UpgrateFunc(e);
