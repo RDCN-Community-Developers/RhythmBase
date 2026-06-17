@@ -11,34 +11,6 @@ namespace RhythmBase.Global.Converters;
 public abstract class MemberConverter<TEvent> where TEvent : IEvent
 {
 	/// <summary>
-	/// The read settings passed from the parent converter.
-	/// </summary>
-	protected LevelReadSettings? _rs;
-	/// <summary>
-	/// The write settings passed from the parent converter.
-	/// </summary>
-	protected LevelWriteSettings? _ws;
-	/// <summary>
-	/// Associates the specified read settings with this converter.
-	/// </summary>
-	/// <param name="settings">The level read settings.</param>
-	/// <returns>This converter instance for fluent chaining.</returns>
-	public MemberConverter<TEvent> WithReadSettings(LevelReadSettings settings)
-	{
-		_rs = settings;
-		return this;
-	}
-	/// <summary>
-	/// Associates the specified write settings with this converter.
-	/// </summary>
-	/// <param name="settings">The level write settings.</param>
-	/// <returns>This converter instance for fluent chaining.</returns>
-	public MemberConverter<TEvent> WithWriteSettings(LevelWriteSettings settings)
-	{
-		_ws = settings;
-		return this;
-	}
-	/// <summary>
 	/// Reads the properties of an event from the current JSON reader position.
 	/// </summary>
 	/// <param name="reader">The JSON reader positioned inside the event object.</param>

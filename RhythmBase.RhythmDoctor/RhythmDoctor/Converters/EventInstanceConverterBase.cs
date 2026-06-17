@@ -32,45 +32,22 @@ internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEve
 			}
 			else
 			{
-				var span = reader.ValueSpan;
-				var seq = reader.ValueSequence;
-				bool hasSeq = reader.HasValueSequence;
+				var checkpoint = reader;
 				if (!Read(ref reader, ref value, options))
 				{
-					byte[] propertyNameArray = hasSeq ? seq.ToArray() : span.ToArray();
-					string propertyName = Encoding.UTF8.GetString(propertyNameArray);
-					// 忽略的属性，主要是为了兼容旧版本的事件数据
-					if ((
-						(value is FloatingText && propertyName == "times") ||
-						(value is FloatingText && propertyName == "id") ||
-						(value is AdvanceText && propertyName == "id") ||
-						(value is PlaySound && propertyName == "isCustom") ||
-						(value is MaskRoom && propertyName == "contentMode") ||
-						(value is MaskRoom && propertyName == "rooms") ||
-						(value is TintRows && propertyName == "borderOpacity") || // 1
-						(value is TintRows && propertyName == "tintOpacity") || // 1
-						(value is TintRows && propertyName == "effectSound") || 
-						(value is Tint && propertyName == "borderOpacity") || // 1
-						(value is Tint && propertyName == "tintOpacity") || // 1
-						(value is PaintHands && propertyName == "borderOpacity") || // 1
-						(value is PaintHands && propertyName == "tintOpacity") || // 1
-						(value is NewWindowDance && propertyName == "rooms") ||
-						(value is NewWindowDance && propertyName == "usePosition") ||
-						(value is AddOneshotBeat && propertyName == "squareSound") ||
-						(value is SetGameSound && propertyName == "sounds") ||
-						(value is SetClapSounds && propertyName == "p1Used") ||
-						(value is SetClapSounds && propertyName == "p2Used") ||
-						(value is SetClapSounds && propertyName == "cpuUsed") ||
-						(value is SetVFXPreset && propertyName == "xySpeed")
+					reader = checkpoint;
+					string fieldName = reader.GetString()!;
+					reader.Read();
+					JsonElement fieldValue = JsonElement.ParseValue(ref reader);
 
-						))
-					{
-						reader.Skip();
+					if (UnhandledFieldRegistry.TryHandle(ref value, fieldName, fieldValue, (int)value.Type))
 						continue;
-					}
-					value[propertyName] = JsonElement.ParseValue(ref reader);
+					if (options.TryHandleUser(ref value, fieldName, fieldValue, (int)value.Type))
+						continue;
+
+					value[fieldName] = fieldValue;
 #if DEBUG
-					Console.WriteLine($"{options.Version}\t| {value.Type}\t| {propertyName} => ({value[propertyName].ValueKind}){value[propertyName]}");
+					Console.WriteLine($"{options.Version}\t| {value.Type}\t| {fieldName} => ({value[fieldName].ValueKind}){value[fieldName]}");
 #endif
 				}
 			}

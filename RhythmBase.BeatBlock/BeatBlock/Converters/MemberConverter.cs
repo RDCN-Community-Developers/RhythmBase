@@ -6,18 +6,6 @@ namespace RhythmBase.BeatBlock.Converters;
 
 internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 {
-	private LevelReadSettings _rs = new();
-	private LevelWriteSettings _ws = new();
-	public BaseEventConverter WithReadSettings(LevelReadSettings settings)
-	{
-		_rs = settings;
-		return this;
-	}
-	public BaseEventConverter WithWriteSettings(LevelWriteSettings settings)
-	{
-		_ws = settings;
-		return this;
-	}
 	public override bool CanConvert(Type typeToConvert)
 	{
 		return Type.IsAssignableFrom(typeToConvert);
@@ -50,7 +38,7 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 		if (!EnumConverter.TryParse(type, out EventType typeEnum))
 			e = ReadForwardEvent(ref reader) ?? new ForwardEvent() { ActualType = type ?? "" };
 		else
-			e = EventConverterMap.GetConverter(typeEnum).WithReadSettings(_rs).ReadProperties(ref reader, options);
+			e = EventConverterMap.GetConverter(typeEnum).ReadProperties(ref reader, options);
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndObject);
 		return e;
 	}
@@ -71,7 +59,7 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 		}
 		else
 		{
-			EventConverterMap.GetConverter(value.Type).WithWriteSettings(_ws).WriteProperties(writer, value, options);
+			EventConverterMap.GetConverter(value.Type).WriteProperties(writer, value, options);
 		}
 	}
 
@@ -125,19 +113,18 @@ internal abstract class MemberConverter<TEvent> : EventInstanceConverterBase whe
 			}
 		else
 		{
-			string pn = reader.GetString()!;
 			if (!Read(ref reader, ref value, options))
 			{
-#if DEBUG
-				//if (!(
-				//	(value is FloatingText && propertyName.SequenceEqual("times"u8)) ||
-				//	(value is FloatingText && propertyName.SequenceEqual("id"u8)) ||
-				//	(value is AdvanceText && propertyName.SequenceEqual("id"u8))
-				//	))
-				//	Console.WriteLine($"The key {Encoding.UTF8.GetString([.. propertyName])} of {value.Type} not found.");
-#endif
+				string fieldName = reader.GetString()!;
 				reader.Read();
-				value[pn] = JsonElement.ParseValue(ref reader);
+				JsonElement fieldValue = JsonElement.ParseValue(ref reader);
+
+				if (UnhandledFieldRegistry.TryHandle(ref value, fieldName, fieldValue, (int)value.Type))
+					continue;
+				if (options.TryHandleUser(ref value, fieldName, fieldValue, (int)value.Type))
+					continue;
+
+				value[fieldName] = fieldValue;
 			}
 		}
 		}

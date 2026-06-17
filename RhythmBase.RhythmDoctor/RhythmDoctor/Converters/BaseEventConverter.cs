@@ -191,18 +191,6 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 			});
 		}
 	}
-	private LevelReadSettings _rs = new();
-	private LevelWriteSettings _ws = new();
-	public BaseEventConverter WithReadSettings(LevelReadSettings settings)
-	{
-		_rs = settings;
-		return this;
-	}
-	public BaseEventConverter WithWriteSettings(LevelWriteSettings settings)
-	{
-		_ws = settings;
-		return this;
-	}
 	public override bool CanConvert(Type typeToConvert)
 	{
 		return Type.IsAssignableFrom(typeToConvert);
@@ -232,7 +220,7 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 		if (type is null || !Enum.TryParse(type, true, out EventType typeEnum))
 			e = ReadForwardEvent(ref reader) ?? (new ForwardEvent() { ActualType = type ?? "" });
 		else
-			e = EventConverterMap.GetConverter(typeEnum).WithReadSettings(_rs).ReadProperties(ref reader, options);
+			e = EventConverterMap.GetConverter(typeEnum).ReadProperties(ref reader, options);
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndObject);
 		if (options.UpgradeToLatest && options.Version < EventUpgraterCollection.MaxVersion && EventUpgraterCollection.TypeHasUpgrater.Contains(e.Type))
 			foreach (var upgrater in EventUpgraterCollection.GetUpgraters(options.Version, e.Type))
@@ -248,7 +236,7 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 		}
 		else
 		{
-			EventConverterMap.GetConverter(value.Type).WithWriteSettings(_ws).WriteProperties(writer, value, options);
+			EventConverterMap.GetConverter(value.Type).WriteProperties(writer, value, options);
 		}
 	}
 	public static Events.IForwardEvent? ReadForwardEvent(ref Utf8JsonReader reader)

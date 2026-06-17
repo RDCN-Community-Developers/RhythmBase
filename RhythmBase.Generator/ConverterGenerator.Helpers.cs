@@ -1222,6 +1222,99 @@ public static partial class EventTypeRegistry
 		sb.AppendLine("""
 }
 """);
+
+		// Generate UnhandledFieldHelper with RegisterForXXX methods
+		bool hasAnyInterface = infos.Any(info => info.EventTypeRegistry.Keys.Any(t => t.TypeKind == TypeKind.Interface && info.EventTypeRegistry[t].Count > 0));
+		if (hasAnyInterface)
+		{
+			var generatedMethods = new HashSet<string>();
+			sb.AppendLine($$"""
+/// <summary>
+/// Helper methods for registering unhandled field handlers with interface-based matching.
+/// </summary>
+internal static class UnhandledFieldHelper
+{
+	[System.Runtime.CompilerServices.ModuleInitializer]
+	internal static void Initialize()
+	{
+		RhythmBase.Global.Converters.UnhandledFieldRegistry.Configure(type =>
+		{
+""");
+			for (int i = 0; i < infos.Length; i++)
+			{
+				string enumPostfix = infos.Length > 1 ? $"_{infos[i].ClassTypeEnum.Name}" : "";
+				string enumType = infos[i].ClassTypeEnum.ToDisplayString();
+				sb.AppendLine($$"""
+			try
+			{
+				var enums = EventTypeRegistry.ToEnums{{enumPostfix}}(type);
+				return (int v) => enums.Contains(({{enumType}})v);
+			}
+			catch { }
+""");
+			}
+			sb.AppendLine($$"""
+			return (int _) => false;
+		});
+	}
+""");
+			for (int i = 0; i < infos.Length; i++)
+			{
+				EventTypeRegistryGenerationInfo? info = infos[i];
+				string enumPostfix = infos.Length > 1 ? $"_{info.ClassTypeEnum.Name}" : "";
+
+				foreach (var pair in info.EventTypeRegistry)
+				{
+					if (pair.Key.TypeKind != TypeKind.Interface)
+						continue;
+
+					var interfaceType = pair.Key;
+					string interfaceName = interfaceType.ToDisplayString();
+					string methodName = $"RegisterFor{interfaceType.Name}";
+
+					if (!generatedMethods.Add(methodName))
+						continue;
+
+					var concreteTypes = new List<INamedTypeSymbol>();
+					foreach (var type in info.EventTypeRegistry.Keys)
+					{
+						if (type.TypeKind == TypeKind.Interface || type.IsAbstract)
+							continue;
+						if (type.AllInterfaces.Any(iface => SymbolEqualityComparer.Default.Equals(iface, interfaceType)))
+							concreteTypes.Add(type);
+					}
+
+				if (concreteTypes.Count == 0)
+						continue;
+
+					sb.AppendLine($$"""
+	/// <summary>
+	/// Registers an unhandled field handler for all concrete types implementing <see cref="{{interfaceName}}"/>.
+	/// </summary>
+	public static void {{methodName}}(string fieldName, RhythmBase.Global.Converters.UnhandledPropertyHandler<{{interfaceName}}> handler)
+	{
+""");
+
+					foreach (var concreteType in concreteTypes.OrderBy(t => t.Name))
+					{
+					string concreteName = concreteType.ToDisplayString();
+					sb.AppendLine($$"""
+		RhythmBase.Global.Converters.UnhandledFieldRegistry.Register<{{concreteName}}>(fieldName,
+			(ref {{concreteName}} t, string n, System.Text.Json.JsonElement v) =>
+			{ ref {{interfaceName}} e = ref System.Runtime.CompilerServices.Unsafe.As<{{concreteName}}, {{interfaceName}}>(ref t); return handler(ref e, n, v); });
+""");
+					}
+
+					sb.AppendLine("""
+	}
+""");
+				}
+			}
+			sb.AppendLine("""
+}
+""");
+		}
+
 		string filename = $"EventTypeRegistry.{configId}.g.cs";
 		spc.AddSource(filename, sb.ToString());
 	}

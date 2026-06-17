@@ -22,6 +22,7 @@ public static class JsonSerializerOptionsUtils
 					Strictness = settings.Strictness,
           UpgradeToLatest = settings.UpgradeToLatest,
 				};
+        options.CopyUserHandlersFrom(settings);
         return options;
     }
     /// <summary>

@@ -288,6 +288,8 @@ namespace System.Runtime.CompilerServices
 		public Type BuilderType { get; } = builderType;
 		public string MethodName { get; } = methodName;
 	}
+	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+	public sealed class ModuleInitializerAttribute : Attribute { }
 }
 namespace System.Text
 {

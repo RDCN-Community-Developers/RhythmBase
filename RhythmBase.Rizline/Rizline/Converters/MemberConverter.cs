@@ -1,4 +1,5 @@
-﻿using RhythmBase.Rizline.Events;
+﻿using RhythmBase.Global.Converters;
+using RhythmBase.Rizline.Events;
 using System.Text;
 using System.Text.Json;
 
@@ -64,12 +65,16 @@ internal abstract class MemberConverter<TEvent> : MemberConverter where TEvent :
 			}
 		else
 		{
-			string pn = reader.GetString()!;
 			if (!Read(ref reader, ref value, options))
 			{
-				//value[System.Text.Encoding.UTF8.GetString(propertyName)] = JsonDocument.ParseValue(ref reader).RootElement.Clone();
+				string fieldName = reader.GetString()!;
 				reader.Read();
-				reader.Skip();
+				JsonElement fieldValue = JsonElement.ParseValue(ref reader);
+
+				if (UnhandledFieldRegistry.TryHandle(ref value, fieldName, fieldValue, (int)value.Type))
+					continue;
+				if (options.TryHandleUser(ref value, fieldName, fieldValue, (int)value.Type))
+					continue;
 			}
 		}
 		}

@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.Text.Json;
+using RhythmBase.Global.Converters;
 namespace RhythmBase.Global.Components;
 
 /// <summary>
@@ -182,4 +185,26 @@ public class LevelReadSettings : LevelReadOrWriteSettings
 	public ZipProcessingMode ZipProcessingMode { get; set; }
 	public JsonStrictness Strictness { get; set; } = JsonStrictness.Strict;
 	public bool UpgradeToLatest { get; set; } = true;
+
+	private readonly List<(Type matchType, string field, Delegate handler)> _userHandlers = new();
+
+	/// <summary>
+	/// Registers a user-level handler for a specific unhandled field on a specific type.
+	/// These handlers are transferred to <see cref="MetadataJsonSerializerOptions"/> at read time.
+	/// </summary>
+	/// <typeparam name="T">The object type.</typeparam>
+	/// <param name="fieldName">The JSON property name to handle.</param>
+	/// <param name="handler">The handler to invoke when the field is encountered.</param>
+	public void RegisterHandler<T>(string fieldName, UnhandledPropertyHandler<T> handler)
+	{
+		_userHandlers.Add((typeof(T), fieldName, handler));
+	}
+
+	/// <summary>
+	/// Copies the registered user handlers into the target list.
+	/// </summary>
+	internal void CopyToUserHandlers(List<(Type, string, Delegate)> target)
+	{
+		target.AddRange(_userHandlers);
+	}
 }

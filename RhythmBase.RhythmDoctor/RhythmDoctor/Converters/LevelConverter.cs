@@ -1,3 +1,4 @@
+using RhythmBase.Global.Components.Vector;
 using RhythmBase.Global.Converters;
 using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Events;
@@ -17,6 +18,64 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 	private static readonly BaseEventConverter baseEventConverter = new();
 	private static readonly BookmarkConverter bookmarkConverter = new();
 	private static readonly ConditionalConverter conditionalConverter = new();
+	private static readonly UnhandledPropertyHandler<ITintEvent> TintEventBorderHandler = (ref ITintEvent e, string propertyName, JsonElement value) =>
+	{
+		if (!value.TryGetInt32(out int alpha))
+			return false;
+		var c = e.BorderColor.Color;
+		c.A = (byte)(alpha / 100f * 255);
+		e.BorderColor = c;
+		return true;
+	};
+	private static readonly UnhandledPropertyHandler<ITintEvent> TintEventTintHandler = (ref ITintEvent e, string propertyName, JsonElement value) =>
+	{
+		if (!value.TryGetInt32(out int alpha))
+			return false;
+		var c = e.TintColor.Color;
+		c.A = (byte)(alpha / 100f * 255);
+		e.TintColor = c;
+		return true;
+	};
+	static LevelConverter()
+	{
+		// Legacy fields ignored by newer versions
+		UnhandledFieldRegistry.Ignore<ChangePlayersRows>("flashingOnBeat");
+		UnhandledFieldRegistry.Ignore<SetClapSounds>("p1Used");
+		UnhandledFieldRegistry.Ignore<SetClapSounds>("p2Used");
+		UnhandledFieldRegistry.Ignore<SetClapSounds>("cpuUsed");
+		UnhandledFieldRegistry.Register<SetVFXPreset>("speed", (ref e, propertyName, value) =>
+		{
+			float?[] xs = value.EnumerateArray().Select(x => x.ValueKind == JsonValueKind.Number && x.TryGetSingle(out float f) ? f : (float?)null).ToArray();
+			if(xs.Length != 2)
+				return false;
+			e.Amount = (xs[0], xs[1]);
+			return true;
+		});
+		// Tint event fields: registered via interface, covers TintRows / Tint / PaintHands
+		UnhandledFieldHelper.RegisterForITintEvent("borderOpacity", TintEventBorderHandler);
+		UnhandledFieldHelper.RegisterForITintEvent("tintOpacity", TintEventTintHandler);
+		UnhandledFieldHelper.RegisterForITintEvent("effectSound", (ref ITintEvent _, string __, JsonElement ___) => true);
+		UnhandledFieldRegistry.Register<ShakeScreen>("shakeLevel", (ref e, propertyName, value) =>
+		{
+			string v = value.GetString() ?? string.Empty;
+			if (string.IsNullOrEmpty(v))
+				return false;
+			e.ShakeLevel = 0;
+			return true;
+		});
+		UnhandledFieldRegistry.Ignore<NewWindowDance>("rooms");
+		UnhandledFieldRegistry.Ignore<NewWindowDance>("usePosition");
+		UnhandledFieldRegistry.Ignore<AddOneshotBeat>("squareSound");
+		UnhandledFieldRegistry.Ignore<SetGameSound>("sounds");
+		UnhandledFieldRegistry.Ignore<SetVFXPreset>("xySpeed");
+		UnhandledFieldRegistry.Ignore<FloatingText>("times");
+		UnhandledFieldRegistry.Ignore<FloatingText>("id");
+		UnhandledFieldRegistry.Ignore<AdvanceText>("id");
+		UnhandledFieldRegistry.Ignore<PlaySound>("isCustom");
+		UnhandledFieldRegistry.Ignore<MaskRoom>("contentMode");
+		UnhandledFieldRegistry.Ignore<MaskRoom>("rooms");
+	}
+
 	internal LevelReadSettings ReadSettings { get; set; } = new LevelReadSettings();
 	internal LevelWriteSettings WriteSettings { get; set; } = new LevelWriteSettings();
 	internal string? DirectoryName { get; set; }
@@ -24,7 +83,6 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 	public override Level? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 	{
 		reader.Read();
-		baseEventConverter.WithReadSettings(ReadSettings);
 		Level level = [];
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
@@ -73,89 +131,89 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 							ReadSettings.OnFileReferenceEncountered(level, DirectoryName + Path.DirectorySeparatorChar + file);
 				}
 			}
-		else if (reader.ValueTextEquals("events"u8) && reader.Read())
-		{
-			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
-			Dictionary<int, FloatingText> floatingTexts = [];
-			List<AdvanceText> advanceTexts = [];
-			JsonElement[]? data = [];
-			List<JsonDocument> maybeIllegalAt = [];
-			int index = 0;
-			while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+			else if (reader.ValueTextEquals("events"u8) && reader.Read())
 			{
-				IBaseEvent? e = null;
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
+				Dictionary<int, FloatingText> floatingTexts = [];
+				List<AdvanceText> advanceTexts = [];
+				JsonElement[]? data = [];
+				List<JsonDocument> maybeIllegalAt = [];
+				int index = 0;
+				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+				{
+					IBaseEvent? e = null;
 #if DEBUG
-				try
-				{
-					e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
-					index++;
-				}
-				catch (Exception)
-				{
-					Console.WriteLine($"Current index: {index}");
-					throw;
-				}
-#else
-				Utf8JsonReader checkPoint = reader;
-				try
-				{
+					try
+					{
 						e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
-				}
-				catch (JsonException)
-				{
-						level.Dispose();
+						index++;
+					}
+					catch (Exception)
+					{
+						Console.WriteLine($"Current index: {index}");
 						throw;
-				}
-				catch (Exception ex)
-				{
-						JsonElement element = JsonElement.ParseValue(ref checkPoint);
-						ReadSettings.OnUnreadableEventEncountered(level, element, ex.Message);
-						continue;
-				}
+					}
+#else
+					Utf8JsonReader checkPoint = reader;
+					try
+					{
+							e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
+					}
+					catch (JsonException)
+					{
+							level.Dispose();
+							throw;
+					}
+					catch (Exception ex)
+					{
+							JsonElement element = JsonElement.ParseValue(ref checkPoint);
+							ReadSettings.OnUnreadableEventEncountered(level, element, ex.Message);
+							continue;
+					}
 #endif
-				if (e == null)
-					continue;
-				level.Add(e);
-				if (e is FloatingText ft && ft._extraData.TryGetValue("id", out JsonElement v1))
-				{
-					int v2 = v1.GetInt32();
-					floatingTexts[v2] = ft;
-					ft._extraData.Remove("id");
-				}
-				else if (e is AdvanceText at)
-					advanceTexts.Add(at);
+					if (e == null)
+						continue;
+					level.Add(e);
+					if (e is FloatingText ft && ft._extraData.TryGetValue("id", out JsonElement v1))
+					{
+						int v2 = v1.GetInt32();
+						floatingTexts[v2] = ft;
+						ft._extraData.Remove("id");
+					}
+					else if (e is AdvanceText at)
+						advanceTexts.Add(at);
 
-				if (e is IFileEvent fe)
-				{
-					if (ReadSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
-						foreach (FileReference file in fe.Files)
-							if (!file.IsEmpty && file.IsExist(DirectoryName!))
-								ReadSettings.OnFileReferenceEncountered(level, file);
+					if (e is IFileEvent fe)
+					{
+						if (ReadSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
+							foreach (FileReference file in fe.Files)
+								if (!file.IsEmpty && file.IsExist(DirectoryName!))
+									ReadSettings.OnFileReferenceEncountered(level, file);
+					}
 				}
-			}
 
-			foreach (AdvanceText? at in advanceTexts)
-			{
-				if (at._extraData.TryGetValue("id", out JsonElement je) &&
-				    je.TryGetInt32(out int targetId) &&
-				    floatingTexts.TryGetValue(targetId, out FloatingText? ft))
+				foreach (AdvanceText? at in advanceTexts)
 				{
-					at.Parent = ft;
-					ft.Children.Add(at);
-					at._extraData.Remove("id");
-				}
-				else
-				{
-					if (at._extraData.TryGetValue("id", out je) &&
-					    je.TryGetInt32(out targetId))
-						ReadSettings.OnUnreadableEventEncountered(level, JsonElement.Parse(at.ToJsonString()),
-							$"AdvanceText references non-existent FloatingText id {targetId}.");
+					if (at._extraData.TryGetValue("id", out JsonElement je) &&
+							je.TryGetInt32(out int targetId) &&
+							floatingTexts.TryGetValue(targetId, out FloatingText? ft))
+					{
+						at.Parent = ft;
+						ft.Children.Add(at);
+						at._extraData.Remove("id");
+					}
 					else
-						ReadSettings.OnUnreadableEventEncountered(level, JsonElement.Parse(at.ToJsonString()),
-							$"AdvanceText don't has field id.");
+					{
+						if (at._extraData.TryGetValue("id", out je) &&
+								je.TryGetInt32(out targetId))
+							ReadSettings.OnUnreadableEventEncountered(level, JsonElement.Parse(at.ToJsonString()),
+								$"AdvanceText references non-existent FloatingText id {targetId}.");
+						else
+							ReadSettings.OnUnreadableEventEncountered(level, JsonElement.Parse(at.ToJsonString()),
+								$"AdvanceText don't has field id.");
+					}
 				}
 			}
-		}
 			else if (reader.ValueTextEquals("bookmarks"u8) && reader.Read())
 			{
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
@@ -198,7 +256,6 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 
 	public override void Write(Utf8JsonWriter writer, Level value, MetadataJsonSerializerOptions options)
 	{
-		baseEventConverter.WithWriteSettings(WriteSettings);
 		using MemoryStream stream = new();
 		MetadataJsonSerializerOptions localOptions = new()
 		{
