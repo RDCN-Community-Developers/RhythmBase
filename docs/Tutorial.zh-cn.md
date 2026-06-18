@@ -34,6 +34,7 @@
   - [步骤 7：注册 AssemblyInfo](#步骤-7注册-assemblyinfo)
   - [步骤 8：创建 GlobalUsing](#步骤-8创建-globalusing)
   - [步骤 9：实现手写转换器](#步骤-9实现手写转换器)
+  - [未处理属性的自定义处理](#未处理属性的自定义处理)
   - [步骤 10：实现关卡序列化方法](#步骤-10实现关卡序列化方法)
   - [各实现的特殊处理](#各实现的特殊处理)
 
@@ -966,6 +967,90 @@ MemberConverter<T>            — RhythmBase，逐字段读写事件属性
 ```
 
 两条线的分工：**`MetadataJsonConverter` 管 `{ }` 的边界，`MemberConverter` 管 `{ }` 内部的字段。**
+
+## 未处理属性的自定义处理
+
+反序列化时，转换器系统会自动将 JSON 属性映射到事件模型的字段。当属性未被转换器识别时，会回退存入事件的 `_extraData` 字典（通过索引器 `event["propertyName"]` 访问）。
+
+如需更精细地控制此行为，RhythmBase 提供两级处理机制：
+
+- **开发者层**（`UnhandledFieldRegistry`）：启动时注册，适用于所有反序列化操作。
+- **用户层**（`LevelReadSettings.RegisterHandler`）：每次读取时注册，在开发者处理之后运行。
+
+两级使用相同的委托类型 `UnhandledPropertyHandler<T>`，并支持基于接口的分发。
+
+### 开发者层：`UnhandledFieldRegistry`
+
+此处注册的处理器是全局的，适用于所有关卡读取。
+
+**具体类型注册**（仅匹配精确类型）：
+
+```cs
+UnhandledFieldRegistry.Register<PlaySong>("customVolume", (ref PlaySong e, JsonElement value) =>
+{
+    e.Volume = value.GetSingle();
+    return true; // 已处理
+});
+
+// 静默忽略特定字段
+UnhandledFieldRegistry.Ignore<SetClapSounds>("legacyField");
+```
+
+**基于接口的注册**（匹配实现该接口的所有具体类型）：
+
+源生成器为事件类型层次结构中发现的每个接口生成 `RegisterForXXX` 方法。该方法内部为每个具体类型注册一个包装处理器，使用 `Unsafe.As` 将 `ref ConcreteType` 转换为 `ref InterfaceType` —— 无装箱、无分配。
+
+```cs
+// 生成的方法：覆盖 TintRows、Tint、PaintHands 等
+UnhandledFieldHelper.RegisterForITintEvent("borderOpacity", (ref ITintEvent e, JsonElement value) =>
+{
+    if (!value.TryGetInt32(out int alpha)) return false;
+    var c = e.BorderColor.Color;
+    c.A = (byte)(alpha / 100f * 255);
+    e.BorderColor = c;
+    return true;
+});
+
+// 对所有实现该接口的类型静默忽略
+UnhandledFieldHelper.RegisterForITintEvent("legacyOpacity", (ref ITintEvent _, JsonElement __) => true);
+```
+
+### 用户层：`LevelReadSettings`
+
+此处注册的处理器是单次操作级别的，在开发者处理器之后运行。
+
+```cs
+var settings = new LevelReadSettings();
+settings.RegisterHandler<PlaySong>("mod_customVolume", (ref PlaySong e, JsonElement value) =>
+{
+    e.Volume = value.GetSingle();
+    return true;
+});
+```
+
+也支持基于接口的注册：
+
+```cs
+settings.RegisterHandler<ITintEvent>("mod_customTint", (ref ITintEvent e, JsonElement value) =>
+{
+    e.TintColor = new PaletteColorWithAlpha(value.GetString());
+    return true;
+});
+```
+
+### 匹配机制
+
+两级均通过 `EventTypeRegistry` 使用枚举匹配。注册时将类型转换为 `ReadOnlyEnumCollection<EventType>`，分发时通过 O(1) 位运算检查事件的 `Type` 属性是否在集合中。这意味着基于接口的处理器只会对 `EventType` 属于注册集合的事件触发 —— 无冗余检查。
+
+### 总结
+
+| 特性 | 开发者（`UnhandledFieldRegistry`） | 用户（`LevelReadSettings`） |
+|---|---|---|
+| 作用域 | 全局，所有读取 | 单次操作 |
+| 注册方式 | `Register<T>` / `Ignore<T>` / `RegisterForXXX` | `RegisterHandler<T>` |
+| 接口支持 | 通过源生成的 `RegisterForXXX` | 内置，AOT 兼容 |
+| 匹配机制 | 基于枚举，O(1) | 基于枚举，O(1) |
+| 回退 | `_extraData` 字典 | `_extraData` 字典 |
 
 ## 步骤 10：实现关卡序列化方法
 

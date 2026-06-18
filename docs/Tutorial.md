@@ -34,6 +34,7 @@
   - [Step 7: Register AssemblyInfo](#step-7-register-assemblyinfo)
   - [Step 8: Create GlobalUsing](#step-8-create-globalusing)
   - [Step 9: Implement Hand-Written Converters](#step-9-implement-hand-written-converters)
+  - [Handling Unhandled Properties](#handling-unhandled-properties)
   - [Step 10: Implement Level Serialization Methods](#step-10-implement-level-serialization-methods)
   - [Implementation-Specific Notes](#implementation-specific-notes)
 
@@ -966,6 +967,90 @@ MemberConverter<T>            — RhythmBase, reads/writes event properties fiel
 ```
 
 Division of labor: **`MetadataJsonConverter` manages the `{ }` boundary; `MemberConverter` manages the fields inside `{ }`.**
+
+## Handling Unhandled Properties
+
+During deserialization, the converter system automatically maps JSON properties to event model fields. When a property is not recognized by the converter, it falls back to storing the value in the event's `_extraData` dictionary (accessible via the indexer `event["propertyName"]`).
+
+For more control over this behavior, RhythmBase provides a two-level handler system:
+
+- **Developer level** (`UnhandledFieldRegistry`): Registered at startup, handles all deserialization operations.
+- **User level** (`LevelReadSettings.RegisterHandler`): Registered per read operation, runs after developer handlers.
+
+Both levels use the same delegate type `UnhandledPropertyHandler<T>` and support interface-based dispatch.
+
+### Developer Level: `UnhandledFieldRegistry`
+
+Handlers registered here are global and apply to all level reads.
+
+**Concrete type registration** (matches only the exact type):
+
+```cs
+UnhandledFieldRegistry.Register<PlaySong>("customVolume", (ref PlaySong e, JsonElement value) =>
+{
+    e.Volume = value.GetSingle();
+    return true; // handled
+});
+
+// Ignore a specific field silently
+UnhandledFieldRegistry.Ignore<SetClapSounds>("legacyField");
+```
+
+**Interface-based registration** (matches all concrete types implementing the interface):
+
+The source generator produces `RegisterForXXX` methods for each interface found in the event type hierarchy. Each method internally registers a wrapped handler for every concrete type, using `Unsafe.As` to convert `ref ConcreteType` to `ref InterfaceType` — no boxing, no allocation.
+
+```cs
+// Generated method: covers TintRows, Tint, PaintHands, etc.
+UnhandledFieldHelper.RegisterForITintEvent("borderOpacity", (ref ITintEvent e, JsonElement value) =>
+{
+    if (!value.TryGetInt32(out int alpha)) return false;
+    var c = e.BorderColor.Color;
+    c.A = (byte)(alpha / 100f * 255);
+    e.BorderColor = c;
+    return true;
+});
+
+// Ignore for all types implementing the interface
+UnhandledFieldHelper.RegisterForITintEvent("legacyOpacity", (ref ITintEvent _, JsonElement __) => true);
+```
+
+### User Level: `LevelReadSettings`
+
+Handlers registered here are per-operation and run after developer handlers.
+
+```cs
+var settings = new LevelReadSettings();
+settings.RegisterHandler<PlaySong>("mod_customVolume", (ref PlaySong e, JsonElement value) =>
+{
+    e.Volume = value.GetSingle();
+    return true;
+});
+```
+
+Interface-based registration is also supported:
+
+```cs
+settings.RegisterHandler<ITintEvent>("mod_customTint", (ref ITintEvent e, JsonElement value) =>
+{
+    e.TintColor = new PaletteColorWithAlpha(value.GetString());
+    return true;
+});
+```
+
+### Matching Mechanism
+
+Both levels use enum-based matching via `EventTypeRegistry`. The registered type is converted to a `ReadOnlyEnumCollection<EventType>` at registration time. At dispatch time, the event's `Type` property is checked against this collection using O(1) bit operations. This means interface-based handlers only fire for events whose `EventType` belongs to the registered set — no redundant checks.
+
+### Summary
+
+| Feature | Developer (`UnhandledFieldRegistry`) | User (`LevelReadSettings`) |
+|---|---|---|
+| Scope | Global, all reads | Per-operation |
+| Registration | `Register<T>` / `Ignore<T>` / `RegisterForXXX` | `RegisterHandler<T>` |
+| Interface support | Via source-generated `RegisterForXXX` | Built-in, AOT-compatible |
+| Matching | Enum-based, O(1) | Enum-based, O(1) |
+| Fallback | `_extraData` dictionary | `_extraData` dictionary |
 
 ## Step 10: Implement Level Serialization Methods
 
