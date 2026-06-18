@@ -13,16 +13,16 @@ namespace RhythmBase.RhythmDoctor.Extensions;
 public static partial class Extensions
 {
 #if NETSTANDARD
-    internal static T FirstOrDefault<T>(this IEnumerable<T> e, T defaultValue) => e.FirstOrDefault(defaultValue);
-    internal static T FirstOrDefault<T>(this IEnumerable<T> e, Func<T, bool> predicate, T defaultValue) => e.FirstOrDefault(predicate, defaultValue);
-    internal static T LastOrDefault<T>(this IEnumerable<T> e, T defaultValue) => e.LastOrDefault(defaultValue);
-    internal static T LastOrDefault<T>(this IEnumerable<T> e, Func<T, bool> predicate, T defaultValue) => e.LastOrDefault(predicate, defaultValue);
+	internal static T FirstOrDefault<T>(this IEnumerable<T> e, T defaultValue) => e.FirstOrDefault(defaultValue);
+	internal static T FirstOrDefault<T>(this IEnumerable<T> e, Func<T, bool> predicate, T defaultValue) => e.FirstOrDefault(predicate, defaultValue);
+	internal static T LastOrDefault<T>(this IEnumerable<T> e, T defaultValue) => e.LastOrDefault(defaultValue);
+	internal static T LastOrDefault<T>(this IEnumerable<T> e, Func<T, bool> predicate, T defaultValue) => e.LastOrDefault(predicate, defaultValue);
 #endif
 
-	extension(UnhandledFieldRegistry) 
+	extension(UnhandledFieldRegistry)
 	{
-		public static void Keep<T>(string fieldName)where T : IBaseEvent
-			=> UnhandledFieldRegistry.Register<T>(fieldName, (ref e, propertyName, value) => { e["usePosition"] = value; return true; });
+		public static void Keep<T>(string fieldName) where T : IBaseEvent
+			=> UnhandledFieldRegistry.Register<T>(fieldName, (ref e, value) => { e["usePosition"] = value; return true; });
 	}
 	extension(Condition e)
 	{
@@ -632,20 +632,20 @@ public static partial class Extensions
 	/// <returns>A byte representing the value of the specified RDRoomIndex enumeration.</returns>
 	public static byte ToIndex(this RoomIndex e) => new SingleRoom(e).Value;
 #if NETSTANDARD
-    extension<TStyle>(RichLine<TStyle>) where TStyle : IRichStringStyle<TStyle>, new()
-    {
-        /// <summary>
-        /// Deserializes a string into an <see cref="RichLine{RDPhraseStyle}"/>.
-        /// </summary>
-        /// <param name="text">The string to deserialize.</param>
-        /// <returns>A new <see cref="RichLine{RDPhraseStyle}"/> containing the deserialized content.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when the input text is null.</exception>
-        /// <exception cref="FormatException">Thrown when the input text has an invalid format.</exception>
-        public static RichLine<TStyle> Deserialize(string text)
-        {
-            return RichLine<TStyle>.Empty.Deserialize(text);
-        }
-    }
+	extension<TStyle>(RichLine<TStyle>) where TStyle : IRichStringStyle<TStyle>, new()
+	{
+		/// <summary>
+		/// Deserializes a string into an <see cref="RichLine{RDPhraseStyle}"/>.
+		/// </summary>
+		/// <param name="text">The string to deserialize.</param>
+		/// <returns>A new <see cref="RichLine{RDPhraseStyle}"/> containing the deserialized content.</returns>
+		/// <exception cref="ArgumentNullException">Thrown when the input text is null.</exception>
+		/// <exception cref="FormatException">Thrown when the input text has an invalid format.</exception>
+		public static RichLine<TStyle> Deserialize(string text)
+		{
+			return RichLine<TStyle>.Empty.Deserialize(text);
+		}
+	}
 #endif
 #pragma warning disable CS1591 // 缺少对公共可见类型或成员的 XML 注释
 	public enum Wavetype

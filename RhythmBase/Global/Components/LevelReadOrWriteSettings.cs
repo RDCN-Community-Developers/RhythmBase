@@ -186,10 +186,12 @@ public class LevelReadSettings : LevelReadOrWriteSettings
 	public JsonStrictness Strictness { get; set; } = JsonStrictness.Strict;
 	public bool UpgradeToLatest { get; set; } = true;
 
-	private readonly List<(Type matchType, string field, Delegate handler)> _userHandlers = new();
+	private readonly List<(Type matchType, string field, Func<object, JsonElement, bool> handler)> _userHandlers = new();
 
 	/// <summary>
 	/// Registers a user-level handler for a specific unhandled field on a specific type.
+	/// The handler is wrapped at registration time to accept <see cref="object"/>,
+	/// enabling interface-based dispatch without runtime reflection.
 	/// These handlers are transferred to <see cref="MetadataJsonSerializerOptions"/> at read time.
 	/// </summary>
 	/// <typeparam name="T">The object type.</typeparam>
@@ -197,13 +199,23 @@ public class LevelReadSettings : LevelReadOrWriteSettings
 	/// <param name="handler">The handler to invoke when the field is encountered.</param>
 	public void RegisterHandler<T>(string fieldName, UnhandledPropertyHandler<T> handler)
 	{
-		_userHandlers.Add((typeof(T), fieldName, handler));
+		Func<object, JsonElement, bool> wrapped = (object target, JsonElement value) =>
+		{
+			if (target is T typed)
+				return handler(ref typed, value);
+			return false;
+		};
+		_userHandlers.Add((typeof(T), fieldName, wrapped));
+	}
+	public void RegisterIgnore<T>(string fieldName)
+	{
+		_userHandlers.Add((typeof(T), fieldName, (object _, JsonElement __) => true));
 	}
 
 	/// <summary>
 	/// Copies the registered user handlers into the target list.
 	/// </summary>
-	internal void CopyToUserHandlers(List<(Type, string, Delegate)> target)
+	internal void CopyToUserHandlers(List<(Type, string, Func<object, JsonElement, bool>)> target)
 	{
 		target.AddRange(_userHandlers);
 	}

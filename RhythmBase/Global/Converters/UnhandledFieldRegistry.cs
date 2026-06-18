@@ -12,7 +12,7 @@ namespace RhythmBase.Global.Converters;
 /// <param name="fieldName">The JSON property name.</param>
 /// <param name="value">The parsed JSON value.</param>
 /// <returns><c>true</c> if the property was handled; <c>false</c> to pass it to the next handler or store it in extra data.</returns>
-public delegate bool UnhandledPropertyHandler<TTarget>(ref TTarget target, string fieldName, JsonElement value);
+public delegate bool UnhandledPropertyHandler<TTarget>(ref TTarget target, JsonElement value);
 
 /// <summary>
 /// Static registry for developer-registered unhandled property handlers.
@@ -67,7 +67,7 @@ public static class UnhandledFieldRegistry
 	/// <typeparam name="T">The object type.</typeparam>
 	/// <param name="fieldName">The JSON property name to ignore.</param>
 	public static void Ignore<T>(string fieldName)
-		=> Register<T>(fieldName, (ref T _, string __, JsonElement ___) => true);
+		=> Register<T>(fieldName, (ref T _, JsonElement __) => true);
 
 	/// <summary>
 	/// Attempts to invoke the registered handler for the given type, field name, and enum value.
@@ -84,7 +84,7 @@ public static class UnhandledFieldRegistry
 		{
 			if (field == fieldName && Matches(matchType, enumValue))
 			{
-				return ((UnhandledPropertyHandler<T>)handler)(ref target, fieldName, value);
+				return ((UnhandledPropertyHandler<T>)handler)(ref target, value);
 			}
 		}
 		return false;

@@ -1300,8 +1300,8 @@ internal static class UnhandledFieldHelper
 					string concreteName = concreteType.ToDisplayString();
 					sb.AppendLine($$"""
 		RhythmBase.Global.Converters.UnhandledFieldRegistry.Register<{{concreteName}}>(fieldName,
-			(ref {{concreteName}} t, string n, System.Text.Json.JsonElement v) =>
-			{ ref {{interfaceName}} e = ref System.Runtime.CompilerServices.Unsafe.As<{{concreteName}}, {{interfaceName}}>(ref t); return handler(ref e, n, v); });
+			(ref {{concreteName}} t, System.Text.Json.JsonElement v) =>
+			{ ref {{interfaceName}} e = ref System.Runtime.CompilerServices.Unsafe.As<{{concreteName}}, {{interfaceName}}>(ref t); return handler(ref e, v); });
 """);
 					}
 

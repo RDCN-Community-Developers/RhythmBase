@@ -19,7 +19,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 	private static readonly BaseEventConverter baseEventConverter = new();
 	private static readonly BookmarkConverter bookmarkConverter = new();
 	private static readonly ConditionalConverter conditionalConverter = new();
-	private static readonly UnhandledPropertyHandler<ITintEvent> TintEventBorderHandler = (ref ITintEvent e, string propertyName, JsonElement value) =>
+	private static readonly UnhandledPropertyHandler<ITintEvent> TintEventBorderHandler = (ref ITintEvent e, JsonElement value) =>
 	{
 		if (!value.TryGetInt32(out int alpha))
 			return false;
@@ -28,7 +28,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		e.BorderColor = c;
 		return true;
 	};
-	private static readonly UnhandledPropertyHandler<ITintEvent> TintEventTintHandler = (ref ITintEvent e, string propertyName, JsonElement value) =>
+	private static readonly UnhandledPropertyHandler<ITintEvent> TintEventTintHandler = (ref ITintEvent e, JsonElement value) =>
 	{
 		if (!value.TryGetInt32(out int alpha))
 			return false;
@@ -44,7 +44,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		UnhandledFieldRegistry.Ignore<SetClapSounds>("p1Used");
 		UnhandledFieldRegistry.Ignore<SetClapSounds>("p2Used");
 		UnhandledFieldRegistry.Ignore<SetClapSounds>("cpuUsed");
-		UnhandledFieldHelper.RegisterForIEaseEvent("ease", (ref IEaseEvent e, string propertyName, JsonElement value) =>
+		UnhandledFieldHelper.RegisterForIEaseEvent("ease", (ref IEaseEvent e, JsonElement value) =>
 		{
 			if (value.ValueKind != JsonValueKind.String)
 				return false;
@@ -58,7 +58,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 			};
 			return true;
 		});
-		UnhandledFieldRegistry.Register<SetVFXPreset>("speed", (ref e, propertyName, value) =>
+		UnhandledFieldRegistry.Register<SetVFXPreset>("speed", (ref e, value) =>
 		{
 			float?[] xs = value.EnumerateArray().Select(x => x.ValueKind == JsonValueKind.Number && x.TryGetSingle(out float f) ? f : (float?)null).ToArray();
 			if (xs.Length != 2)
@@ -69,8 +69,8 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		// Tint event fields: registered via interface, covers TintRows / Tint / PaintHands
 		UnhandledFieldHelper.RegisterForITintEvent("borderOpacity", TintEventBorderHandler);
 		UnhandledFieldHelper.RegisterForITintEvent("tintOpacity", TintEventTintHandler);
-		UnhandledFieldHelper.RegisterForITintEvent("effectSound", (ref ITintEvent _, string __, JsonElement ___) => true);
-		UnhandledFieldRegistry.Register<ShakeScreen>("shakeLevel", (ref e, propertyName, value) =>
+		UnhandledFieldHelper.RegisterForITintEvent("effectSound", (ref ITintEvent _, JsonElement ___) => true);
+		UnhandledFieldRegistry.Register<ShakeScreen>("shakeLevel", (ref e, value) =>
 		{
 			string v = value.GetString() ?? string.Empty;
 			if (string.IsNullOrEmpty(v))
@@ -81,7 +81,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		UnhandledFieldRegistry.Ignore<FloatingText>("times");
 		UnhandledFieldRegistry.Ignore<FloatingText>("id");
 		UnhandledFieldRegistry.Ignore<AdvanceText>("id");
-		UnhandledFieldRegistry.Register<FloatingText>("narrationCategory", (ref e, propertyName, value) =>
+		UnhandledFieldRegistry.Register<FloatingText>("narrationCategory", (ref e, value) =>
 		{
 			if (value.ValueKind != JsonValueKind.String)
 				return false;
@@ -91,7 +91,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 			e.NarrationCategory = NarrationCategory.Fallback;
 			return true;
 		});
-		UnhandledFieldRegistry.Register<NarrateRowInfo>("narrateSkipBeats", (ref e, propertyName, value) =>
+		UnhandledFieldRegistry.Register<NarrateRowInfo>("narrateSkipBeats", (ref e, value) =>
 		{
 			if (value.ValueKind != JsonValueKind.String)
 				return false;
@@ -106,7 +106,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 			e.NarrateSkipBeat = v4.v2;
 			return v4.v3;
 		});
-		UnhandledFieldRegistry.Register<SetGameSound>("soundType", (ref e, propertyName, value) =>
+		UnhandledFieldRegistry.Register<SetGameSound>("soundType", (ref e, value) =>
 		{
 			(e.SoundType, bool v) =
 				value.ValueKind is JsonValueKind.String &&
@@ -119,13 +119,13 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		UnhandledFieldRegistry.Ignore<NewWindowDance>("rooms");
 		UnhandledFieldRegistry.Ignore<MaskRoom>("rooms");
 		UnhandledFieldRegistry.Keep<NewWindowDance>("usePosition");
-		UnhandledFieldRegistry.Register<AddOneshotBeat>("squareSound", (ref e, propertyName, value) =>
+		UnhandledFieldRegistry.Register<AddOneshotBeat>("squareSound", (ref e, value) =>
 		{
 			if (value.ValueKind is not (JsonValueKind.True or JsonValueKind.False)) return false;
 			e.SubdivisionSound = value.GetBoolean();
 			return true;
 		});
-		UnhandledFieldRegistry.Register<SetGameSound>("sounds", (ref e, propertyName, value) =>
+		UnhandledFieldRegistry.Register<SetGameSound>("sounds", (ref e, value) =>
 		{
 			if (value.ValueKind != JsonValueKind.Array)
 				return false;
@@ -134,7 +134,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 			e.Sounds = soundCollectionConverter.Read(ref reader, typeof(SoundCollection), new JsonSerializerOptions()) ?? [];
 			return true;
 		});
-		UnhandledFieldRegistry.Register<SetVFXPreset>("xySpeed", (ref e, propertyName, value) =>
+		UnhandledFieldRegistry.Register<SetVFXPreset>("xySpeed", (ref e, value) =>
 		{
 			if (value.ValueKind != JsonValueKind.Array)
 				return false;

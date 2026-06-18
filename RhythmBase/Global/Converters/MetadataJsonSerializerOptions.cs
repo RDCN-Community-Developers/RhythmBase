@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -32,19 +30,25 @@ public record class MetadataJsonSerializerOptions
 	public int Version { get; set; } = 0;
 	public bool UpgradeToLatest { get; set; } = true;
 
-	private readonly List<(Type matchType, string field, Delegate handler)> _userHandlers = new();
-	private static readonly ConcurrentDictionary<Type, Func<Delegate, object, string, JsonElement, bool>> _dispatchCache = new();
+	private readonly List<(Type matchType, string field, Func<object, JsonElement, bool> handler)> _userHandlers = new();
 
 	/// <summary>
 	/// Registers a user-level handler for a specific unhandled field on a specific type.
-	/// User handlers run after developer handlers (registered via <see cref="UnhandledFieldRegistry"/>).
+	/// The handler is wrapped at registration time to accept <see cref="object"/>,
+	/// enabling interface-based dispatch without runtime reflection.
 	/// </summary>
 	/// <typeparam name="T">The object type.</typeparam>
 	/// <param name="fieldName">The JSON property name to handle.</param>
 	/// <param name="handler">The handler to invoke when the field is encountered.</param>
 	public void RegisterHandler<T>(string fieldName, UnhandledPropertyHandler<T> handler)
 	{
-		_userHandlers.Add((typeof(T), fieldName, handler));
+		Func<object, JsonElement, bool> wrapped = (object target, JsonElement value) =>
+		{
+			if (target is T typed)
+				return handler(ref typed, value);
+			return false;
+		};
+		_userHandlers.Add((typeof(T), fieldName, wrapped));
 	}
 
 	/// <summary>
@@ -63,31 +67,10 @@ public record class MetadataJsonSerializerOptions
 		{
 			if (field == fieldName && factory?.Invoke(matchType)?.Invoke(enumValue) == true)
 			{
-				if (matchType == typeof(T))
-					return ((UnhandledPropertyHandler<T>)handler)(ref target, fieldName, value);
-				else
-					return GetDispatcher(matchType).Invoke(handler, target!, fieldName, value);
+				return handler(target!, value);
 			}
 		}
 		return false;
-	}
-
-	private static Func<Delegate, object, string, JsonElement, bool> GetDispatcher(Type registeredType)
-	{
-		return _dispatchCache.GetOrAdd(registeredType, t =>
-		{
-			var method = typeof(MetadataJsonSerializerOptions)
-				.GetMethod(nameof(InvokeViaInterface), BindingFlags.NonPublic | BindingFlags.Static)!
-				.MakeGenericMethod(t);
-			return (Func<Delegate, object, string, JsonElement, bool>)
-				method.CreateDelegate(typeof(Func<Delegate, object, string, JsonElement, bool>));
-		});
-	}
-
-	private static bool InvokeViaInterface<TRegistered>(Delegate handler, object target, string fieldName, JsonElement value)
-	{
-		TRegistered iface = (TRegistered)target;
-		return ((UnhandledPropertyHandler<TRegistered>)handler)(ref iface, fieldName, value);
 	}
 
 	/// <summary>
