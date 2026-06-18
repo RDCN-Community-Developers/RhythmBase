@@ -1,6 +1,7 @@
 using RhythmBase.RhythmDoctor.Converters;
 using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Linq;
+using System.Text.Json;
 namespace RhythmBase.RhythmDoctor.Components;
 
 /// <summary>
@@ -31,11 +32,8 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction, EventType
 			int y = 0;
 			for (int i = 0; i < Parent?.Decorations.Count; i++)
 			{
-				if (Parent.Decorations[i].Room == this.Room)
-				{
-					if (Parent.Decorations[i] == this)
-						return y;
-				}
+				if (Parent.Decorations[i].Room == this.Room && Parent.Decorations[i] == this)
+					return y;
 				y++;
 			}
 			return -1;
@@ -122,6 +120,22 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction, EventType
 						Room,
 						Character
 			]);
+	/// <summary>
+	/// Gets or sets the extra data associated with the decoration using a key-value pair.
+	/// </summary>
+	/// <param name="key">The key of the extra data to get or set.</param>
+	/// <returns>The value of the extra data associated with the specified key.</returns>
+	public JsonElement this[string key]
+	{
+		get => _extraData.TryGetValue(key, out JsonElement value) ? value : default;
+		set
+		{
+			if(value.ValueKind is JsonValueKind.Undefined)
+				_extraData.Remove(key);
+			else
+				_extraData[key] = value;
+		}
+	}
 	/// <summary>  
 	/// Creates a shallow copy of the current <see cref="Decoration"/> instance.  
 	/// </summary>  
@@ -132,6 +146,8 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction, EventType
 		s.Parent = null;
 		return s;
 	}
+	public IReadOnlyDictionary<string, JsonElement> ExtraData => _extraData;
+	private readonly Dictionary<string, JsonElement> _extraData = [];
 	private string _id = "";
 	internal Level? Parent = null;
 }

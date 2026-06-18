@@ -19,17 +19,11 @@ internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEve
 		{
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 			if (reader.ValueTextEquals("bar"u8) && reader.Read())
-			{
 				bar = reader.GetInt32();
-			}
 			else if (reader.ValueTextEquals("beat"u8) && reader.Read())
-			{
 				beat = reader.GetSingle();
-			}
 			else if (reader.ValueTextEquals("type"u8) && reader.Read())
-			{
 				continue;
-			}
 			else
 			{
 				var checkpoint = reader;

@@ -11,61 +11,52 @@ internal class DecorationConverter : MetadataJsonConverter<Decoration>
 	{
 		if (reader.TokenType != JsonTokenType.StartObject)
 			throw new JsonException($"Expected StartObject token, but got {reader.TokenType}.");
-		Decoration decoration = [];
-		while (reader.Read())
+		Decoration value = [];
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.EndObject)
-				break;
-			if (reader.TokenType == JsonTokenType.PropertyName)
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
+			var checkpoint = reader;
+			if (reader.ValueTextEquals("id"u8) && reader.Read())
+				value.Id = reader.GetString() ?? "";
+			else if (reader.ValueTextEquals("rooms"u8) && reader.Read())
+				value.Room = TypeConverterRegistry.Read<SingleRoom>(ref reader, options);
+			else if (reader.ValueTextEquals("filename"u8) && reader.Read())
+				value.Character = reader.GetString() ?? "";
+			else if (reader.ValueTextEquals("character"u8) && reader.Read())
 			{
-				if (reader.ValueTextEquals("id"u8))
+				string character = reader.GetString() ?? "";
+				if (EnumConverter.TryParse(character, out Characters rdc))
+					value.Character = rdc;
+				else
+					value.Character = character;
+			}
+			else if (reader.ValueTextEquals("preview"u8) && reader.Read())
+				value.Preview = reader.GetBoolean();
+			else if (reader.ValueTextEquals("depth"u8) && reader.Read())
+				value.Depth = reader.GetInt32();
+			else if (reader.ValueTextEquals("filter"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out Filter result))
+				value.Filter = result;
+			else if (reader.ValueTextEquals("visible"u8) && reader.Read())
+				value.Visible = reader.GetBoolean();
+			else
+			{
+				reader = checkpoint;
+				var fieldName = reader.GetString() ?? "";
+				if(fieldName == "row")
 				{
 					reader.Read();
-					decoration.Id = reader.GetString() ?? "";
+					reader.Skip();
+					continue;
 				}
-				else if (reader.ValueTextEquals("rooms"u8))
-				{
-					reader.Read();
-					decoration.Room = TypeConverterRegistry.Read<SingleRoom>(ref reader, options);
-				}
-				else if (reader.ValueTextEquals("filename"u8))
-				{
-					reader.Read();
-					decoration.Character = reader.GetString() ?? "";
-				}
-				else if (reader.ValueTextEquals("character"u8))
-				{
-					reader.Read();
-					string character = reader.GetString() ?? "";
-					if (EnumConverter.TryParse(character, out Characters rdc))
-						decoration.Character = rdc;
-					else
-						decoration.Character = character;
-				}
-				else if (reader.ValueTextEquals("preview"u8))
-				{
-					reader.Read();
-					decoration.Preview = reader.GetBoolean();
-				}
-				else if (reader.ValueTextEquals("depth"u8))
-				{
-					reader.Read();
-					decoration.Depth = reader.GetInt32();
-				}
-				else if (reader.ValueTextEquals("filter"u8))
-				{
-					reader.Read();
-					if (EnumConverter.TryParse(ref reader, out Filter result))
-						decoration.Filter = result;
-				}
-				else if (reader.ValueTextEquals("visible"u8))
-				{
-					reader.Read();
-					decoration.Visible = reader.GetBoolean();
-				}
+				reader.Read();
+				JsonElement extraData = JsonElement.ParseValue(ref reader);
+				value[fieldName] = extraData;
+#if DEBUG
+				Console.WriteLine($"{options.Version}\t| Decoration\t| {fieldName} => ({value[fieldName].ValueKind}){value[fieldName]}");
+#endif
 			}
 		}
-		return decoration;
+		return value;
 	}
 
 	public override void Write(Utf8JsonWriter writer, Decoration value, MetadataJsonSerializerOptions options)
@@ -85,6 +76,11 @@ internal class DecorationConverter : MetadataJsonConverter<Decoration>
 			writer.WriteString("filter"u8, value.Filter.ToEnumString());
 		if (!value.Visible)
 			writer.WriteBoolean("visible"u8, value.Visible);
+		foreach (var kvp in value.ExtraData)
+		{
+			writer.WritePropertyName(kvp.Key);
+			kvp.Value.WriteTo(writer);
+		}
 		writer.WriteEndObject();
 	}
 }
