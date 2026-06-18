@@ -12,6 +12,11 @@ using System.Runtime.Intrinsics.Arm;
 namespace RhythmBase.Global.Components
 {
 
+	/// <summary>
+	/// A read-only <see cref="Stream"/> that reads JSON from an underlying stream, applies
+	/// compacting transformations (whitespace removal, trailing/comma normalization, BOM stripping),
+	/// optional structural position tracking, and optional SIMD-accelerated scanning.
+	/// </summary>
 	public class JsonCompactStream : Stream
 	{
 		private const string SeekNotSupported = "This stream does not support seeking.";
@@ -57,17 +62,30 @@ namespace RhythmBase.Global.Components
 		/// </summary>
 		public IReadOnlyList<(long output, long input)> PositionMap => _checkpoints;
 
+		/// <inheritdoc/>
 		public override bool CanRead => !_disposed;
+		/// <inheritdoc/>
 		public override bool CanSeek => false;
+		/// <inheritdoc/>
 		public override bool CanWrite => false;
 
+		/// <inheritdoc/>
 		public override long Length => throw new NotSupportedException(SeekNotSupported);
+		/// <inheritdoc/>
 		public override long Position
 		{
 			get => throw new NotSupportedException(SeekNotSupported);
 			set => throw new NotSupportedException(SeekNotSupported);
 		}
 
+		/// <summary>
+		/// Initializes a new instance of <see cref="JsonCompactStream"/>.
+		/// </summary>
+		/// <param name="stream">The underlying stream to read JSON from.</param>
+		/// <param name="bufferSize">Size of the internal ring buffer in bytes.</param>
+		/// <param name="leaveOpen">Whether to leave the underlying stream open when this stream is disposed.</param>
+		/// <param name="allowNewlinesInStrings">When <see langword="true"/>, special whitespace characters inside strings are escaped with backslash sequences.</param>
+		/// <param name="lenientComma">When <see langword="true"/>, trailing commas are stripped and implicit commas between values are inserted as needed.</param>
 		public JsonCompactStream(
 			Stream stream,
 			int bufferSize = 8192,
@@ -112,11 +130,14 @@ namespace RhythmBase.Global.Components
 			}
 		}
 
+		/// <inheritdoc/>
 		public override void Flush() { }
 
+		/// <inheritdoc/>
 		public override int Read(byte[] buffer, int offset, int count)
 			=> Read(buffer.AsSpan(offset, count));
 
+		/// <inheritdoc/>
 		public
 #if NET8_0_OR_GREATER
 			override
@@ -444,10 +465,14 @@ namespace RhythmBase.Global.Components
 			return i;
 		}
 
+		/// <inheritdoc/>
 		public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException(SeekNotSupported);
+		/// <inheritdoc/>
 		public override void SetLength(long value) => throw new NotSupportedException(SeekNotSupported);
+		/// <inheritdoc/>
 		public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException(WriteNotSupported);
 
+		/// <inheritdoc/>
 		protected override void Dispose(bool disposing)
 		{
 			if (!_disposed)

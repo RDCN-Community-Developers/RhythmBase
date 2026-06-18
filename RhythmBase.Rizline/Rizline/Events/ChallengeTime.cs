@@ -6,6 +6,9 @@
 [JsonObjectSerializable]
 public record class ChallengeTime : BaseEvent
 {
+    /// <summary>
+    /// The event type, always <see cref="EventType.ChallengeTime"/>.
+    /// </summary>
     public override EventType Type => EventType.ChallengeTime;
     /// <summary>
     /// Checkpoint time used for internal checks (default 0.0). 

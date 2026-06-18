@@ -183,7 +183,13 @@ public class LevelReadSettings : LevelReadOrWriteSettings
 	/// Gets or sets the method used to process zip files.
 	/// </summary>
 	public ZipProcessingMode ZipProcessingMode { get; set; }
+	/// <summary>
+	/// Gets or sets the JSON deserialization strictness level.
+	/// </summary>
 	public JsonStrictness Strictness { get; set; } = JsonStrictness.Strict;
+	/// <summary>
+	/// Gets or sets whether to automatically upgrade level data to the latest version during deserialization.
+	/// </summary>
 	public bool UpgradeToLatest { get; set; } = true;
 
 	private readonly List<(Type matchType, string field, Func<object, JsonElement, bool> handler)> _userHandlers = new();
@@ -207,6 +213,11 @@ public class LevelReadSettings : LevelReadOrWriteSettings
 		};
 		_userHandlers.Add((typeof(T), fieldName, wrapped));
 	}
+	/// <summary>
+	/// Registers a user-level handler that silently ignores a specific field on a specific type.
+	/// </summary>
+	/// <typeparam name="T">The object type.</typeparam>
+	/// <param name="fieldName">The JSON property name to ignore.</param>
 	public void RegisterIgnore<T>(string fieldName)
 	{
 		_userHandlers.Add((typeof(T), fieldName, (object _, JsonElement __) => true));

@@ -1574,10 +1574,10 @@ public enum TrackColorPulse
 	/// </summary>
 	Backward,
 }
-[JsonEnumSerializable]
 /// <summary>
 /// The filter types.
 /// </summary>
+[JsonEnumSerializable]
 public enum FilterType
 {
     /// <summary>

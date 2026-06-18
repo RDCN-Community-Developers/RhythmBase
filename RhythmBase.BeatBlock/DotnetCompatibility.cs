@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 
 #pragma warning disable IDE0130
+#pragma warning disable CS1591
 #if !NET10_0_OR_GREATER
 namespace System.Text.Json
 {
@@ -364,3 +365,4 @@ namespace System.Collections.Generic
 	}
 }
 #endif
+#pragma warning restore CS1591

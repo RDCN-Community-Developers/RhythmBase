@@ -1383,6 +1383,9 @@ public enum HeartExplodeIntervalType
 	/// Gather and ceiling.
 	/// </summary>
 	GatherAndCeil,
+	/// <summary>
+	/// Indicates that heart explode intervals are disabled.
+	/// </summary>
 	Disabled,
 }
 /// <summary>  

@@ -206,8 +206,10 @@ namespace System
 }
 namespace System.Diagnostics
 {
+	#pragma warning disable CS1591
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Struct, Inherited = false)]
 	public sealed class StackTraceHiddenAttribute : Attribute { }
+	#pragma warning restore CS1591
 	namespace CodeAnalysis
 	{
 		[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]

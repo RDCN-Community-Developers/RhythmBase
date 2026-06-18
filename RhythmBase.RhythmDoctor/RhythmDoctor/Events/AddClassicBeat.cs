@@ -45,6 +45,9 @@ public record class AddClassicBeat : BaseBeat
 	/// Gets or sets the audio content associated with this instance.
 	/// </summary>
 	public Audio? Sound { get; set; } = null;
+	/// <summary>
+	/// Gets or sets a legacy compatibility flag.
+	/// </summary>
 	[JsonCondition($"$&.{nameof(Legacy)}")]
 	public bool Legacy { get; set; } = false;
 	/// <summary>

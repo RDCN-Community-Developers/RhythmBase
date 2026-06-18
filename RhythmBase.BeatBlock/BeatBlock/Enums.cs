@@ -17,6 +17,9 @@ public enum EventType
     /// No description
     /// </remarks>
     Template,
+    /// <summary>
+    /// Forward event, used for unrecognized event types.
+    /// </summary>
     ForwardEvent,
     /// <summary>
     /// Bookmark

@@ -6,6 +6,9 @@ namespace RhythmBase.BeatBlock.Events;
 [JsonObjectSerializable]
 public class CharacterMap
 {
+    /// <summary>
+    /// Gets the default character map.
+    /// </summary>
     public static CharacterMap Default { get; } = new CharacterMap();
     /// <summary>
     /// Gets the regular character map.
@@ -27,6 +30,9 @@ public class CharacterMap
     {
         Map = map;
     }
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CharacterMap"/> class with an empty map string.
+    /// </summary>
     public CharacterMap() : this(string.Empty)
     {
     }

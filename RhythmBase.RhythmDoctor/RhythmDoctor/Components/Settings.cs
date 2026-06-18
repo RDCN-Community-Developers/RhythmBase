@@ -123,6 +123,9 @@ public class Settings
 	/// Mods enabled for the level.  
 	/// </summary>  
 	public List<string> Mods { get; set; } = [];
+	/// <summary>
+	/// Gets or sets the custom character class name for the level.
+	/// </summary>
 	public string? CustomClass { get; set; }
 
 	/// <summary>

@@ -18,6 +18,9 @@ public record class Properties
     /// Gets or sets the starting beat of the level.
     /// </summary>
     public int StartingBeat { get; set; }
+    /// <summary>
+    /// Gets or sets the beat at which the level is loaded.
+    /// </summary>
     public int LoadBeat { get; set; }
     /// <summary>
     /// Gets or sets the format version of the level.

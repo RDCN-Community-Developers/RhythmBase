@@ -163,6 +163,9 @@ namespace RhythmBase.Global.Components.Vector;
 			return hash;
 		}
 #else
+    /// <summary>
+    /// Gets the hash code for this size instance.
+    /// </summary>
     public readonly override int GetHashCode() => HashCode.Combine(Width, Height);
 #endif
 		/// <inheritdoc/>

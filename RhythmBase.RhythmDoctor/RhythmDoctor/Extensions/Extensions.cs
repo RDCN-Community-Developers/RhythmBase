@@ -21,6 +21,11 @@ public static partial class Extensions
 
 	extension(UnhandledFieldRegistry)
 	{
+		/// <summary>
+		/// Registers a handler that silently ignores the specified field on the given type.
+		/// </summary>
+		/// <typeparam name="T">The event type that contains the field.</typeparam>
+		/// <param name="fieldName">The name of the field to ignore.</param>
 		public static void Keep<T>(string fieldName) where T : IBaseEvent
 			=> UnhandledFieldRegistry.Register<T>(fieldName, (ref e, value) => { e["usePosition"] = value; return true; });
 	}

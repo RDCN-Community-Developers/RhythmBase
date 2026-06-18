@@ -27,6 +27,9 @@ public partial class Level :
     /// Gets or sets the metadata of the level.
     /// </summary>
     public Metadata Metadata { get; set; } = new Metadata();
+    /// <summary>
+    /// Gets the dictionary of tag event collections for the level.
+    /// </summary>
     public Dictionary<string, TagEventCollection> TagEvents { get; } = [];
     /// <summary>
     /// Gets the collection of variants for the level.
@@ -44,10 +47,17 @@ public partial class Level :
     /// Gets the resolved directory of the level file.
     /// </summary>
     public string? ResolvedDirectory { get; internal set; }
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Level"/> class.
+    /// </summary>
     public Level()
     {
         Variants = new ChartCollection(this);
     }
+    /// <summary>
+    /// Releases the unmanaged resources used by the <see cref="Level"/> and optionally releases the managed resources.
+    /// </summary>
+    /// <param name="disposing"><see langword="true"/> to release both managed and unmanaged resources; <see langword="false"/> to release only unmanaged resources.</param>
     protected internal void Dispose(bool disposing)
     {
         if (disposing)

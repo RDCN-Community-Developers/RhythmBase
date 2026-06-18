@@ -26,8 +26,17 @@ public record class MetadataJsonSerializerOptions
 	/// Gets or sets a value indicating whether the JSON output should be indented.
 	/// </summary>
 	public bool WriteIndented { get => JsonSerializerOptions.WriteIndented; init => JsonSerializerOptions.WriteIndented = value; }
+	/// <summary>
+	/// Gets the JSON deserialization strictness level.
+	/// </summary>
 	public JsonStrictness Strictness { get; init; } = JsonStrictness.Strict;
+	/// <summary>
+	/// Gets or sets the target format version for serialization.
+	/// </summary>
 	public int Version { get; set; } = 0;
+	/// <summary>
+	/// Gets or sets whether to upgrade legacy fields during deserialization.
+	/// </summary>
 	public bool UpgradeToLatest { get; set; } = true;
 
 	private readonly List<(Type matchType, string field, Func<object, JsonElement, bool> handler)> _userHandlers = new();
@@ -81,8 +90,13 @@ public record class MetadataJsonSerializerOptions
 		settings.CopyToUserHandlers(_userHandlers);
 	}
 }
+/// <summary>
+/// Specifies how strictly JSON deserialization should enforce format rules.
+/// </summary>
 public enum JsonStrictness
 {
+	/// <summary>Strict mode: all JSON format rules are enforced.</summary>
 	Strict,
+	/// <summary>Relaxed mode: allows trailing commas, comments, and other leniencies.</summary>
 	Relaxed,
 }

@@ -4,6 +4,9 @@ using System.Text;
 
 namespace RhythmBase.BeatBlock
 {
+	/// <summary>
+	/// Contains constant values used by the BeatBlock level format.
+	/// </summary>
 	public static class Constants
 	{ 
 		/// <summary>

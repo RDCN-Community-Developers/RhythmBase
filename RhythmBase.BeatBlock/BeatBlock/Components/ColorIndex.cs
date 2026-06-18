@@ -32,6 +32,7 @@ public struct ColorIndex
     /// Gets or sets the index value.
     /// </summary>
     public byte Value { get; set; }
+    /// <inheritdoc/>
     public override string ToString()
     {
         return Value.ToString();

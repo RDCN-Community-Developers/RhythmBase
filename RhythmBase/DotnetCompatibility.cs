@@ -289,7 +289,9 @@ namespace System.Runtime.CompilerServices
 		public string MethodName { get; } = methodName;
 	}
 	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+	#pragma warning disable CS1591 // Polyfill type, XML doc not needed
 	public sealed class ModuleInitializerAttribute : Attribute { }
+	#pragma warning restore CS1591
 }
 namespace System.Text
 {

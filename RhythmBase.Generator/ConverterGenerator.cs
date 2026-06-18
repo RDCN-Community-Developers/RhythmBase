@@ -551,6 +551,10 @@ public partial class ConverterGenerator : IIncrementalGenerator
 
 			namespace RhythmBase.{{registryId}}.Converters;
 
+			/// <summary>
+			/// Provides entry point methods for deserializing and serializing level files
+			/// for the <c>{{registryId}}</c> game adapter.
+			/// </summary>
 			public class FileMainEntryConverter
 			{
 				private static readonly JsonReaderOptions _readerOptions = new();
@@ -563,6 +567,13 @@ public partial class ConverterGenerator : IIncrementalGenerator
 						throw new JsonException($"{ex.Message}\n  at original stream byte position ~{originalPos}", ex);
 					throw new JsonException($"{ex.Message}\n  at processed byte position {bytesConsumed}", ex);
 				}
+				/// <summary>
+				/// Deserializes a level from the specified data source.
+				/// </summary>
+				/// <typeparam name="T">The level type to deserialize.</typeparam>
+				/// <param name="dataSource">The JSON data source to read from.</param>
+				/// <param name="options">The metadata-aware serializer options.</param>
+				/// <returns>The deserialized level instance, or a new empty instance if deserialization fails.</returns>
 				public static T DeserializeMainEntry<T>(RhythmBase.Global.Converters.JsonSerialization.IJsonDataSource dataSource, RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
 						where T : new()
 				{
@@ -572,6 +583,14 @@ public partial class ConverterGenerator : IIncrementalGenerator
 						: new Utf8JsonReader(seq, _readerOptions);
 					return RhythmBase.{{registryId}}.Converters.TypeConverterRegistry.Read<T>(ref reader, options) ?? new();
 				}
+				/// <summary>
+				/// Asynchronously deserializes a level from the specified data source.
+				/// </summary>
+				/// <typeparam name="T">The level type to deserialize.</typeparam>
+				/// <param name="dataSource">The JSON data source to read from.</param>
+				/// <param name="options">The metadata-aware serializer options.</param>
+				/// <param name="cancellationToken">A token to cancel the operation.</param>
+				/// <returns>The deserialized level instance, or a new empty instance if deserialization fails.</returns>
 				public static async Task<T> DeserializeMainEntryAsync<T>(RhythmBase.Global.Converters.JsonSerialization.IJsonDataSource dataSource, RhythmBase.Global.Converters.MetadataJsonSerializerOptions options, CancellationToken cancellationToken = default)
 						where T : new()
 				{
@@ -581,6 +600,13 @@ public partial class ConverterGenerator : IIncrementalGenerator
 						: new Utf8JsonReader(seq, _readerOptions);
 					return RhythmBase.{{registryId}}.Converters.TypeConverterRegistry.Read<T>(ref reader, options) ?? new();
 				}
+				/// <summary>
+				/// Serializes a level to the specified stream.
+				/// </summary>
+				/// <typeparam name="T">The level type to serialize.</typeparam>
+				/// <param name="mainEntry">The level instance to serialize.</param>
+				/// <param name="stream">The output stream to write to.</param>
+				/// <param name="options">The metadata-aware serializer options.</param>
 				public static void SerializeMainEntry<T>(T mainEntry, Stream stream, RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
 				{
 					using Utf8JsonWriter writer = new(stream, new()

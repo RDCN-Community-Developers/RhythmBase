@@ -8,6 +8,9 @@ namespace RhythmBase.Rizline.Events;
 [JsonObjectSerializable]
 public record class LinePoint : BaseEvent, IFloorPositionEvent
 {
+    /// <summary>
+    /// The event type, always <see cref="EventType.LinePoint"/>.
+    /// </summary>
     public override EventType Type => EventType.LinePoint;
     /// <summary>
     /// Time of the line point in ticks. 

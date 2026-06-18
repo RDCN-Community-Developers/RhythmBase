@@ -118,6 +118,10 @@ public class CameraMove
 	/// </summary>
 	public List<CameraPosition> XPosition { get; } = [];
 }
+/// <summary>
+/// Represents a single chart (difficulty) within a Rizline level, containing timing,
+/// guide lines, notes, and camera/canvas movement data.
+/// </summary>
 public class Chart : IChart<TickTime>
 {
 	/// <summary>
@@ -160,15 +164,33 @@ public class Chart : IChart<TickTime>
 	/// Canvas movement entries for each canvas/track.
 	/// </summary>
 	public List<CanvasMove> CanvasMoves { get; set; } = [];
+	/// <summary>
+	/// Camera movement and zoom key points for this chart.
+	/// </summary>
 	public CameraMove CameraMove { get; set; } = new();
 	IBeatCalculator<TickTime> IChart<TickTime>.Calculator { get; }
 }
 
+/// <summary>
+/// Built-in difficulty presets for Rizline levels.
+/// </summary>
 public enum Difficulty
 {
+	/// <summary>
+	/// Easy difficulty.
+	/// </summary>
 	Easy,
+	/// <summary>
+	/// Hard difficulty.
+	/// </summary>
 	Hard,
+	/// <summary>
+	/// Insane difficulty.
+	/// </summary>
 	Insane,
+	/// <summary>
+	/// Another difficulty.
+	/// </summary>
 	Another,
 }
 
@@ -179,13 +201,37 @@ public partial class Level :
 		IArchiveLevel<Level, IBaseEvent, EventType, TickTime>,
 		IMultiFileLevel<Level, IBaseEvent, EventType, TickTime>
 {
+	/// <summary>
+	/// Title of the song.
+	/// </summary>
 	public string Title { get; set; } = string.Empty;
+	/// <summary>
+	/// Composer of the song.
+	/// </summary>
 	public string Composer { get; set; } = string.Empty;
+	/// <summary>
+	/// Difficulty index of the level.
+	/// </summary>
 	public int Difficulty { get; set; }
+	/// <summary>
+	/// Level number or rating.
+	/// </summary>
 	public int Lv { get; set; }
+	/// <summary>
+	/// Maximum number of hit objects in the level.
+	/// </summary>
 	public int MaxHit { get; set; }
+	/// <summary>
+	/// Maximum achievable score for the level.
+	/// </summary>
 	public int MaxScore { get; set; }
+	/// <summary>
+	/// Preview time used when selecting the level.
+	/// </summary>
 	public TimeSpan PreviewTime { get; set; }
+	/// <summary>
+	/// List of charts (difficulties) contained in this level.
+	/// </summary>
 	public List<Chart> Charts { get; } = [];
 	/// <summary>
 	/// Original file path of the level, if any. 

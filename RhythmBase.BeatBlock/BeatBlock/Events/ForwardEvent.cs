@@ -2,18 +2,35 @@
 
 namespace RhythmBase.BeatBlock.Events;
 
+/// <summary>
+/// Represents a forward-compatible event for unrecognized event types.
+/// </summary>
 [JsonObjectSerializationFallback]
 public record class ForwardEvent : BaseEvent, IForwardEvent
 {
+    /// <inheritdoc/>
     public override EventType Type => EventType.ForwardEvent;
+    /// <summary>
+    /// Gets or sets the actual event type string.
+    /// </summary>
     public string ActualType
     {
         get => _extraData.TryGetValue("type", out JsonElement typeElement) && typeElement.ValueKind == JsonValueKind.String ?
                 typeElement.GetString() ?? "" : "";
         set => _extraData["type"] = JsonElement.Parse($"\"{value}\"");
     }
+    /// <summary>
+    /// Gets the extra data dictionary.
+    /// </summary>
     protected Dictionary<string, JsonElement> ExtraData => _extraData;
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ForwardEvent"/> class.
+    /// </summary>
     public ForwardEvent() { }
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ForwardEvent"/> class from the specified JSON document.
+    /// </summary>
+    /// <param name="data">The JSON document containing the event data.</param>
     public ForwardEvent(JsonDocument data)
     {
         this.Order = _extraData.TryGetValue("order", out JsonElement orderElement) && orderElement.ValueKind == JsonValueKind.Number ? orderElement.GetInt32() : 0;

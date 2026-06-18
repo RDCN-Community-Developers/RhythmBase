@@ -7,6 +7,9 @@ namespace RhythmBase.RhythmDoctor;
 /// </summary>
 public static class Constants
 {
+	/// <summary>
+	/// The default version number used when creating a new level.
+	/// </summary>
 	public const int DefaultVersion = 67;
 	/// <summary>
 	/// Bitmask flags that describe the capabilities and application targets of a VFX preset.
@@ -179,25 +182,57 @@ public static class Constants
 		[VfxPreset.DisableAll] = VfxAttribute.MultiRooms | VfxAttribute.Disabled,
 	});
 
+	/// <summary>
+	/// File extensions recognized as Rhythm Doctor level files.
+	/// </summary>
 	public static readonly string[] LevelFileExtensions = new[] { ".json", ".rdlevel" };
+	/// <summary>
+	/// File extensions recognized as Rhythm Doctor level archives.
+	/// </summary>
 	public static readonly string[] LevelZipExtensions = new[] { ".zip", ".rdzip" };
+	/// <summary>
+	/// File extensions recognized as image files.
+	/// </summary>
 	public static readonly string[] ImageFileExtensions = new[] { ".png", ".jpg", ".jpeg", ".bmp", ".gif" };
+	/// <summary>
+	/// File extensions recognized as audio files.
+	/// </summary>
 	public static readonly string[] WaveFileExtensions = new[] { ".wav", ".mp3", ".ogg", ".aac" };
+	/// <summary>
+	/// Determines whether the specified file path has a Rhythm Doctor level file extension.
+	/// </summary>
+	/// <param name="filename">The file path to check.</param>
+	/// <returns><see langword="true"/> if the file has a recognized level file extension; otherwise, <see langword="false"/>.</returns>
 	public static bool IsLevelFile(string filename)
 	{
 		string extension = Path.GetExtension(filename).ToLowerInvariant();
 		return LevelFileExtensions.Contains(extension);
 	}
+	/// <summary>
+	/// Determines whether the specified file path has a Rhythm Doctor level archive extension.
+	/// </summary>
+	/// <param name="filename">The file path to check.</param>
+	/// <returns><see langword="true"/> if the file has a recognized level archive extension; otherwise, <see langword="false"/>.</returns>
 	public static bool IsLevelZip(string filename)
 	{
 		string extension = Path.GetExtension(filename).ToLowerInvariant();
 		return LevelZipExtensions.Contains(extension);
 	}
+	/// <summary>
+	/// Determines whether the specified file path has an image file extension.
+	/// </summary>
+	/// <param name="filename">The file path to check.</param>
+	/// <returns><see langword="true"/> if the file has a recognized image file extension; otherwise, <see langword="false"/>.</returns>
 	public static bool IsImageFile(string filename)
 	{
 		string extension = Path.GetExtension(filename).ToLowerInvariant();
 		return ImageFileExtensions.Contains(extension);
 	}
+	/// <summary>
+	/// Determines whether the specified file path has an audio file extension.
+	/// </summary>
+	/// <param name="filename">The file path to check.</param>
+	/// <returns><see langword="true"/> if the file has a recognized audio file extension; otherwise, <see langword="false"/>.</returns>
 	public static bool IsWaveFile(string filename)
 	{
 		string extension = Path.GetExtension(filename).ToLowerInvariant();

@@ -37,6 +37,12 @@ public sealed class JsonObjectSerializationFallbackAttribute : Attribute { }
 /// </summary>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public sealed class JsonIgnoreAttribute : Attribute { }
+/// <summary>
+/// Flattens a nested JSON object's property into the parent object during serialization/deserialization.
+/// </summary>
+/// <param name="property">The property path to flatten (e.g. <c>"color"</c>).</param>
+/// <param name="alias">Optional alias for the flattened property name.</param>
+/// <param name="mode">Specifies whether flattening applies to read, write, or both.</param>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = true, Inherited = false)]
 public sealed class JsonFlattenAttribute(string property, string? alias = null, JsonFlattenMode mode = JsonFlattenMode.ReadWrite) : Attribute { }
 /// <summary>
@@ -116,12 +122,18 @@ public enum JsonTimeType
     /// <summary>Serialize as seconds (floating-point).</summary>
     Seconds,
 }
+/// <summary>
+/// Specifies when JSON property flattening should be applied.
+/// </summary>
 [Flags]
 public enum JsonFlattenMode
 {
     /// <summary>Do not flatten; serialize nested objects as JSON objects.</summary>
     None,
+    /// <summary>Flatten only during deserialization (reading).</summary>
     ReadOnly = 1,
+    /// <summary>Flatten only during serialization (writing).</summary>
     WriteOnly = 2,
+    /// <summary>Flatten during both serialization and deserialization.</summary>
     ReadWrite = ReadOnly | WriteOnly,
 }
