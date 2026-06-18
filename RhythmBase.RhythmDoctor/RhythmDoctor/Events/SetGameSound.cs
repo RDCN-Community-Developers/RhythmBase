@@ -79,8 +79,9 @@ public partial record class SetGameSound : BaseEvent, IAudioFileEvent
 	/// <summary>  
 	/// Gets or sets the list of sound subtypes.  
 	/// </summary>  
+	[JsonAlias("soundSubtypes")]
 	[JsonCondition($"$&.{nameof(MultipleSoundTypes)}.Contains($&.{nameof(SoundType)})")]
-	public SoundSubTypeCollection SoundSubtypes { get; set; } = [];
+	public SoundCollection Sounds { get; set; } = [];
 	///<inheritdoc/>
 	public override EventType Type => EventType.SetGameSound;
 	///<inheritdoc/>

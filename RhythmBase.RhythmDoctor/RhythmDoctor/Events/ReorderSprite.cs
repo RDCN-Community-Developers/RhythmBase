@@ -17,6 +17,8 @@ public record class ReorderSprite : BaseDecorationAction
 	/// </summary>
 	[JsonConverter(typeof(RoomIndexConverter))]
 	public RoomIndex? NewRoom { get; set; }
+	[JsonAlias("sortingLayerName")]
+	public LayerType Layer { get; set; } = LayerType.Default;
 	/// <summary>
 	/// Gets or sets the depth level of the object.
 	/// </summary>

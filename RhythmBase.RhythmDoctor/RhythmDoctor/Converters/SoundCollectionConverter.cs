@@ -5,12 +5,12 @@ using System.Text.Json.Serialization;
 
 namespace RhythmBase.RhythmDoctor.Converters;
 
-[JsonConverterFor(typeof(SoundSubTypeCollection))]
-internal class SoundSubTypeCollectionConverter : JsonConverter<SoundSubTypeCollection>
+[JsonConverterFor(typeof(SoundCollection))]
+internal class SoundCollectionConverter : JsonConverter<SoundCollection>
 {
-	public override SoundSubTypeCollection? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+	public override SoundCollection? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
-		SoundSubTypeCollection collection = [];
+		SoundCollection collection = [];
 		List<SoundSubType> sounds = [];
 		if (reader.TokenType != JsonTokenType.StartArray)
 			throw new JsonException("Expected StartArray token");
@@ -44,7 +44,7 @@ internal class SoundSubTypeCollectionConverter : JsonConverter<SoundSubTypeColle
 				else
 				{
 #if DEBUG
-					Console.WriteLine($"Found unknown property '{reader.GetString()}' in {nameof(SoundSubTypeCollection)}");
+					Console.WriteLine($"Found unknown property '{reader.GetString()}' in {nameof(SoundCollection)}");
 #endif
 					reader.Skip();
 				}
@@ -54,7 +54,7 @@ internal class SoundSubTypeCollectionConverter : JsonConverter<SoundSubTypeColle
 		return collection;
 	}
 
-	public override void Write(Utf8JsonWriter writer, SoundSubTypeCollection value, JsonSerializerOptions options)
+	public override void Write(Utf8JsonWriter writer, SoundCollection value, JsonSerializerOptions options)
 	{
 		writer.WriteStartArray();
 		foreach (SoundSubType? item in value._sounds)

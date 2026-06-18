@@ -1,3 +1,4 @@
+using RhythmBase.Global.Components.Easing;
 using RhythmBase.Global.Components.Vector;
 using RhythmBase.Global.Converters;
 using RhythmBase.RhythmDoctor.Components;
@@ -36,17 +37,31 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		e.TintColor = c;
 		return true;
 	};
+	private static readonly SoundCollectionConverter soundCollectionConverter = new();
 	static LevelConverter()
 	{
 		// Legacy fields ignored by newer versions
-		UnhandledFieldRegistry.Ignore<ChangePlayersRows>("flashingOnBeat");
 		UnhandledFieldRegistry.Ignore<SetClapSounds>("p1Used");
 		UnhandledFieldRegistry.Ignore<SetClapSounds>("p2Used");
 		UnhandledFieldRegistry.Ignore<SetClapSounds>("cpuUsed");
+		UnhandledFieldHelper.RegisterForIEaseEvent("ease", (ref IEaseEvent e, string propertyName, JsonElement value) =>
+		{
+			if (value.ValueKind != JsonValueKind.String)
+				return false;
+			// 按演出效果映射
+			e.Ease = value.GetString() switch
+			{
+				"InFlash" => EaseType.InQuad,
+				"OutFlash" => EaseType.OutQuad,
+				"Flash" or "InOutFlash" => EaseType.InOutQuad,
+				_ => e.Ease
+			};
+			return true;
+		});
 		UnhandledFieldRegistry.Register<SetVFXPreset>("speed", (ref e, propertyName, value) =>
 		{
 			float?[] xs = value.EnumerateArray().Select(x => x.ValueKind == JsonValueKind.Number && x.TryGetSingle(out float f) ? f : (float?)null).ToArray();
-			if(xs.Length != 2)
+			if (xs.Length != 2)
 				return false;
 			e.Amount = (xs[0], xs[1]);
 			return true;
@@ -63,17 +78,74 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 			e.ShakeLevel = 0;
 			return true;
 		});
-		UnhandledFieldRegistry.Ignore<NewWindowDance>("rooms");
-		UnhandledFieldRegistry.Ignore<NewWindowDance>("usePosition");
-		UnhandledFieldRegistry.Ignore<AddOneshotBeat>("squareSound");
-		UnhandledFieldRegistry.Ignore<SetGameSound>("sounds");
-		UnhandledFieldRegistry.Ignore<SetVFXPreset>("xySpeed");
 		UnhandledFieldRegistry.Ignore<FloatingText>("times");
 		UnhandledFieldRegistry.Ignore<FloatingText>("id");
 		UnhandledFieldRegistry.Ignore<AdvanceText>("id");
+		UnhandledFieldRegistry.Register<FloatingText>("narrationCategory", (ref e, propertyName, value) =>
+		{
+			if (value.ValueKind != JsonValueKind.String)
+				return false;
+			string? v = value.GetString();
+			if (v != "Main")
+				return false;
+			e.NarrationCategory = NarrationCategory.Fallback;
+			return true;
+		});
+		UnhandledFieldRegistry.Register<NarrateRowInfo>("narrateSkipBeats", (ref e, propertyName, value) =>
+		{
+			if (value.ValueKind != JsonValueKind.String)
+				return false;
+			string? v = value.GetString();
+			(NarrateSkipBeat v2, bool v3) v4 = v switch
+			{
+				"on" => (NarrateSkipBeat.On, true),
+				"off" => (NarrateSkipBeat.Off, true),
+				"custom" => (NarrateSkipBeat.Custom, true),
+				_ => (0, false)
+			};
+			e.NarrateSkipBeat = v4.v2;
+			return v4.v3;
+		});
+		UnhandledFieldRegistry.Register<SetGameSound>("soundType", (ref e, propertyName, value) =>
+		{
+			(e.SoundType, bool v) =
+				value.ValueKind is JsonValueKind.String &&
+				value.GetString() is "ClapSoundP1Hold" ?
+					(SoundType.ClapSoundHold, true) :
+					(e.SoundType, false);
+			return v;
+		});
+
+		UnhandledFieldRegistry.Ignore<NewWindowDance>("rooms");
+		UnhandledFieldRegistry.Ignore<MaskRoom>("rooms");
+		UnhandledFieldRegistry.Keep<NewWindowDance>("usePosition");
+		UnhandledFieldRegistry.Register<AddOneshotBeat>("squareSound", (ref e, propertyName, value) =>
+		{
+			if (value.ValueKind is not (JsonValueKind.True or JsonValueKind.False)) return false;
+			e.SubdivisionSound = value.GetBoolean();
+			return true;
+		});
+		UnhandledFieldRegistry.Register<SetGameSound>("sounds", (ref e, propertyName, value) =>
+		{
+			if (value.ValueKind != JsonValueKind.Array)
+				return false;
+			Utf8JsonReader reader = new(Encoding.UTF8.GetBytes(value.GetRawText()), new());
+			if(!reader.Read()) return false;
+			e.Sounds = soundCollectionConverter.Read(ref reader, typeof(SoundCollection), new JsonSerializerOptions()) ?? [];
+			return true;
+		});
+		UnhandledFieldRegistry.Register<SetVFXPreset>("xySpeed", (ref e, propertyName, value) =>
+		{
+			if (value.ValueKind != JsonValueKind.Array)
+				return false;
+			float?[] xs = value.EnumerateArray().Select(x => x.ValueKind == JsonValueKind.Number && x.TryGetSingle(out float f) ? f : (float?)null).ToArray();
+			if (xs.Length != 2)
+				return false;
+			e.Amount = (xs[0], xs[1]);
+			return true;
+		});
 		UnhandledFieldRegistry.Ignore<PlaySound>("isCustom");
 		UnhandledFieldRegistry.Ignore<MaskRoom>("contentMode");
-		UnhandledFieldRegistry.Ignore<MaskRoom>("rooms");
 	}
 
 	internal LevelReadSettings ReadSettings { get; set; } = new LevelReadSettings();

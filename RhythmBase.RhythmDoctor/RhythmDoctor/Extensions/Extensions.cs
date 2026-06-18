@@ -1,8 +1,10 @@
+using RhythmBase.Global.Components.RichText;
+using RhythmBase.Global.Converters;
 using RhythmBase.RhythmDoctor.Components;
+using RhythmBase.RhythmDoctor.Converters;
 using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Utils;
-using RhythmBase.Global.Components.RichText;
-using RhythmBase.RhythmDoctor.Converters;
+using System.Text.Json;
 namespace RhythmBase.RhythmDoctor.Extensions;
 
 /// <summary>
@@ -16,6 +18,12 @@ public static partial class Extensions
     internal static T LastOrDefault<T>(this IEnumerable<T> e, T defaultValue) => e.LastOrDefault(defaultValue);
     internal static T LastOrDefault<T>(this IEnumerable<T> e, Func<T, bool> predicate, T defaultValue) => e.LastOrDefault(predicate, defaultValue);
 #endif
+
+	extension(UnhandledFieldRegistry) 
+	{
+		public static void Keep<T>(string fieldName)where T : IBaseEvent
+			=> UnhandledFieldRegistry.Register<T>(fieldName, (ref e, propertyName, value) => { e["usePosition"] = value; return true; });
+	}
 	extension(Condition e)
 	{
 		/// <summary>

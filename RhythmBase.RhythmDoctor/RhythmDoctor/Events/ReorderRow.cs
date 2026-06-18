@@ -18,6 +18,8 @@ public record class ReorderRow : BaseRowAction
 	[JsonDefaultSerializer]
 	[JsonConverter(typeof(RoomIndexConverter))]
 	public RoomIndex? NewRoom { get; set; }
+	[JsonAlias("sortingLayerName")]
+	public LayerType Layer { get; set; } = LayerType.Default;
 	/// <summary>
 	/// Gets or sets the order of the room.
 	/// </summary>
@@ -25,6 +27,7 @@ public record class ReorderRow : BaseRowAction
 	/// Leave it null to keep the original order.
 	/// </remarks>
 	public int? Order { get; set; }
+	public int? SortingOrder { get; set; }
 	/// <summary>  
 	/// Gets or sets the transition type for reordering the row.  
 	/// </summary>  

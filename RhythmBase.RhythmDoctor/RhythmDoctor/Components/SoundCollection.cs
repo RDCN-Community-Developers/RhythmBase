@@ -8,7 +8,7 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// <remarks>This collection provides a read-only view of the underlying list of <see cref="SoundSubType"/>
 /// objects. Attempting to modify the collection, such as adding or removing items, will result in a <see
 /// cref="NotImplementedException"/>.</remarks>
-public class SoundSubTypeCollection : ICollection<SoundSubType>
+public class SoundCollection : ICollection<SoundSubType>
 {
 	internal List<SoundSubType> _sounds = [];
 	/// <inheritdoc/>

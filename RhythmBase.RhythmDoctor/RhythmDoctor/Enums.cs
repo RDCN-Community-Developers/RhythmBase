@@ -611,7 +611,7 @@ public enum NarrationCategory
 {
 	/// <summary>  
 	/// Fallback category, used as a default when no other category applies.  
-	/// </summary>  
+	/// </summary>
 	Fallback,
 	/// <summary>  
 	/// Navigation category, used for guiding the user through the interface or level.  
@@ -1544,6 +1544,7 @@ public enum Theme
 	RecordsRoom,
 	Airport,
 	AbandonedWard,
+	CubesFallingWithBlueBloomAndCrossesAndMatrix,
 #pragma warning restore CS1591
 }
 /// <summary>
@@ -2248,6 +2249,7 @@ public enum Characters
 	ColeGuitar,
 	ColeSynth,
 	Controller,
+	Cranky,
 	Custom,
 	DancingCouple,
 	Edega,
