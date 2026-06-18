@@ -388,8 +388,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		writer.WriteEndArray();
 		writer.WritePropertyName("bookmarks");
 		writer.WriteStartArray();
-		foreach (Bookmark bookmark in value.Bookmarks)
-			bookmarkConverter.Write(writer, bookmark, localOptions);
+		noIndentScope.WriteNoIndentArrayTo(options, writer, value.Bookmarks, bookmarkConverter.Write);
 		writer.WriteEndArray();
 		writer.WritePropertyName("colorPalette");
 		writer.WriteStartArray();
