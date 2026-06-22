@@ -46,18 +46,11 @@ public struct PaletteColor
 	/// Specifies whether this object is used for this color.
 	/// </summary>
 	public readonly bool EnablePanel => PaletteIndex >= 0;
-
 	/// <summary>
-	/// The actual color of this object.<br />
-	/// If comes from a palette, it's a palette color.
-	/// If not, it's a custom color.
+	/// Initializes a new instance of <see cref="PaletteColor"/> using the provided custom color.
 	/// </summary>
-	public readonly Color Value => EnablePanel ? default : _color;
-    /// <summary>
-    /// Initializes a new instance of <see cref="PaletteColor"/> using the provided custom color.
-    /// </summary>
-    /// <param name="color">The custom <see cref="Global.Components.Color"/> value to be assigned.</param>
-    public PaletteColor(Color color)
+	/// <param name="color">The custom <see cref="Global.Components.Color"/> value to be assigned.</param>
+	public PaletteColor(Color color)
 	{
 		Color = color;
 	}
@@ -70,7 +63,7 @@ public struct PaletteColor
 		_panel = panelIndex;
 	}
 	/// <inheritdoc/>
-	public readonly override string ToString() => EnablePanel ? $"[{_panel}][?]" : "[-]" + Value.ToString("#RRGGBB");
+	public readonly override string ToString() => EnablePanel ? $"[{_panel}][?]" : "[-]" + _color.ToString("#RRGGBB");
 	/// <summary>
 	/// Deserializes the specified string value into the current <see cref="PaletteColor"/> instance.
 	/// </summary>
@@ -98,19 +91,13 @@ public struct PaletteColor
 	/// A string representing the palette color. If the color is from a palette, returns "pal" followed by the palette index.
 	/// Otherwise, returns the color in "RRGGBBAA" or "RRGGBB" format depending on whether alpha is enabled.
 	/// </returns>
-	public readonly string Serialize() => EnablePanel ? $"pal{_panel}" :  Value.ToString("RRGGBB");
-    /// <summary>  
-    /// Implicitly converts a <see cref="PaletteColor"/> instance to an <see cref="Global.Components.Color"/>.  
-    /// </summary>  
-    /// <param name="paletteColor">The <see cref="PaletteColor"/> instance to convert.</param>  
-    /// <returns>The <see cref="Global.Components.Color"/> value of the <see cref="PaletteColor"/>.</returns>  
-    public static implicit operator Color(PaletteColor paletteColor) => paletteColor.Value;
-    /// <summary>  
-    /// Implicitly converts an <see cref="Global.Components.Color"/> to a <see cref="PaletteColor"/> instance.  
-    /// </summary>  
-    /// <param name="color">The <see cref="Global.Components.Color"/> to convert.</param>  
-    /// <returns>A new <see cref="PaletteColor"/> instance with the specified <see cref="Global.Components.Color"/>.</returns>  
-    public static implicit operator PaletteColor(Color color) => new(color);
+	public readonly string Serialize() => EnablePanel ? $"pal{_panel}" : _color.ToString("RRGGBB");
+	/// <summary>  
+	/// Implicitly converts an <see cref="Global.Components.Color"/> to a <see cref="PaletteColor"/> instance.  
+	/// </summary>  
+	/// <param name="color">The <see cref="Global.Components.Color"/> to convert.</param>  
+	/// <returns>A new <see cref="PaletteColor"/> instance with the specified <see cref="Global.Components.Color"/>.</returns>  
+	public static implicit operator PaletteColor(Color color) => new(color);
 	private int _panel;
 	private Color _color;
 	private readonly string GetDebuggerDisplay()
