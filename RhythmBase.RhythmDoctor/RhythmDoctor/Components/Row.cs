@@ -12,11 +12,11 @@ public class Row : OrderedEventCollection<BaseRowAction, EventType, TickTime>, I
 	/// <summary>
 	/// Gets or sets the character associated with the row.
 	/// </summary>
-	public RDCharacter Character { get; set; } = Characters.Samurai;
+	public Character Character { get; set; } = GameCharacter.Samurai;
 	/// <summary>
 	/// Gets or sets the CPU marker character used to represent the CPU.
 	/// </summary>
-	public Characters CpuMarker { get; set; } = Characters.Otto;
+	public GameCharacter CpuMarker { get; set; } = GameCharacter.Otto;
 	/// <summary>
 	/// Gets or sets the type of the row.
 	/// </summary>

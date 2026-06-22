@@ -3,45 +3,45 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// <summary>
 /// A Character.
 /// </summary>
-public readonly struct RDCharacter : IEquatable<RDCharacter>
+public readonly struct Character : IEquatable<Character>
 {
     /// <summary>
     /// Whether  in-game character or customized character(sprite).
     /// </summary>
-    public bool IsCustom => Character is Characters.Custom;
+    public bool IsCustom => EnumName is GameCharacter.Custom;
     /// <summary>
     /// In-game character.
     /// <br />
     /// If using a customized character, this value will be empty
     /// </summary>
-    public Characters Character { get; } = Characters.Custom;
+    public GameCharacter EnumName { get; } = GameCharacter.Custom;
     /// <summary>
     /// Customized character(sprite).
     /// <br />
     /// If using an in-game character, this value will be empty
     /// </summary>
-    public string? CustomCharacter { get; }
+    public string? StringName { get; }
     /// <summary>
     /// Construct an in-game character.
     /// </summary>
     /// <param name="character">Character type.</param>
-    public RDCharacter(Characters character)
+    public Character(GameCharacter character)
     {
-        Character = character;
-        CustomCharacter = null;
+        EnumName = character;
+        StringName = null;
     }
     /// <summary>
     /// Construct a customized character.
     /// </summary>
     /// <param name="character">A sprite.</param>
-    public RDCharacter(string character)
+    public Character(string character)
     {
-        Character = Characters.Custom;
-        CustomCharacter = character;
+        EnumName = GameCharacter.Custom;
+        StringName = character;
     }
     internal IEnumerable<FileReference> GetAllPossibleFileReferences()
     {
-        if (IsCustom && CustomCharacter is string cc)
+        if (IsCustom && StringName is string cc)
         {
             if (!string.IsNullOrEmpty(Path.GetExtension(cc)))
                 yield return cc;
@@ -56,33 +56,33 @@ public readonly struct RDCharacter : IEquatable<RDCharacter>
         }
     }
     /// <inheritdoc/>
-    public static implicit operator RDCharacter(Characters character) => new(character);
+    public static implicit operator Character(GameCharacter character) => new(character);
     /// <inheritdoc/>
-    public static implicit operator RDCharacter(string character) => new(character);
+    public static implicit operator Character(string character) => new(character);
     /// <inheritdoc/>
-    public static bool operator ==(RDCharacter left, RDCharacter right) => left.Equals(right);
+    public static bool operator ==(Character left, Character right) => left.Equals(right);
     /// <inheritdoc/>
-    public static bool operator !=(RDCharacter left, RDCharacter right) => !(left == right);
+    public static bool operator !=(Character left, Character right) => !(left == right);
     /// <inheritdoc/>
     public readonly override string ToString() => (IsCustom
-        ? CustomCharacter
-        : Character.ToString())
+        ? StringName
+        : EnumName.ToString())
         ?? "[Null]";
     /// <inheritdoc/>
-    public bool Equals(RDCharacter other) => Character == other.Character
-            && CustomCharacter == other.CustomCharacter;
+    public bool Equals(Character other) => EnumName == other.EnumName
+            && StringName == other.StringName;
     /// <inheritdoc/>
     public override int GetHashCode()
     {
 #if NET7_0_OR_GREATER
-		return HashCode.Combine(IsCustom, Character, CustomCharacter);
+		return HashCode.Combine(IsCustom, EnumName, StringName);
 #else
         unchecked
         {
             int hash = 17;
             hash = hash * 23 + IsCustom.GetHashCode();
-            hash = hash * 23 + Character.GetHashCode();
-            hash = hash * 23 + (CustomCharacter != null ? CustomCharacter.GetHashCode() : 0);
+            hash = hash * 23 + EnumName.GetHashCode();
+            hash = hash * 23 + (StringName != null ? StringName.GetHashCode() : 0);
             return hash;
         }
 #endif
@@ -90,6 +90,6 @@ public readonly struct RDCharacter : IEquatable<RDCharacter>
     /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
-        return obj is RDCharacter e && Equals(e);
+        return obj is Character e && Equals(e);
     }
 }

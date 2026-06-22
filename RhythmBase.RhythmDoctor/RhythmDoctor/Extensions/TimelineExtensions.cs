@@ -4,6 +4,7 @@ using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Components.Timeline;
 using RhythmBase.RhythmDoctor.Components.TimeLine;
 using RhythmBase.RhythmDoctor.Events;
+using RhythmBase.RhythmDoctor.Extensions;
 
 namespace RhythmBase.RhythmDoctor.Extensions;
 
@@ -127,9 +128,9 @@ namespace RhythmBase.RhythmDoctor.Extensions;
 					case Tint tint:
 						if (tint.Parent is null) continue;
 						if (tint.IsTint == true)
-							(tints[tint.Parent.Index] ??= []).Add(new(tint.TickTime.Tick, tint.TintColor, new(tint.Ease, tint.Duration)));
+							(tints[tint.Parent.Index] ??= []).Add(new(tint.TickTime.Tick, tint.TintColor.ToColor(level), new(tint.Ease, tint.Duration)));
 						if (tint.Border is not null and not Border.None)
-							(borderColors[tint.Parent.Index] ??= []).Add(new(tint.TickTime.Tick, tint.BorderColor, new(tint.Ease, tint.Duration)));
+							(borderColors[tint.Parent.Index] ??= []).Add(new(tint.TickTime.Tick, tint.BorderColor.ToColor(level), new(tint.Ease, tint.Duration)));
 						if(tint.Border is not null)
 						(borders[tint.Parent.Index] ??= []).Add(new(tint.TickTime.Tick, tint.Border.Value));
 						if(tint.Opacity is not null)

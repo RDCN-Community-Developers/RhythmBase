@@ -17,7 +17,7 @@ public record class SetHandOwner : BaseEvent, IRoomEvent
 	/// <summary>
 	/// Gets or sets the character associated with the event.
 	/// </summary>
-	public Characters Character { get; set; } = Characters.Player;
+	public GameCharacter Character { get; set; } = GameCharacter.Player;
 	///<inheritdoc/>
 	public override EventType Type => EventType.SetHandOwner;
 	///<inheritdoc/>

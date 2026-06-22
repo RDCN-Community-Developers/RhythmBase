@@ -34,37 +34,38 @@ public static partial class Extensions
 		/// <summary>
 		/// Gets or sets a value indicating whether the game is in two-player mode.
 		/// </summary>
-		public bool? TwoPlayerMode
-		{
-			get => e['p'];
-			set => e['p'] = value;
-		}
+		public bool? TwoPlayerMode { get => e['p']; set => e['p'] = value; }
 		/// <summary>
 		/// Gets or sets a value indicating whether the flash effect is enabled.
 		/// </summary>
-		public bool? EnableFlashEffect
-		{
-			get => e['f'];
-			set => e['f'] = value;
-		}
+		public bool? EnableFlashEffect { get => e['f']; set => e['f'] = value; }
 		/// <summary>
 		/// Gets or sets a value indicating whether the narration is enabled.
 		/// </summary>
-		public bool? EnableNarration
-		{
-			get => e['n'];
-			set => e['n'] = value;
-		}
+		public bool? EnableNarration { get => e['n']; set => e['n'] = value; }
 		/// <summary>
 		/// Gets or sets a value indicating whether the event should run only once.
 		/// </summary>
-		public bool? RunOnlyOnce
-		{
-			get => e['o'];
-			set => e['o'] = value;
-		}
+		public bool? RunOnlyOnce { get => e['o']; set => e['o'] = value; }
 	}
-
+	extension(PaletteColor e)
+	{
+		/// <summary>
+		/// Converts the <see cref="PaletteColor"/> to an in-game color based on the provided level's color palette and the properties of the <see cref="PaletteColor"/>.
+		/// </summary>
+		/// <param name="level">The level containing the color palette.</param>
+		/// <returns>The in-game color.</returns>
+		public Color ToColor(Level level) => e.EnablePanel ? level.ColorPalette[e.PaletteIndex] : e.Color.WithAlpha(255);
+	}
+	extension(PaletteColorWithAlpha e)
+	{
+		/// <summary>
+		/// Converts the <see cref="PaletteColorWithAlpha"/> to an in-game color based on the provided color palette and the properties of the <see cref="PaletteColorWithAlpha"/>.
+		/// </summary>
+		/// <param name="colorPalette">The color palette to use for conversion.</param>
+		/// <returns>The in-game color.</returns>
+		public Color ToColor(Level level) => e.EnablePanel ? level.ColorPalette[e.PaletteIndex] : e.Color;
+	}
 	extension(string e)
 	{
 		/// <summary>

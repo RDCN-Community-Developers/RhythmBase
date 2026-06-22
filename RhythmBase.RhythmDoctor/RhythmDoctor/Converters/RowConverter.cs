@@ -19,10 +19,10 @@ internal class RowConverter : MetadataJsonConverter<Row>
 				string character = reader.GetString() ?? "";
 				if (character.StartsWith("custom:"))
 					value.Character = character[7..];
-				else if (EnumConverter.TryParse(character, out Characters rdc))
+				else if (EnumConverter.TryParse(character, out GameCharacter rdc))
 					value.Character = rdc;
 			}
-			else if (reader.ValueTextEquals("cpuMarker"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out Characters value0))
+			else if (reader.ValueTextEquals("cpuMarker"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out GameCharacter value0))
 				value.CpuMarker = value0;
 			else if (reader.ValueTextEquals("rowType"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out RowType value1))
 				value.RowType = value1;
@@ -77,7 +77,7 @@ internal class RowConverter : MetadataJsonConverter<Row>
 		if (value.Character.IsCustom)
 			writer.WriteStringValue($"custom:{value.Character}");
 		else
-			writer.WriteStringValue(value.Character.Character.ToEnumString());
+			writer.WriteStringValue(value.Character.EnumName.ToEnumString());
 		if (value.Player == PlayerType.CPU)
 			writer.WriteString("cpuMarker"u8, value.CpuMarker.ToEnumString());
 		writer.WriteString("rowType"u8, value.RowType.ToEnumString());

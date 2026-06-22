@@ -13,7 +13,7 @@ public record class ChangePlayersRows : BaseEvent
 	/// </summary>
 	public ChangePlayersRows()
 	{
-		Array.Fill(CpuMarkers, Characters.Otto);
+		Array.Fill(CpuMarkers, GameCharacter.Otto);
 	}
 	/// <summary>
 	/// Gets or sets the list of players.
@@ -26,7 +26,7 @@ public record class ChangePlayersRows : BaseEvent
 	/// <summary>
 	/// Gets or sets the list of CPU markers.
 	/// </summary>
-	public Characters[] CpuMarkers { get; set; } = new Characters[16];
+	public GameCharacter[] CpuMarkers { get; set; } = new GameCharacter[16];
 	/// <summary>
 	/// Gets or sets whether the row flash animation triggers on the beat.
 	/// </summary>

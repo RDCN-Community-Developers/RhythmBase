@@ -19,7 +19,7 @@ public partial class Level :
 {
 	private bool isZip = false;
 	private bool isExtracted = false;
-	private Color[] colorPalette = new Color[21];
+	private Color[] colorPalette = new Color[PaletteColorCount];
 
 	/// <summary>
 	/// Occurs when a new event is added to the level.
@@ -83,7 +83,7 @@ public partial class Level :
 	public Color[] ColorPalette
 	{
 		get => colorPalette;
-		internal set => colorPalette = value.Length == 21 ? value : throw new InvalidOperationException();
+		internal set => colorPalette = value.Length == PaletteColorCount ? value : throw new InvalidOperationException();
 	}
 
 	/// <inheritdoc/>
@@ -193,7 +193,7 @@ public partial class Level :
 			playsong.Song = new Audio() { Filename = "sndOrientalTechno" };
 			settheme.Preset = Theme.OrientalTechno;
 			rdlevel.AddRange([playsong, settheme]);
-			Row samurai = new() { Room = RoomIndex.Room1, Character = Characters.Samurai };
+			Row samurai = new() { Room = RoomIndex.Room1, Character = GameCharacter.Samurai };
 			rdlevel.Rows.Add(samurai);
 			samurai.Sound.Filename = "Shaker";
 			samurai.Add(new AddClassicBeat());

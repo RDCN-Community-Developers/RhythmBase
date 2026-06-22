@@ -3,6 +3,27 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 #pragma warning disable IDE0130
+#if !NET10_0_OR_GREATER
+namespace System.Text.Json
+{
+	internal static class JsonElementExtensions
+	{
+		extension(JsonElement)
+		{
+			public static JsonElement Parse(string json)
+			{
+				using var doc = JsonDocument.Parse(json);
+				return doc.RootElement.Clone();
+			}
+			public static JsonElement Parse(ReadOnlySpan<byte> json)
+			{
+				using var doc = JsonDocument.Parse(new ReadOnlyMemory<byte>([.. json]));
+				return doc.RootElement.Clone();
+			}
+		}
+	}
+}
+#endif
 #if NETSTANDARD2_0
 namespace System
 {

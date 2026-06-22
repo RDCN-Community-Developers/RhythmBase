@@ -65,9 +65,9 @@ public partial record class CallCustomMethod
 		public static CallCustomMethod EnableRowReflections(int roomId) => FunctionCalling(nameof(EnableRowReflections), roomId);
 		public static CallCustomMethod DisableRowReflections(int roomId) => FunctionCalling(nameof(DisableRowReflections), roomId);
 		public static CallCustomMethod ChangeCharacter(string name, int roomId) => FunctionCalling(nameof(ChangeCharacter), name, roomId);
-		public static CallCustomMethod ChangeCharacter(Characters name, int roomId) => FunctionCalling(nameof(ChangeCharacter), name, roomId);
+		public static CallCustomMethod ChangeCharacter(GameCharacter name, int roomId) => FunctionCalling(nameof(ChangeCharacter), name, roomId);
 		public static CallCustomMethod ChangeCharacterSmooth(string name, int roomId) => FunctionCalling(nameof(ChangeCharacterSmooth), name, roomId);
-		public static CallCustomMethod ChangeCharacterSmooth(Characters name, int roomId) => FunctionCalling(nameof(ChangeCharacterSmooth), name, roomId);
+		public static CallCustomMethod ChangeCharacterSmooth(GameCharacter name, int roomId) => FunctionCalling(nameof(ChangeCharacterSmooth), name, roomId);
 		public static CallCustomMethod SmoothShake(bool value) => PropertyAssignment(nameof(SmoothShake), value);
 		public static CallCustomMethod RotateShake(bool value) => PropertyAssignment(nameof(RotateShake), value);
 		public static CallCustomMethod DisableRowChangeWarningFlashes(bool value) => PropertyAssignment(nameof(DisableRowChangeWarningFlashes), value);

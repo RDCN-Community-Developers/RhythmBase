@@ -46,7 +46,7 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction, EventType
 	/// <summary>
 	/// The file reference used by the decoration.
 	/// </summary>
-	public RDCharacter Character { get; set; }
+	public Character Character { get; set; }
 	/// <summary>
 	/// Gets or sets a value indicating whether the preview mode is enabled.
 	/// </summary>

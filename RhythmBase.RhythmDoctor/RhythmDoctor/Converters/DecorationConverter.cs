@@ -25,7 +25,7 @@ internal class DecorationConverter : MetadataJsonConverter<Decoration>
 			else if (reader.ValueTextEquals("character"u8) && reader.Read())
 			{
 				string character = reader.GetString() ?? "";
-				if (EnumConverter.TryParse(character, out Characters rdc))
+				if (EnumConverter.TryParse(character, out GameCharacter rdc))
 					value.Character = rdc;
 				else
 					value.Character = character;
@@ -66,10 +66,10 @@ internal class DecorationConverter : MetadataJsonConverter<Decoration>
 		writer.WriteNumber("row"u8, value.Index);
 		writer.WritePropertyName("rooms"u8);
 		TypeConverterRegistry.Write(writer, value.Room, options);
-		if (!value.Character.IsCustom && value.Character.Character is Characters rdc)
+		if (!value.Character.IsCustom && value.Character.EnumName is GameCharacter rdc)
 			writer.WriteString("character", rdc.ToEnumString());
 		else
-			writer.WriteString("filename", value.Character.CustomCharacter);
+			writer.WriteString("filename", value.Character.StringName);
 		writer.WriteBoolean("preview"u8, value.Preview);
 		writer.WriteNumber("depth"u8, value.Depth);
 		if (value.Filter is not Filter.NearestNeighbor)

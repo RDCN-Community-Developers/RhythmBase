@@ -103,6 +103,10 @@ public static class Constants
 	/// </summary>
 
 	public const int RoomCount = 4;
+	/// <summary>
+	/// Represents the total number of palette colors available.
+	/// </summary>
+	public const int PaletteColorCount = 21;
 
 	private static readonly ReadOnlyDictionary<VfxPreset, VfxAttribute> _vfxAttributes = new(new Dictionary<VfxPreset, VfxAttribute>
 	{

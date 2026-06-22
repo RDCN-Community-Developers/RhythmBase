@@ -22,7 +22,7 @@ public class RowTimeline
 	/// <summary>
 	/// Gets or sets the curve representing the character for this row over time.
 	/// </summary>
-	public Curve<RDCharacter> Character { get; internal set; }
+	public Curve<Character> Character { get; internal set; }
 
 	/// <summary>
 	/// Gets or sets the curve representing the position of the row over time.

@@ -2226,7 +2226,7 @@ public enum RoomIndex : byte
 /// In-game character.
 /// </summary>
 [JsonEnumSerializable]
-public enum Characters
+public enum GameCharacter
 {
 #pragma warning disable CS1591
 	Adog,

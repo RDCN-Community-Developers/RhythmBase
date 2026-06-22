@@ -25,7 +25,7 @@ internal class PaletteColorConverter : JsonConverter<PaletteColor>
 		}
 		else
 		{
-			writer.WriteStringValue(value.Value.ToString("RRGGBB"));
+			writer.WriteStringValue(value.Color.ToString("RRGGBB"));
 		}
 	}
 }

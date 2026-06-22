@@ -3,20 +3,20 @@ using System.Text.Json;
 
 namespace RhythmBase.RhythmDoctor.Converters;
 
-[JsonConverterFor(typeof(Characters[]))]
-internal class CpuTypeGroupConverter : MetadataJsonConverter<Characters[]>
+[JsonConverterFor(typeof(GameCharacter[]))]
+internal class CpuTypeGroupConverter : MetadataJsonConverter<GameCharacter[]>
 {
-	public override Characters[] Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
+	public override GameCharacter[] Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 	{
 		if(reader.TokenType != JsonTokenType.StartArray)
 			throw new JsonException($"Expected StartArray token, but got {reader.TokenType}.");
 		reader.Read();
-		Characters[] group = new Characters[16];
+		GameCharacter[] group = new GameCharacter[16];
 		for(int i = 0; i < 16; i++)
 		{
 			if(reader.TokenType == JsonTokenType.String)
 			{
-				group[i] = EnumConverter.TryParse(ref reader, out Characters type) ? type : Characters.None;
+				group[i] = EnumConverter.TryParse(ref reader, out GameCharacter type) ? type : GameCharacter.None;
 			}
 			else
 			{
@@ -27,7 +27,7 @@ internal class CpuTypeGroupConverter : MetadataJsonConverter<Characters[]>
 		return group;
 	}
 
-	public override void Write(Utf8JsonWriter writer, Characters[] value, MetadataJsonSerializerOptions options)
+	public override void Write(Utf8JsonWriter writer, GameCharacter[] value, MetadataJsonSerializerOptions options)
 	{
 		writer.WriteStartArray();
 		for(int i = 0; i < 16; i++)

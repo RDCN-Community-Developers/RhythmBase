@@ -18,16 +18,16 @@ public record class ChangeCharacter : BaseRowAction
 	/// Gets or sets the character to be changed to.  
 	/// </summary>  
 	[JsonIgnore]
-	public RDCharacter Character { get; set; } = Characters.Samurai;
+	public Character Character { get; set; } = GameCharacter.Samurai;
 	[JsonAlias("character")]
-	internal Characters EnumCharacter
+	internal GameCharacter EnumCharacter
 	{
-		get => Character.Character; set => Character = value;
+		get => Character.EnumName; set => Character = value;
 	}
 
-	[JsonCondition($"$&.{nameof(Character)}.{nameof(RDCharacter.IsCustom)} && !string.IsNullOrEmpty($&.{nameof(StringCharacter)})")]
+	[JsonCondition($"$&.{nameof(Character)}.{nameof(Components.Character.IsCustom)} && !string.IsNullOrEmpty($&.{nameof(StringCharacter)})")]
 	[JsonAlias("customCharacter")]
-	internal string StringCharacter { get => Character.IsCustom ? Character.CustomCharacter ?? string.Empty : string.Empty; set => Character = value; }
+	internal string StringCharacter { get => Character.IsCustom ? Character.StringName ?? string.Empty : string.Empty; set => Character = value; }
 	/// <summary>  
 	/// Gets or sets the transition type for the character change.  
 	/// </summary>  

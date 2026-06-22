@@ -60,6 +60,8 @@ public struct PaletteColor
 	/// <param name="panelIndex">The index of the palette color to be used.</param>
 	public PaletteColor(int panelIndex)
 	{
+		if(panelIndex is < 0 or >= PaletteColorCount)
+			throw new ArgumentOutOfRangeException(nameof(panelIndex));
 		_panel = panelIndex;
 	}
 	/// <inheritdoc/>

@@ -177,7 +177,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 					Row? e = rowConverter.Read(ref reader, typeof(Row), options);
 					if (e == null) continue;
 					level.Rows.Add(e);
-					string assPath = DirectoryName + e.Character.CustomCharacter;
+					string assPath = DirectoryName + e.Character.StringName;
 					if (!ReadSettings.LoadAssets || string.IsNullOrEmpty(DirectoryName)) continue;
 					foreach (FileReference file in e.Character.GetAllPossibleFileReferences())
 						if (!file.IsEmpty && file.IsExist(DirectoryName!))
@@ -194,7 +194,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 					Decoration? e = decorationConverter.Read(ref reader, typeof(Decoration), options);
 					if (e == null) continue;
 					level.Decorations.Add(e);
-					string assPath = DirectoryName + e.Character.CustomCharacter;
+					string assPath = DirectoryName + e.Character.StringName;
 					if (!ReadSettings.LoadAssets || string.IsNullOrEmpty(DirectoryName)) continue;
 					foreach (FileReference file in e.Character.GetAllPossibleFileReferences())
 						if (!file.IsEmpty && file.IsExist(DirectoryName!))
@@ -352,7 +352,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		noIndentScope.WriteNoIndentArrayTo(options, writer, value.Rows, (writer, row, options) =>
 		{
 			rowConverter.Write(writer, row, options);
-			string assPath = Path.Combine(DirectoryName ?? "", row.Character.CustomCharacter ?? "");
+			string assPath = Path.Combine(DirectoryName ?? "", row.Character.StringName ?? "");
 			if (WriteSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
 				foreach (FileReference file in row.Character.GetAllPossibleFileReferences())
 					if (!file.IsEmpty && file.IsExist(DirectoryName!))
@@ -366,7 +366,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 		noIndentScope.WriteNoIndentArrayTo(options, writer, value.Decorations, (writer, decoration, options) =>
 		{
 			decorationConverter.Write(writer, decoration, options);
-			string assPath = Path.Combine(DirectoryName ?? "", decoration.Character.CustomCharacter ?? "");
+			string assPath = Path.Combine(DirectoryName ?? "", decoration.Character.StringName ?? "");
 			if (WriteSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName))
 				foreach (FileReference file in decoration.Character.GetAllPossibleFileReferences())
 					if (!file.IsEmpty && file.IsExist(DirectoryName!))
