@@ -27,8 +27,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<None Include="../README.md;../README.zh-cn.md;../VERSION.md;../VERSION.zh-cn.md;../RhythmBase_logo_small.png;../RhythmBase_logo.png;../RhythmBase_logo_clean.png;../RhythmBase_banner.png;../RhythmBase_banner_clean.png;../LICENSE.txt;" Pack="True" PackagePath="/" />
-	</ItemGroup>
-	<ItemGroup>
 	  <PackageReference Include="RhythmBase" Version="1.3.11-alpha6" />
+		<Compile Include="../DotnetCompatibility.cs"></Compile>
 	</ItemGroup>
 </Project>

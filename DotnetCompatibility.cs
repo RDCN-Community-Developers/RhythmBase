@@ -1,29 +1,8 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 #pragma warning disable IDE0130
-#pragma warning disable CS1591
-#if !NET10_0_OR_GREATER
-namespace System.Text.Json
-{
-	internal static class JsonElementExtensions
-	{
-		extension(JsonElement)
-		{
-			public static JsonElement Parse(string json)
-			{
-				using var doc = JsonDocument.Parse(json);
-				return doc.RootElement.Clone();
-			}
-			public static JsonElement Parse(ReadOnlySpan<byte> json)
-			{
-				using var doc = JsonDocument.Parse(new ReadOnlyMemory<byte>([..json]));
-				return doc.RootElement.Clone();
-			}
-		}
-	}
-}
-#endif
 #if NETSTANDARD2_0
 namespace System
 {
@@ -31,10 +10,12 @@ namespace System
 	{
 		extension(Enum)
 		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static bool TryParse<TEnum>(string value, bool ignoreCase, out TEnum result) where TEnum : struct, Enum
 			{
 				return Enum.TryParse(value, ignoreCase, out result);
 			}
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static TEnum[] GetValues<TEnum>() where TEnum : struct, Enum
 			{
 				return (TEnum[])Enum.GetValues(typeof(TEnum));
@@ -45,6 +26,7 @@ namespace System
 	{
 		extension(ArgumentNullException)
 		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static void ThrowIfNull(object? value, string paramName)
 			{
 				if (value is null)
@@ -53,16 +35,19 @@ namespace System
 		}
 		extension(ArgumentOutOfRangeException)
 		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static void ThrowIfNullOrEmpty(string? value, string paramName)
 			{
 				if (string.IsNullOrEmpty(value))
 					throw new ArgumentOutOfRangeException(paramName, "Value cannot be null or empty.");
 			}
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static void ThrowIfNullOrWhiteSpace(string? value, string paramName)
 			{
 				if (string.IsNullOrWhiteSpace(value))
 					throw new ArgumentOutOfRangeException(paramName, "Value cannot be null or whitespace.");
 			}
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static void ThrowIfLessThan<T>(T value, T other, [CallerArgumentExpression(nameof(value))] string? paramName = null) where T : IComparable<T>
 			{
 				if (value.CompareTo(other) < 0)
@@ -72,6 +57,7 @@ namespace System
 		}
 		extension(ObjectDisposedException)
 		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static void ThrowIf([DoesNotReturnIf(true)] bool condition, object instance)
 			{
 				if (condition)
@@ -129,14 +115,19 @@ namespace System
 	{
 		extension(int)
 		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static int Parse(ReadOnlySpan<byte> value)
 			{
 				string str = Text.Encoding.UTF8.GetString(value.ToArray());
 				return int.Parse(str);
 			}
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static int Abs(int value) => Math.Abs(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static int Max(int val1, int val2) => Math.Max(val1, val2);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static int Min(int val1, int val2) => Math.Min(val1, val2);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static (int div, int rem) DivRem(int value, int divisor)
 			{
 				int div = value / divisor;
@@ -149,27 +140,72 @@ namespace System
 	{
 		extension(float)
 		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static float Parse(ReadOnlySpan<byte> value)
 			{
 				string str = Text.Encoding.UTF8.GetString(value.ToArray());
 				return float.Parse(str);
 			}
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Max(float val1, float val2) => val1 > val2 ? val1 : val2;
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Min(float val1, float val2) => val1 < val2 ? val1 : val2;
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Pow(float x, float y) => (float)Math.Pow(x, y);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Sqrt(float value) => (float)Math.Sqrt(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Log(float value) => (float)Math.Log(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Log10(float value) => (float)Math.Log10(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Exp(float value) => (float)Math.Exp(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Sin(float value) => (float)Math.Sin(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Cos(float value) => (float)Math.Cos(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Tan(float value) => (float)Math.Tan(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Asin(float value) => (float)Math.Asin(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Acos(float value) => (float)Math.Acos(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Atan(float value) => (float)Math.Atan(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static float Floor(float value) => (float)Math.Floor(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static float Ceiling(float value) => (float)Math.Ceiling(value);
-			public static float Abs(float value) => Math.Abs(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Clamp(float value, float min, float max) => value < min ? min : value > max ? max : value;
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static float Round(float value) => (float)Math.Round(value);
-			public static float Pi => (float)Math.PI;
-			public static float Max(float val1, float val2) => Math.Max(val1, val2);
-			public static float Min(float val1, float val2) => Math.Min(val1, val2);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Round(float value, int digits, MidpointRounding mode) => (float)Math.Round(value, digits, mode);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Round(float value, MidpointRounding mode) => (float)Math.Round(value, mode);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Truncate(float value) => (float)Math.Truncate(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Abs(float value) => Math.Abs(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Sign(float value) => Math.Sign(value);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public static float Round(float value, int digits) => (float)Math.Round(value, digits);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static float Ieee754Remainder(float dividend, float divisor) => (float)Math.IEEERemainder(dividend, divisor);
+			public static float Pi => (float)Math.PI;
 		}
 	}
 	internal static class StringExtensions
 	{
 		extension(string e)
 		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static string Join(char separator, params object[] values) => string.Join(separator.ToString(), values);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static string Join(char separator, IEnumerable<string> values) => string.Join(separator.ToString(), values);
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public string[] Split(char separator, int count)
 			{
 				string[] result = new string[count];
@@ -189,6 +225,7 @@ namespace System
 				result[count - 1] = e[startIndex..];
 				return result;
 			}
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public bool StartsWith(char value) => e.StartsWith(value.ToString());
 		}
 	}
@@ -196,6 +233,7 @@ namespace System
 	{
 		extension(byte)
 		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static (byte div, byte rem) DivRem(byte value, byte divisor)
 			{
 				byte div = (byte)(value / divisor);
@@ -208,7 +246,7 @@ namespace System
 namespace System.Diagnostics
 {
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Struct, Inherited = false)]
-	public sealed class StackTraceHiddenAttribute : Attribute { }
+	internal sealed class StackTraceHiddenAttribute : Attribute { }
 	namespace CodeAnalysis
 	{
 		[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]
@@ -312,11 +350,16 @@ namespace System.Runtime.CompilerServices
 		public Type BuilderType { get; } = builderType;
 		public string MethodName { get; } = methodName;
 	}
+	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+	#pragma warning disable CS1591 // Polyfill type, XML doc not needed
+	public sealed class ModuleInitializerAttribute : Attribute { }
+	#pragma warning restore CS1591
 }
 namespace System.Text
 {
 	internal static class EncodingExtensions
 	{
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static string GetString(this Encoding encoding, ReadOnlySpan<byte> bytes) => encoding.GetString(bytes.ToArray());
 	}
 }
@@ -326,6 +369,7 @@ namespace System.IO
 	{
 		extension(Path)
 		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public static string GetFullPath(string path, string basePath)
 			{
 				return Path.IsPathRooted(path)
@@ -339,6 +383,7 @@ namespace System.Collections.Generic
 {
 	internal static class StackExtensions
 	{
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool TryPeek<T>(this Stack<T> stack, [MaybeNullWhen(false)] out T result)
 		{
 			if (stack.Count > 0)
@@ -350,7 +395,7 @@ namespace System.Collections.Generic
 			result = default;
 			return false;
 		}
-
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool TryPop<T>(this Stack<T> stack, [MaybeNullWhen(false)] out T result)
 		{
 			if (stack.Count > 0)
@@ -365,4 +410,3 @@ namespace System.Collections.Generic
 	}
 }
 #endif
-#pragma warning restore CS1591
