@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct OldFilmCutting1 : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.OldFilmCutting1;
+	public readonly AdvancedFilter Type => AdvancedFilter.OldFilmCutting1;
 	/// <summary>
 	/// Gets or sets the value of the <b>Speed</b>.
 	/// </summary>

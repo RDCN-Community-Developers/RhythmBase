@@ -421,3 +421,22 @@ public enum EffectCanvasType
     /// </summary>
     Recolor,
 }
+/// <summary>
+/// Specifies the type of character map to use for a decoration or text decoration.
+/// </summary>
+[JsonEnumSerializable(false)]
+public enum CharacterMapType
+{
+	/// <summary>
+	/// Use the full character map, which includes all characters available in the game.
+	/// </summary>
+	Full,
+	/// <summary>
+	/// Use a custom character map, which can be defined by the user to include only specific characters needed for a decoration or text decoration.
+	/// </summary>
+	Regular,
+	/// <summary>
+	/// Use a custom character map with a custom character set, allowing for complete control over which characters are included and how they are mapped. This option is ideal for advanced users who want to create highly customized decorations or text decorations with specific character requirements.
+	/// </summary>
+	Custom,
+}

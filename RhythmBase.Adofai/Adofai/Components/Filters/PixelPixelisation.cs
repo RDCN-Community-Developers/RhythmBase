@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct PixelPixelisation : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.PixelPixelisation;
+	public readonly AdvancedFilter Type => AdvancedFilter.PixelPixelisation;
 	/// <summary>
 	/// Gets or sets the value of the <b>_Pixelisation</b>.
 	/// </summary>

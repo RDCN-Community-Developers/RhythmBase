@@ -1578,1200 +1578,1200 @@ public enum TrackColorPulse
 /// The filter types.
 /// </summary>
 [JsonEnumSerializable]
-public enum FilterType
+public enum AdvancedFilter
 {
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.AaaSuperComputer"/>.
+    /// The filter type of <see cref="AaaSuperComputer"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_AAA_SuperComputer")]
     AaaSuperComputer,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.AaaSuperHexagon"/>.
+    /// The filter type of <see cref="AaaSuperHexagon"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_AAA_SuperHexagon")]
     AaaSuperHexagon,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.AaaWaterDrop"/>.
+    /// The filter type of <see cref="AaaWaterDrop"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_AAA_WaterDrop")]
     AaaWaterDrop,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.AlienVision"/>.
+    /// The filter type of <see cref="AlienVision"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Alien_Vision")]
     AlienVision,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.AntialiasingFxaa"/>.
+    /// The filter type of <see cref="AntialiasingFxaa"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Antialiasing_FXAA")]
     AntialiasingFxaa,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.AtmosphereRain"/>.
+    /// The filter type of <see cref="AtmosphereRain"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Atmosphere_Rain")]
     AtmosphereRain,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.AtmosphereRainPro"/>.
+    /// The filter type of <see cref="AtmosphereRainPro"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Atmosphere_Rain_Pro")]
     AtmosphereRainPro,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.AtmosphereSnow8Bits"/>.
+    /// The filter type of <see cref="AtmosphereSnow8Bits"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Atmosphere_Snow_8bits")]
     AtmosphereSnow8Bits,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraBlend"/>.
+    /// The filter type of <see cref="BlendToCameraBlend"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_Blend")]
     BlendToCameraBlend,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraBlueScreen"/>.
+    /// The filter type of <see cref="BlendToCameraBlueScreen"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_BlueScreen")]
     BlendToCameraBlueScreen,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraColor"/>.
+    /// The filter type of <see cref="BlendToCameraColor"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_Color")]
     BlendToCameraColor,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraColorBurn"/>.
+    /// The filter type of <see cref="BlendToCameraColorBurn"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_ColorBurn")]
     BlendToCameraColorBurn,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraColorDodge"/>.
+    /// The filter type of <see cref="BlendToCameraColorDodge"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_ColorDodge")]
     BlendToCameraColorDodge,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraDarken"/>.
+    /// The filter type of <see cref="BlendToCameraDarken"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_Darken")]
     BlendToCameraDarken,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraDarkerColor"/>.
+    /// The filter type of <see cref="BlendToCameraDarkerColor"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_DarkerColor")]
     BlendToCameraDarkerColor,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraDifference"/>.
+    /// The filter type of <see cref="BlendToCameraDifference"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_Difference")]
     BlendToCameraDifference,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraDivide"/>.
+    /// The filter type of <see cref="BlendToCameraDivide"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_Divide")]
     BlendToCameraDivide,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraExclusion"/>.
+    /// The filter type of <see cref="BlendToCameraExclusion"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_Exclusion")]
     BlendToCameraExclusion,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraGreenScreen"/>.
+    /// The filter type of <see cref="BlendToCameraGreenScreen"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_GreenScreen")]
     BlendToCameraGreenScreen,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraHardLight"/>.
+    /// The filter type of <see cref="BlendToCameraHardLight"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_HardLight")]
     BlendToCameraHardLight,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraHardMix"/>.
+    /// The filter type of <see cref="BlendToCameraHardMix"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_HardMix")]
     BlendToCameraHardMix,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraHue"/>.
+    /// The filter type of <see cref="BlendToCameraHue"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_Hue")]
     BlendToCameraHue,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraLighten"/>.
+    /// The filter type of <see cref="BlendToCameraLighten"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_Lighten")]
     BlendToCameraLighten,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraLighterColor"/>.
+    /// The filter type of <see cref="BlendToCameraLighterColor"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_LighterColor")]
     BlendToCameraLighterColor,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraLinearBurn"/>.
+    /// The filter type of <see cref="BlendToCameraLinearBurn"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_LinearBurn")]
     BlendToCameraLinearBurn,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraLinearDodge"/>.
+    /// The filter type of <see cref="BlendToCameraLinearDodge"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_LinearDodge")]
     BlendToCameraLinearDodge,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraLinearLight"/>.
+    /// The filter type of <see cref="BlendToCameraLinearLight"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_LinearLight")]
     BlendToCameraLinearLight,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraLuminosity"/>.
+    /// The filter type of <see cref="BlendToCameraLuminosity"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_Luminosity")]
     BlendToCameraLuminosity,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraMultiply"/>.
+    /// The filter type of <see cref="BlendToCameraMultiply"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_Multiply")]
     BlendToCameraMultiply,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraOverlay"/>.
+    /// The filter type of <see cref="BlendToCameraOverlay"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_Overlay")]
     BlendToCameraOverlay,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraPhotoshopFilters"/>.
+    /// The filter type of <see cref="BlendToCameraPhotoshopFilters"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_PhotoshopFilters")]
     BlendToCameraPhotoshopFilters,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraPinLight"/>.
+    /// The filter type of <see cref="BlendToCameraPinLight"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_PinLight")]
     BlendToCameraPinLight,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraSaturation"/>.
+    /// The filter type of <see cref="BlendToCameraSaturation"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_Saturation")]
     BlendToCameraSaturation,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraScreen"/>.
+    /// The filter type of <see cref="BlendToCameraScreen"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_Screen")]
     BlendToCameraScreen,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraSoftLight"/>.
+    /// The filter type of <see cref="BlendToCameraSoftLight"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_SoftLight")]
     BlendToCameraSoftLight,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraSplitScreen"/>.
+    /// The filter type of <see cref="BlendToCameraSplitScreen"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_SplitScreen")]
     BlendToCameraSplitScreen,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraSubtract"/>.
+    /// The filter type of <see cref="BlendToCameraSubtract"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_Subtract")]
     BlendToCameraSubtract,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlendToCameraVividLight"/>.
+    /// The filter type of <see cref="BlendToCameraVividLight"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blend2Camera_VividLight")]
     BlendToCameraVividLight,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.Blizzard"/>.
+    /// The filter type of <see cref="Blizzard"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blizzard")]
     Blizzard,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurBloom"/>.
+    /// The filter type of <see cref="BlurBloom"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_Bloom")]
     BlurBloom,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurBlurHole"/>.
+    /// The filter type of <see cref="BlurBlurHole"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_BlurHole")]
     BlurBlurHole,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurBlurry"/>.
+    /// The filter type of <see cref="BlurBlurry"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_Blurry")]
     BlurBlurry,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurDitheringToxTo"/>.
+    /// The filter type of <see cref="BlurDitheringToxTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_Dithering2x2")]
     BlurDitheringToxTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurDitherOffset"/>.
+    /// The filter type of <see cref="BlurDitherOffset"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_DitherOffset")]
     BlurDitherOffset,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurFocus"/>.
+    /// The filter type of <see cref="BlurFocus"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_Focus")]
     BlurFocus,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurGaussianBlur"/>.
+    /// The filter type of <see cref="BlurGaussianBlur"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_GaussianBlur")]
     BlurGaussianBlur,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurMovie"/>.
+    /// The filter type of <see cref="BlurMovie"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_Movie")]
     BlurMovie,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurNoise"/>.
+    /// The filter type of <see cref="BlurNoise"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_Noise")]
     BlurNoise,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurRadial"/>.
+    /// The filter type of <see cref="BlurRadial"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_Radial")]
     BlurRadial,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurRadialFast"/>.
+    /// The filter type of <see cref="BlurRadialFast"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_Radial_Fast")]
     BlurRadialFast,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurRegular"/>.
+    /// The filter type of <see cref="BlurRegular"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_Regular")]
     BlurRegular,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurSteam"/>.
+    /// The filter type of <see cref="BlurSteam"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_Steam")]
     BlurSteam,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurTiltShift"/>.
+    /// The filter type of <see cref="BlurTiltShift"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_Tilt_Shift")]
     BlurTiltShift,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurTiltShiftHole"/>.
+    /// The filter type of <see cref="BlurTiltShiftHole"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_Tilt_Shift_Hole")]
     BlurTiltShiftHole,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.BlurTiltShiftV"/>.
+    /// The filter type of <see cref="BlurTiltShiftV"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Blur_Tilt_Shift_V")]
     BlurTiltShiftV,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorBrightContrastSaturation"/>.
+    /// The filter type of <see cref="ColorBrightContrastSaturation"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Color_BrightContrastSaturation")]
     ColorBrightContrastSaturation,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorChromaticAberration"/>.
+    /// The filter type of <see cref="ColorChromaticAberration"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Color_Chromatic_Aberration")]
     ColorChromaticAberration,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorContrast"/>.
+    /// The filter type of <see cref="ColorContrast"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Color_Contrast")]
     ColorContrast,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorGrayScale"/>.
+    /// The filter type of <see cref="ColorGrayScale"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Color_GrayScale")]
     ColorGrayScale,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorInvert"/>.
+    /// The filter type of <see cref="ColorInvert"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Color_Invert")]
     ColorInvert,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorNoise"/>.
+    /// The filter type of <see cref="ColorNoise"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Color_Noise")]
     ColorNoise,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorRgb"/>.
+    /// The filter type of <see cref="ColorRgb"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Color_RGB")]
     ColorRgb,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorsAdjustColorRGB"/>.
+    /// The filter type of <see cref="ColorsAdjustColorRGB"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Colors_Adjust_ColorRGB")]
     ColorsAdjustColorRGB,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorsAdjustFullColors"/>.
+    /// The filter type of <see cref="ColorsAdjustFullColors"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Colors_Adjust_FullColors")]
     ColorsAdjustFullColors,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorsAdjustPreFilters"/>.
+    /// The filter type of <see cref="ColorsAdjustPreFilters"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Colors_Adjust_PreFilters")]
     ColorsAdjustPreFilters,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorsBleachBypass"/>.
+    /// The filter type of <see cref="ColorsBleachBypass"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Colors_BleachBypass")]
     ColorsBleachBypass,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorsBrightness"/>.
+    /// The filter type of <see cref="ColorsBrightness"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Colors_Brightness")]
     ColorsBrightness,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorsDarkColor"/>.
+    /// The filter type of <see cref="ColorsDarkColor"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Colors_DarkColor")]
     ColorsDarkColor,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorSepia"/>.
+    /// The filter type of <see cref="ColorSepia"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Color_Sepia")]
     ColorSepia,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorsHsv"/>.
+    /// The filter type of <see cref="ColorsHsv"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Colors_HSV")]
     ColorsHsv,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorsHueRotate"/>.
+    /// The filter type of <see cref="ColorsHueRotate"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Colors_HUE_Rotate")]
     ColorsHueRotate,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorsNewPosterize"/>.
+    /// The filter type of <see cref="ColorsNewPosterize"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Colors_NewPosterize")]
     ColorsNewPosterize,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorsRgbClamp"/>.
+    /// The filter type of <see cref="ColorsRgbClamp"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Colors_RgbClamp")]
     ColorsRgbClamp,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorsThreshold"/>.
+    /// The filter type of <see cref="ColorsThreshold"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Colors_Threshold")]
     ColorsThreshold,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorSwitching"/>.
+    /// The filter type of <see cref="ColorSwitching"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Color_Switching")]
     ColorSwitching,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ColorYuv"/>.
+    /// The filter type of <see cref="ColorYuv"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Color_YUV")]
     ColorYuv,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionAspiration"/>.
+    /// The filter type of <see cref="DistortionAspiration"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_Aspiration")]
     DistortionAspiration,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionBigFace"/>.
+    /// The filter type of <see cref="DistortionBigFace"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_BigFace")]
     DistortionBigFace,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionBlackHole"/>.
+    /// The filter type of <see cref="DistortionBlackHole"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_BlackHole")]
     DistortionBlackHole,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionDissipation"/>.
+    /// The filter type of <see cref="DistortionDissipation"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_Dissipation")]
     DistortionDissipation,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionDream"/>.
+    /// The filter type of <see cref="DistortionDream"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_Dream")]
     DistortionDream,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionDreamTo"/>.
+    /// The filter type of <see cref="DistortionDreamTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_Dream2")]
     DistortionDreamTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionFishEye"/>.
+    /// The filter type of <see cref="DistortionFishEye"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_FishEye")]
     DistortionFishEye,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionFlag"/>.
+    /// The filter type of <see cref="DistortionFlag"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_Flag")]
     DistortionFlag,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionFlush"/>.
+    /// The filter type of <see cref="DistortionFlush"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_Flush")]
     DistortionFlush,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionHalfSphere"/>.
+    /// The filter type of <see cref="DistortionHalfSphere"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_Half_Sphere")]
     DistortionHalfSphere,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionHeat"/>.
+    /// The filter type of <see cref="DistortionHeat"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_Heat")]
     DistortionHeat,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionLens"/>.
+    /// The filter type of <see cref="DistortionLens"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_Lens")]
     DistortionLens,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionNoise"/>.
+    /// The filter type of <see cref="DistortionNoise"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_Noise")]
     DistortionNoise,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionShockWave"/>.
+    /// The filter type of <see cref="DistortionShockWave"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_ShockWave")]
     DistortionShockWave,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionTwist"/>.
+    /// The filter type of <see cref="DistortionTwist"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_Twist")]
     DistortionTwist,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionTwistSquare"/>.
+    /// The filter type of <see cref="DistortionTwistSquare"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_Twist_Square")]
     DistortionTwistSquare,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionWaterDrop"/>.
+    /// The filter type of <see cref="DistortionWaterDrop"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_Water_Drop")]
     DistortionWaterDrop,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DistortionWaveHorizontal"/>.
+    /// The filter type of <see cref="DistortionWaveHorizontal"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Distortion_Wave_Horizontal")]
     DistortionWaveHorizontal,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingBluePrint"/>.
+    /// The filter type of <see cref="DrawingBluePrint"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_BluePrint")]
     DrawingBluePrint,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingCellShading"/>.
+    /// The filter type of <see cref="DrawingCellShading"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_CellShading")]
     DrawingCellShading,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingCellShadingTo"/>.
+    /// The filter type of <see cref="DrawingCellShadingTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_CellShading2")]
     DrawingCellShadingTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingComics"/>.
+    /// The filter type of <see cref="DrawingComics"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Comics")]
     DrawingComics,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingCrosshatch"/>.
+    /// The filter type of <see cref="DrawingCrosshatch"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Crosshatch")]
     DrawingCrosshatch,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingCurve"/>.
+    /// The filter type of <see cref="DrawingCurve"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Curve")]
     DrawingCurve,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingEnhancedComics"/>.
+    /// The filter type of <see cref="DrawingEnhancedComics"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_EnhancedComics")]
     DrawingEnhancedComics,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingHalftone"/>.
+    /// The filter type of <see cref="DrawingHalftone"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Halftone")]
     DrawingHalftone,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingLaplacian"/>.
+    /// The filter type of <see cref="DrawingLaplacian"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Laplacian")]
     DrawingLaplacian,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingLines"/>.
+    /// The filter type of <see cref="DrawingLines"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Lines")]
     DrawingLines,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingManga"/>.
+    /// The filter type of <see cref="DrawingManga"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Manga")]
     DrawingManga,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingManga3"/>.
+    /// The filter type of <see cref="DrawingManga3"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Manga3")]
     DrawingManga3,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingManga4"/>.
+    /// The filter type of <see cref="DrawingManga4"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Manga4")]
     DrawingManga4,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingManga5"/>.
+    /// The filter type of <see cref="DrawingManga5"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Manga5")]
     DrawingManga5,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingMangaColor"/>.
+    /// The filter type of <see cref="DrawingMangaColor"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Manga_Color")]
     DrawingMangaColor,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingMangaFlash"/>.
+    /// The filter type of <see cref="DrawingMangaFlash"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Manga_Flash")]
     DrawingMangaFlash,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingMangaFlashColor"/>.
+    /// The filter type of <see cref="DrawingMangaFlashColor"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Manga_Flash_Color")]
     DrawingMangaFlashColor,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingMangaFlashWhite"/>.
+    /// The filter type of <see cref="DrawingMangaFlashWhite"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Manga_FlashWhite")]
     DrawingMangaFlashWhite,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingMangaTo"/>.
+    /// The filter type of <see cref="DrawingMangaTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Manga2")]
     DrawingMangaTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingNewCellShading"/>.
+    /// The filter type of <see cref="DrawingNewCellShading"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_NewCellShading")]
     DrawingNewCellShading,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingPaper"/>.
+    /// The filter type of <see cref="DrawingPaper"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Paper")]
     DrawingPaper,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingPaper3"/>.
+    /// The filter type of <see cref="DrawingPaper3"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Paper3")]
     DrawingPaper3,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingPaperTo"/>.
+    /// The filter type of <see cref="DrawingPaperTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Paper2")]
     DrawingPaperTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.DrawingToon"/>.
+    /// The filter type of <see cref="DrawingToon"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Drawing_Toon")]
     DrawingToon,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.EdgeBlackLine"/>.
+    /// The filter type of <see cref="EdgeBlackLine"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Edge_BlackLine")]
     EdgeBlackLine,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.EdgeEdgeFilter"/>.
+    /// The filter type of <see cref="EdgeEdgeFilter"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Edge_Edge_filter")]
     EdgeEdgeFilter,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.EdgeGolden"/>.
+    /// The filter type of <see cref="EdgeGolden"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Edge_Golden")]
     EdgeGolden,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.EdgeNeon"/>.
+    /// The filter type of <see cref="EdgeNeon"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Edge_Neon")]
     EdgeNeon,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.EdgeSigmoid"/>.
+    /// The filter type of <see cref="EdgeSigmoid"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Edge_Sigmoid")]
     EdgeSigmoid,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.EdgeSobel"/>.
+    /// The filter type of <see cref="EdgeSobel"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Edge_Sobel")]
     EdgeSobel,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.ExtraRotation"/>.
+    /// The filter type of <see cref="ExtraRotation"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_EXTRA_Rotation")]
     ExtraRotation,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.EyesVision1"/>.
+    /// The filter type of <see cref="EyesVision1"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_EyesVision_1")]
     EyesVision1,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.EyesVisionTo"/>.
+    /// The filter type of <see cref="EyesVisionTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_EyesVision_2")]
     EyesVisionTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FilmColorPerfection"/>.
+    /// The filter type of <see cref="FilmColorPerfection"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Film_ColorPerfection")]
     FilmColorPerfection,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FilmGrain"/>.
+    /// The filter type of <see cref="FilmGrain"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Film_Grain")]
     FilmGrain,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FlipScreen"/>.
+    /// The filter type of <see cref="FlipScreen"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FlipScreen")]
     FlipScreen,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FlyVision"/>.
+    /// The filter type of <see cref="FlyVision"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Fly_Vision")]
     FlyVision,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.Fx8Bits"/>.
+    /// The filter type of <see cref="Fx8Bits"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_8bits")]
     Fx8Bits,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.Fx8BitsGb"/>.
+    /// The filter type of <see cref="Fx8BitsGb"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_8bits_gb")]
     Fx8BitsGb,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxAscii"/>.
+    /// The filter type of <see cref="FxAscii"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Ascii")]
     FxAscii,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxDarkMatter"/>.
+    /// The filter type of <see cref="FxDarkMatter"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_DarkMatter")]
     FxDarkMatter,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxDigitalMatrix"/>.
+    /// The filter type of <see cref="FxDigitalMatrix"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_DigitalMatrix")]
     FxDigitalMatrix,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxDigitalMatrixDistortion"/>.
+    /// The filter type of <see cref="FxDigitalMatrixDistortion"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_DigitalMatrixDistortion")]
     FxDigitalMatrixDistortion,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxDotCircle"/>.
+    /// The filter type of <see cref="FxDotCircle"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Dot_Circle")]
     FxDotCircle,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxDrunk"/>.
+    /// The filter type of <see cref="FxDrunk"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Drunk")]
     FxDrunk,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxDrunkTo"/>.
+    /// The filter type of <see cref="FxDrunkTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Drunk2")]
     FxDrunkTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxEarthQuake"/>.
+    /// The filter type of <see cref="FxEarthQuake"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_EarthQuake")]
     FxEarthQuake,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxFunk"/>.
+    /// The filter type of <see cref="FxFunk"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Funk")]
     FxFunk,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxGlitch1"/>.
+    /// The filter type of <see cref="FxGlitch1"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Glitch1")]
     FxGlitch1,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxGlitch3"/>.
+    /// The filter type of <see cref="FxGlitch3"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Glitch3")]
     FxGlitch3,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxGlitchTo"/>.
+    /// The filter type of <see cref="FxGlitchTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Glitch2")]
     FxGlitchTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxGrid"/>.
+    /// The filter type of <see cref="FxGrid"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Grid")]
     FxGrid,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxHexagon"/>.
+    /// The filter type of <see cref="FxHexagon"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Hexagon")]
     FxHexagon,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxHexagonBlack"/>.
+    /// The filter type of <see cref="FxHexagonBlack"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Hexagon_Black")]
     FxHexagonBlack,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxHypno"/>.
+    /// The filter type of <see cref="FxHypno"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Hypno")]
     FxHypno,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxInverChromiLum"/>.
+    /// The filter type of <see cref="FxInverChromiLum"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_InverChromiLum")]
     FxInverChromiLum,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxMirror"/>.
+    /// The filter type of <see cref="FxMirror"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Mirror")]
     FxMirror,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxPlasma"/>.
+    /// The filter type of <see cref="FxPlasma"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Plasma")]
     FxPlasma,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxPsycho"/>.
+    /// The filter type of <see cref="FxPsycho"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Psycho")]
     FxPsycho,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxScan"/>.
+    /// The filter type of <see cref="FxScan"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Scan")]
     FxScan,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxScreens"/>.
+    /// The filter type of <see cref="FxScreens"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Screens")]
     FxScreens,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxSpot"/>.
+    /// The filter type of <see cref="FxSpot"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_Spot")]
     FxSpot,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxSuperDot"/>.
+    /// The filter type of <see cref="FxSuperDot"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_superDot")]
     FxSuperDot,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.FxZebraColor"/>.
+    /// The filter type of <see cref="FxZebraColor"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_FX_ZebraColor")]
     FxZebraColor,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.GlitchMozaic"/>.
+    /// The filter type of <see cref="GlitchMozaic"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Glitch_Mozaic")]
     GlitchMozaic,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.GlowGlow"/>.
+    /// The filter type of <see cref="GlowGlow"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Glow_Glow")]
     GlowGlow,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.GlowGlowColor"/>.
+    /// The filter type of <see cref="GlowGlowColor"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Glow_Glow_Color")]
     GlowGlowColor,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.GradientsAnsi"/>.
+    /// The filter type of <see cref="GradientsAnsi"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Gradients_Ansi")]
     GradientsAnsi,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.GradientsDesert"/>.
+    /// The filter type of <see cref="GradientsDesert"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Gradients_Desert")]
     GradientsDesert,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.GradientsElectricGradient"/>.
+    /// The filter type of <see cref="GradientsElectricGradient"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Gradients_ElectricGradient")]
     GradientsElectricGradient,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.GradientsFireGradient"/>.
+    /// The filter type of <see cref="GradientsFireGradient"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Gradients_FireGradient")]
     GradientsFireGradient,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.GradientsHue"/>.
+    /// The filter type of <see cref="GradientsHue"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Gradients_Hue")]
     GradientsHue,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.GradientsNeonGradient"/>.
+    /// The filter type of <see cref="GradientsNeonGradient"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Gradients_NeonGradient")]
     GradientsNeonGradient,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.GradientsRainbow"/>.
+    /// The filter type of <see cref="GradientsRainbow"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Gradients_Rainbow")]
     GradientsRainbow,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.GradientsStripe"/>.
+    /// The filter type of <see cref="GradientsStripe"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Gradients_Stripe")]
     GradientsStripe,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.GradientsTech"/>.
+    /// The filter type of <see cref="GradientsTech"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Gradients_Tech")]
     GradientsTech,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.GradientsTherma"/>.
+    /// The filter type of <see cref="GradientsTherma"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Gradients_Therma")]
     GradientsTherma,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.LightRainbow"/>.
+    /// The filter type of <see cref="LightRainbow"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Light_Rainbow")]
     LightRainbow,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.LightRainbowTo"/>.
+    /// The filter type of <see cref="LightRainbowTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Light_Rainbow2")]
     LightRainbowTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.LightWater"/>.
+    /// The filter type of <see cref="LightWater"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Light_Water")]
     LightWater,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.LightWaterTo"/>.
+    /// The filter type of <see cref="LightWaterTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Light_Water2")]
     LightWaterTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.NightVision4"/>.
+    /// The filter type of <see cref="NightVision4"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_NightVision_4")]
     NightVision4,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.NightVisionFX"/>.
+    /// The filter type of <see cref="NightVisionFX"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_NightVisionFX")]
     NightVisionFX,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.NoiseTv"/>.
+    /// The filter type of <see cref="NoiseTv"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Noise_TV")]
     NoiseTv,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.NoiseTv3"/>.
+    /// The filter type of <see cref="NoiseTv3"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Noise_TV_3")]
     NoiseTv3,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.NoiseTvTo"/>.
+    /// The filter type of <see cref="NoiseTvTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Noise_TV_2")]
     NoiseTvTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.OculusNightVision1"/>.
+    /// The filter type of <see cref="OculusNightVision1"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Oculus_NightVision1")]
     OculusNightVision1,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.OculusNightVision3"/>.
+    /// The filter type of <see cref="OculusNightVision3"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Oculus_NightVision3")]
     OculusNightVision3,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.OculusNightVision5"/>.
+    /// The filter type of <see cref="OculusNightVision5"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Oculus_NightVision5")]
     OculusNightVision5,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.OculusNightVisionTo"/>.
+    /// The filter type of <see cref="OculusNightVisionTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Oculus_NightVision2")]
     OculusNightVisionTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.OculusThermaVision"/>.
+    /// The filter type of <see cref="OculusThermaVision"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Oculus_ThermaVision")]
     OculusThermaVision,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.OldFilmCutting1"/>.
+    /// The filter type of <see cref="OldFilmCutting1"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_OldFilm_Cutting1")]
     OldFilmCutting1,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.OldFilmCuttingTo"/>.
+    /// The filter type of <see cref="OldFilmCutting2"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_OldFilm_Cutting2")]
     OldFilmCutting2,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.PixelisationDot"/>.
+    /// The filter type of <see cref="PixelisationDot"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Pixelisation_Dot")]
     PixelisationDot,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.PixelisationOilPaint"/>.
+    /// The filter type of <see cref="PixelisationOilPaint"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Pixelisation_OilPaint")]
     PixelisationOilPaint,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.PixelisationOilPaintHQ"/>.
+    /// The filter type of <see cref="PixelisationOilPaintHQ"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Pixelisation_OilPaintHQ")]
     PixelisationOilPaintHQ,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.PixelPixelisation"/>.
+    /// The filter type of <see cref="PixelPixelisation"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Pixel_Pixelisation")]
     PixelPixelisation,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.RealVhs"/>.
+    /// The filter type of <see cref="RealVhs"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Real_VHS")]
     RealVhs,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.RetroLoading"/>.
+    /// The filter type of <see cref="RetroLoading"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Retro_Loading")]
     RetroLoading,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.SharpenSharpen"/>.
+    /// The filter type of <see cref="SharpenSharpen"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Sharpen_Sharpen")]
     SharpenSharpen,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.SpecialBubble"/>.
+    /// The filter type of <see cref="SpecialBubble"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Special_Bubble")]
     SpecialBubble,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.Tv50"/>.
+    /// The filter type of <see cref="Tv50"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_50")]
     Tv50,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.Tv80"/>.
+    /// The filter type of <see cref="Tv80"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_80")]
     Tv80,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvArcade"/>.
+    /// The filter type of <see cref="TvArcade"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_ARCADE")]
     TvArcade,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvArcade3"/>.
+    /// The filter type of <see cref="TvArcade3"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_ARCADE_3")]
     TvArcade3,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvArcadeFast"/>.
+    /// The filter type of <see cref="TvArcadeFast"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_ARCADE_Fast")]
     TvArcadeFast,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvArcadeTo"/>.
+    /// The filter type of <see cref="TvArcadeTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_ARCADE_2")]
     TvArcadeTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvArtefact"/>.
+    /// The filter type of <see cref="TvArtefact"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Artefact")]
     TvArtefact,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvBrokenGlass"/>.
+    /// The filter type of <see cref="TvBrokenGlass"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_BrokenGlass")]
     TvBrokenGlass,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvBrokenGlassTo"/>.
+    /// The filter type of <see cref="TvBrokenGlassTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_BrokenGlass2")]
     TvBrokenGlassTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvChromatical"/>.
+    /// The filter type of <see cref="TvChromatical"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Chromatical")]
     TvChromatical,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvChromaticalTo"/>.
+    /// The filter type of <see cref="TvChromaticalTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Chromatical2")]
     TvChromaticalTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvCompressionFX"/>.
+    /// The filter type of <see cref="TvCompressionFX"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_CompressionFX")]
     TvCompressionFX,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvDistorted"/>.
+    /// The filter type of <see cref="TvDistorted"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Distorted")]
     TvDistorted,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvHorror"/>.
+    /// The filter type of <see cref="TvHorror"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Horror")]
     TvHorror,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvLed"/>.
+    /// The filter type of <see cref="TvLed"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_LED")]
     TvLed,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvNoise"/>.
+    /// The filter type of <see cref="TvNoise"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Noise")]
     TvNoise,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvOld"/>.
+    /// The filter type of <see cref="TvOld"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Old")]
     TvOld,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvOldMovie"/>.
+    /// The filter type of <see cref="TvOldMovie"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Old_Movie")]
     TvOldMovie,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvOldMovieTo"/>.
+    /// The filter type of <see cref="TvOldMovieTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Old_Movie_2")]
     TvOldMovieTo,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvPlanetMars"/>.
+    /// The filter type of <see cref="TvPlanetMars"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_PlanetMars")]
     TvPlanetMars,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvPosterize"/>.
+    /// The filter type of <see cref="TvPosterize"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Posterize")]
     TvPosterize,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvRgb"/>.
+    /// The filter type of <see cref="TvRgb"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Rgb")]
     TvRgb,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvTiles"/>.
+    /// The filter type of <see cref="TvTiles"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Tiles")]
     TvTiles,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvVcr"/>.
+    /// The filter type of <see cref="TvVcr"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Vcr")]
     TvVcr,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvVhs"/>.
+    /// The filter type of <see cref="TvVhs"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_VHS")]
     TvVhs,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvVhsRewind"/>.
+    /// The filter type of <see cref="TvVhsRewind"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_VHS_Rewind")]
     TvVhsRewind,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvVideo3D"/>.
+    /// The filter type of <see cref="TvVideo3D"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Video3D")]
     TvVideo3D,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvVideoflip"/>.
+    /// The filter type of <see cref="TvVideoflip"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Videoflip")]
     TvVideoflip,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvVintage"/>.
+    /// The filter type of <see cref="TvVintage"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_Vintage")]
     TvVintage,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvWideScreenCircle"/>.
+    /// The filter type of <see cref="TvWideScreenCircle"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_WideScreenCircle")]
     TvWideScreenCircle,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvWideScreenHorizontal"/>.
+    /// The filter type of <see cref="TvWideScreenHorizontal"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_WideScreenHorizontal")]
     TvWideScreenHorizontal,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvWideScreenHV"/>.
+    /// The filter type of <see cref="TvWideScreenHV"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_WideScreenHV")]
     TvWideScreenHV,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.TvWideScreenVertical"/>.
+    /// The filter type of <see cref="TvWideScreenVertical"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_TV_WideScreenVertical")]
     TvWideScreenVertical,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.VhsTracking"/>.
+    /// The filter type of <see cref="VhsTracking"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_VHS_Tracking")]
     VhsTracking,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.VisionAura"/>.
+    /// The filter type of <see cref="VisionAura"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Vision_Aura")]
     VisionAura,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.VisionAuraDistortion"/>.
+    /// The filter type of <see cref="VisionAuraDistortion"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Vision_AuraDistortion")]
     VisionAuraDistortion,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.VisionCrystal"/>.
+    /// The filter type of <see cref="VisionCrystal"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Vision_Crystal")]
     VisionCrystal,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.VisionDrost"/>.
+    /// The filter type of <see cref="VisionDrost"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Vision_Drost")]
     VisionDrost,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.VisionPlasma"/>.
+    /// The filter type of <see cref="VisionPlasma"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Vision_Plasma")]
     VisionPlasma,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.VisionPsycho"/>.
+    /// The filter type of <see cref="VisionPsycho"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Vision_Psycho")]
     VisionPsycho,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.VisionRainbow"/>.
+    /// The filter type of <see cref="VisionRainbow"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Vision_Rainbow")]
     VisionRainbow,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.VisionTunnel"/>.
+    /// The filter type of <see cref="VisionTunnel"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Vision_Tunnel")]
     VisionTunnel,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.VisionWarp"/>.
+    /// The filter type of <see cref="VisionWarp"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Vision_Warp")]
     VisionWarp,
     /// <summary>
-    /// The filter type of <see cref="RhythmBase.Adofal.Components.Filters.VisionWarpTo"/>.
+    /// The filter type of <see cref="VisionWarpTo"/>.
     /// </summary>
     [JsonAlias("CameraFilterPack_Vision_Warp2")]
     VisionWarpTo,

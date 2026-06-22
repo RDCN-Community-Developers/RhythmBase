@@ -8,7 +8,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct AaaSuperComputer : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.AaaSuperComputer;
+	public readonly AdvancedFilter Type => AdvancedFilter.AaaSuperComputer;
 	/// <summary>
 	/// Gets or sets the value of the <b>_AlphaHexa</b>.
 	/// </summary>

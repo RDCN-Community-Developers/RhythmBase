@@ -6,5 +6,5 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxPlasma : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxPlasma;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxPlasma;
 }

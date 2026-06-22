@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DrawingManga : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DrawingManga;
+	public readonly AdvancedFilter Type => AdvancedFilter.DrawingManga;
 	/// <summary>
 	/// Gets or sets the value of the <b>DotSize</b>.
 	/// </summary>

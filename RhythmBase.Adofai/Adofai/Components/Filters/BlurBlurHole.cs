@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct BlurBlurHole : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.BlurBlurHole;
+	public readonly AdvancedFilter Type => AdvancedFilter.BlurBlurHole;
 	/// <summary>
 	/// Gets or sets the value of the <b>Size</b>.
 	/// </summary>

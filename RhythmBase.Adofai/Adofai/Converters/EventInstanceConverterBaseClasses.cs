@@ -43,7 +43,7 @@ internal class MemberConverterSetFilterAdvanced : MemberConverterBaseTaggedTileE
 	protected override bool Read(ref Utf8JsonReader reader, ref SetFilterAdvanced value, MetadataJsonSerializerOptions options)
 	{
 		string filter = "";
-		FilterType filterType = default;
+		AdvancedFilter filterType = default;
 		if (base.Read(ref reader, ref value, options))
 			return true;
 		if (reader.ValueTextEquals("filter"u8) && reader.Read())

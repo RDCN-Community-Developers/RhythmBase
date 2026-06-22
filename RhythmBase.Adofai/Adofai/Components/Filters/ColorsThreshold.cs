@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorsThreshold : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorsThreshold;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorsThreshold;
 	/// <summary>
 	/// Gets or sets the value of the <b>Threshold</b>.
 	/// </summary>

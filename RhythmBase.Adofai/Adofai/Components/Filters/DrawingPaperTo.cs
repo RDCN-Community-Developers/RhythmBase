@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DrawingPaperTo : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DrawingPaperTo;
+	public readonly AdvancedFilter Type => AdvancedFilter.DrawingPaperTo;
 	/// <summary>
 	/// Gets or sets the value of the <b>Pencil_Color</b>.
 	/// </summary>

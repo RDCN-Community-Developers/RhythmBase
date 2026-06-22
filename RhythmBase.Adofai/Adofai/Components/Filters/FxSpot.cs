@@ -8,7 +8,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxSpot : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxSpot;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxSpot;
 	/// <summary>
 	/// Gets or sets the value of the <b>center</b>.
 	/// </summary>

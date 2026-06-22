@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct BlurGaussianBlur : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.BlurGaussianBlur;
+	public readonly AdvancedFilter Type => AdvancedFilter.BlurGaussianBlur;
 	/// <summary>
 	/// Gets or sets the value of the <b>Size</b>.
 	/// </summary>

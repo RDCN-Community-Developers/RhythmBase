@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DrawingLines : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DrawingLines;
+	public readonly AdvancedFilter Type => AdvancedFilter.DrawingLines;
 	/// <summary>
 	/// Gets or sets the value of the <b>Number</b>.
 	/// </summary>

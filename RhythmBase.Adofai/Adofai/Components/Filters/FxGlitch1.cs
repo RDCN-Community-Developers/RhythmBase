@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxGlitch1 : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxGlitch1;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxGlitch1;
 	/// <summary>
 	/// Gets or sets the value of the <b>Glitch</b>.
 	/// </summary>

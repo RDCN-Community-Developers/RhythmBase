@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct TvWideScreenVertical : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.TvWideScreenVertical;
+	public readonly AdvancedFilter Type => AdvancedFilter.TvWideScreenVertical;
 	/// <summary>
 	/// Gets or sets the value of the <b>Size</b>.
 	/// </summary>

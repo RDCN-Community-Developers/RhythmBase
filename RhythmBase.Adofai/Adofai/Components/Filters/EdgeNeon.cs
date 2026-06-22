@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct EdgeNeon : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.EdgeNeon;
+	public readonly AdvancedFilter Type => AdvancedFilter.EdgeNeon;
 	/// <summary>
 	/// Gets or sets the value of the <b>EdgeWeight</b>.
 	/// </summary>

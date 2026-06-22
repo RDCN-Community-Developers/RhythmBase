@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct GlitchMozaic : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.GlitchMozaic;
+	public readonly AdvancedFilter Type => AdvancedFilter.GlitchMozaic;
 	/// <summary>
 	/// Gets or sets the value of the <b>Intensity</b>.
 	/// </summary>

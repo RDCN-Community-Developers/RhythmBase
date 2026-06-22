@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct OculusNightVision3 : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.OculusNightVision3;
+	public readonly AdvancedFilter Type => AdvancedFilter.OculusNightVision3;
 	/// <summary>
 	/// Gets or sets the value of the <b>Greenness</b>.
 	/// </summary>

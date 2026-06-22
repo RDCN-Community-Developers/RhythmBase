@@ -8,7 +8,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct BlurDitheringToxTo : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.BlurDitheringToxTo;
+	public readonly AdvancedFilter Type => AdvancedFilter.BlurDitheringToxTo;
 	/// <summary>
 	/// Gets or sets the value of the <b>Level</b>.
 	/// </summary>

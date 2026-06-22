@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct TvOldMovieTo : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.TvOldMovieTo;
+	public readonly AdvancedFilter Type => AdvancedFilter.TvOldMovieTo;
 	/// <summary>
 	/// Gets or sets the value of the <b>FramePerSecond</b>.
 	/// </summary>

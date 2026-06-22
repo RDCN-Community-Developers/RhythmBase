@@ -6,5 +6,5 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct EdgeBlackLine : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.EdgeBlackLine;
+	public readonly AdvancedFilter Type => AdvancedFilter.EdgeBlackLine;
 }

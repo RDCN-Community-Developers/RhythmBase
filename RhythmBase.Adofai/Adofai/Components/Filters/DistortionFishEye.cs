@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DistortionFishEye : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DistortionFishEye;
+	public readonly AdvancedFilter Type => AdvancedFilter.DistortionFishEye;
 	/// <summary>
 	/// Gets or sets the value of the <b>Distortion</b>.
 	/// </summary>

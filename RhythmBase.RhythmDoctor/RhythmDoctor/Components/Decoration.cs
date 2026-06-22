@@ -146,6 +146,9 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction, EventType
 		s.Parent = null;
 		return s;
 	}
+	/// <summary>
+	/// Gets a read-only view of the extra data associated with the decoration.
+	/// </summary>
 	public IReadOnlyDictionary<string, JsonElement> ExtraData => _extraData;
 	private readonly Dictionary<string, JsonElement> _extraData = [];
 	private string _id = "";

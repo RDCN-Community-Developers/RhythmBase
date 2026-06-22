@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct BlendToCameraPinLight : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.BlendToCameraPinLight;
+	public readonly AdvancedFilter Type => AdvancedFilter.BlendToCameraPinLight;
 	/// <summary>
 	/// Gets or sets the value of the <b>BlendFX</b>.
 	/// </summary>

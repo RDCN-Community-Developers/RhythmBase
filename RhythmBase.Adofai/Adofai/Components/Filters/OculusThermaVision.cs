@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct OculusThermaVision : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.OculusThermaVision;
+	public readonly AdvancedFilter Type => AdvancedFilter.OculusThermaVision;
 	/// <summary>
 	/// Gets or sets the value of the <b>Therma_Variation</b>.
 	/// </summary>

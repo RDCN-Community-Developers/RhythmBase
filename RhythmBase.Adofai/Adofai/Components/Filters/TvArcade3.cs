@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct TvArcade3 : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.TvArcade3;
+	public readonly AdvancedFilter Type => AdvancedFilter.TvArcade3;
 	/// <summary>
 	/// Gets or sets the value of the <b>Interferance_Size</b>.
 	/// </summary>

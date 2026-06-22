@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorsAdjustFullColors : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorsAdjustFullColors;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorsAdjustFullColors;
 	/// <summary>
 	/// Gets or sets the value of the <b>Red_R</b>.
 	/// </summary>

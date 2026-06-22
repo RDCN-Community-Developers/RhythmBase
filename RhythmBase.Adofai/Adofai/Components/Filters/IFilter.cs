@@ -8,5 +8,5 @@
 public interface IFilter
 {
     ///<inheritdoc/>
-	public FilterType Type { get; }
+	public AdvancedFilter Type { get; }
 }

@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct Fx8Bits : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.Fx8Bits;
+	public readonly AdvancedFilter Type => AdvancedFilter.Fx8Bits;
 	/// <summary>
 	/// Gets or sets the value of the <b>ResolutionX</b>.
 	/// </summary>

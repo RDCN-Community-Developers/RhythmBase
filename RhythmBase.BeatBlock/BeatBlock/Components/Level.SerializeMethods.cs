@@ -23,22 +23,22 @@ partial class Level
 				: new Utf8JsonReader(seq, _readerOptions);
 			try
 			{
-			reader.Read();
-			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
-			while (reader.Read())
-			{
-			if (reader.TokenType == JsonTokenType.EndObject)
-				break;
-			if (reader.ValueTextEquals("events"u8) && reader.Read())
-				foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
-					variant.Add(e);
-			else
-			{
-				reader.Skip();
+				reader.Read();
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
+				while (reader.Read())
+				{
+					if (reader.TokenType == JsonTokenType.EndObject)
+						break;
+					if (reader.ValueTextEquals("events"u8) && reader.Read())
+						foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
+							variant.Add(e);
+					else
+					{
+						reader.Skip();
+					}
+				}
 			}
-			}
-			}
-			catch (JsonException ex) { WrapAndThrow(ex, dataSource, reader.BytesConsumed); }
+			catch { throw; }
 		}
 		public static void DeserializeChart(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, Chart variant, LevelReadSettings settings)
 		{
@@ -48,15 +48,15 @@ partial class Level
 				: new Utf8JsonReader(seq, _readerOptions);
 			try
 			{
-			reader.Read();
-			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
-			foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
-			{
-				variant.Add(e);
+				reader.Read();
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
+				foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
+				{
+					variant.Add(e);
+				}
+				reader.Read();
 			}
-			reader.Read();
-			}
-			catch (JsonException ex) { WrapAndThrow(ex, dataSource, reader.BytesConsumed); }
+			catch { throw; }
 		}
 		public static void DeserializeTag(IJsonDataSource dataSource, MetadataJsonSerializerOptions options, TagEventCollection collection, LevelReadSettings settings)
 		{
@@ -66,28 +66,23 @@ partial class Level
 				: new Utf8JsonReader(seq, _readerOptions);
 			try
 			{
-			reader.Read();
-			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
-			foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
-			{
-				collection.Add(e);
+				reader.Read();
+				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
+				foreach (IBaseEvent e in DeserializeEvents(ref reader, options, settings))
+				{
+					collection.Add(e);
+				}
+				reader.Read();
 			}
-			reader.Read();
-			}
-			catch (JsonException ex) { WrapAndThrow(ex, dataSource, reader.BytesConsumed); }
-		}
-		private static void WrapAndThrow(JsonException ex, IJsonDataSource dataSource, long bytesConsumed)
-		{
-			long originalPos = dataSource.MapToInputPosition(bytesConsumed);
-			if (originalPos >= 0)
-				throw new JsonException($"{ex.Message}\n  at processed byte position {bytesConsumed}, original stream byte position ~{originalPos}", ex);
-			throw new JsonException($"{ex.Message}\n  at processed byte position {bytesConsumed}", ex);
+			catch { throw; }
 		}
 		private static List<IBaseEvent> DeserializeEvents(ref Utf8JsonReader reader, MetadataJsonSerializerOptions options, LevelReadSettings settings)
 		{
 			List<IBaseEvent> events = [];
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
+#if DEBUG
 			int index = 0;
+#endif
 			while (reader.Read())
 			{
 				if (reader.TokenType == JsonTokenType.EndArray)
@@ -99,27 +94,27 @@ partial class Level
 					e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
 					index++;
 				}
-				catch (Exception ex)
+				catch (Exception)
 				{
 					Debug.Print($"Current index: {index}");
 					throw;
 				}
 #else
-                Utf8JsonReader checkpoint = reader;
-                try
-                {
-                    e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
-                }
-                catch (JsonException)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    JsonElement element = JsonElement.ParseValue(ref checkpoint);
-                    settings.OnUnreadableEventEncountered(null, element, ex.Message);
-										continue;
-                }
+        Utf8JsonReader checkpoint = reader;
+        try
+        {
+            e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
+        }
+        catch (JsonException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            JsonElement element = JsonElement.ParseValue(ref checkpoint);
+            settings.OnUnreadableEventEncountered(null, element, ex.Message);
+						continue;
+        }
 #endif
 				if (e == null)
 					continue;
@@ -191,8 +186,11 @@ partial class Level
 				}
 			}
 			string chartFile = Path.Combine(directoryPath, $"chart-{variant.Name}.json");
-			using FileStream chartFs = File.Open(chartFile, FileMode.Open, FileAccess.Read);
-			FileConverter.DeserializeChart(new StreamDataSource(chartFs), options, variant, settings);
+			if (options.Strictness == JsonStrictness.Strict || File.Exists(chartFile))
+			{
+				using FileStream chartFs = File.Open(chartFile, FileMode.Open, FileAccess.Read);
+				FileConverter.DeserializeChart(new StreamDataSource(chartFs), options, variant, settings);
+			}
 		}
 		if (Directory.Exists(Path.Combine(directoryPath, "tags")))
 		{
@@ -260,7 +258,7 @@ partial class Level
 	{
 		settings ??= new LevelReadSettings();
 		string extension = Path.GetExtension(filepath);
-		if (extension is not ".zip" and not ".bbz")
+		if (extension is not ".zip")
 			throw new NotSupportedException($"File type '{extension}' is not supported.");
 		DirectoryInfo tempDirectory = new(Path.Combine(
 			GlobalSettings.CachePath, GlobalSettings.CacheDirectoryPrefix + Path.GetRandomFileName()));
@@ -280,10 +278,10 @@ partial class Level
 			level.isExtracted = true;
 			return level;
 		}
-		catch (Exception ex)
+		catch
 		{
 			tempDirectory.Delete(true);
-			throw new InvalidDataException("Cannot extract the file.", ex);
+			throw;
 		}
 	}
 	/// <inheritdoc/>

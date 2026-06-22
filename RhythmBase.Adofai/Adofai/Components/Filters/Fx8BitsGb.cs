@@ -6,5 +6,5 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct Fx8BitsGb : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.Fx8BitsGb;
+	public readonly AdvancedFilter Type => AdvancedFilter.Fx8BitsGb;
 }

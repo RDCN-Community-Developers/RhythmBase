@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxHypno : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxHypno;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxHypno;
 	/// <summary>
 	/// Gets or sets the value of the <b>Speed</b>.
 	/// </summary>

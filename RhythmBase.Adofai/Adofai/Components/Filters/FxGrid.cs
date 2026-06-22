@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxGrid : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxGrid;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxGrid;
 	/// <summary>
 	/// Gets or sets the value of the <b>Distortion</b>.
 	/// </summary>

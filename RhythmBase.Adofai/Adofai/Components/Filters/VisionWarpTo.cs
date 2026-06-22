@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct VisionWarpTo : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.VisionWarpTo;
+	public readonly AdvancedFilter Type => AdvancedFilter.VisionWarpTo;
 	/// <summary>
 	/// Gets or sets the value of the <b>Value</b>.
 	/// </summary>

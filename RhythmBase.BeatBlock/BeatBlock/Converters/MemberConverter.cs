@@ -29,9 +29,7 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 					break;
 				}
 				else
-				{
 					reader.Skip();
-				}
 			}
 		}
 		reader = checkpoint; IBaseEvent e;
@@ -53,14 +51,9 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 	public override void Write(Utf8JsonWriter writer, IBaseEvent value, MetadataJsonSerializerOptions options)
 	{
 		if (value is Events.IForwardEvent ce)
-		{
 			WriteForwardEvent(writer, ce);
-			return;
-		}
 		else
-		{
 			EventConverterMap.GetConverter(value.Type).WriteProperties(writer, value, options);
-		}
 	}
 
 	private static void WriteForwardEvent(Utf8JsonWriter writer, Events.IForwardEvent value)
@@ -70,12 +63,10 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 			writer.WriteString("type"u8, value.ActualType);
 		foreach (KeyValuePair<string, JsonElement> kv in ((BaseEvent)(IBaseEvent)value)._extraData)
 		{
-			{
-				writer.WritePropertyName(kv.Key);
-				kv.Value.WriteTo(writer);
-			}
-			writer.WriteEndObject();
+			writer.WritePropertyName(kv.Key);
+			kv.Value.WriteTo(writer);
 		}
+		writer.WriteEndObject();
 	}
 
 }
@@ -87,34 +78,19 @@ internal abstract class MemberConverter<TEvent> : EventInstanceConverterBase whe
 		TEvent value = new();
 		float time = 0;
 		float angle = 0;
-		while (reader.Read())
+		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.EndObject)
-			{
-				value.Time = time;
-				value.Angle = angle;
-				return value;
-			}
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
-			if (reader.ValueTextEquals("time"u8))
-			{
-				reader.Read();
+			var checkpoint = reader;
+			if (reader.ValueTextEquals("time"u8) && reader.Read())
 				time = reader.GetSingle();
-			}
-			else if (reader.ValueTextEquals("angle"u8))
-			{
-				reader.Read();
+			else if (reader.ValueTextEquals("angle"u8) && reader.Read())
 				angle = reader.GetSingle();
-			}
-			else if (reader.ValueTextEquals("type"u8))
+			else if (reader.ValueTextEquals("type"u8) && reader.Read())
+			{ }
+			else if (!Read(ref reader, ref value, options))
 			{
-				reader.Read();
-				continue;
-			}
-		else
-		{
-			if (!Read(ref reader, ref value, options))
-			{
+				reader = checkpoint;
 				string fieldName = reader.GetString()!;
 				reader.Read();
 				JsonElement fieldValue = JsonElement.ParseValue(ref reader);
@@ -127,7 +103,8 @@ internal abstract class MemberConverter<TEvent> : EventInstanceConverterBase whe
 				value[fieldName] = fieldValue;
 			}
 		}
-		}
+		value.Time = time;
+		value.Angle = angle;
 		return value;
 	}
 	public sealed override void WriteProperties(Utf8JsonWriter writer, IBaseEvent value, MetadataJsonSerializerOptions options)

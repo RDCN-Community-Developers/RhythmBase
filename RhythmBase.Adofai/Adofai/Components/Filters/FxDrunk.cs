@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxDrunk : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxDrunk;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxDrunk;
 	/// <summary>
 	/// Gets or sets the value of the <b>Value</b>.
 	/// </summary>

@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FilmGrain : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FilmGrain;
+	public readonly AdvancedFilter Type => AdvancedFilter.FilmGrain;
 	/// <summary>
 	/// Gets or sets the value of the <b>Value</b>.
 	/// </summary>

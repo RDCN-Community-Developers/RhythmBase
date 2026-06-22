@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DrawingBluePrint : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DrawingBluePrint;
+	public readonly AdvancedFilter Type => AdvancedFilter.DrawingBluePrint;
 	/// <summary>
 	/// Gets or sets the value of the <b>Pencil_Color</b>.
 	/// </summary>

@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DrawingNewCellShading : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DrawingNewCellShading;
+	public readonly AdvancedFilter Type => AdvancedFilter.DrawingNewCellShading;
 	/// <summary>
 	/// Gets or sets the value of the <b>Threshold</b>.
 	/// </summary>

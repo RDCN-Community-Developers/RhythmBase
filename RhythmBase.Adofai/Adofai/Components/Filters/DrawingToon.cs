@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DrawingToon : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DrawingToon;
+	public readonly AdvancedFilter Type => AdvancedFilter.DrawingToon;
 	/// <summary>
 	/// Gets or sets the value of the <b>Threshold</b>.
 	/// </summary>

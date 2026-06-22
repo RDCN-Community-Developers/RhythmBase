@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct TvChromaticalTo : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.TvChromaticalTo;
+	public readonly AdvancedFilter Type => AdvancedFilter.TvChromaticalTo;
 	/// <summary>
 	/// Gets or sets the value of the <b>Aberration</b>.
 	/// </summary>

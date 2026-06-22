@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct TvPlanetMars : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.TvPlanetMars;
+	public readonly AdvancedFilter Type => AdvancedFilter.TvPlanetMars;
 	/// <summary>
 	/// Gets or sets the value of the <b>Fade</b>.
 	/// </summary>

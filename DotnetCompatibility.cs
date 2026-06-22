@@ -264,6 +264,7 @@ namespace System
 		}
 	}
 }
+#pragma warning disable CS9113
 namespace System.Diagnostics
 {
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Struct, Inherited = false)]
@@ -373,7 +374,7 @@ namespace System.Runtime.CompilerServices
 	}
 	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 	#pragma warning disable CS1591 // Polyfill type, XML doc not needed
-	public sealed class ModuleInitializerAttribute : Attribute { }
+	internal sealed class ModuleInitializerAttribute : Attribute { }
 	#pragma warning restore CS1591
 }
 namespace System.Text

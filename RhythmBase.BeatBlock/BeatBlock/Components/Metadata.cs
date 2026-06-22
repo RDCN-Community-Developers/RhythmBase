@@ -61,11 +61,11 @@ public record class Metadata
     /// <summary>
     /// Gets or sets the start loop point.
     /// </summary>
-    public int StartLoop { get; set; } = 0;
+    public float StartLoop { get; set; } = 0;
     /// <summary>
     /// Gets or sets the end loop point.
     /// </summary>
-    public int EndLoop { get; set; } = 0;
+    public float EndLoop { get; set; } = 0;
     /// <summary>
     /// Gets or sets the background data.
     /// </summary>
@@ -142,7 +142,7 @@ public class Chart :
     /// <summary>
     /// Gets or sets the difficulty of the chart.
     /// </summary>
-    public int Difficulty { get; set; }
+    public float Difficulty { get; set; }
     /// <summary>
     /// Gets or sets the display name of the chart.
     /// </summary>

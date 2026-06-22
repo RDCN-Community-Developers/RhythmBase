@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxDigitalMatrixDistortion : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxDigitalMatrixDistortion;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxDigitalMatrixDistortion;
 	/// <summary>
 	/// Gets or sets the value of the <b>Size</b>.
 	/// </summary>

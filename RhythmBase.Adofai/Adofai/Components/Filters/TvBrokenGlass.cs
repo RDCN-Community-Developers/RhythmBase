@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct TvBrokenGlass : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.TvBrokenGlass;
+	public readonly AdvancedFilter Type => AdvancedFilter.TvBrokenGlass;
 	/// <summary>
 	/// Gets or sets the value of the <b>Broken_Big</b>.
 	/// </summary>

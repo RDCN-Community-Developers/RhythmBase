@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DistortionAspiration : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DistortionAspiration;
+	public readonly AdvancedFilter Type => AdvancedFilter.DistortionAspiration;
 	/// <summary>
 	/// Gets or sets the value of the <b>Value</b>.
 	/// </summary>

@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct TvTiles : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.TvTiles;
+	public readonly AdvancedFilter Type => AdvancedFilter.TvTiles;
 	/// <summary>
 	/// Gets or sets the value of the <b>Size</b>.
 	/// </summary>

@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DistortionBigFace : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DistortionBigFace;
+	public readonly AdvancedFilter Type => AdvancedFilter.DistortionBigFace;
 	/// <summary>
 	/// Gets or sets the value of the <b>_Size</b>.
 	/// </summary>

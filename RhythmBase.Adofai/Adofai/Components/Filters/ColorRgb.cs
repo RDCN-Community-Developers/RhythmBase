@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorRgb : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorRgb;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorRgb;
 	/// <summary>
 	/// Gets or sets the value of the <b>ColorRGB</b>.
 	/// </summary>

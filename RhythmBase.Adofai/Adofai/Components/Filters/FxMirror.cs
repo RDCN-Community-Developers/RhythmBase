@@ -6,5 +6,5 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxMirror : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxMirror;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxMirror;
 }

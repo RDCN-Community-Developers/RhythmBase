@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct AtmosphereSnow8Bits : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.AtmosphereSnow8Bits;
+	public readonly AdvancedFilter Type => AdvancedFilter.AtmosphereSnow8Bits;
 	/// <summary>
 	/// Gets or sets the value of the <b>Threshold</b>.
 	/// </summary>

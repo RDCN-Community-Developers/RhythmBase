@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct EyesVisionTo : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.EyesVisionTo;
+	public readonly AdvancedFilter Type => AdvancedFilter.EyesVisionTo;
 	/// <summary>
 	/// Gets or sets the value of the <b>_EyeWave</b>.
 	/// </summary>

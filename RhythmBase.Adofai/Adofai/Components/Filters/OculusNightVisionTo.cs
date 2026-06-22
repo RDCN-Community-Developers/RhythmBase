@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct OculusNightVisionTo : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.OculusNightVisionTo;
+	public readonly AdvancedFilter Type => AdvancedFilter.OculusNightVisionTo;
 	/// <summary>
 	/// Gets or sets the value of the <b>FadeFX</b>.
 	/// </summary>

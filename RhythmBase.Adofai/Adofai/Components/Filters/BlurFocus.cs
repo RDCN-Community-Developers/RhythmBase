@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct BlurFocus : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.BlurFocus;
+	public readonly AdvancedFilter Type => AdvancedFilter.BlurFocus;
 	/// <summary>
 	/// Gets or sets the value of the <b>_Size</b>.
 	/// </summary>

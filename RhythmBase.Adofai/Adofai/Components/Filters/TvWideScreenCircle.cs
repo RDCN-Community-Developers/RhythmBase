@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct TvWideScreenCircle : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.TvWideScreenCircle;
+	public readonly AdvancedFilter Type => AdvancedFilter.TvWideScreenCircle;
 	/// <summary>
 	/// Gets or sets the value of the <b>Size</b>.
 	/// </summary>

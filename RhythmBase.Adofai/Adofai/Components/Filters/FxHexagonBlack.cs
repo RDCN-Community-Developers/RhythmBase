@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxHexagonBlack : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxHexagonBlack;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxHexagonBlack;
 	/// <summary>
 	/// Gets or sets the value of the <b>Value</b>.
 	/// </summary>

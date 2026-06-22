@@ -142,7 +142,7 @@ public partial class ConverterGenerator
 				sb1.AppendLine($$"""
 							/// <summary>
 							/// Attempts to parse the current JSON token value to a <see cref="{{fullName}}"/> enum value.
-							/// Works with <see cref="ReadOnlySequence{T}"/>-backed readers without allocating.
+							/// Works with <see cref="System.Buffers.ReadOnlySequence{T}"/>-backed readers without allocating.
 							/// </summary>
 							/// <param name="reader">The JSON reader positioned at a string token.</param>
 							/// <param name="result">When this method returns, contains the parsed <see cref="{{fullName}}"/> value if parsing succeeded; otherwise, the default value.</param>
@@ -369,15 +369,7 @@ public partial class ConverterGenerator
 			var jsonEnumAttrSmp = compilation.GetTypeByMetadataName(JsonEnumAttrName);
 			var jsonFlattenAttrSmp = compilation.GetTypeByMetadataName(JsonFlattenAttrName);
 
-			bool shouldGenerate = prop.Property.SetMethod is not null &&
-				prop.Property.ExplicitInterfaceImplementations.Length == 0 &&
-				(
-				(
-				prop.Property.DeclaredAccessibility.HasFlag(Accessibility.Public) ||
-				attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, aliasAttrSmp)) is not null
-				) &&
-				attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, ignoreAttrSmp)) is null
-				);
+			bool shouldGenerate = GetShouldGenerate(prop, compilation);
 			if (!shouldGenerate) continue;
 
 			bool isNullable = prop.Property.Type.NullableAnnotation == NullableAnnotation.Annotated;
@@ -450,6 +442,28 @@ public partial class ConverterGenerator
 								return true;
 						""");
 	}
+
+	private static bool GetShouldGenerate(PropertyGenerateConverterInfo prop, Compilation compilation)
+	{
+		var attrs = prop.Property.GetAttributes();
+		var aliasAttrSmp = compilation.GetTypeByMetadataName(JsonAliasAttrName);
+		var condAttrSmp = compilation.GetTypeByMetadataName(JsonConditionAttrName);
+		var ignoreAttrSmp = compilation.GetTypeByMetadataName(JsonIgnoreAttrName);
+		return prop.Property.SetMethod is not null &&
+						prop.Property.ExplicitInterfaceImplementations.Length == 0 && // 不是显式接口实现或继承
+						(
+							(
+								prop.Property.DeclaredAccessibility.HasFlag(Accessibility.Public) || // 公开属性，或
+								attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, aliasAttrSmp)) is not null // 有 JsonAlias 属性
+							) &&
+							attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, ignoreAttrSmp)) is null // 没有 JsonIgnore 属性
+						) &&
+						(attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, condAttrSmp)) is not AttributeData i || i.ConstructorArguments.Length == 1 &&
+							i.ConstructorArguments[0].Value is string s &&
+							s != "false") // 没有 JsonCondition(false) 属性
+						;
+	}
+
 	private class GeneratePropertyInfo
 	{
 		public GeneratePropertyInfo(Compilation compilation, StringBuilder sb, (ITypeSymbol, INamedTypeSymbol)[] classGenMap, int index, ImmutableArray<AttributeData> attrs, INamedTypeSymbol? dftCvtrAttrSmp, INamedTypeSymbol? jsonEnumAttrSmp, bool isNullable, INamedTypeSymbol? jsonCvtr, int? timeEnum, string valueAccess, ITypeSymbol type)
@@ -537,7 +551,7 @@ public partial class ConverterGenerator
 		}
 		// 默认类型
 		else if (type.SpecialType is not SpecialType.None)
-			sb.Append($$"""{{valueAccess}} = reader.Get{{GetJsonReadMethod(type)}}();""");
+			sb.Append($$"""{{valueAccess}} = reader.Get{{GetJsonReadMethod(type)}}(){{((GetJsonReadMethod(type) == "String" && !isNullable) ? " ?? \"\"" : "")}};""");
 		// 其他
 		else if (IsConcreteEnumerable(type) is ITypeSymbol elementType)
 		{
@@ -551,7 +565,7 @@ public partial class ConverterGenerator
 								{
 				""");
 			if (elementType.SpecialType is not SpecialType.None)
-				sb.Append($$"""  var elementValue = reader.Get{{GetJsonReadMethod(elementType)}}();""");
+				sb.Append($$"""  var elementValue = reader.Get{{GetJsonReadMethod(elementType)}}(){{((GetJsonReadMethod(elementType) == "String" && !isNullable) ? " ?? \"\"" : "")}};""");
 			else if (elementType.TypeKind == TypeKind.Enum)
 				if (
 					elementType.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
@@ -1005,7 +1019,12 @@ public partial class ConverterGenerator
 							protected override bool Read(ref Utf8JsonReader reader, ref {{t.ToDisplayString()}} value, global::RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
 							{
 						""");
-						GenerateReadBody(compilation, classCvtrSb, id, c1, classGenMap);
+						if (c1.Properties.Any(i => GetShouldGenerate(i, compilation)))
+							GenerateReadBody(compilation, classCvtrSb, id, c1, classGenMap);
+						else
+							classCvtrSb.AppendLine($$"""
+								return base.Read(ref reader, ref value, options);
+						""");
 						classCvtrSb.AppendLine($$"""
 							}
 							protected override void Write(Utf8JsonWriter writer, ref {{t.ToDisplayString()}} value, global::RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
@@ -1284,7 +1303,7 @@ internal static class UnhandledFieldHelper
 							concreteTypes.Add(type);
 					}
 
-				if (concreteTypes.Count == 0)
+					if (concreteTypes.Count == 0)
 						continue;
 
 					sb.AppendLine($$"""
@@ -1297,8 +1316,8 @@ internal static class UnhandledFieldHelper
 
 					foreach (var concreteType in concreteTypes.OrderBy(t => t.Name))
 					{
-					string concreteName = concreteType.ToDisplayString();
-					sb.AppendLine($$"""
+						string concreteName = concreteType.ToDisplayString();
+						sb.AppendLine($$"""
 		RhythmBase.Global.Converters.UnhandledFieldRegistry.Register<{{concreteName}}>(fieldName,
 			(ref {{concreteName}} t, System.Text.Json.JsonElement v) =>
 			{ ref {{interfaceName}} e = ref System.Runtime.CompilerServices.Unsafe.As<{{concreteName}}, {{interfaceName}}>(ref t); return handler(ref e, v); });

@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct EdgeEdgeFilter : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.EdgeEdgeFilter;
+	public readonly AdvancedFilter Type => AdvancedFilter.EdgeEdgeFilter;
 	/// <summary>
 	/// Gets or sets the value of the <b>GreenAmplifier</b>.
 	/// </summary>

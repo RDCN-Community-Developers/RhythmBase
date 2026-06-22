@@ -8,7 +8,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct BlurDitherOffset : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.BlurDitherOffset;
+	public readonly AdvancedFilter Type => AdvancedFilter.BlurDitherOffset;
 	/// <summary>
 	/// Gets or sets the value of the <b>Level</b>.
 	/// </summary>

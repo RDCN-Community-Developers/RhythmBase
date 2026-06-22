@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorContrast : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorContrast;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorContrast;
 	/// <summary>
 	/// Gets or sets the value of the <b>Contrast</b>.
 	/// </summary>

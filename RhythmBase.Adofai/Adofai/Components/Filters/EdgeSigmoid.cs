@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct EdgeSigmoid : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.EdgeSigmoid;
+	public readonly AdvancedFilter Type => AdvancedFilter.EdgeSigmoid;
 	/// <summary>
 	/// Gets or sets the value of the <b>Gain</b>.
 	/// </summary>

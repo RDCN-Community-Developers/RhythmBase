@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct VisionRainbow : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.VisionRainbow;
+	public readonly AdvancedFilter Type => AdvancedFilter.VisionRainbow;
 	/// <summary>
 	/// Gets or sets the value of the <b>Speed</b>.
 	/// </summary>

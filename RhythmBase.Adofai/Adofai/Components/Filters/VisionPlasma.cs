@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct VisionPlasma : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.VisionPlasma;
+	public readonly AdvancedFilter Type => AdvancedFilter.VisionPlasma;
 	/// <summary>
 	/// Gets or sets the value of the <b>Value</b>.
 	/// </summary>

@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorChromaticAberration : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorChromaticAberration;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorChromaticAberration;
 	/// <summary>
 	/// Gets or sets the value of the <b>Offset</b>.
 	/// </summary>

@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct BlurSteam : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.BlurSteam;
+	public readonly AdvancedFilter Type => AdvancedFilter.BlurSteam;
 	/// <summary>
 	/// Gets or sets the value of the <b>Radius</b>.
 	/// </summary>

@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DrawingMangaFlash : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DrawingMangaFlash;
+	public readonly AdvancedFilter Type => AdvancedFilter.DrawingMangaFlash;
 	/// <summary>
 	/// Gets or sets the value of the <b>Size</b>.
 	/// </summary>

@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DrawingCrosshatch : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DrawingCrosshatch;
+	public readonly AdvancedFilter Type => AdvancedFilter.DrawingCrosshatch;
 	/// <summary>
 	/// Gets or sets the value of the <b>Width</b>.
 	/// </summary>

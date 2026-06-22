@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorsRgbClamp : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorsRgbClamp;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorsRgbClamp;
 	/// <summary>
 	/// Gets or sets the value of the <b>Red_End</b>.
 	/// </summary>

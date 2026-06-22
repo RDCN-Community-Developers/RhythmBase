@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct AaaWaterDrop : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.AaaWaterDrop;
+	public readonly AdvancedFilter Type => AdvancedFilter.AaaWaterDrop;
 	/// <summary>
 	/// Gets or sets the value of the <b>Distortion</b>.
 	/// </summary>

@@ -14,11 +14,11 @@ public record class LoadCustomFont : BaseEvent
     /// <summary>
     /// Filename of the font.\nMust be either a font file or a specially defined .png.
     /// </summary>
-    public string Fontpath { get; set; } = string.Empty;
+    public FileReference Fontpath { get; set; }
     /// <summary>
     /// Which character map to use for pixel fonts.\n"regular" is ASCII 32~127, "full" is 32~255.\nIgnored if using a truetype font.
     /// </summary>
-    public CharacterMap CharacterMap { get; set; }
+    public CharacterMapType CharacterMap { get; set; }
     /// <summary>
     /// Custom character map (may require json editing)
     /// </summary>

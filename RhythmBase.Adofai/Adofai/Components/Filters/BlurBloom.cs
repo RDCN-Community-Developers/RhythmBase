@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct BlurBloom : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.BlurBloom;
+	public readonly AdvancedFilter Type => AdvancedFilter.BlurBloom;
 	/// <summary>
 	/// Gets or sets the value of the <b>Amount</b>.
 	/// </summary>

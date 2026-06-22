@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct VisionTunnel : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.VisionTunnel;
+	public readonly AdvancedFilter Type => AdvancedFilter.VisionTunnel;
 	/// <summary>
 	/// Gets or sets the value of the <b>Value</b>.
 	/// </summary>

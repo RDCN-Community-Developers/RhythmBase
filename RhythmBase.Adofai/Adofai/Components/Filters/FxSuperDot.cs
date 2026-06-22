@@ -6,5 +6,5 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxSuperDot : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxSuperDot;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxSuperDot;
 }

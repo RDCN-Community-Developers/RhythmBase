@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct TvBrokenGlassTo : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.TvBrokenGlassTo;
+	public readonly AdvancedFilter Type => AdvancedFilter.TvBrokenGlassTo;
 	/// <summary>
 	/// Gets or sets the value of the <b>Bullet_4</b>.
 	/// </summary>

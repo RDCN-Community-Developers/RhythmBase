@@ -9,7 +9,6 @@ namespace RhythmBase.Global.Converters;
 /// </summary>
 /// <typeparam name="TTarget">The concrete type of the object being deserialized.</typeparam>
 /// <param name="target">Reference to the object being deserialized. Can be modified directly.</param>
-/// <param name="fieldName">The JSON property name.</param>
 /// <param name="value">The parsed JSON value.</param>
 /// <returns><c>true</c> if the property was handled; <c>false</c> to pass it to the next handler or store it in extra data.</returns>
 public delegate bool UnhandledPropertyHandler<TTarget>(ref TTarget target, JsonElement value);

@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct LightWaterTo : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.LightWaterTo;
+	public readonly AdvancedFilter Type => AdvancedFilter.LightWaterTo;
 	/// <summary>
 	/// Gets or sets the value of the <b>Speed</b>.
 	/// </summary>

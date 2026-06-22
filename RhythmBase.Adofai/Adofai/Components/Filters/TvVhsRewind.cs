@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct TvVhsRewind : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.TvVhsRewind;
+	public readonly AdvancedFilter Type => AdvancedFilter.TvVhsRewind;
 	/// <summary>
 	/// Gets or sets the value of the <b>Cryptage</b>.
 	/// </summary>

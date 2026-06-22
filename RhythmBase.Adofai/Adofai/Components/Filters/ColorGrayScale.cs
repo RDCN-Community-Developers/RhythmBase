@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorGrayScale : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorGrayScale;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorGrayScale;
 	/// <summary>
 	/// Gets or sets the value of the <b>_Fade</b>.
 	/// </summary>

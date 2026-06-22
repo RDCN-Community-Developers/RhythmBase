@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DrawingCurve : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DrawingCurve;
+	public readonly AdvancedFilter Type => AdvancedFilter.DrawingCurve;
 	/// <summary>
 	/// Gets or sets the value of the <b>Size</b>.
 	/// </summary>

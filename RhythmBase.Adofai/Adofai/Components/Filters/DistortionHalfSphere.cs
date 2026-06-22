@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DistortionHalfSphere : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DistortionHalfSphere;
+	public readonly AdvancedFilter Type => AdvancedFilter.DistortionHalfSphere;
 	/// <summary>
 	/// Gets or sets the value of the <b>SphereSize</b>.
 	/// </summary>

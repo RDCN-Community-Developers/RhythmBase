@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DrawingCellShadingTo : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DrawingCellShadingTo;
+	public readonly AdvancedFilter Type => AdvancedFilter.DrawingCellShadingTo;
 	/// <summary>
 	/// Gets or sets the value of the <b>EdgeSize</b>.
 	/// </summary>

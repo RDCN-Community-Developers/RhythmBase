@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct NightVisionFX : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.NightVisionFX;
+	public readonly AdvancedFilter Type => AdvancedFilter.NightVisionFX;
 	/// <summary>
 	/// Gets or sets the value of the <b>Greenness</b>.
 	/// </summary>

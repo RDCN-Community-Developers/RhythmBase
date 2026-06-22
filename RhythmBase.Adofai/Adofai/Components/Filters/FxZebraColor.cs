@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxZebraColor : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxZebraColor;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxZebraColor;
 	/// <summary>
 	/// Gets or sets the value of the <b>Value</b>.
 	/// </summary>

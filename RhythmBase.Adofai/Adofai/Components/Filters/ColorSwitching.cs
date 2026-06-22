@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorSwitching : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorSwitching;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorSwitching;
 	/// <summary>
 	/// Gets or sets the value of the <b>Color</b>.
 	/// </summary>

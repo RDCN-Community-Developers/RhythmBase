@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct GlowGlowColor : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.GlowGlowColor;
+	public readonly AdvancedFilter Type => AdvancedFilter.GlowGlowColor;
 	/// <summary>
 	/// Gets or sets the value of the <b>Amount</b>.
 	/// </summary>

@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxScan : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxScan;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxScan;
 	/// <summary>
 	/// Gets or sets the value of the <b>Size</b>.
 	/// </summary>

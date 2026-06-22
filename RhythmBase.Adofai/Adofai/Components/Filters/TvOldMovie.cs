@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct TvOldMovie : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.TvOldMovie;
+	public readonly AdvancedFilter Type => AdvancedFilter.TvOldMovie;
 	/// <summary>
 	/// Gets or sets the value of the <b>Distortion</b>.
 	/// </summary>

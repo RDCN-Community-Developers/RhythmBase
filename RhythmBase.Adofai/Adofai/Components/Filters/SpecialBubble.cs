@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct SpecialBubble : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.SpecialBubble;
+	public readonly AdvancedFilter Type => AdvancedFilter.SpecialBubble;
 	/// <summary>
 	/// Gets or sets the value of the <b>X</b>.
 	/// </summary>

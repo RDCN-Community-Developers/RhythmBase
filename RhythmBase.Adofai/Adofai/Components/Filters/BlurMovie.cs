@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct BlurMovie : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.BlurMovie;
+	public readonly AdvancedFilter Type => AdvancedFilter.BlurMovie;
 	/// <summary>
 	/// Gets or sets the value of the <b>Radius</b>.
 	/// </summary>

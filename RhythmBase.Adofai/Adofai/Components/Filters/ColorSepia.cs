@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorSepia : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorSepia;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorSepia;
 	/// <summary>
 	/// Gets or sets the value of the <b>_Fade</b>.
 	/// </summary>

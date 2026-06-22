@@ -6,5 +6,5 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorsAdjustColorRGB : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorsAdjustColorRGB;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorsAdjustColorRGB;
 }

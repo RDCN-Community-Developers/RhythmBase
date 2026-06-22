@@ -6,5 +6,5 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DrawingLaplacian : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DrawingLaplacian;
+	public readonly AdvancedFilter Type => AdvancedFilter.DrawingLaplacian;
 }

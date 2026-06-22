@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxEarthQuake : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxEarthQuake;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxEarthQuake;
 	/// <summary>
 	/// Gets or sets the value of the <b>Speed</b>.
 	/// </summary>

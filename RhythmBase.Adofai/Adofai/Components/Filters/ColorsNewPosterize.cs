@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorsNewPosterize : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorsNewPosterize;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorsNewPosterize;
 	/// <summary>
 	/// Gets or sets the value of the <b>Gamma</b>.
 	/// </summary>

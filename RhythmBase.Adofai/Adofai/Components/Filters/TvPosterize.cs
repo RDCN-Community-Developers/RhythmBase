@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct TvPosterize : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.TvPosterize;
+	public readonly AdvancedFilter Type => AdvancedFilter.TvPosterize;
 	/// <summary>
 	/// Gets or sets the value of the <b>Posterize</b>.
 	/// </summary>

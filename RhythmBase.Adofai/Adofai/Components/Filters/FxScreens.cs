@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxScreens : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxScreens;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxScreens;
 	/// <summary>
 	/// Gets or sets the value of the <b>Tiles</b>.
 	/// </summary>

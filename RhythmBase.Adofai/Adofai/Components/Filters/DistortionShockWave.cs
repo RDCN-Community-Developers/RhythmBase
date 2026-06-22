@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DistortionShockWave : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DistortionShockWave;
+	public readonly AdvancedFilter Type => AdvancedFilter.DistortionShockWave;
 	/// <summary>
 	/// Gets or sets the value of the <b>PosX</b>.
 	/// </summary>

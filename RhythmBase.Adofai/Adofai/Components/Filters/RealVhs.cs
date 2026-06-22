@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct RealVhs : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.RealVhs;
+	public readonly AdvancedFilter Type => AdvancedFilter.RealVhs;
 	/// <summary>
 	/// Gets or sets the value of the <b>TRACKING</b>.
 	/// </summary>

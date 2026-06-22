@@ -12,7 +12,7 @@ internal class PaletteColorConverter : JsonConverter<PaletteColor>
 		string? t = reader.GetString();
 		return string.IsNullOrEmpty(t)
 			? default
-			: t.StartsWith("pal")
+			: t!.StartsWith("pal")
 			? new(int.Parse(t[3..]))
 			: new(Color.FromRgba(t));
 	}

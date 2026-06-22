@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorsBrightness : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorsBrightness;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorsBrightness;
 	/// <summary>
 	/// Gets or sets the value of the <b>_Brightness</b>.
 	/// </summary>

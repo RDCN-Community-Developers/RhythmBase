@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct LightWater : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.LightWater;
+	public readonly AdvancedFilter Type => AdvancedFilter.LightWater;
 	/// <summary>
 	/// Gets or sets the value of the <b>Size</b>.
 	/// </summary>

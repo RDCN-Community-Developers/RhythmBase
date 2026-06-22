@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct AtmosphereRain : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.AtmosphereRain;
+	public readonly AdvancedFilter Type => AdvancedFilter.AtmosphereRain;
 	/// <summary>
 	/// Gets or sets the value of the <b>Fade</b>.
 	/// </summary>

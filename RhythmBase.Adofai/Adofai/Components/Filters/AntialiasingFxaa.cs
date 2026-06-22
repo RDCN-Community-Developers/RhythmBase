@@ -6,5 +6,5 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct AntialiasingFxaa : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.AntialiasingFxaa;
+	public readonly AdvancedFilter Type => AdvancedFilter.AntialiasingFxaa;
 }

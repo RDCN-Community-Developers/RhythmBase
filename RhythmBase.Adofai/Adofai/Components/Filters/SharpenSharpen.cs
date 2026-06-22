@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct SharpenSharpen : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.SharpenSharpen;
+	public readonly AdvancedFilter Type => AdvancedFilter.SharpenSharpen;
 	/// <summary>
 	/// Gets or sets the value of the <b>Value</b>.
 	/// </summary>

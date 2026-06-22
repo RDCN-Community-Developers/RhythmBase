@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct BlurTiltShiftV : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.BlurTiltShiftV;
+	public readonly AdvancedFilter Type => AdvancedFilter.BlurTiltShiftV;
 	/// <summary>
 	/// Gets or sets the value of the <b>Amount</b>.
 	/// </summary>

@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct PixelisationDot : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.PixelisationDot;
+	public readonly AdvancedFilter Type => AdvancedFilter.PixelisationDot;
 	/// <summary>
 	/// Gets or sets the value of the <b>Size</b>.
 	/// </summary>

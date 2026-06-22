@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxAscii : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxAscii;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxAscii;
 	/// <summary>
 	/// Gets or sets the value of the <b>Value</b>.
 	/// </summary>

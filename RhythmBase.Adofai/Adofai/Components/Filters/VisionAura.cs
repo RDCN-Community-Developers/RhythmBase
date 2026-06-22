@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct VisionAura : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.VisionAura;
+	public readonly AdvancedFilter Type => AdvancedFilter.VisionAura;
 	/// <summary>
 	/// Gets or sets the value of the <b>Twist</b>.
 	/// </summary>

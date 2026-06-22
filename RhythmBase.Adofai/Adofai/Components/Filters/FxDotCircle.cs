@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxDotCircle : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxDotCircle;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxDotCircle;
 	/// <summary>
 	/// Gets or sets the value of the <b>Value</b>.
 	/// </summary>

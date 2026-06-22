@@ -6,5 +6,5 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct TvVideoflip : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.TvVideoflip;
+	public readonly AdvancedFilter Type => AdvancedFilter.TvVideoflip;
 }

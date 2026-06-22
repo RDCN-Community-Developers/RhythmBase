@@ -137,6 +137,9 @@ public class Row : OrderedEventCollection<BaseRowAction, EventType, TickTime>, I
 				_extraData[key] = value;
 		}
 	}
+	/// <summary>
+	/// Gets a read-only view of the extra data associated with the row.
+	/// </summary>
 	public IReadOnlyDictionary<string, JsonElement> ExtraData => _extraData;
 	private readonly Dictionary<string, JsonElement> _extraData = [];
 	internal Level? Parent = null;

@@ -38,9 +38,9 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
                     else if (reader.ValueTextEquals("difficulty"u8) && reader.Read())
                         level.Metadata.Difficulty = reader.GetInt32();
                     else if (reader.ValueTextEquals("startLoop"u8) && reader.Read())
-                        level.Metadata.StartLoop = reader.GetInt32();
+                        level.Metadata.StartLoop = reader.GetSingle();
                     else if (reader.ValueTextEquals("endLoop"u8) && reader.Read())
-                        level.Metadata.EndLoop = reader.GetInt32();
+                        level.Metadata.EndLoop = reader.GetSingle();
                     else if (reader.ValueTextEquals("lightWarning"u8) && reader.Read())
                         level.Metadata.LightWarning = reader.GetBoolean();
                     else if (reader.ValueTextEquals("loopPointsEnable"u8) && reader.Read())
@@ -127,7 +127,7 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
                         if (reader.ValueTextEquals("charter"u8) && reader.Read())
                             variant.Charter = reader.GetString() ?? "";
                         else if (reader.ValueTextEquals("difficulty"u8) && reader.Read())
-                            variant.Difficulty = reader.GetInt32();
+                            variant.Difficulty = reader.GetSingle();
                         else if (reader.ValueTextEquals("display"u8) && reader.Read())
                             variant.Display = reader.GetString() ?? "";
                         else if (reader.ValueTextEquals("extra"u8) && reader.Read())

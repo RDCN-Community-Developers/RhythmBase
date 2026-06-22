@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DistortionTwist : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DistortionTwist;
+	public readonly AdvancedFilter Type => AdvancedFilter.DistortionTwist;
 	/// <summary>
 	/// Gets or sets the value of the <b>CenterX</b>.
 	/// </summary>

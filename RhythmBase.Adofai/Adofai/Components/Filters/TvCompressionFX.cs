@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct TvCompressionFX : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.TvCompressionFX;
+	public readonly AdvancedFilter Type => AdvancedFilter.TvCompressionFX;
 	/// <summary>
 	/// Gets or sets the value of the <b>Parasite</b>.
 	/// </summary>

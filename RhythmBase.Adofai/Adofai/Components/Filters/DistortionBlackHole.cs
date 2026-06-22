@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct DistortionBlackHole : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.DistortionBlackHole;
+	public readonly AdvancedFilter Type => AdvancedFilter.DistortionBlackHole;
 	/// <summary>
 	/// Gets or sets the value of the <b>Size</b>.
 	/// </summary>

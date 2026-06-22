@@ -6,5 +6,5 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FxInverChromiLum : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FxInverChromiLum;
+	public readonly AdvancedFilter Type => AdvancedFilter.FxInverChromiLum;
 }

@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct VisionDrost : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.VisionDrost;
+	public readonly AdvancedFilter Type => AdvancedFilter.VisionDrost;
 	/// <summary>
 	/// Gets or sets the value of the <b>Intensity</b>.
 	/// </summary>

@@ -60,9 +60,9 @@ public static partial class Extensions
 	extension(PaletteColorWithAlpha e)
 	{
 		/// <summary>
-		/// Converts the <see cref="PaletteColorWithAlpha"/> to an in-game color based on the provided color palette and the properties of the <see cref="PaletteColorWithAlpha"/>.
+		/// Converts the <see cref="PaletteColorWithAlpha"/> to an in-game color based on the provided level's color palette and the properties of the <see cref="PaletteColorWithAlpha"/>.
 		/// </summary>
-		/// <param name="colorPalette">The color palette to use for conversion.</param>
+		/// <param name="level">The level containing the color palette.</param>
 		/// <returns>The in-game color.</returns>
 		public Color ToColor(Level level) => e.EnablePanel ? level.ColorPalette[e.PaletteIndex] : e.Color;
 	}

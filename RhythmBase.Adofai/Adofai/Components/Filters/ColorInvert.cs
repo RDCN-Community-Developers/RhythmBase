@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorInvert : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorInvert;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorInvert;
 	/// <summary>
 	/// Gets or sets the value of the <b>_Fade</b>.
 	/// </summary>

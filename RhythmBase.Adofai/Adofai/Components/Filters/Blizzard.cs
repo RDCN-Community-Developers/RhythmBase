@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct Blizzard : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.Blizzard;
+	public readonly AdvancedFilter Type => AdvancedFilter.Blizzard;
 	/// <summary>
 	/// Gets or sets the value of the <b>_Speed</b>.
 	/// </summary>

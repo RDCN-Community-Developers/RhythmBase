@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorsBleachBypass : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorsBleachBypass;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorsBleachBypass;
 	/// <summary>
 	/// Gets or sets the value of the <b>Value</b>.
 	/// </summary>

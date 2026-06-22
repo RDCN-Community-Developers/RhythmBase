@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorNoise : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorNoise;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorNoise;
 	/// <summary>
 	/// Gets or sets the value of the <b>Noise</b>.
 	/// </summary>

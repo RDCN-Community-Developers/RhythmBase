@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorsDarkColor : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorsDarkColor;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorsDarkColor;
 	/// <summary>
 	/// Gets or sets the value of the <b>Alpha</b>.
 	/// </summary>

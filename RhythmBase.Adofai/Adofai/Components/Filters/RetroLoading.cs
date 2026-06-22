@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct RetroLoading : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.RetroLoading;
+	public readonly AdvancedFilter Type => AdvancedFilter.RetroLoading;
 	/// <summary>
 	/// Gets or sets the value of the <b>Speed</b>.
 	/// </summary>

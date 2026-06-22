@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct GradientsElectricGradient : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.GradientsElectricGradient;
+	public readonly AdvancedFilter Type => AdvancedFilter.GradientsElectricGradient;
 	/// <summary>
 	/// Gets or sets the value of the <b>Switch</b>.
 	/// </summary>

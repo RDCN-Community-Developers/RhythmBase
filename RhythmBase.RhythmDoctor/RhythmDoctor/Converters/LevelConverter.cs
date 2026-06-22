@@ -210,7 +210,9 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 				List<AdvanceText> advanceTexts = [];
 				JsonElement[]? data = [];
 				List<JsonDocument> maybeIllegalAt = [];
+#if DEBUG
 				int index = 0;
+#endif
 				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 				{
 					IBaseEvent? e = null;
@@ -335,7 +337,6 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 			{ WriteIndented = false, }
 		};
 		byte[] bytes = GetIndentByte(writer, options.JsonSerializerOptions.IndentCharacter, 2);
-		ReadOnlySpan<byte> sl;
 		writer.WriteStartObject();
 		writer.WritePropertyName("settings");
 		settingsConverter.Write(writer, value.Settings, options);

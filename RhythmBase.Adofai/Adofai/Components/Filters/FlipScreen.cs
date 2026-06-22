@@ -6,5 +6,5 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct FlipScreen : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.FlipScreen;
+	public readonly AdvancedFilter Type => AdvancedFilter.FlipScreen;
 }

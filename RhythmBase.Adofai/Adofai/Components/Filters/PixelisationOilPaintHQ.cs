@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct PixelisationOilPaintHQ : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.PixelisationOilPaintHQ;
+	public readonly AdvancedFilter Type => AdvancedFilter.PixelisationOilPaintHQ;
 	/// <summary>
 	/// Gets or sets the value of the <b>Value</b>.
 	/// </summary>

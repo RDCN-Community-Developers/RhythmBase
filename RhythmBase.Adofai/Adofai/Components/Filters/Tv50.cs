@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct Tv50 : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.Tv50;
+	public readonly AdvancedFilter Type => AdvancedFilter.Tv50;
 	/// <summary>
 	/// Gets or sets the value of the <b>Fade</b>.
 	/// </summary>

@@ -6,5 +6,5 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorYuv : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorYuv;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorYuv;
 }

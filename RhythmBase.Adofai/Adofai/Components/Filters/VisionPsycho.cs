@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct VisionPsycho : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.VisionPsycho;
+	public readonly AdvancedFilter Type => AdvancedFilter.VisionPsycho;
 	/// <summary>
 	/// Gets or sets the value of the <b>HoleSize</b>.
 	/// </summary>

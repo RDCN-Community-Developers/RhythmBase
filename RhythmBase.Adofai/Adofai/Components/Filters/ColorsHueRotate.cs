@@ -6,7 +6,7 @@ namespace RhythmBase.Adofai.Components.Filters;
 public struct ColorsHueRotate : IFilter
 {
 	///<inheritdoc/>
-	public readonly FilterType Type => FilterType.ColorsHueRotate;
+	public readonly AdvancedFilter Type => AdvancedFilter.ColorsHueRotate;
 	/// <summary>
 	/// Gets or sets the value of the <b>Speed</b>.
 	/// </summary>
