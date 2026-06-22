@@ -160,7 +160,7 @@ public partial struct Color(uint hex) :
 	/// <param name="g">Green component</param>
 	/// <param name="b">Blue component</param>
 	/// <param name="a">Alpha component (default is 255)</param>
-	/// <returns>Color instance</returns>
+	/// <returns>A new <see cref="Color"/> instance.</returns>
 	public static Color FromRgba(byte r, byte g, byte b, byte a = 255) => (uint)(a << 24 | r << 16 | g << 8 | b);
 	/// <summary>
 	/// Attempts to create an <see cref="Color"/> instance from a hexadecimal RGBA color representation.
@@ -171,8 +171,8 @@ public partial struct Color(uint hex) :
 	/// <param name="hex">A string representing the hexadecimal ARGB color. The input can optionally start with a '#'
 	/// character and must be in one of the following formats: RGB (3 characters), ARGB (4 characters), RRGGBB (6
 	/// characters), or AARRGGBB (8 characters).</param>
-	/// <returns><see langword="true"/> if the conversion was successful; otherwise, <see langword="false"/>.</returns>
-	public static Color FromRgba(string hex) => TryFromRgba(hex, out Color color) ? color : throw new ArgumentException("");
+	/// <returns>A new <see cref="Color"/> instance.</returns>
+	public static Color FromRgba(string hex) => TryFromRgba(hex, out Color color) ? color : throw new ArgumentException("Invalid hexadecimal color string.");
 	/// <summary>
 	/// Attempts to create an <see cref="Color"/> instance from a hexadecimal RGBA color representation.
 	/// </summary>
@@ -183,32 +183,14 @@ public partial struct Color(uint hex) :
 	/// character and must be in one of the following formats: RGB (3 characters), RGBA (4 characters), RRGGBB (6
 	/// characters), or RRGGBBAA (8 characters).</param>
 	/// <exception cref="ArgumentException">Thrown when the hexadecimal string length is not 3, 4, 6, or 8.</exception>
-	/// <returns><see langword="true"/> if the conversion was successful; otherwise, <see langword="false"/>.</returns>
-	public static Color FromRgba(ReadOnlySpan<byte> hex) => TryFromRgba(hex, out Color color) ? color : throw new ArgumentException("");
+	/// <returns>A new <see cref="Color"/> instance.</returns>
+	public static Color FromRgba(ReadOnlySpan<byte> hex) => TryFromRgba(hex, out Color color) ? color : throw new ArgumentException("Invalid hexadecimal color span.");
 	/// <summary>
 	/// Creates an Color instance from a 32-bit RGBA value.
 	/// </summary>
 	/// <param name="hex">The 32-bit RGBA value.</param>
-	/// <returns>A new Color instance.</returns>
+	/// <returns>A new <see cref="Color"/> instance.</returns>
 	public static Color FromRgba(uint hex) => hex & 0x00FFFFFFu | ((hex & 0xFFu) << 24);
-	/// <summary>
-	/// Converts a byte representing a hexadecimal character to its corresponding numeric value.
-	/// </summary>
-	/// <param name="b">The byte representing a hexadecimal character. Must be a valid ASCII character in the ranges '0'-'9', 'a'-'f', or
-	/// 'A'-'F'.</param>
-	/// <returns>The numeric value of the hexadecimal character, where '0'-'9' map to 0-9, 'a'-'f' map to 10-15, and 'A'-'F' map to
-	/// 10-15.</returns>
-	/// <exception cref="ArgumentException">Thrown if <paramref name="b"/> is not a valid hexadecimal character.</exception>
-	private static byte FromChar(byte b)
-	{
-		return b switch
-		{
-			>= (byte)'0' and <= (byte)'9' => (byte)(b - (byte)'0'),
-			>= (byte)'a' and <= (byte)'f' => (byte)(b - (byte)'a' + 10),
-			>= (byte)'A' and <= (byte)'F' => (byte)(b - (byte)'A' + 10),
-			_ => throw new ArgumentException("Invalid hex character."),
-		};
-	}
 	/// <summary>
 	/// Attempts to create an <see cref="Color"/> instance from a hexadecimal RGBA color string.
 	/// </summary>
@@ -322,7 +304,7 @@ public partial struct Color(uint hex) :
 	}
 	/// <summary>
 	/// Attempts to parse the current JSON token value as a hex RGBA color string.
-	/// Works with <see cref="ReadOnlySequence{T}"/>-backed readers without allocating.
+	/// Works with <see cref="System.Buffers.ReadOnlySequence{T}"/>-backed readers without allocating.
 	/// </summary>
 	/// <param name="reader">The JSON reader positioned at a string token containing a hex color.</param>
 	/// <param name="color">When this method returns, contains the resulting <see cref="Color"/> if the conversion was successful;
@@ -350,7 +332,7 @@ public partial struct Color(uint hex) :
 	/// <param name="r">Red component</param>
 	/// <param name="g">Green component</param>
 	/// <param name="b">Blue component</param>
-	/// <returns>Color instance</returns>
+	/// <returns>A new <see cref="Color"/> instance.</returns>
 	public static Color FromArgb(byte a, byte r, byte g, byte b) => new((uint)(a << 24 | r << 16 | g << 8 | b));
 	/// <summary>
 	/// Attempts to create an <see cref="Color"/> instance from a hexadecimal RGBA color representation.
@@ -361,8 +343,8 @@ public partial struct Color(uint hex) :
 	/// <param name="hex">A string representing the hexadecimal ARGB color. The input can optionally start with a '#'
 	/// character and must be in one of the following formats: RGB (3 characters), ARGB (4 characters), RRGGBB (6
 	/// characters), or AARRGGBB (8 characters).</param>
-	/// <returns><see langword="true"/> if the conversion was successful; otherwise, <see langword="false"/>.</returns>
-	public static Color FromArgb(ReadOnlySpan<byte> hex) => TryFromArgb(hex, out Color color) ? color : throw new ArgumentException("");
+	/// <returns>A new <see cref="Color"/> instance.</returns>
+	public static Color FromArgb(ReadOnlySpan<byte> hex) => TryFromArgb(hex, out Color color) ? color : throw new ArgumentException("Invalid hexadecimal color span.");
 	/// <summary>
 	/// Attempts to create an <see cref="Color"/> instance from a hexadecimal RGBA color representation.
 	/// </summary>
@@ -372,8 +354,8 @@ public partial struct Color(uint hex) :
 	/// <param name="hex">A string representing the hexadecimal ARGB color. The input can optionally start with a '#'
 	/// character and must be in one of the following formats: RGB (3 characters), ARGB (4 characters), RRGGBB (6
 	/// characters), or AARRGGBB (8 characters).</param>
-	/// <returns><see langword="true"/> if the conversion was successful; otherwise, <see langword="false"/>.</returns>
-	public static Color FromArgb(string hex) => TryFromArgb(hex, out Color color) ? color : throw new ArgumentException("");
+	/// <returns>A new <see cref="Color"/> instance.</returns>
+	public static Color FromArgb(string hex) => TryFromArgb(hex, out Color color) ? color : throw new ArgumentException("Invalid hexadecimal color string.");
 	/// <summary>
 	/// Creates an <see cref="Color"/> instance from a 32-bit ARGB value.
 	/// </summary>
@@ -391,7 +373,7 @@ public partial struct Color(uint hex) :
 	/// characters), or AARRGGBB (8 characters).</param>
 	/// <param name="color">When this method returns, contains the resulting <see cref="Color"/> if the conversion was successful;
 	/// otherwise, the default value of <see cref="Color"/>.</param>
-	/// <returns><see langword="true"/> if the conversion was successful; otherwise, <see langword="false"/>.</returns>
+	/// <returns>A new <see cref="Color"/> instance.</returns>
 	public static bool TryFromArgb(string hex, out Color color)
 	{
 		color = default;
@@ -447,7 +429,7 @@ public partial struct Color(uint hex) :
 	/// characters), or AARRGGBB (8 characters).</param>
 	/// <param name="color">When this method returns, contains the resulting <see cref="Color"/> if the conversion was successful;
 	/// otherwise, the default value of <see cref="Color"/>.</param>
-	/// <returns><see langword="true"/> if the conversion was successful; otherwise, <see langword="false"/>.</returns>
+	/// <returns>A new <see cref="Color"/> instance.</returns>
 	public static bool TryFromArgb(ReadOnlySpan<byte> hex, out Color color)
 	{
 		color = default;
@@ -491,16 +473,13 @@ public partial struct Color(uint hex) :
 	/// <summary>
 	/// Creates an Color object from the HSL color space.
 	/// </summary>
-	/// <param name="h">Hue (0-360)</param>
+	/// <param name="h">Hue (0-)</param>
 	/// <param name="s">Saturation (0-1)</param>
 	/// <param name="l">Lightness (0-1)</param>
 	/// <param name="a">Alpha (0-255)</param>
 	/// <returns>Corresponding Color object</returns>
 	public static Color FromHsl(float h, float s, float l, byte a = 255)
 	{
-		h /= 360;
-		s /= 100;
-		l /= 100;
 		float r, g, b;
 		if (s == 0)
 		{
@@ -527,16 +506,13 @@ public partial struct Color(uint hex) :
 	/// <summary>
 	/// Creates an Color object from HSV values.
 	/// </summary>
-	/// <param name="h">Hue (0-360)</param>
+	/// <param name="h">Hue (0-1)</param>
 	/// <param name="s">Saturation (0-1)</param>
 	/// <param name="v">Value (0-1)</param>
 	/// <param name="a">Alpha (0-255)</param>
 	/// <returns>Returns an Color object.</returns>
 	public static Color FromHsv(float h, float s, float v, byte a = 255)
 	{
-		h /= 360;
-		s /= 100;
-		v /= 100;
 		int hi = (int)(h * 6);
 		float f = h * 6 - hi;
 		float p = v * (1 - s);
@@ -567,7 +543,7 @@ public partial struct Color(uint hex) :
 	/// <returns>A new <see cref="Color"/> that represents the interpolated color.</returns>
 	public static Color Lerp(Color a, Color b, float t)
 	{
-		t = t < 0 ? 0 : t > 1 ? 1 : t;
+		t = float.Clamp(t, 0, 1);
 		byte aA = a.A, aR = a.R, aG = a.G, aB = a.B;
 		byte bA = b.A, bR = b.R, bG = b.G, bB = b.B;
 		byte rA = (byte)(aA + (bA - aA) * t);
@@ -596,6 +572,16 @@ public partial struct Color(uint hex) :
 	/// defined by the Color structure.</remarks>
 	/// <param name="color">The Color instance to convert.</param>
 	public static implicit operator uint(Color color) => color._color;
+	/// <summary>
+	/// Defines an explicit conversion from a <see cref="System.Drawing.Color"/> to a <see cref="Color"/> instance and vice versa.
+	/// </summary>
+	/// <param name="color">The <see cref="System.Drawing.Color"/> to convert.</param>
+	public static explicit operator Color(System.Drawing.Color color) => FromArgb(color.A, color.R, color.G, color.B);
+	/// <summary>
+	/// Defines an explicit conversion from a <see cref="Color"/> instance to a <see cref="System.Drawing.Color"/>.
+	/// </summary>
+	/// <param name="color">The <see cref="Color"/> to convert.</param>
+	public static explicit operator System.Drawing.Color(Color color) => System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B);
 	/// <inheritdoc/>
 	public readonly override string ToString() => ToString("#AARRGGBB");
 	private readonly string GetDebuggerDisplay() => ToString();
