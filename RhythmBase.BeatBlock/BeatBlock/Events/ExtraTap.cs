@@ -9,7 +9,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// A tap independent of other notes
 /// </remarks>
 [JsonObjectSerializable]
-public record class ExtraTap : BaseEvent, IChartEvent, IPureEvent
+public record class ExtraTap : BaseEvent, IChartEvent, IPureEvent, IEaseSequenceEvent
 {
     /// <inheritdoc/>
     public override EventType Type => EventType.ExtraTap;

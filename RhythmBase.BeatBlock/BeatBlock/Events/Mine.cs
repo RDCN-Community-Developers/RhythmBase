@@ -9,7 +9,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// Similar to a basic note, but must NOT be hit.
 /// </remarks>
 [JsonObjectSerializable]
-public record class Mine : BaseEvent, IChartEvent, IPureEvent
+public record class Mine : BaseEvent, IChartEvent, IPureEvent, IEaseSequenceEvent
 {
     /// <inheritdoc/>
     public override EventType Type => EventType.Mine;

@@ -83,6 +83,10 @@ partial class Level
 #if DEBUG
 			int index = 0;
 #endif
+			bool _14_useEffectCanvas = false;
+			float _14_firstDecoTime = float.MaxValue;
+			bool _17_useEaseSequence = false;
+			float _17_firstEaseTime = float.MaxValue;
 			while (reader.Read())
 			{
 				if (reader.TokenType == JsonTokenType.EndArray)
@@ -92,6 +96,34 @@ partial class Level
 				try
 				{
 					e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
+					if (options.Version <= 10 && e is Paddles && e["paddles"] is JsonElement { ValueKind: JsonValueKind.Number } p)
+					{
+						p.TryGetInt32(out int paddles);
+						float paddleDistance = 360 / paddles;
+						for (int i = 0; i < paddles; i++)
+						{
+							events.Add(new Paddles()
+							{
+								Angle = e.Angle,
+								Time = e.Time,
+								Order = e.Order,
+								// Enabled = true,
+								Duration = 0,
+								Paddle = i + 1,
+								NewAngle = i * paddleDistance,
+							});
+						}
+					}
+					else if (options.Version <= 14 && e is Decoration d && d.EffectCanvas)
+					{
+						_14_useEffectCanvas = true;
+						_14_firstDecoTime = float.Min(_14_firstDecoTime, d.Time);
+					}
+					else if (options.Version <= 17 && e is IEaseSequenceEvent s)
+					{
+						_17_useEaseSequence = true;
+						_17_firstEaseTime = float.Min(_17_firstEaseTime, s.Time);
+					}
 					index++;
 				}
 				catch (Exception)
@@ -119,6 +151,36 @@ partial class Level
 				if (e == null)
 					continue;
 				events.Add(e);
+			}
+			if(_14_useEffectCanvas)
+			{
+				events.Add(new SetBoolean()
+				{
+					Time = _14_firstDecoTime,
+					Order = -999,
+					Enable = true,
+					Var = "vfx.effectCanvas.oldColors",
+				});
+			}
+			if(_17_useEaseSequence)
+			{
+				events.Add(new SetBoolean()
+				{
+					Time = _17_firstEaseTime - (/*level.properties.offset ??*/ 8),
+					Order = -1,
+					Enable = false,
+					Var = "vfx.useVFXDistanceForVFXAngle",
+				});
+				events.Add(new Comment()
+				{
+					Angle = 10,
+					Time = _17_firstEaseTime - (/*level.properties.offset ??*/ 8),
+					Text = """
+		 This boolean was added for backwards compatibility when this level was upgraded from format 17 to format 18.
+		 Version 18: use VFX distance (from ease sequence) for VFX angle calculation
+		 If the new behavior is wanted, simply delete the boolean and this comment.
+		 """
+				});
 			}
 			return events;
 		}

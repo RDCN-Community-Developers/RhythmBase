@@ -9,7 +9,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// Similar to a basic note, but must be hit with the back of the paddle
 /// </remarks>
 [JsonObjectSerializable]
-public record class Inverse : BaseEvent, IChartEvent, IPureEvent
+public record class Inverse : BaseEvent, IChartEvent, IPureEvent, IEaseSequenceEvent
 {
     /// <inheritdoc/>
     public override EventType Type => EventType.Inverse;

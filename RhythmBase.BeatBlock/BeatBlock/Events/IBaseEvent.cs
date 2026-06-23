@@ -34,12 +34,18 @@ public interface IBaseEvent : IEvent<EventType, TickTime>
 /// <summary>
 /// Represents a chart event in a BeatBlock level.
 /// </summary>
+/// <remarks>
+/// The event will be stored in the chart rather than the level.
+/// </remarks>
 public interface IChartEvent : IBaseEvent
 {
 }
 /// <summary>
 /// Represents a pure event in a BeatBlock level.
 /// </summary>
+/// <remarks>
+/// The event will be allowed in the <b>no visual effects</b> mode.
+/// </remarks>
 public interface IPureEvent : IBaseEvent
 {
 }

@@ -10,7 +10,7 @@ namespace RhythmBase.BeatBlock.Events;
 /// No description
 /// </remarks>
 [JsonObjectSerializable]
-public record class Bounce : BaseEvent, IChartEvent, IPureEvent
+public record class Bounce : BaseEvent, IChartEvent, IPureEvent, IEaseSequenceEvent
 {
     /// <inheritdoc/>
     public override EventType Type => EventType.Bounce;
