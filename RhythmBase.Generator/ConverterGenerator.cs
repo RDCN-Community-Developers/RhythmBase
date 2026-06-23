@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Text;
 
 // 这坨写得太史了
 
@@ -289,7 +290,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 						property?.Name ?? subClass.Name,
 						property?.ContainingType?.ToDisplayString() ?? subClass.ContainingType?.ToDisplayString()));
 				}
-				if(fallbackType is not null)
+				if (fallbackType is not null)
 				{
 					var property = fallbackType.GetMembers().FirstOrDefault(m => m.Kind == SymbolKind.Property && m.Name == enumPropertyName);
 					if (property is IPropertySymbol propSymbol)
@@ -322,7 +323,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 				}
 				typesToGenerate.Add(new()
 				{
-					ClassType = classGen.RootType,
+					RootClassType = classGen.RootType,
 					ClassTypeEnum = enumType,
 					FallbackClassType = fallbackType,
 					FallbackClassTypeEnum = fallbackEnumMember,
@@ -537,6 +538,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 		GenerateEventTypeRegistry(context, registryInfo.Combine(context.CompilationProvider).Combine(EventTypeRegistryInfo), errors);
 		GenerateEnumConverter(context, registryInfo);
 		GenerateOtherFiles(context, registryInfo);
+		GenerateUpgrater(context, registryInfo.Combine(EventTypeRegistryInfo));
 
 	}
 	private const string CoreNs = "Global";
@@ -623,6 +625,90 @@ public partial class ConverterGenerator : IIncrementalGenerator
 			
 			""";
 			context.AddSource($"FileMainEntryConverter.{registryId}.g.cs", src);
+		});
+	}
+	private static void GenerateUpgrater(IncrementalGeneratorInitializationContext cxt, IncrementalValueProvider<(string? Left, EventTypeRegistryGenerationInfo[] Right)> incrementalValueProvider)
+	{
+		cxt.RegisterSourceOutput(incrementalValueProvider, (source, value) =>
+		{
+			(string? registryId, EventTypeRegistryGenerationInfo[]? gens) = value;
+			if (string.IsNullOrEmpty(registryId))
+				return;
+			bool multiple = gens?.Length > 1;
+			StringBuilder sb = new();
+			sb.AppendLine($"namespace RhythmBase.{registryId}.Converters;");
+			foreach (var info in gens ?? [])
+			{
+				string mtpName = multiple ? $"{info.RootClassType.Name}" : "";
+				string src = $$"""
+				/// <summary>
+				/// A JSON converter for <see cref="{{info.RootClassType.ToDisplayString()}}"/> that uses metadata-aware serializer options.
+				/// </summary>
+				internal abstract class BackwardCompatible{{mtpName}}MetadataJsonConverter : RhythmBase.Global.Converters.MetadataJsonConverter<{{info.RootClassType.ToDisplayString()}}>
+				{
+					protected class Upgrater
+					{
+						internal int MaxVersion { get; init; }
+						internal required Action<{{info.RootClassType.ToDisplayString()}}> UpgrateFunc { get; init; }
+						internal required {{info.ClassTypeEnum.ToDisplayString()}} Type { get; init; }
+					}
+					private readonly List<Upgrater> _upgraters = [];
+					private readonly EnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}> _typeHasUpgrater = [];
+					private int _maxVersion;
+					/// <summary>
+					/// The maximum version that this converter can upgrade.
+					/// </summary>
+					internal int MaxVersion => _maxVersion;
+					/// <summary>
+					/// The types of events that this converter can upgrade.
+					/// </summary>
+					internal EnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}> TypeHasUpgrater => _typeHasUpgrater;
+					/// <summary>
+					/// Registers an upgrader for a specific event type and version.
+					/// </summary>
+					/// <typeparam name="T">The type of the event to upgrade.</typeparam>
+					/// <param name="version">
+					/// The version for which to register the upgrader.
+					/// Versions <b>equal to or lower than</b> this will be affected by this upgrader.
+					/// </param>
+					/// <param name="upgrateAction">The action to perform when upgrading the event.</param>
+					protected void Register<T>(int version, Action<{{info.RootClassType.ToDisplayString()}}> upgrateAction) where T : {{info.RootClassType.ToDisplayString()}}, new()
+					{
+						var type = EventTypeRegistry.ToEnum{{(multiple ? info.ClassTypeEnum.Name : "")}}<T>();
+						_maxVersion = int.Max(_maxVersion, version);
+						_typeHasUpgrater.Add(type);
+						_upgraters.Add(new Upgrater()
+						{
+							MaxVersion = version,
+							Type = type,
+							UpgrateFunc = upgrateAction
+						});
+					}
+					/// <summary>
+					/// Upgrades the specified event to the latest version if an upgrader is registered for its type and version.
+					/// </summary>
+					/// <param name="version">The version of the event to upgrade.</param>
+					/// <param name="type">The type of the event to upgrade.</param>
+					/// <returns>An enumerable of upgraders that can upgrade the event.</returns>
+					protected IEnumerable<Upgrater> GetUpgraters(int version, {{info.ClassTypeEnum.ToDisplayString()}} type)
+					{
+						foreach (Upgrater upgrater in _upgraters)
+							if (upgrater.Type == type && upgrater.MaxVersion >= version)
+								yield return upgrater;
+					}
+					internal BackwardCompatible{{mtpName}}MetadataJsonConverter()
+					{
+						InitializeUpgraters();
+					}
+					/// <summary>
+					/// Initializes the upgraders for this converter. This method is called once when the converter is first used.
+					/// </summary>
+					protected abstract void InitializeUpgraters();
+				}
+				""";
+				sb.AppendLine(src);
+			}
+			source.AddSource($"Upgrader.{registryId}.g.cs", sb.ToString());
 		});
 	}
 

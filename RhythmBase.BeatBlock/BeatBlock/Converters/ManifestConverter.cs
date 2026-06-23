@@ -127,7 +127,7 @@ internal class ManifestConverter : MetadataJsonConverter<Level>
                         if (reader.ValueTextEquals("charter"u8) && reader.Read())
                             variant.Charter = reader.GetString() ?? "";
                         else if (reader.ValueTextEquals("difficulty"u8) && reader.Read())
-                            variant.Difficulty = reader.GetSingle();
+                            variant.Difficulty = (int)reader.GetSingle();
                         else if (reader.ValueTextEquals("display"u8) && reader.Read())
                             variant.Display = reader.GetString() ?? "";
                         else if (reader.ValueTextEquals("extra"u8) && reader.Read())

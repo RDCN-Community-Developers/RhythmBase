@@ -4,8 +4,11 @@ using System.Text.Json;
 
 namespace RhythmBase.BeatBlock.Converters;
 
-internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
+internal class BaseEventConverter : BackwardCompatibleMetadataJsonConverter
 {
+	protected override void InitializeUpgraters()
+	{
+	}
 	public override bool CanConvert(Type typeToConvert)
 	{
 		return Type.IsAssignableFrom(typeToConvert);
@@ -13,7 +16,6 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 	public override IBaseEvent? Read(ref Utf8JsonReader reader, Type typeToConvert, MetadataJsonSerializerOptions options)
 	{
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
-		string? type = null;
 
 		Utf8JsonReader checkpoint = reader;
 		while (reader.Read())
@@ -25,19 +27,19 @@ internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 				if (reader.ValueTextEquals("type"u8))
 				{
 					reader.Read();
-					type = reader.GetString();
 					break;
 				}
 				else
 					reader.Skip();
 			}
 		}
-		reader = checkpoint; IBaseEvent e;
-		if (!EnumConverter.TryParse(type, out EventType typeEnum))
-			e = ReadForwardEvent(ref reader) ?? new ForwardEvent() { ActualType = type ?? "" };
+		IBaseEvent e;
+		if (!EnumConverter.TryParse(ref reader, out EventType typeEnum))
+			e = ReadForwardEvent(ref checkpoint) ?? new ForwardEvent() { ActualType = reader.GetString() ?? "" };
 		else
-			e = EventConverterMap.GetConverter(typeEnum).ReadProperties(ref reader, options);
-		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndObject);
+			e = EventConverterMap.GetConverter(typeEnum).ReadProperties(ref checkpoint, options);
+		JsonException.ThrowIfNotMatch(ref checkpoint, JsonTokenType.EndObject);
+		reader = checkpoint;
 		return e;
 	}
 	public static Events.IForwardEvent? ReadForwardEvent(ref Utf8JsonReader reader)

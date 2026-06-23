@@ -1066,7 +1066,7 @@ public partial class ConverterGenerator
 	}
 	private class EventTypeRegistryGenerationInfo
 	{
-		public INamedTypeSymbol ClassType { get; set; }
+		public INamedTypeSymbol RootClassType { get; set; }
 		public INamedTypeSymbol ClassTypeEnum { get; set; }
 		public IEnumerable<INamedTypeSymbol> Classes { get; set; }
 		public Dictionary<INamedTypeSymbol, HashSet<ISymbol>> EventTypeRegistry { get; set; }
@@ -1096,9 +1096,9 @@ public static partial class EventTypeRegistry
 """);
 		for (int i = 0; i < infos.Length; i++)
 		{
-			string indexPostfix = infos.Length > 1 ? $"_{i}" : "";
-			string enumPostfix = infos.Length > 1 ? $"_{infos[i].ClassTypeEnum.Name}" : "";
-			string classPostfix = infos.Length > 1 ? $"_{infos[i].ClassType.Name}" : "";
+			string indexPostfix = infos.Length > 1 ? $"{i}" : "";
+			string enumPostfix = infos.Length > 1 ? $"{infos[i].ClassTypeEnum.Name}" : "";
+			string classPostfix = infos.Length > 1 ? $"{infos[i].RootClassType.Name}" : "";
 			EventTypeRegistryGenerationInfo? info = infos[i];
 			int maxTypeStrLength = 100;
 			int maxEnumStrLength = 100;
@@ -1179,7 +1179,7 @@ public static partial class EventTypeRegistry
 	/// </summary>  
 	/// <typeparam name="TEvent">The generic event type to convert.</typeparam>  
 	/// <returns>The corresponding <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumeration.</returns>  
-	public static {{info.ClassTypeEnum.ToDisplayString()}} ToEnum{{enumPostfix}}<TEvent>() where TEvent : {{info.ClassType.ToDisplayString()}}, new() => ToEnum{{enumPostfix}}(typeof(TEvent));
+	public static {{info.ClassTypeEnum.ToDisplayString()}} ToEnum{{enumPostfix}}<TEvent>() where TEvent : {{info.RootClassType.ToDisplayString()}}, new() => ToEnum{{enumPostfix}}(typeof(TEvent));
 	/// <summary>  
 	/// Converts a type to an array of corresponding <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumerations.  
 	/// </summary>  
@@ -1195,7 +1195,7 @@ public static partial class EventTypeRegistry
 	/// </summary>  
 	/// <typeparam name="TEvent">The generic event type to convert.</typeparam>  
 	/// <returns>An array of corresponding <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumerations.</returns>
-	public static ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}> ToEnums{{enumPostfix}}<TEvent>() where TEvent : {{info.ClassType.ToDisplayString()}} => ToEnums{{enumPostfix}}(typeof(TEvent));
+	public static ReadOnlyEnumCollection<{{info.ClassTypeEnum.ToDisplayString()}}> ToEnums{{enumPostfix}}<TEvent>() where TEvent : {{info.RootClassType.ToDisplayString()}} => ToEnums{{enumPostfix}}(typeof(TEvent));
 		/// <summary>  
 	/// Converts an <see cref="{{info.ClassTypeEnum.ToDisplayString()}}" /> enumeration to its corresponding Type.  
 	/// </summary>  
@@ -1205,7 +1205,7 @@ public static partial class EventTypeRegistry
 	public static Type ToType(this {{info.ClassTypeEnum.ToDisplayString()}} type)
 	{
 		if (_enum2type{{indexPostfix}} == null)
-			return Type.GetType($"{{info.ClassType.ContainingNamespace.ToDisplayString()}}.{type}") ?? throw new InvalidOperationException(
+			return Type.GetType($"{{info.RootClassType.ContainingNamespace.ToDisplayString()}}.{type}") ?? throw new InvalidOperationException(
 					$"Illegal Type: {type}.");
 		if (_enum2type{{indexPostfix}}.TryGetValue(type, out Type t))
 			return t;
@@ -1234,7 +1234,7 @@ public static partial class EventTypeRegistry
 """);
 			}
 			sb.AppendLine($$"""
-		return typeof({{(infos.Length == 1 ? (infos[0].FallbackClassType?.ToDisplayString() ?? infos[0].ClassType.ToDisplayString()) : "object")}});
+		return typeof({{(infos.Length == 1 ? (infos[0].FallbackClassType?.ToDisplayString() ?? infos[0].RootClassType.ToDisplayString()) : "object")}});
 	}
 """);
 		}
@@ -1261,7 +1261,7 @@ internal static class UnhandledFieldHelper
 """);
 			for (int i = 0; i < infos.Length; i++)
 			{
-				string enumPostfix = infos.Length > 1 ? $"_{infos[i].ClassTypeEnum.Name}" : "";
+				string enumPostfix = infos.Length > 1 ? $"{infos[i].ClassTypeEnum.Name}" : "";
 				string enumType = infos[i].ClassTypeEnum.ToDisplayString();
 				sb.AppendLine($$"""
 			try

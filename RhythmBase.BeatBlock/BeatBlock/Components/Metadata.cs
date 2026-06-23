@@ -142,7 +142,7 @@ public class Chart :
     /// <summary>
     /// Gets or sets the difficulty of the chart.
     /// </summary>
-    public float Difficulty { get; set; }
+    public int Difficulty { get; set; }
     /// <summary>
     /// Gets or sets the display name of the chart.
     /// </summary>
