@@ -75,10 +75,9 @@ public abstract record class BaseEvent : IBaseEvent
 			Y = Y,
 			Tag = Tag,
 			RunTag = RunTag,
-			Condition = Condition,
+			Condition = Condition.Clone(),
 			Active = Active,
 		};
-		temp.Condition = Condition.Clone();
 		return temp;
 	}
 	/// <inheritdoc/>
