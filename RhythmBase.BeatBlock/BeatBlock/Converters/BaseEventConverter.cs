@@ -117,7 +117,7 @@ internal class BaseEventConverter : BackwardCompatibleMetadataJsonConverter
 			else if (options.Version <= 10 && reader.ValueTextEquals("width"u8))
 				e = EventConverterMap.GetConverter(EventType.Paddles).ReadProperties(ref checkpoint, options);
 			else
-				e = ReadForwardEvent(ref checkpoint) ?? new ForwardEvent() { ActualType = reader.GetString() ?? "" };
+				e = ReadForwardEvent(ref checkpoint) ?? throw new JsonException("Unknown event type and failed to parse.");
 		}
 		JsonException.ThrowIfNotMatch(ref checkpoint, JsonTokenType.EndObject);
 		reader = checkpoint;

@@ -12,12 +12,7 @@ public record class ForwardDecorationEvent : BaseDecorationAction, IForwardEvent
 	/// <inheritdoc />
 	public override EventType Type => EventType.ForwardDecorationEvent;
 	///<inheritdoc/>
-	public string ActualType
-	{
-		get => _extraData.TryGetValue("type", out JsonElement typeElement) && typeElement.ValueKind == JsonValueKind.String ?
-			typeElement.GetString() ?? "" : "";
-		set => _extraData["type"] = JsonElement.Parse($"\"{value}\"");
-	}
+	public string ActualType { get; private init; } = string.Empty;
 	/// <inheritdoc />
 	public override Tab Tab => Tab.Decorations;
 

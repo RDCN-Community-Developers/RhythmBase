@@ -9,5 +9,5 @@ public interface IForwardEvent
     /// <summary>
     /// Gets or sets the original event type name as it appears in the level file.
     /// </summary>
-    string ActualType { get; set; }
+    string ActualType { get; }
 }

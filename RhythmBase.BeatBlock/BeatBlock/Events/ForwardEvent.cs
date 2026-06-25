@@ -14,12 +14,7 @@ public record class ForwardEvent : BaseEvent, IForwardEvent
 	/// <summary>
 	/// Gets or sets the actual event type string.
 	/// </summary>
-	public string ActualType
-	{
-		get => _extraData.TryGetValue("type", out JsonElement typeElement) && typeElement.ValueKind == JsonValueKind.String ?
-						typeElement.GetString() ?? "" : "";
-		set => _extraData["type"] = JsonElement.Parse($"\"{value}\"");
-	}
+	public string ActualType { get; private init; } = string.Empty;
 	/// <summary>
 	/// Gets the extra data dictionary.
 	/// </summary>

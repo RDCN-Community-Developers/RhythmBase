@@ -98,7 +98,6 @@ public class Chart :
 		bool success = base.Add(item);
 		if (!success)
 			be._beat._calculator = originalCalculator;
-		Console.WriteLine($"({(success ? "T" : "F")}) {item.TickTime}, \t{item.Type}");
 		return success;
 	}
 	/// <inheritdoc/>

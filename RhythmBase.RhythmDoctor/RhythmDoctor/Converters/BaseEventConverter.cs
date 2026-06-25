@@ -189,7 +189,7 @@ internal class BaseEventConverter : BackwardCompatibleMetadataJsonConverter
 		}
 		reader = checkpoint; IBaseEvent e;
 		if (type is null || !Enum.TryParse(type, true, out EventType typeEnum))
-			e = ReadForwardEvent(ref reader) ?? (new ForwardEvent() { ActualType = type ?? "" });
+			e = ReadForwardEvent(ref reader) ?? throw new JsonException("Unknown event type and failed to parse.");
 		else
 			e = EventConverterMap.GetConverter(typeEnum).ReadProperties(ref reader, options);
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.EndObject);
