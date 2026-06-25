@@ -11,46 +11,61 @@ namespace RhythmBase.BeatBlock.Events;
 [JsonObjectHasSerializer(typeof(Converters.MemberConverter<>))]
 public abstract record class BaseEvent : IBaseEvent
 {
-    /// <summary>
-    /// Gets the type of the event.
-    /// </summary>
-    public abstract EventType Type { get; }
-    /// <summary>
-    /// Gets or sets the angle of the event.
-    /// </summary>
-    public float Angle { get; set; }
-    /// <summary>
-    /// Gets or sets the variant of the event.
-    /// </summary>
-    public string? Variant { get; set; }
-    /// <summary>
-    /// Gets or sets the order of the event.
-    /// </summary>
-    public int? Order { get; set; }
-    /// <summary>
-    /// Gets the beat of the event.
-    /// </summary>
-    public TickTime TickTime { get; set; }
+	internal TickTime _beat = new(0f);
+	/// <summary>
+	/// Gets the type of the event.
+	/// </summary>
+	public abstract EventType Type { get; }
+	/// <summary>
+	/// Gets or sets the angle of the event.
+	/// </summary>
+	public float Angle { get; set; }
+	/// <summary>
+	/// Gets or sets the variant of the event.
+	/// </summary>
+	public string? Variant { get; set; }
+	/// <summary>
+	/// Gets or sets the order of the event.
+	/// </summary>
+	public int? Order { get; set; }
+	/// <summary>
+	/// Gets the beat of the event.
+	/// </summary>
+	public TickTime TickTime
+	{
+		get => _beat;
+		set
+		{
+			if (!value.IsEmpty && _beat == value)
+				return;
+			BeatCalculator? c = _beat.BaseChart?.Calculator;
+			_beat.BaseChart?.Remove(this);
+			_beat = c == null ?
+				value.WithoutLink() :
+				new(c, value);
+			_beat.BaseChart?.Add(this);
+		}
+	}
 	/// <summary>
 	/// 
 	/// </summary>
 	[JsonCondition($"$&.{nameof(ForceStoreInLevel)}")]
 	public bool ForceStoreInLevel { get; set; }
-    /// <summary>
-    /// Gets or sets additional data associated with the specified property name.
-    /// </summary>
-    /// <param name="propertyName">The name of the property.</param>
-    /// <returns>The <see cref="JsonElement"/> value associated with the property.</returns>
-    public JsonElement this[string propertyName]
-    {
-        get => _extraData.TryGetValue(propertyName, out JsonElement value) ? value : default;
-        set
-        {
-            if (value.ValueKind == JsonValueKind.Undefined)
-                _extraData.Remove(propertyName);
-            else
-                _extraData[propertyName] = value;
-        }
-    }
-    internal Dictionary<string, JsonElement> _extraData = [];
+	/// <summary>
+	/// Gets or sets additional data associated with the specified property name.
+	/// </summary>
+	/// <param name="propertyName">The name of the property.</param>
+	/// <returns>The <see cref="JsonElement"/> value associated with the property.</returns>
+	public JsonElement this[string propertyName]
+	{
+		get => _extraData.TryGetValue(propertyName, out JsonElement value) ? value : default;
+		set
+		{
+			if (value.ValueKind == JsonValueKind.Undefined)
+				_extraData.Remove(propertyName);
+			else
+				_extraData[propertyName] = value;
+		}
+	}
+	internal Dictionary<string, JsonElement> _extraData = [];
 }

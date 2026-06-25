@@ -6,7 +6,6 @@ partial class ConverterGenerator
 	private const string JsonEnumAttrName = "RhythmBase.JsonEnumSerializableAttribute";
 	private const string JsonObjectSerializableAttrName = "RhythmBase.JsonObjectSerializableAttribute";
 	private const string JsonObjectHasSerializerAttrName = "RhythmBase.JsonObjectHasSerializerAttribute";
-	private const string JsonObjectNotSerializableAttrName = "RhythmBase.JsonObjectNotSerializableAttribute";
 	private const string JsonObjectSerializationFallbackAttrName = "RhythmBase.JsonObjectSerializationFallbackAttribute";
 	private const string JsonAliasAttrName = "RhythmBase.JsonAliasAttribute";
 	private const string JsonIgnoreAttrName = "RhythmBase.JsonIgnoreAttribute";
@@ -20,6 +19,7 @@ partial class ConverterGenerator
 	private const string JsonConverterSourceTypeAttrName = "RhythmBase.JsonConverterSourceTypeAttribute";
 	private const string JsonFlattenAttrName = "RhythmBase.JsonFlattenAttribute";
 	private const string TickTimeAttrName = "RhythmBase.TickTimeAttribute";
+	private const string JsonEnumCastingAttrName = "RhythmBase.JsonEnumCastingAttribute";
 
 	// Type 类型
 	private const string IEventTypeName = "RhythmBase.Global.Events.IEvent";

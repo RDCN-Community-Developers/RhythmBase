@@ -14,10 +14,10 @@ partial struct TickTime
 			if ((!MustFromCache || !_isTickLoaded) && _calculator is not null)
 			{
 				if (_isTimeSpanLoaded)
-					_tick = _calculator.TimeSpanToTick(_TimeSpan) - 1f;
+					_tick = _calculator.TimeSpanToTick(_TimeSpan);
 				_isTickLoaded = true;
 			}
-			return _tick + 1f;
+			return _tick;
 		}
 	}
 	public partial TimeSpan TimeSpan
@@ -27,7 +27,7 @@ partial struct TickTime
 			if ((!MustFromCache || !_isTimeSpanLoaded) && _calculator is not null)
 			{
 				if (_isTickLoaded)
-					_TimeSpan = _calculator.TickToTimeSpan(_tick + 1f);
+					_TimeSpan = _calculator.TickToTimeSpan(_tick);
 				_isTimeSpanLoaded = true;
 			}
 			return _TimeSpan;
@@ -35,19 +35,10 @@ partial struct TickTime
 	}
 	partial void InitDefault()
 	{
-		_tick = 1f;
+		_tick = 0f;
 		_TimeSpan = TimeSpan.Zero;
 		_isTickLoaded = true;
 		_isTimeSpanLoaded = true;
-	}
-	partial void NormalizeTick()
-	{
-		if (_tick < 1f) _tick = 1f;
-		_tick -= 1f;
-	}
-	partial void NormalizeTimeSpan()
-	{
-		if (_TimeSpan < TimeSpan.Zero) _TimeSpan = TimeSpan.Zero;
 	}
 	private static partial void AddTickAndCache(TickTime left, float right, ref TickTime result)
 	{
@@ -106,7 +97,7 @@ partial struct TickTime
 			_TimeSpan = beat._TimeSpan > TimeSpan.Zero ? beat._TimeSpan : TimeSpan.Zero;
 			_isTimeSpanLoaded = true;
 			_calculator = calculator;
-			_tick = _calculator.TimeSpanToTick(TimeSpan) - 1f;
+			_tick = _calculator.TimeSpanToTick(TimeSpan);
 		}
 	}
 	public readonly partial bool IsEmpty => _calculator == null || !_isTickLoaded && !_isTimeSpanLoaded;
@@ -125,7 +116,7 @@ partial struct TickTime
 	internal partial void ResetBPM()
 	{
 		if (!_isTickLoaded)
-			_tick = _calculator?.TimeSpanToTick(_TimeSpan) - 1f ?? throw new InvalidRDBeatException();
+			_tick = _calculator?.TimeSpanToTick(_TimeSpan) ?? throw new InvalidRDBeatException();
 		_isTickLoaded = true;
 		_isTimeSpanLoaded = false;
 		_isBPMLoaded = false;
@@ -188,7 +179,7 @@ partial struct TickTime
 				_isTimeSpanLoaded ? _TimeSpan.ToString() : "?"
 				)}]";
 		else
-			ToString = $"[{_tick}?]";
+			ToString = $"[{_tick}]";
 		return ToString;
 	}
 }

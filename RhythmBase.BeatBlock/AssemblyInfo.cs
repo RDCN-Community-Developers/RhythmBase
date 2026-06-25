@@ -11,3 +11,4 @@ using RhythmBase.BeatBlock.Events;
 	typeof(RhythmBase.BeatBlock.EventType),
 	typeof(RhythmBase.BeatBlock.Events.IBaseEvent)
 	)]
+[assembly: RhythmBase.JsonEnumCasting(typeof(RhythmBase.Global.Components.Easing.EaseType), false)]

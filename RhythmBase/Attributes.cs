@@ -106,35 +106,40 @@ public sealed class JsonConverterLinkAttribute(Type objectType, Type converterTy
 /// <param name="typeEnumPropertyName">The property on the event interface that returns the enum value.</param>
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true, Inherited = false)]
 public sealed class JsonConverterSourceTypeAttribute(
-    Type interfaceType,
-    Type typeEnumType,
-    Type converterBaseType,
-    string typeEnumPropertyName
-    ) : Attribute
+		Type interfaceType,
+		Type typeEnumType,
+		Type converterBaseType,
+		string typeEnumPropertyName
+		) : Attribute
 { }
 /// <summary>
 /// TickTime generation attribute for a game adapter, specifying the chart type, calculator type, and tick time type.
 /// </summary>
 /// <param name="chartType">The chart type. Must implement <see cref="IChart{TBeat}"/>.</param>
-/// <param name="calculatorType">The calculator type. Must implement <see cref="IBeatCalculator{TBeat}"/>.</param>
+/// <param name="calculatorType">The calculator type.</param>
 /// <param name="tickTimeType">The tick time type. Must implement <see cref="ITickTime{TBeat}"/>.</param>
+/// <param name="typeEnumType">The enum type representing event categories (e.g. <c>EventType</c>).</param>
+/// <param name="typeInterfaceType">The event interface (e.g. <c>IBaseEvent</c>).</param>
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false, Inherited = false)]
 public sealed class TickTimeAttribute(
-  Type chartType,
-  Type calculatorType,
-  Type tickTimeType,
-  Type typeEnumType,
-  Type typeInterfaceType
-  ) : Attribute { }
+	Type chartType,
+	Type calculatorType,
+	Type tickTimeType,
+	Type typeEnumType,
+	Type typeInterfaceType
+	) : Attribute
+{ }
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true, Inherited = false)]
+public sealed class JsonEnumCastingAttribute(Type enumType, bool pascalCase = true) : Attribute { }
 /// <summary>
 /// Specifies the unit of time used when serializing a <see cref="System.TimeSpan"/> property.
 /// </summary>
 public enum JsonTimeType
 {
-    /// <summary>Serialize as milliseconds (integer).</summary>
-    Milliseconds,
-    /// <summary>Serialize as seconds (floating-point).</summary>
-    Seconds,
+	/// <summary>Serialize as milliseconds (integer).</summary>
+	Milliseconds,
+	/// <summary>Serialize as seconds (floating-point).</summary>
+	Seconds,
 }
 /// <summary>
 /// Specifies when JSON property flattening should be applied.
@@ -142,12 +147,12 @@ public enum JsonTimeType
 [Flags]
 public enum JsonFlattenMode
 {
-    /// <summary>Do not flatten; serialize nested objects as JSON objects.</summary>
-    None,
-    /// <summary>Flatten only during deserialization (reading).</summary>
-    ReadOnly = 1,
-    /// <summary>Flatten only during serialization (writing).</summary>
-    WriteOnly = 2,
-    /// <summary>Flatten during both serialization and deserialization.</summary>
-    ReadWrite = ReadOnly | WriteOnly,
+	/// <summary>Do not flatten; serialize nested objects as JSON objects.</summary>
+	None,
+	/// <summary>Flatten only during deserialization (reading).</summary>
+	ReadOnly = 1,
+	/// <summary>Flatten only during serialization (writing).</summary>
+	WriteOnly = 2,
+	/// <summary>Flatten during both serialization and deserialization.</summary>
+	ReadWrite = ReadOnly | WriteOnly,
 }

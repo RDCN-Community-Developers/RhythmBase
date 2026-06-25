@@ -200,14 +200,17 @@ public partial class Level :
 	{
 		bool success = true;
 		// Set the default beat calculator
-		((BaseEvent)item)._beat._calculator = Calculator;
+		if (item is not BaseEvent be)
+			return false;
+		var originalCalculator = be._beat._calculator;
+		be._beat._calculator = Calculator;
 		// Some events can only be at the beginning of a bar
-		(_, float beat) = ((BaseEvent)item)._beat;
+		(_, float beat) = be._beat;
 		if (item is IBarBeginningEvent e && beat != 1f)
 			throw new ArgumentException(
 				$"The event of type {item.GetType().Name} can only be placed at the beginning of a bar (beat 1), but its beat is {beat}.");
 		// Update the beat's associated level
-		((BaseEvent)item)._beat.ResetCache();
+		be._beat.ResetCache();
 		if (item is Comment comment && string.IsNullOrEmpty(comment._decoId))
 			// Comment events may or may not be in the decoration section
 			success &= base.Add(item);
@@ -231,6 +234,8 @@ public partial class Level :
 			_floatingTexts.Add(floatingText);
 		if (success)
 			OnEventAdded?.Invoke(this, new RDEventArgs(item));
+		if(!success)
+			be._beat._calculator = originalCalculator;
 		return success;
 	}
 

@@ -11,56 +11,49 @@ namespace RhythmBase.RhythmDoctor.Events;
 [JsonObjectSerializationFallback]
 public record class ForwardEvent : BaseEvent, IForwardEvent
 {
-    /// <inheritdoc/>
-    public override EventType Type => EventType.ForwardEvent;
+	/// <inheritdoc/>
+	public override EventType Type => EventType.ForwardEvent;
 
-    /// <inheritdoc/>
-    public override Tab Tab => Tab.Unknown;
+	/// <inheritdoc/>
+	public override Tab Tab => Tab.Unknown;
 
-    ///<inheritdoc/>
-    public string ActualType
+	///<inheritdoc/>
+	public string ActualType
 	{
 		get => _extraData.TryGetValue("type", out JsonElement typeElement) && typeElement.ValueKind == JsonValueKind.String ?
 						typeElement.GetString() ?? "" : "";
-    set => _extraData["type"] = JsonElement.Parse($"\"{value}\"");
+		set => _extraData["type"] = JsonElement.Parse($"\"{value}\"");
 	}
 	/// <summary>
 	/// Gets the collection of additional data associated with the object.
 	/// </summary>
 	protected Dictionary<string, JsonElement> ExtraData => _extraData;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ForwardEvent"/> class.
-    /// </summary>
-    public ForwardEvent() { }
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ForwardEvent"/> class using the specified JSON document.
-    /// </summary>
-    public ForwardEvent(JsonDocument data)
-    {
-        foreach (var kvp in data.RootElement.EnumerateObject())
-            _extraData[kvp.Name] = kvp.Value;
-        base.TickTime =
-            _extraData.TryGetValue("bar", out JsonElement barElement) && barElement.ValueKind == JsonValueKind.Number ?
-            _extraData.TryGetValue("beat", out JsonElement beatElement) && beatElement.ValueKind == JsonValueKind.Number ?
-            new(barElement.GetInt32(), beatElement.GetSingle()) : new(barElement.GetInt32(), 1) : default;
-        Tag = _extraData.TryGetValue("tag", out JsonElement tagElement) && tagElement.ValueKind == JsonValueKind.String ?
-            tagElement.GetString() ?? "" : "";
-        Active = (!_extraData.TryGetValue("active", out JsonElement activeElement) || activeElement.ValueKind != JsonValueKind.True) && activeElement.ValueKind != JsonValueKind.False || activeElement.GetBoolean();
-        RunTag = (_extraData.TryGetValue("runTag", out JsonElement runTagElement) && runTagElement.ValueKind == JsonValueKind.True || runTagElement.ValueKind == JsonValueKind.False) && runTagElement.GetBoolean();
-        Condition = _extraData.TryGetValue("condition", out JsonElement conditionElement) && conditionElement.ValueKind == JsonValueKind.String ?
-            Condition.Deserialize(conditionElement.GetString() ?? "") : new();
-        base.Y = _extraData.TryGetValue("y", out JsonElement yElement) && yElement.ValueKind == JsonValueKind.Number ?
-            yElement.GetInt32() : 0;
-        _extraData["type"] = data.RootElement.GetProperty("type");
-        _extraData.Remove("bar");
-        _extraData.Remove("beat");
-        _extraData.Remove("tag");
-        _extraData.Remove("active");
-        _extraData.Remove("runTag");
-        _extraData.Remove("condition");
-        _extraData.Remove("y");
-    }
-    /// <inheritdoc/>
-    public override string ToString() => $"{TickTime} *{ActualType}";
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ForwardEvent"/> class.
+	/// </summary>
+	public ForwardEvent() { }
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ForwardEvent"/> class using the specified JSON document.
+	/// </summary>
+	public ForwardEvent(JsonDocument data)
+	{
+		int _bar = 1;
+		float _beat = 0f;
+		foreach (var prop in data.RootElement.EnumerateObject())
+		{
+			if (prop.NameEquals("type"u8)) ActualType = prop.Value.GetString() ?? "";
+			else if (prop.NameEquals("beat"u8)) _beat = prop.Value.GetSingle();
+			else if (prop.NameEquals("bar"u8)) _bar = prop.Value.GetInt32();
+			else if (prop.NameEquals("tag"u8)) Tag = prop.Value.GetString() ?? "";
+			else if (prop.NameEquals("active"u8)) Active = prop.Value.GetBoolean();
+			else if (prop.NameEquals("runTag"u8)) RunTag = prop.Value.GetBoolean();
+			else if (prop.NameEquals("condition"u8)) Condition = Condition.Deserialize(prop.Value.GetString() ?? "");
+			else if (prop.NameEquals("y"u8)) Y = prop.Value.GetInt32();
+			else _extraData[prop.Name] = prop.Value;
+		}
+		this._beat = (_bar, _beat);
+	}
+	/// <inheritdoc/>
+	public override string ToString() => $"{TickTime} *{ActualType}";
 }

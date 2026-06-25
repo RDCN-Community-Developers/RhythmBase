@@ -76,16 +76,3 @@ public partial class Level :
 		GC.SuppressFinalize(this);
 	}
 }
-/// <summary>
-/// Provides methods for calculating beats and time spans in a <see cref="Level"/>.
-/// </summary>
-public partial class BeatCalculator
-{
-	/// <summary>
-	/// Refreshes the calculator state.
-	/// </summary>
-	public partial void Refresh()
-	{
-		throw new NotImplementedException();
-	}
-}

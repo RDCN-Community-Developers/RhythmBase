@@ -212,7 +212,7 @@ internal class BaseEventConverter : BackwardCompatibleMetadataJsonConverter
 	}
 	public static Events.IForwardEvent? ReadForwardEvent(ref Utf8JsonReader reader)
 	{
-		using JsonDocument doc = JsonDocument.ParseValue(ref reader);
+		JsonDocument doc = JsonDocument.ParseValue(ref reader);
 		JsonElement root = doc.RootElement;
 
 		// 判断属性
@@ -224,8 +224,10 @@ internal class BaseEventConverter : BackwardCompatibleMetadataJsonConverter
 			else if (prop.NameEquals("target"))
 				hasTarget = true;
 		}
-		if (hasRow) return new ForwardRowEvent(doc);
-		else return hasTarget ? new ForwardDecorationEvent(doc) : new ForwardEvent(doc);
+		return 
+			hasRow ? new ForwardRowEvent(doc) :
+			hasTarget ? new ForwardDecorationEvent(doc) :
+			new ForwardEvent(doc);
 	}
 
 	public static void WriteForwardEvent(Utf8JsonWriter writer, Events.IForwardEvent value)

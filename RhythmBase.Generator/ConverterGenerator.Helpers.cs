@@ -21,6 +21,17 @@ public partial class ConverterGenerator
 	}
 	private static void GenerateEnumConverter(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<string?> registryInfo)
 	{
+		var enums1 = context.SyntaxProvider.ForAttributeWithMetadataName(
+			JsonEnumCastingAttrName,
+			predicate: static (node, _) => true,
+			transform: static (context, _) =>
+			{
+				var attr = context.Attributes[0];
+				var enumType = attr.ConstructorArguments[0].Value as INamedTypeSymbol;
+				var pascalCase = attr.ConstructorArguments[1].Value as bool? ?? true;
+				var members = enumType.GetMembers().OfType<IFieldSymbol>().Where(m => m.ConstantValue is not null).ToArray();
+				return (enumType, pascalCase, members);
+			}).Collect();
 		var enums2 = context.SyntaxProvider.ForAttributeWithMetadataName(
 				JsonEnumAttrName,
 				predicate: (s, e) => s is EnumDeclarationSyntax enumDeclaration,
@@ -31,14 +42,24 @@ public partial class ConverterGenerator
 					INamedTypeSymbol? symbol = ctx.SemanticModel.GetDeclaredSymbol(enumDeclaration);
 					if (symbol is null)
 						return default;
+					var pascalCase = ctx.Attributes[0].ConstructorArguments[0].Value as bool? ?? true;
 					var members = symbol.GetMembers().OfType<IFieldSymbol>().ToArray();
-					return (symbol, members);
+					return (symbol, pascalCase, members);
 				}
-				).Collect();
-
-		context.RegisterSourceOutput(registryInfo.Combine(enums2), (spc, registryInfoAndEnumSymbols) =>
+			).Collect();
+		context.RegisterSourceOutput(registryInfo.Combine(enums1.Combine(enums2)), (spc, registryInfoAndEnumSymbols) =>
 		{
-			(var registryInfo, var enumSymbols) = registryInfoAndEnumSymbols;
+			(var registryInfo, var enumSymbolsAll) = registryInfoAndEnumSymbols;
+			(var enums1, var enums2) = enumSymbolsAll;
+			List<(INamedTypeSymbol Type, bool PascalCase, IFieldSymbol[] Members)> enums = new();
+			foreach (var (enumType, pascalCase, members) in enums1)
+			{
+				enums.Add((enumType, pascalCase, members));
+			}
+			foreach(var (enumType, pascalCase, members) in enums2)
+			{
+				enums.Add((enumType, pascalCase, members));
+			}
 			if (string.IsNullOrEmpty(registryInfo))
 				return;
 			StringBuilder sb1 = new();
@@ -63,7 +84,7 @@ public partial class ConverterGenerator
 							extension(RhythmBase.Global.Converters.EnumConverter)
 							{
 					""");
-			foreach (var e in enumSymbols.OrderBy(i => i.symbol.Name))
+			foreach (var e in enums.OrderBy(i => i.Type.Name))
 			{
 				static string GetStringName(IFieldSymbol symbol, bool pascalCase)
 				{
@@ -72,8 +93,8 @@ public partial class ConverterGenerator
 					else
 						return alias;
 				}
-				bool pascalCase = e.symbol.GetAttributes().FirstOrDefault(a => IsAttribute(a, JsonEnumAttrName)) is AttributeData enumData && enumData.ConstructorArguments.Length == 1 && enumData.ConstructorArguments[0].Value is bool b && b;
-				string fullName = e.symbol.ToDisplayString();
+				bool pascalCase = e.PascalCase;
+				string fullName = e.Type.ToDisplayString();
 
 				// TryParse(string)
 				sb1.AppendLine($$"""
@@ -88,7 +109,7 @@ public partial class ConverterGenerator
 							{
 								switch(value) {
 					""");
-				foreach (var field in e.members.OrderBy(i => i.Name))
+				foreach (var field in e.Members.OrderBy(i => i.Name))
 				{
 					sb1.AppendLine($$"""
 									case "{{GetStringName(field, pascalCase)}}":
@@ -117,7 +138,7 @@ public partial class ConverterGenerator
 							{
 					""");
 				bool isFirst = true;
-				foreach (var field in e.members.OrderBy(i => i.Name))
+				foreach (var field in e.Members.OrderBy(i => i.Name))
 				{
 					sb1.AppendLine($$"""
 								{{(isFirst ? "" : "else ")}}if (value.SequenceEqual("{{GetStringName(field, pascalCase)}}"u8))
@@ -152,7 +173,7 @@ public partial class ConverterGenerator
 							{
 					""");
 				isFirst = true;
-				foreach (var field in e.members.OrderBy(i => i.Name))
+				foreach (var field in e.Members.OrderBy(i => i.Name))
 				{
 					sb1.AppendLine($$"""
 								{{(isFirst ? "" : "else ")}}if (reader.ValueTextEquals("{{GetStringName(field, pascalCase)}}"u8))
@@ -184,7 +205,7 @@ public partial class ConverterGenerator
 						public static string ToEnumString(this {{fullName}} value) => value switch
 						{
 					""");
-				foreach (var field in e.members.OrderBy(i => i.Name))
+				foreach (var field in e.Members.OrderBy(i => i.Name))
 				{
 					sb2.AppendLine($"""
 								{field.ToDisplayString()} => "{GetStringName(field, pascalCase)}",
@@ -207,7 +228,7 @@ public partial class ConverterGenerator
 						public static ReadOnlySpan<byte> ToEnumUtf8String(this {{fullName}} value) => value switch
 						{
 					""");
-				foreach (var field in e.members.OrderBy(i => i.Name))
+				foreach (var field in e.Members.OrderBy(i => i.Name))
 				{
 					sb2.AppendLine($"""
 								{field.ToDisplayString()} => "{GetStringName(field, pascalCase)}"u8,
