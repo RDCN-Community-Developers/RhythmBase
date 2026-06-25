@@ -13,6 +13,22 @@ public class ConditionalCollection : ICollection<BaseConditional>
 	public int Count => cs.Count;
 	/// <inheritdoc/>
 	public bool IsReadOnly => false;
+	/// <summary>
+	/// Gets or sets the <see cref="BaseConditional"/> at the specified index in the collection.
+	/// </summary>
+	/// <param name="index">The zero-based index of the <see cref="BaseConditional"/> to get or set.</param>
+	/// <returns>The <see cref="BaseConditional"/> at the specified index.</returns>
+	public BaseConditional this[int index]
+	{
+		get => cs[index];
+		set
+		{
+			if (cs[index] == value)
+				return;
+			cs[index] = value;
+			value.ParentCollection = this;
+		}
+	}
 	/// <inheritdoc/>
 	public void Add(BaseConditional item)
 	{
