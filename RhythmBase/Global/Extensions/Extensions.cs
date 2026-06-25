@@ -33,54 +33,6 @@ public static class Extensions
 			throw new JsonException(message);
 		}
 	}
-	extension<TTick>(ITickRange<TTick>)
-			where TTick : struct, ITickTime<TTick>
-	{
-		/// <summary>
-		/// Creates a new beat range with the specified start and end beats.
-		/// </summary>
-		/// <param name="start">The start beat, or null for no start bound.</param>
-		/// <param name="end">The end beat, or null for no end bound.</param>
-		/// <returns>A new <see cref="ITickRange{TBeat}"/> representing the specified range.</returns>
-		public static ITickRange<TTick> CreateRange(TTick? start, TTick? end)
-		{
-			//switch (start, end)
-			//{
-			//    case (TTick s1, TTick e1):
-			//        return (ITickRange<TTick>)(object)new Global.Components.Range(s1, e1);
-			//    case (TTick s2, null):
-			//        return (ITickRange<TTick>)(object)new Global.Components.Range(s2, null);
-			//    case (null, TTick e2):
-			//        return (ITickRange<TTick>)(object)new RhythmDoctor.Components.Range(null, e2);
-
-			//    case (null, null):
-			//        return ITickRange<TTick>.Infinity;
-			//    default:
-			//        throw new NotSupportedException();
-			//}
-			throw new NotImplementedException();
-		}
-		/// <summary>
-		/// Gets an infinite beat range.
-		/// </summary>
-		public static ITickRange<TTick> Infinity => CreateRange<TTick>(null, null);
-#if NETSTANDARD
-		/// <summary>
-		/// Creates a beat from a beat-only value. Not supported in .NET Standard.
-		/// </summary>
-		/// <param name="beatOnly">The beat-only value.</param>
-		/// <returns>This method always throws <see cref="NotSupportedException"/>.</returns>
-		/// <exception cref="NotSupportedException">Always thrown in .NET Standard.</exception>
-		public static TTick FromBeatOnly(float beatOnly) => throw new NotSupportedException("This method is only supported in .NET 8.0 or later.");
-		/// <summary>
-		/// Creates a beat from a time span. Not supported in .NET Standard.
-		/// </summary>
-		/// <param name="timeSpan">The time span.</param>
-		/// <returns>This method always throws <see cref="NotSupportedException"/>.</returns>
-		/// <exception cref="NotSupportedException">Always thrown in .NET Standard.</exception>
-		public static TTick FromTimeSpan(TimeSpan timeSpan) => throw new NotSupportedException("This method is only supported in .NET 8.0 or later.");
-#endif
-	}
 	/// <summary>
 	/// Gets the read-only enum collection of event types for the specified event and target types.
 	/// </summary>

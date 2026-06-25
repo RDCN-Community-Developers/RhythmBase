@@ -18,7 +18,7 @@ public record class ChangePlayersRows : BaseEvent
 	/// <summary>
 	/// Gets or sets the list of players.
 	/// </summary>
-	public PlayerTypeGroup Players { get; set; } = PlayerTypeGroup.P1;
+	public PlayerTypeGroup Players { get; set; } = PlayerTypeGroup.NoChange;
 	/// <summary>
 	/// Gets or sets the player mode.
 	/// </summary>

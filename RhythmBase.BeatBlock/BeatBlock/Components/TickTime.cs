@@ -1,99 +1,194 @@
-﻿namespace RhythmBase.BeatBlock.Components;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace RhythmBase.BeatBlock.Components;
 
 /// <summary>
 /// Represents a beat in the BeatBlock level format.
 /// </summary>
-public struct TickTime : ITickTime<TickTime>
+partial struct TickTime
 {
-    /// <summary>
-    /// Gets the time span of the beat.
-    /// </summary>
-    public TimeSpan TimeSpan { get; }
-    /// <summary>
-    /// Gets the beat value.
-    /// </summary>
-    public float Tick { get; }
-    /// <summary>
-    /// Compares this instance to another <see cref="TickTime"/>.
-    /// </summary>
-    /// <param name="other">The other <see cref="TickTime"/> to compare to.</param>
-    /// <returns>A value indicating the relative order of the instances.</returns>
-    public int CompareTo(TickTime other)
-    {
-        return Tick.CompareTo(other.Tick);
-    }
-    /// <summary>
-    /// Determines whether this instance equals another <see cref="TickTime"/>.
-    /// </summary>
-    /// <param name="other">The other <see cref="TickTime"/> to compare to.</param>
-    /// <returns><see langword="true"/> if the instances are equal; otherwise, <see langword="false"/>.</returns>
-    public bool Equals(TickTime other)
-    {
-        return Tick.Equals(other.Tick);
-    }
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TickTime"/> struct.
-    /// </summary>
-    /// <param name="beatOnly">The beat value.</param>
-    public TickTime(float beatOnly)
-    {
-        TimeSpan = TimeSpan.Zero;
-        Tick = beatOnly;
-    }
-}
-/// <summary>
-/// Represents a range of tick times.
-/// </summary>
-public struct Range : ITickRange<TickTime>
-{
-    /// <summary>
-    /// Gets the start of the range.
-    /// </summary>
-    public TickTime? Start { get; }
-    /// <summary>
-    /// Gets the end of the range.
-    /// </summary>
-    public TickTime? End { get; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Range"/> struct.
-    /// </summary>
-    /// <param name="start">The start of the range.</param>
-    /// <param name="end">The end of the range.</param>
-    public Range(TickTime? start, TickTime? end)
-    {
-        Start = start;
-        End = end;
-    }
-    /// <summary>
-    /// Determines whether the range contains the specified tick time.
-    /// </summary>
-    /// <param name="b">The tick time to check.</param>
-    /// <returns><see langword="true"/> if the range contains the specified tick time; otherwise, <see langword="false"/>.</returns>
-    public bool Contains(TickTime b)
-    {
-        return Start?.CompareTo(b) <= 0 && End?.CompareTo(b) >= 0;
-    }
-
-    /// <inheritdoc/>
-    public (TickTime Start, TickTime End) GetStartAndEnd(TickTime endTime)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <inheritdoc/>
-    public ITickRange<TickTime> Intersect(ITickRange<TickTime> other)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <inheritdoc/>
-    public ITickRange<TickTime> Union(ITickRange<TickTime> other)
-    {
-        throw new NotImplementedException();
+	public partial float Tick
+	{
+		get
+		{
+			if ((!MustFromCache || !_isTickLoaded) && _calculator is not null)
+			{
+				if (_isTimeSpanLoaded)
+					_tick = _calculator.TimeSpanToTick(_TimeSpan) - 1f;
+				_isTickLoaded = true;
+			}
+			return _tick + 1f;
+		}
 	}
-#if NET8_0_OR_GREATER
-  static ITickRange<TickTime> ITickRange<TickTime>.Infinity => new Range(null, null);
-	static ITickRange<TickTime> ITickRange<TickTime>.Empty => new Range(new(), new());
-#endif
+	public partial TimeSpan TimeSpan
+	{
+		get
+		{
+			if ((!MustFromCache || !_isTimeSpanLoaded) && _calculator is not null)
+			{
+				if (_isTickLoaded)
+					_TimeSpan = _calculator.TickToTimeSpan(_tick + 1f);
+				_isTimeSpanLoaded = true;
+			}
+			return _TimeSpan;
+		}
+	}
+	partial void InitDefault()
+	{
+		_tick = 1f;
+		_TimeSpan = TimeSpan.Zero;
+		_isTickLoaded = true;
+		_isTimeSpanLoaded = true;
+	}
+	partial void NormalizeTick()
+	{
+		if (_tick < 1f) _tick = 1f;
+		_tick -= 1f;
+	}
+	partial void NormalizeTimeSpan()
+	{
+		if (_TimeSpan < TimeSpan.Zero) _TimeSpan = TimeSpan.Zero;
+	}
+	private static partial void AddTickAndCache(TickTime left, float right, ref TickTime result)
+	{
+		if (!left._isTickLoaded)
+			throw new ArgumentNullException(nameof(left), "The beat cannot be calculated.");
+		if (left._isTickLoaded)
+		{
+			result._tick = left._tick + right;
+			result._isTickLoaded = true;
+		}
+	}
+	private static partial void AddTimeSpanAndCache(TickTime left, TimeSpan right, ref TickTime result)
+	{
+		result = new TickTime();
+		if (left._isTimeSpanLoaded)
+		{
+			result._TimeSpan = left._TimeSpan + right;
+			result._isTimeSpanLoaded = true;
+			result._isTickLoaded = false;
+		}
+		else
+			throw new ArgumentNullException(nameof(left), "The beat cannot be calculated.");
+	}
+	private static partial void SubstractTickAndCache(TickTime left, float right, ref TickTime result)
+	{
+		if (!left._isTickLoaded)
+			throw new ArgumentNullException(nameof(left), "The beat cannot be calculated.");
+		if (left._isTickLoaded)
+		{
+			result._tick = left._tick - right;
+			result._isTickLoaded = true;
+		}
+	}
+	private static partial void SubstractTimeSpanAndCache(TickTime left, TimeSpan right, ref TickTime result)
+	{
+		if (left._isTimeSpanLoaded)
+		{
+			result._TimeSpan = left._TimeSpan - right;
+			result._isTimeSpanLoaded = true;
+			result._isTickLoaded = false;
+		}
+		else
+			throw new ArgumentNullException(nameof(left), "The beat cannot be calculated.");
+	}
+	public partial TickTime(BeatCalculator calculator, TickTime beat)
+	{
+		this = default;
+		if (beat._isTickLoaded)
+		{
+			_tick = Math.Max(beat._tick, 0f);
+			_isTickLoaded = true;
+			_calculator = calculator;
+		}
+		else if (beat._isTimeSpanLoaded)
+		{
+			_TimeSpan = beat._TimeSpan > TimeSpan.Zero ? beat._TimeSpan : TimeSpan.Zero;
+			_isTimeSpanLoaded = true;
+			_calculator = calculator;
+			_tick = _calculator.TimeSpanToTick(TimeSpan) - 1f;
+		}
+	}
+	public readonly partial bool IsEmpty => _calculator == null || !_isTickLoaded && !_isTimeSpanLoaded;
+	public partial void ResetCache()
+	{
+		_ = Tick;
+		_isTimeSpanLoaded = false;
+	}
+	public partial void Cache()
+	{
+		IfNullThrowException();
+		_ = Tick;
+		_ = TimeSpan;
+		_ = Bpm;
+	}
+	internal partial void ResetBPM()
+	{
+		if (!_isTickLoaded)
+			_tick = _calculator?.TimeSpanToTick(_TimeSpan) - 1f ?? throw new InvalidRDBeatException();
+		_isTickLoaded = true;
+		_isTimeSpanLoaded = false;
+		_isBPMLoaded = false;
+	}
+	public static partial TickTime Min(TickTime left, TickTime right) =>
+		left.FromSameChartOrNull(right, false) ?
+			left.Tick < right.Tick ?
+				left :
+				right :
+			left.TimeSpan < right.TimeSpan ?
+				left :
+				right;
+	public static partial TickTime Max(TickTime left, TickTime right) =>
+	left.FromSameChartOrNull(right, false) ?
+		left.Tick > right.Tick ?
+			left :
+			right :
+		left.TimeSpan > right.TimeSpan ?
+			left :
+			right;
+	private static int CompareInternal(int bar1, float beat1, int bar2, float beat2)
+	{
+		int barComparison = bar1.CompareTo(bar2);
+		return barComparison != 0 ? barComparison : beat1.CompareTo(beat2);
+	}
+	private static partial int CompareInternal(TickTime left, TickTime right)
+	{
+		if (left._isTickLoaded && right._isTickLoaded)
+			return left._tick.CompareTo(right._tick);
+		if (left._isTimeSpanLoaded && right._isTimeSpanLoaded)
+			return left._TimeSpan.CompareTo(right._TimeSpan);
+
+		if (left._calculator != null)
+		{
+			// 用 left 的单位比较
+			left.Cache();
+			return (right._isTickLoaded ? left.Tick.CompareTo(right._tick)
+				: right._isTimeSpanLoaded ? left.Tick.CompareTo(left._calculator.TimeSpanToTick(right.TimeSpan))
+				: throw new InvalidOperationException("The beat cannot be compared."));
+		}
+
+		if (right._calculator != null)
+		{
+			// 用 right 的单位比较
+			right.Cache();
+			return (left._isTickLoaded ? left._tick.CompareTo(right.Tick)
+				: left._isTimeSpanLoaded ? right.Tick.CompareTo(right._calculator.TimeSpanToTick(left.TimeSpan))
+				: throw new InvalidOperationException("The beat cannot be compared."));
+		}
+
+		throw new InvalidOperationException("The beat cannot be compared.");
+	}
+	public override partial string ToString()
+	{
+		string ToString;
+		if (IsEmpty)
+			ToString = $"[{(
+				_isTickLoaded ? _tick.ToString() : "?"
+				)},{(
+				_isTimeSpanLoaded ? _TimeSpan.ToString() : "?"
+				)}]";
+		else
+			ToString = $"[{_tick}?]";
+		return ToString;
+	}
 }

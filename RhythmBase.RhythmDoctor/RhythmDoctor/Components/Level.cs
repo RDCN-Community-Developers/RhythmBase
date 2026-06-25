@@ -10,7 +10,7 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// Rhythm Doctor level.
 /// </summary>
 public partial class Level :
-	OrderedEventCollection<IBaseEvent, EventType, TickTime>,
+	OrderedEventCollection<IBaseEvent>,
 	IJsonLevel<Level, IBaseEvent, EventType, TickTime>,
 	ISingleFileLevel<Level, IBaseEvent, EventType, TickTime>,
 	IArchiveLevel<Level, IBaseEvent, EventType, TickTime>,
@@ -44,8 +44,6 @@ public partial class Level :
 
 	/// <inheritdoc/>
 	public override int Count => base.Count;
-
-	IBeatCalculator<TickTime> IChart<TickTime>.Calculator => Calculator;
 
 	/// <summary>
 	/// The calculator that comes with the level.
@@ -100,7 +98,7 @@ public partial class Level :
 	/// Default beats with levels.
 	/// The beat is 1.
 	/// </summary>
-	public TickTime DefaultBeat => Calculator.BeatOf(1f);
+	public TickTime DefaultBeat => Calculator.TickOf(1f);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Level"/> class.
@@ -116,21 +114,6 @@ public partial class Level :
 		Rows = new(this);
 		Decorations = new(this);
 	}
-
-	/// <inheritdoc/>
-	protected override TickTime CreateInstance(float beat) => new(beat);
-
-	/// <inheritdoc/>
-	protected override ITickRange<TickTime> CreateRange(float? start, float? end) => new Range(
-		start is float s ? Calculator.BeatOf(s) : null,
-		end is float e ? Calculator.BeatOf(e) : null
-	);
-
-	/// <inheritdoc/>
-	protected override ReadOnlyEnumCollection<EventType> Types => EventTypeRegistry.Types;
-
-	/// <inheritdoc/>
-	protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => EventTypeRegistry.ToEnums(typeof(TTarget));
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Level"/> class with the specified items.
@@ -192,7 +175,8 @@ public partial class Level :
 			SetTheme settheme = new();
 			playsong.Song = new Audio() { Filename = "sndOrientalTechno" };
 			settheme.Preset = Theme.OrientalTechno;
-			rdlevel.AddRange([playsong, settheme]);
+			rdlevel.Add(playsong);
+			rdlevel.Add(settheme);
 			Row samurai = new() { Room = RoomIndex.Room1, Character = GameCharacter.Samurai };
 			rdlevel.Rows.Add(samurai);
 			samurai.Sound.Filename = "Shaker";
@@ -397,7 +381,7 @@ public partial class Level :
 		base.Add(item);
 		if (extra)
 		{
-			SetCrotchetsPerBar cpb = new() { _beat = new TickTime(Calculator, fix.BeatOnly), _crotchetsPerBar = fix.Cpb - 1 };
+			SetCrotchetsPerBar cpb = new() { _beat = new TickTime(Calculator, fix.Tick), _crotchetsPerBar = fix.Cpb - 1 };
 			base.Add(cpb);
 			OnEventAdded?.Invoke(this, new(cpb) { IsAutoPopulated = true, });
 		}
@@ -419,7 +403,7 @@ public partial class Level :
 		base.Remove(item);
 		if (extra)
 		{
-			SetCrotchetsPerBar cpb = new() { _beat = new TickTime(Calculator, fix.BeatOnly), _crotchetsPerBar = fix.Cpb - 1 };
+			SetCrotchetsPerBar cpb = new() { _beat = new TickTime(Calculator, fix.Tick), _crotchetsPerBar = fix.Cpb - 1 };
 			base.Add(cpb);
 			OnEventRemoved?.Invoke(this, new(cpb) { IsAutoPopulated = true, });
 		}

@@ -4,264 +4,193 @@ using System.Numerics;
 
 namespace RhythmBase.Adofai.Components;
 
-	/// <summary>
-	/// Represents a beat in the ADLevel.
-	/// </summary>
-	public struct TickTime : ITickTime<TickTime>
-#if !NETSTANDARD
-		,
-		IAdditionOperators<TickTime, float, TickTime>,
-		IAdditionOperators<TickTime, TimeSpan, TickTime>,
-		ISubtractionOperators<TickTime, float, TickTime>,
-		ISubtractionOperators<TickTime, TimeSpan, TickTime>,
-		IComparisonOperators<TickTime,TickTime, bool>
-#endif
+/// <summary>
+/// Represents a beat in the ADLevel.
+/// </summary>
+partial struct TickTime
+{
+	public partial float Tick
 	{
-		internal readonly Level? _baseLevel => _calculator?.Collection;
-		/// <summary>
-		/// Gets or sets the beat only value.
-		/// </summary>
-		public readonly float Tick
+		get
 		{
-			get => _beat + 1f;
-			set
+			if ((!MustFromCache || !_isTickLoaded) && _calculator is not null)
 			{
+				if (_isTimeSpanLoaded)
+					_tick = _calculator.TimeSpanToTick(_TimeSpan) - 1f;
+				_isTickLoaded = true;
 			}
+			return _tick + 1f;
 		}
-		/// <summary>
-		/// Gets or sets the time span.
-		/// </summary>
-		public readonly TimeSpan TimeSpan
-		{
-			get => _timeSpan;
-			set
-			{
-			}
-		}
-		/// <summary>
-		/// Gets the collection of planets associated with the current context.
-		/// </summary>
-		public readonly Planets Planets
-		{
-			get
-			{
-				IfNullThrowException();
-				throw new InvalidOperationException();
-			}
-		}
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TickTime"/> struct with a specified beat.
-		/// </summary>
-		/// <param name="beat">The beat value.</param>
-		public TickTime(float beat)
-		{
-			this = default;
-			_beat = beat;
-			_isBeatLoaded = true;
-		}
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TickTime"/> struct with a specified time span.
-		/// </summary>
-		/// <param name="timeSpan">The time span value.</param>
-		public TickTime(TimeSpan timeSpan)
-		{
-			this = default;
-			_timeSpan = timeSpan;
-			_isTimeSpanLoaded = true;
-		}
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TickTime"/> struct with a specified calculator and beat.
-		/// </summary>
-		/// <param name="calculator">The beat calculator.</param>
-		/// <param name="beat">The beat value.</param>
-		public TickTime(BeatCalculator? calculator, float beat)
-		{
-			this = default;
-			_calculator = calculator;
-			_beat = beat;
-			_isBeatLoaded = true;
-		}
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TickTime"/> struct with a specified calculator and time span.
-		/// </summary>
-		/// <param name="calculator">The beat calculator.</param>
-		/// <param name="timeSpan">The time span value.</param>
-		/// <exception cref="OverflowException">Thrown when the time span is less than zero.</exception>
-		public TickTime(BeatCalculator? calculator, TimeSpan timeSpan)
-		{
-			this = default;
-			if (timeSpan < TimeSpan.Zero)
-			{
-				throw new OverflowException($"The time must not be less than zero, but {timeSpan} is given");
-			}
-			_calculator = calculator;
-			_timeSpan = timeSpan;
-			_isTimeSpanLoaded = true;
-		}
-		/// <summary>
-		/// Construct a beat of the 1st beat from the calculator
-		/// </summary>
-		/// <param name="calculator">Specified calculator.</param>
-		/// <returns>The first beat tied to the level.</returns>
-		public static TickTime Default(BeatCalculator calculator)
-		{
-			TickTime @default = new(calculator, 1f);
-			return @default;
-		}
-		/// <summary>
-		/// Determine if two beats come from the same level
-		/// </summary>
-		/// <param name="a">A beat.</param>
-		/// <param name="b">Another beat.</param>
-		/// <param name="throw">If true, an exception will be thrown when two beats do not come from the same level.</param>
-		/// <returns></returns>
-		public static bool FromSameLevel(TickTime a, TickTime b, bool @throw = false)
-		{
-			bool flag = a._baseLevel?.Equals(b._baseLevel) ?? true;
-			bool fromSameLevel;
-			if (flag)
-			{
-				fromSameLevel = true;
-			}
-			else
-			{
-				if (@throw)
-				{
-					throw new InvalidOperationException("Beats must come from the same ADLevel.");
-				}
-				fromSameLevel = false;
-			}
-			return fromSameLevel;
-		}
-		/// <summary>
-		/// Determine if two beats are from the same level.
-		/// <br />
-		/// If any of them does not come from any level, it will also return true.
-		/// </summary>
-		/// <param name="a">A beat.</param>
-		/// <param name="b">Another beat.</param>
-		/// <param name="throw">If true, an exception will be thrown when two beats do not come from the same level.</param>
-		/// <returns></returns>
-		public static bool FromSameLevelOrNull(TickTime a, TickTime b, bool @throw = false) => a._baseLevel == null || b._baseLevel == null || FromSameLevel(a, b, @throw);
-		/// <summary>  
-		/// Determines if the current beat and the specified beat are from the same level.  
-		/// </summary>  
-		/// <param name="b">The beat to compare with the current beat.</param>  
-		/// <param name="throw">If set to <c>true</c>, an exception will be thrown if the beats are not from the same level.</param>  
-		/// <returns>  
-		/// <c>true</c> if the beats are from the same level; otherwise, <c>false</c>.  
-		/// </returns>  
-		public readonly bool FromSameLevel(TickTime b, bool @throw = false) => FromSameLevel(this, b, @throw);
-		/// <summary>
-		/// Determine if two beats are from the same level.
-		/// <br />
-		/// If any of them does not come from any level, it will also return true.
-		/// </summary>
-		/// <param name="b">Another beat.</param>
-		/// <param name="throw">If true, an exception will be thrown when two beats do not come from the same level.</param>
-		/// <returns></returns>	
-		public readonly bool FromSameLevelOrNull(TickTime b, bool @throw = false) => _baseLevel == null || b._baseLevel == null || FromSameLevel(b, @throw);
-		/// <summary>
-		/// Returns a new instance of unbinding the level.
-		/// </summary>
-		/// <returns>A new instance of unbinding the level.</returns>
-		public readonly TickTime WithoutBinding()
-		{
-			TickTime result = this;
-			result._calculator = null;
-			return result;
-		}
-		private readonly void IfNullThrowException()
-		{
-			if (IsEmpty)
-			{
-				throw new InvalidRDBeatException();
-			}
-		}
-		/// <summary>
-		/// Refresh the cache.
-		/// </summary>
-		public void ResetCache()
-		{
-			_ = Tick;
-			_isTimeSpanLoaded = false;
-		}
-		internal void ResetBPM()
-		{
-			_isBeatLoaded = true;
-			_isTimeSpanLoaded = false;
-			_isBpmLoaded = false;
-		}
-		internal void ResetCPB() => _isBeatLoaded = true;
-		/// <summary>
-		/// Gets a value indicating whether this instance is empty.
-		/// </summary>
-		/// <value>
-		///   <c>true</c> if this instance is empty; otherwise, <c>false</c>.
-		/// </value>
-		public readonly bool IsEmpty => _calculator == null || (!_isBeatLoaded && !_isTimeSpanLoaded);
-
-		/// <inheritdoc/>
-		public static TickTime operator +(TickTime a, float b)
-		{
-			TickTime result = new(a._calculator, a.Tick + b);
-			return result;
-		}
-		/// <inheritdoc/>
-		public static TickTime operator +(TickTime a, TimeSpan b)
-		{
-			TickTime result = new(a._calculator, a.TimeSpan + b);
-			return result;
-		}
-		/// <inheritdoc/>
-		public static TickTime operator -(TickTime a, float b)
-		{
-			TickTime result = new(a._calculator, a.Tick - b);
-			return result;
-		}
-		/// <inheritdoc/>
-		public static TickTime operator -(TickTime a, TimeSpan b)
-		{
-			TickTime result = new(a._calculator, a.TimeSpan - b);
-			return result;
-		}
-		/// <inheritdoc/>
-		public static bool operator >(TickTime a, TickTime b) => FromSameLevel(a, b, true) && a.Tick > b.Tick;
-		/// <inheritdoc/>
-		public static bool operator <(TickTime a, TickTime b) => FromSameLevel(a, b, true) && a.Tick < b.Tick;
-		/// <inheritdoc/>
-		public static bool operator >=(TickTime a, TickTime b) => FromSameLevel(a, b, true) && a.Tick >= b.Tick;
-		/// <inheritdoc/>
-		public static bool operator <=(TickTime a, TickTime b) => FromSameLevel(a, b, true) && a.Tick <= b.Tick;
-		/// <inheritdoc/>
-		public static bool operator ==(TickTime a, TickTime b) => (FromSameLevel(a, b, true) && a._beat == b._beat) || (a._isTimeSpanLoaded && b._isTimeSpanLoaded && a._timeSpan == b._timeSpan) || a.Tick == b.Tick;
-		/// <inheritdoc/>
-		public static bool operator !=(TickTime a, TickTime b) => !(a == b);
-		/// <inheritdoc/>
-		public readonly int CompareTo(TickTime other) => checked((int)Math.Round((double)unchecked(_beat - other._beat)));
-		/// <inheritdoc/>
-		public readonly override string ToString() => $"[{Tick}]";
-		/// <inheritdoc/>
-		public readonly override bool Equals(object? obj) => obj is TickTime beat && Equals(beat);
-		/// <inheritdoc/>
-		public readonly bool Equals([NotNull] TickTime other) => this == other;
-		/// <inheritdoc/>
-#if NETSTANDARD
-		public readonly override int GetHashCode()
-		{
-			int hash = 17;
-			hash = hash * 23 + Tick.GetHashCode();
-			hash = hash * 23 + (_baseLevel?.GetHashCode() ?? 0);
-			return hash;
-		}
-#else
-		public readonly override int GetHashCode() => HashCode.Combine(Tick, _baseLevel);
-#endif
-    internal BeatCalculator? _calculator;
-		private bool _isBeatLoaded;
-		private bool _isTimeSpanLoaded;
-		private bool _isBpmLoaded;
-		private readonly float _beat;
-		private readonly TimeSpan _timeSpan;
-		private float _bpm;
 	}
+	public partial TimeSpan TimeSpan
+	{
+		get
+		{
+			if ((!MustFromCache || !_isTimeSpanLoaded) && _calculator is not null)
+			{
+				if (_isTickLoaded)
+					_TimeSpan = _calculator.TickToTimeSpan(_tick + 1f);
+				_isTimeSpanLoaded = true;
+			}
+			return _TimeSpan;
+		}
+	}
+	partial void InitDefault()
+	{
+		_tick = 1f;
+		_TimeSpan = TimeSpan.Zero;
+		_isTickLoaded = true;
+		_isTimeSpanLoaded = true;
+	}
+	partial void NormalizeTick()
+	{
+		if (_tick < 1f) _tick = 1f;
+		_tick -= 1f;
+	}
+	partial void NormalizeTimeSpan()
+	{
+		if (_TimeSpan < TimeSpan.Zero) _TimeSpan = TimeSpan.Zero;
+	}
+	private static partial void AddTickAndCache(TickTime left, float right, ref TickTime result)
+	{
+		if (!left._isTickLoaded)
+			throw new ArgumentNullException(nameof(left), "The beat cannot be calculated.");
+		if (left._isTickLoaded)
+		{
+			result._tick = left._tick + right;
+			result._isTickLoaded = true;
+		}
+	}
+	private static partial void AddTimeSpanAndCache(TickTime left, TimeSpan right, ref TickTime result)
+	{
+		result = new TickTime();
+		if (left._isTimeSpanLoaded)
+		{
+			result._TimeSpan = left._TimeSpan + right;
+			result._isTimeSpanLoaded = true;
+			result._isTickLoaded = false;
+		}
+		else
+			throw new ArgumentNullException(nameof(left), "The beat cannot be calculated.");
+	}
+	private static partial void SubstractTickAndCache(TickTime left, float right, ref TickTime result)
+	{
+		if (!left._isTickLoaded)
+			throw new ArgumentNullException(nameof(left), "The beat cannot be calculated.");
+		if (left._isTickLoaded)
+		{
+			result._tick = left._tick - right;
+			result._isTickLoaded = true;
+		}
+	}
+	private static partial void SubstractTimeSpanAndCache(TickTime left, TimeSpan right, ref TickTime result)
+	{
+		if (left._isTimeSpanLoaded)
+		{
+			result._TimeSpan = left._TimeSpan - right;
+			result._isTimeSpanLoaded = true;
+			result._isTickLoaded = false;
+		}
+		else
+			throw new ArgumentNullException(nameof(left), "The beat cannot be calculated.");
+	}
+	public partial TickTime(BeatCalculator calculator, TickTime beat)
+	{
+		this = default;
+		if (beat._isTickLoaded)
+		{
+			_tick = Math.Max(beat._tick, 0f);
+			_isTickLoaded = true;
+			_calculator = calculator;
+		}
+		else if (beat._isTimeSpanLoaded)
+		{
+			_TimeSpan = beat._TimeSpan > TimeSpan.Zero ? beat._TimeSpan : TimeSpan.Zero;
+			_isTimeSpanLoaded = true;
+			_calculator = calculator;
+			_tick = _calculator.TimeSpanToTick(TimeSpan) - 1f;
+		}
+	}
+	public readonly partial bool IsEmpty => _calculator == null || !_isTickLoaded && !_isTimeSpanLoaded;
+	public partial void ResetCache()
+	{
+		_ = Tick;
+		_isTimeSpanLoaded = false;
+	}
+	public partial void Cache()
+	{
+		IfNullThrowException();
+		_ = Tick;
+		_ = TimeSpan;
+		_ = Bpm;
+	}
+	internal partial void ResetBPM()
+	{
+		if (!_isTickLoaded)
+			_tick = _calculator?.TimeSpanToTick(_TimeSpan) - 1f ?? throw new InvalidRDBeatException();
+		_isTickLoaded = true;
+		_isTimeSpanLoaded = false;
+		_isBPMLoaded = false;
+	}
+	public static partial TickTime Min(TickTime left, TickTime right) =>
+		left.FromSameChartOrNull(right, false) ?
+			left.Tick < right.Tick ?
+				left :
+				right :
+			left.TimeSpan < right.TimeSpan ?
+				left :
+				right;
+	public static partial TickTime Max(TickTime left, TickTime right) =>
+	left.FromSameChartOrNull(right, false) ?
+		left.Tick > right.Tick ?
+			left :
+			right :
+		left.TimeSpan > right.TimeSpan ?
+			left :
+			right;
+	private static int CompareInternal(int bar1, float beat1, int bar2, float beat2)
+	{
+		int barComparison = bar1.CompareTo(bar2);
+		return barComparison != 0 ? barComparison : beat1.CompareTo(beat2);
+	}
+	private static partial int CompareInternal(TickTime left, TickTime right)
+	{
+		if (left._isTickLoaded && right._isTickLoaded)
+			return left._tick.CompareTo(right._tick);
+		if (left._isTimeSpanLoaded && right._isTimeSpanLoaded)
+			return left._TimeSpan.CompareTo(right._TimeSpan);
+
+		if (left._calculator != null)
+		{
+			// 用 left 的单位比较
+			left.Cache();
+			return (right._isTickLoaded ? left.Tick.CompareTo(right._tick)
+				: right._isTimeSpanLoaded ? left.Tick.CompareTo(left._calculator.TimeSpanToTick(right.TimeSpan))
+				: throw new InvalidOperationException("The beat cannot be compared."));
+		}
+
+		if (right._calculator != null)
+		{
+			// 用 right 的单位比较
+			right.Cache();
+			return (left._isTickLoaded ? left._tick.CompareTo(right.Tick)
+				: left._isTimeSpanLoaded ? right.Tick.CompareTo(right._calculator.TimeSpanToTick(left.TimeSpan))
+				: throw new InvalidOperationException("The beat cannot be compared."));
+		}
+
+		throw new InvalidOperationException("The beat cannot be compared.");
+	}
+	public override partial string ToString()
+	{
+		string ToString;
+		if (IsEmpty)
+			ToString = $"[{(
+				_isTickLoaded ? _tick.ToString() : "?"
+				)},{(
+				_isTimeSpanLoaded ? _TimeSpan.ToString() : "?"
+				)}]";
+		else
+			ToString = $"[{_tick}?]";
+		return ToString;
+	}
+}

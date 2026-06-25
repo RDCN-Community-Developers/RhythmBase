@@ -78,7 +78,7 @@ internal class RowConverter : MetadataJsonConverter<Row>
 			writer.WriteStringValue($"custom:{value.Character}");
 		else
 			writer.WriteStringValue(value.Character.EnumName.ToEnumString());
-		if (value.Player == PlayerType.CPU)
+		if (value.Player == PlayerType.Cpu)
 			writer.WriteString("cpuMarker"u8, value.CpuMarker.ToEnumString());
 		writer.WriteString("rowType"u8, value.RowType.ToEnumString());
 		writer.WriteNumber("row"u8, value.Index);

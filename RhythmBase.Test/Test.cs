@@ -162,7 +162,7 @@ public sealed class Test
 		}
 		for (int i = 1; i <= 20; i++)
 		{
-			Console.WriteLine($"{i}: {level.Calculator.BeatOf(i)}");
+			Console.WriteLine($"{i}: {level.Calculator.TickOf(i)}");
 		}
 		Console.WriteLine();
 
@@ -173,7 +173,7 @@ public sealed class Test
 		}
 		for (int i = 1; i <= 20; i++)
 		{
-			Console.WriteLine($"{i}: {level.Calculator.BeatOf(i)}");
+			Console.WriteLine($"{i}: {level.Calculator.TickOf(i)}");
 		}
 		Console.WriteLine();
 
@@ -184,7 +184,7 @@ public sealed class Test
 		}
 		for (int i = 1; i <= 20; i++)
 		{
-			Console.WriteLine($"{i}: {level.Calculator.BeatOf(i)}");
+			Console.WriteLine($"{i}: {level.Calculator.TickOf(i)}");
 		}
 		Console.WriteLine();
 
@@ -195,7 +195,7 @@ public sealed class Test
 		}
 		for (int i = 1; i <= 20; i++)
 		{
-			Console.WriteLine($"{i}: {level.Calculator.BeatOf(i)}");
+			Console.WriteLine($"{i}: {level.Calculator.TickOf(i)}");
 		}
 		Console.WriteLine();
 	}

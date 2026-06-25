@@ -153,7 +153,7 @@ public static partial class Extensions
 		};
 	}
 
-	extension<TEvent>(OrderedEventCollection<TEvent, EventType, TickTime> e) where TEvent : IBaseEvent
+	extension<TEvent>(OrderedEventCollection<TEvent> e) where TEvent : IBaseEvent
 	{
 		/// <summary>
 		/// Add a range of events.
@@ -196,7 +196,7 @@ public static partial class Extensions
 	}
 
 	extension<TCollection, TEvent>(LevelElementCollection<TCollection, TEvent> e)
-			where TCollection : OrderedEventCollection<TEvent, EventType, TickTime>, new()
+			where TCollection : OrderedEventCollection<TEvent>, new()
 			where TEvent : IBaseEvent
 	{
 		/// <summary>
@@ -297,19 +297,19 @@ public static partial class Extensions
 		/// <summary>
 		/// Get an instance of the beat associated with the level.
 		/// </summary>
-		/// <param name="beatOnly">Total number of 1-based beats.</param>
-		public TickTime BeatOf(float beatOnly) => e.Calculator.BeatOf(beatOnly);
+		/// <param name="tick">Total number of 1-based beats.</param>
+		public TickTime TickOf(float tick) => e.Calculator.TickOf(tick);
 		/// <summary>
 		/// Get an instance of the beat associated with the level.
 		/// </summary>
 		/// <param name="bar">The 1-based bar.</param>
 		/// <param name="beat">The 1-based beat of the bar.</param>
-		public TickTime BeatOf(int bar, float beat) => e.Calculator.BeatOf(bar, beat);
+		public TickTime TickOf(int bar, float beat) => e.Calculator.TickOf(bar, beat);
 		/// <summary>
 		/// Get an instance of the beat associated with the level.
 		/// </summary>
 		/// <param name="timeSpan">Total time span of the beat.</param>
-		public TickTime BeatOf(TimeSpan timeSpan) => e.Calculator.BeatOf(timeSpan);
+		public TickTime TickOf(TimeSpan timeSpan) => e.Calculator.TickOf(timeSpan);
 	}
 
 	extension(Decoration e)
@@ -341,7 +341,7 @@ public static partial class Extensions
 		public IEnumerable<TEvent> Before()
 		{
 			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
-			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
+			IEnumerator<KeyValuePair<TickTime, TypedEventCollection>> enumerator = e.TickTime.BaseChart?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			while (enumerator.MoveNext() && enumerator.Current.Key < e.TickTime)
 			{
 				if (enumerator.Current.Value.ContainsTypes(types))
@@ -369,7 +369,7 @@ public static partial class Extensions
 		public IEnumerable<TEvent> After()
 		{
 			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
-			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
+			IEnumerator<KeyValuePair<TickTime, TypedEventCollection>> enumerator = e.TickTime.BaseChart?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			bool moved;
 			while ((moved = enumerator.MoveNext()) && enumerator.Current.Key < e.TickTime) { }
 			if (!moved)
@@ -406,7 +406,7 @@ public static partial class Extensions
 		public TEvent? FrontOrDefault()
 		{
 			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
-			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
+			IEnumerator<KeyValuePair<TickTime, TypedEventCollection>> enumerator = e.TickTime.BaseChart?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			TEvent? front = null;
 			while (enumerator.MoveNext() && enumerator.Current.Key < e.TickTime)
 			{
@@ -439,7 +439,7 @@ public static partial class Extensions
 		public TEvent? NextOrDefault()
 		{
 			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
-			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
+			IEnumerator<KeyValuePair<TickTime, TypedEventCollection>> enumerator = e.TickTime.BaseChart?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			bool moved;
 			while ((moved = enumerator.MoveNext()) && enumerator.Current.Key < e.TickTime) { }
 			if (!moved)
@@ -477,7 +477,7 @@ public static partial class Extensions
 		public IEnumerable<TEvent> Before<TEvent>() where TEvent : class, IBaseEvent
 		{
 			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
-			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
+			IEnumerator<KeyValuePair<TickTime, TypedEventCollection>> enumerator = e.TickTime.BaseChart?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			while (enumerator.MoveNext() && enumerator.Current.Key < e.TickTime)
 			{
 				if (enumerator.Current.Value.ContainsTypes(types))
@@ -504,7 +504,7 @@ public static partial class Extensions
 		public IEnumerable<TEvent> After<TEvent>() where TEvent : class, IBaseEvent
 		{
 			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
-			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
+			IEnumerator<KeyValuePair<TickTime, TypedEventCollection>> enumerator = e.TickTime.BaseChart?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			bool moved;
 			while ((moved = enumerator.MoveNext()) && enumerator.Current.Key < e.TickTime) { }
 			if (!moved)
@@ -542,7 +542,7 @@ public static partial class Extensions
 		public TEvent? FrontOrDefault<TEvent>() where TEvent : class, IBaseEvent
 		{
 			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
-			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
+			IEnumerator<KeyValuePair<TickTime, TypedEventCollection>> enumerator = e.TickTime.BaseChart?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			TEvent? front = null;
 			while (enumerator.MoveNext() && enumerator.Current.Key < e.TickTime)
 			{
@@ -576,7 +576,7 @@ public static partial class Extensions
 		public TEvent? NextOrDefault<TEvent>() where TEvent : class, IBaseEvent
 		{
 			ReadOnlyEnumCollection<EventType> types = EventTypeRegistry.ToEnums<TEvent>();
-			IEnumerator<KeyValuePair<TickTime, TypedEventCollection<EventType, TickTime>>> enumerator = e.TickTime.BaseLevel?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
+			IEnumerator<KeyValuePair<TickTime, TypedEventCollection>> enumerator = e.TickTime.BaseChart?.EventsBeatOrder.GetEnumerator() ?? throw new InvalidRDBeatException();
 			bool moved;
 			while ((moved = enumerator.MoveNext()) && enumerator.Current.Key < e.TickTime) { }
 			if (!moved)
@@ -626,7 +626,7 @@ public static partial class Extensions
 			return 0;
 		if (e.TickTime == obj.TickTime)
 		{
-			TypedEventCollection<EventType, TickTime> list = (e._beat.BaseLevel?.EventsBeatOrder[e.TickTime]) ?? throw new InvalidOperationException("How?");
+			TypedEventCollection list = (e._beat.BaseChart?.EventsBeatOrder[e.TickTime]) ?? throw new InvalidOperationException("How?");
 			return list.CompareTo(e, obj) ? -1 : 1;
 		}
 		return e.TickTime.CompareTo(obj.TickTime);

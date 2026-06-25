@@ -105,7 +105,7 @@ partial class Level
 							events.Add(new Paddles()
 							{
 								Angle = e.Angle,
-								Time = e.Time,
+								TickTime = e.TickTime,
 								Order = e.Order,
 								// Enabled = true,
 								Duration = 0,
@@ -117,12 +117,12 @@ partial class Level
 					else if (options.Version <= 14 && e is Decoration d && d.EffectCanvas)
 					{
 						_14_useEffectCanvas = true;
-						_14_firstDecoTime = float.Min(_14_firstDecoTime, d.Time);
+						_14_firstDecoTime = float.Min(_14_firstDecoTime, d.TickTime.Tick);
 					}
 					else if (options.Version <= 17 && e is IEaseSequenceEvent s)
 					{
 						_17_useEaseSequence = true;
-						_17_firstEaseTime = float.Min(_17_firstEaseTime, s.Time);
+						_17_firstEaseTime = float.Min(_17_firstEaseTime, s.TickTime.Tick);
 					}
 					index++;
 				}
@@ -156,7 +156,7 @@ partial class Level
 			{
 				events.Add(new SetBoolean()
 				{
-					Time = _14_firstDecoTime,
+					TickTime = new TickTime(_14_firstDecoTime),
 					Order = -999,
 					Enable = true,
 					Var = "vfx.effectCanvas.oldColors",
@@ -166,7 +166,7 @@ partial class Level
 			{
 				events.Add(new SetBoolean()
 				{
-					Time = _17_firstEaseTime - (/*level.properties.offset ??*/ 8),
+					TickTime = new TickTime(_17_firstEaseTime - (/*level.properties.offset ??*/ 8)),
 					Order = -1,
 					Enable = false,
 					Var = "vfx.useVFXDistanceForVFXAngle",
@@ -174,7 +174,7 @@ partial class Level
 				events.Add(new Comment()
 				{
 					Angle = 10,
-					Time = _17_firstEaseTime - (/*level.properties.offset ??*/ 8),
+					TickTime = new TickTime(_17_firstEaseTime - (/*level.properties.offset ??*/ 8)),
 					Text = """
 		 This boolean was added for backwards compatibility when this level was upgraded from format 17 to format 18.
 		 Version 18: use VFX distance (from ease sequence) for VFX angle calculation
@@ -228,6 +228,19 @@ partial class Level
 		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
 		Level? level;
 		string manifestFilePath = Path.Combine(directoryPath, "manifest.json");
+		if(!File.Exists(manifestFilePath))
+		{
+			var dirs = Directory.GetDirectories(directoryPath);
+			if(dirs.Length == 1)
+			{
+				manifestFilePath = Path.Combine(dirs[0], "manifest.json");
+				if (!File.Exists(manifestFilePath))
+					throw new FileNotFoundException($"Manifest file not found in directory '{directoryPath}' or its only subdirectory.");
+				directoryPath = dirs[0];
+			}
+			else
+				throw new FileNotFoundException($"Manifest file not found in directory '{directoryPath}'.");			
+		}
 		using FileStream manifestFs = File.Open(manifestFilePath, FileMode.Open, FileAccess.Read);
 		level = await FileMainEntryConverter.DeserializeMainEntryAsync<Level>(new StreamDataSource(manifestFs), options, cancellationToken);
 		string defaultLevelFile = Path.Combine(directoryPath, "level.json");

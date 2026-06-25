@@ -50,7 +50,7 @@ public static partial class Extensions
 						ClassicBeatPattern.NoChange or _ => "------",
 					};
 				}
-				SetRowXs? last = e.TickTime.BaseLevel?
+				SetRowXs? last = e.TickTime.BaseChart?
 						.OfEvent<SetRowXs>()
 						.InRange(null, e.TickTime)
 						.LastOrDefault(i => i.Active && e.IsBehind(i));
@@ -61,7 +61,7 @@ public static partial class Extensions
 		/// Returns the pulse beat of the specified 0-based index.
 		/// </summary>
 		/// <exception cref="InvalidOperationException">THIS IS 7TH BEAT GAMES!</exception>
-		public TickTime BeatOf(byte index)
+		public TickTime TickOf(byte index)
 		{
 			if (index >= 7)
 				throw new InvalidOperationException("THIS IS 7TH BEAT GAMES!");
@@ -211,7 +211,7 @@ public static partial class Extensions
 					return false;
 				foreach (BaseBeat item in ((IEnumerable<BaseBeat>)e.Parent
 				.OfEvent<BaseBeat>()
-				.InRange(new Components.Range(e.TickTime, null))
+				.InRange(new TickTimeRange(e.TickTime, null))
 				.Where(e.IsBehind))
 				.Reverse())
 				{
@@ -442,7 +442,7 @@ public static partial class Extensions
 			{
 				PlayerType.P1 => p1s,
 				PlayerType.P2 => p2s,
-				PlayerType.CPU => cpus,
+				PlayerType.Cpu => cpus,
 				_ => null
 			} ?? new()
 			{
@@ -467,7 +467,7 @@ public static partial class Extensions
 		/// <summary>
 		/// Calculates the duration of the VFX effect for the given preset.
 		/// </summary>
-		public Components.Range VfxDuration
+		public TickTimeRange VfxDuration
 		{
 			get
 			{
@@ -498,7 +498,7 @@ public static partial class Extensions
 	/// <summary>
 	/// Getting controlled events.
 	/// </summary>
-	public static IEnumerable<IGrouping<string, IBaseEvent>> ControllingEvents(this TagAction e) => e.TickTime.BaseLevel?.GetTaggedEvents(e.ActionTag, e.Action
+	public static IEnumerable<IGrouping<string, IBaseEvent>> ControllingEvents(this TagAction e) => e.TickTime.BaseChart?.GetTaggedEvents(e.ActionTag, e.Action
 			is ActionTagAction.RunAll
 			or ActionTagAction.EnableAll
 			or ActionTagAction.DisableAll) ?? [];
@@ -522,10 +522,8 @@ public static partial class Extensions
 		}
 	}
 
-	extension<TEvent, TType, TBeat>(OrderedEventCollection<TEvent, TType, TBeat> e)
-			where TEvent : IEvent<TType, TBeat>
-			where TType : unmanaged, Enum
-			where TBeat : struct, ITickTime<TBeat>
+	extension<TEvent>(OrderedEventCollection<TEvent> e)
+			where TEvent : IBaseEvent
 	{
 		/// <summary>
 		/// Determine if <paramref name="item1" /> is after <paramref name="item2" />
@@ -555,12 +553,12 @@ public static partial class Extensions
 		/// <summary>
 		/// Check if another event is after itself, including events of the same beat but executed after itself.
 		/// </summary>
-		public bool IsBehind(IBaseEvent item) => e.TickTime.BaseLevel?.IsBehind(e, item) ?? throw new InvalidRDBeatException();
+		public bool IsBehind(IBaseEvent item) => e.TickTime.BaseChart?.IsBehind(e, item) ?? throw new InvalidRDBeatException();
 
 		/// <summary>
 		/// Check if another event is in front of itself, including events of the same beat but executed before itself.
 		/// </summary>
-		public bool IsInFrontOf(IBaseEvent item) => e.TickTime.BaseLevel?.IsInFrontOf(e, item) ?? throw new InvalidRDBeatException();
+		public bool IsInFrontOf(IBaseEvent item) => e.TickTime.BaseChart?.IsInFrontOf(e, item) ?? throw new InvalidRDBeatException();
 
 		/// <summary>
 		/// Converts the current <see cref="IBaseEvent"/> instance to its JSON string representation.
@@ -670,7 +668,7 @@ public static partial class Extensions
 		/// <summary>
 		/// Gets the events controlled by this <see cref="TagAction"/> event, grouped by their action tags.
 		/// </summary>
-		public IEnumerable<IGrouping<string, IBaseEvent>> ControllingEvents => e.TickTime.BaseLevel?.GetTaggedEvents(e.ActionTag, e.Action
+		public IEnumerable<IGrouping<string, IBaseEvent>> ControllingEvents => e.TickTime.BaseChart?.GetTaggedEvents(e.ActionTag, e.Action
 				is ActionTagAction.RunAll
 				or ActionTagAction.EnableAll
 				or ActionTagAction.DisableAll) ?? [];

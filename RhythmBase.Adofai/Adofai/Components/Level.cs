@@ -36,7 +36,6 @@ public partial class Level :
                 yield return tile2;
         }
     }
-    IBeatCalculator<TickTime> IChart<TickTime>.Calculator => Calculator;
     /// <summary>
     /// The calculator that comes with the level.
     /// </summary>

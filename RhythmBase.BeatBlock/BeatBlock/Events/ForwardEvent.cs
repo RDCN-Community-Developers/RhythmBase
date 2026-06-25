@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using RhythmBase.BeatBlock.Components;
+using System.Text.Json;
 
 namespace RhythmBase.BeatBlock.Events;
 
@@ -36,7 +37,7 @@ public record class ForwardEvent : BaseEvent, IForwardEvent
         this.Order = _extraData.TryGetValue("order", out JsonElement orderElement) && orderElement.ValueKind == JsonValueKind.Number ? orderElement.GetInt32() : 0;
         this.Angle = _extraData.TryGetValue("angle", out JsonElement angleElement) && angleElement.ValueKind == JsonValueKind.Number ? angleElement.GetSingle() : 0;
         //this.Beat = _extraData.TryGetValue("beat", out JsonElement beatElement) && beatElement.ValueKind == JsonValueKind.Number ? beatElement.GetSingle() : 0;
-        this.Time = _extraData.TryGetValue("time", out JsonElement timeElement) && timeElement.ValueKind == JsonValueKind.Number ? timeElement.GetSingle() : 0;
+        this.TickTime = _extraData.TryGetValue("time", out JsonElement timeElement) && timeElement.ValueKind == JsonValueKind.Number ? new TickTime(timeElement.GetSingle()) : new TickTime(0);
         this.Variant = _extraData.TryGetValue("variant", out JsonElement variantElement) && variantElement.ValueKind == JsonValueKind.String ? variantElement.GetString() ?? "" : "";
         _extraData["type"] = data.RootElement.GetProperty("type");
         _extraData.Remove("order");

@@ -42,12 +42,12 @@ RhythmBase.Rizline                 ← Rizline 适配
 
 **支持的关卡格式**：
 
-| 游戏       | 单文件     | 多文件目录                             | 压缩包          | JSON 读写          | 时间解析           | 历史版本适配       |
-| ---------- | ---------- | -------------------------------------- | --------------- | ------------------ | ------------------ | ------------------ |
-| 节奏医生   | `.rdlevel` | -                                      | `.rdzip` `.zip` | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| 冰与火之舞 | `.adofai`  | -                                      | `.zip`          | :white_check_mark: |                    |                    |
-| BeatBlock  | -          | `manifest.json` + `level.json` + chart | `.zip`          | :white_check_mark: |                    |                    |
-| Rizline    | -          | `metadata.json` + chart                | `.zip`          | -                  |                    |                    |
+| 游戏       | 单文件     | 多文件目录                             | 压缩包          | JSON 读写          | 时间解析           | 历史版本适配                 |
+| ---------- | ---------- | -------------------------------------- | --------------- | ------------------ | ------------------ | ---------------------------- |
+| 节奏医生   | `.rdlevel` | -                                      | `.rdzip` `.zip` | :white_check_mark: | :white_check_mark: | :white_check_mark:           |
+| 冰与火之舞 | `.adofai`  | -                                      | `.zip`          |                    |                    |                              |
+| BeatBlock  | -          | `manifest.json` + `level.json` + chart | `.zip`          | :white_check_mark: |                    | :white_check_mark:(需要验证) |
+| Rizline    | -          | `metadata.json` + chart                | `.zip`          |                    |                    |                              |
 
 ## 特别感谢
 

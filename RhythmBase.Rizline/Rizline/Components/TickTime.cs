@@ -3,108 +3,190 @@
 /// <summary>
 /// Represents a point in time measured in ticks, used for Rizline event timing.
 /// </summary>
-public struct TickTime : ITickTime<TickTime>
+partial struct TickTime
 {
-	/// <summary>
-	/// The time span equivalent of this tick value.
-	/// </summary>
-	public TimeSpan TimeSpan { get; }
-	/// <summary>
-	/// The raw tick value.
-	/// </summary>
-	public float Tick { get; }
+	public partial float Tick
+	{
+		get
+		{
+			if ((!MustFromCache || !_isTickLoaded) && _calculator is not null)
+			{
+				if (_isTimeSpanLoaded)
+					_tick = _calculator.TimeSpanToTick(_TimeSpan) - 1f;
+				_isTickLoaded = true;
+			}
+			return _tick + 1f;
+		}
+	}
+	public partial TimeSpan TimeSpan
+	{
+		get
+		{
+			if ((!MustFromCache || !_isTimeSpanLoaded) && _calculator is not null)
+			{
+				if (_isTickLoaded)
+					_TimeSpan = _calculator.TickToTimeSpan(_tick + 1f);
+				_isTimeSpanLoaded = true;
+			}
+			return _TimeSpan;
+		}
+	}
+	partial void InitDefault()
+	{
+		_tick = 1f;
+		_TimeSpan = TimeSpan.Zero;
+		_isTickLoaded = true;
+		_isTimeSpanLoaded = true;
+	}
+	partial void NormalizeTick()
+	{
+		if (_tick < 1f) _tick = 1f;
+		_tick -= 1f;
+	}
+	partial void NormalizeTimeSpan()
+	{
+		if (_TimeSpan < TimeSpan.Zero) _TimeSpan = TimeSpan.Zero;
+	}
+	private static partial void AddTickAndCache(TickTime left, float right, ref TickTime result)
+	{
+		if (!left._isTickLoaded)
+			throw new ArgumentNullException(nameof(left), "The beat cannot be calculated.");
+		if (left._isTickLoaded)
+		{
+			result._tick = left._tick + right;
+			result._isTickLoaded = true;
+		}
+	}
+	private static partial void AddTimeSpanAndCache(TickTime left, TimeSpan right, ref TickTime result)
+	{
+		result = new TickTime();
+		if (left._isTimeSpanLoaded)
+		{
+			result._TimeSpan = left._TimeSpan + right;
+			result._isTimeSpanLoaded = true;
+			result._isTickLoaded = false;
+		}
+		else
+			throw new ArgumentNullException(nameof(left), "The beat cannot be calculated.");
+	}
+	private static partial void SubstractTickAndCache(TickTime left, float right, ref TickTime result)
+	{
+		if (!left._isTickLoaded)
+			throw new ArgumentNullException(nameof(left), "The beat cannot be calculated.");
+		if (left._isTickLoaded)
+		{
+			result._tick = left._tick - right;
+			result._isTickLoaded = true;
+		}
+	}
+	private static partial void SubstractTimeSpanAndCache(TickTime left, TimeSpan right, ref TickTime result)
+	{
+		if (left._isTimeSpanLoaded)
+		{
+			result._TimeSpan = left._TimeSpan - right;
+			result._isTimeSpanLoaded = true;
+			result._isTickLoaded = false;
+		}
+		else
+			throw new ArgumentNullException(nameof(left), "The beat cannot be calculated.");
+	}
+	public partial TickTime(BeatCalculator calculator, TickTime beat)
+	{
+		this = default;
+		if (beat._isTickLoaded)
+		{
+			_tick = Math.Max(beat._tick, 0f);
+			_isTickLoaded = true;
+			_calculator = calculator;
+		}
+		else if (beat._isTimeSpanLoaded)
+		{
+			_TimeSpan = beat._TimeSpan > TimeSpan.Zero ? beat._TimeSpan : TimeSpan.Zero;
+			_isTimeSpanLoaded = true;
+			_calculator = calculator;
+			_tick = _calculator.TimeSpanToTick(TimeSpan) - 1f;
+		}
+	}
+	public readonly partial bool IsEmpty => _calculator == null || !_isTickLoaded && !_isTimeSpanLoaded;
+	public partial void ResetCache()
+	{
+		_ = Tick;
+		_isTimeSpanLoaded = false;
+	}
+	public partial void Cache()
+	{
+		IfNullThrowException();
+		_ = Tick;
+		_ = TimeSpan;
+		_ = Bpm;
+	}
+	internal partial void ResetBPM()
+	{
+		if (!_isTickLoaded)
+			_tick = _calculator?.TimeSpanToTick(_TimeSpan) - 1f ?? throw new InvalidRDBeatException();
+		_isTickLoaded = true;
+		_isTimeSpanLoaded = false;
+		_isBPMLoaded = false;
+	}
+	public static partial TickTime Min(TickTime left, TickTime right) =>
+		left.FromSameChartOrNull(right, false) ?
+			left.Tick < right.Tick ?
+				left :
+				right :
+			left.TimeSpan < right.TimeSpan ?
+				left :
+				right;
+	public static partial TickTime Max(TickTime left, TickTime right) =>
+	left.FromSameChartOrNull(right, false) ?
+		left.Tick > right.Tick ?
+			left :
+			right :
+		left.TimeSpan > right.TimeSpan ?
+			left :
+			right;
+	private static int CompareInternal(int bar1, float beat1, int bar2, float beat2)
+	{
+		int barComparison = bar1.CompareTo(bar2);
+		return barComparison != 0 ? barComparison : beat1.CompareTo(beat2);
+	}
+	private static partial int CompareInternal(TickTime left, TickTime right)
+	{
+		if (left._isTickLoaded && right._isTickLoaded)
+			return left._tick.CompareTo(right._tick);
+		if (left._isTimeSpanLoaded && right._isTimeSpanLoaded)
+			return left._TimeSpan.CompareTo(right._TimeSpan);
 
-	/// <summary>
-	/// Compares this tick time to another by their tick values.
-	/// </summary>
-	/// <param name="other">The other tick time to compare to.</param>
-	/// <returns>An integer indicating the relative order.</returns>
-	public int CompareTo(TickTime other)
-	{
-		return Tick.CompareTo(other.Tick);
-	}
+		if (left._calculator != null)
+		{
+			// 用 left 的单位比较
+			left.Cache();
+			return (right._isTickLoaded ? left.Tick.CompareTo(right._tick)
+				: right._isTimeSpanLoaded ? left.Tick.CompareTo(left._calculator.TimeSpanToTick(right.TimeSpan))
+				: throw new InvalidOperationException("The beat cannot be compared."));
+		}
 
-	/// <summary>
-	/// Determines whether this tick time equals another by tick value.
-	/// </summary>
-	/// <param name="other">The other tick time to compare.</param>
-	/// <returns><see langword="true"/> if the tick values are equal.</returns>
-	public bool Equals(TickTime other)
-	{
-		return Tick.Equals(other.Tick);
-	}
-	/// <summary>
-	/// Creates a new <see cref="TickTime"/> from the specified tick value.
-	/// </summary>
-	/// <param name="tick">The tick value.</param>
-	public TickTime(float tick)
-	{
-		Tick = tick;
-	}
-}
-/// <summary>
-/// A range of tick time with optional start and end boundaries.
-/// </summary>
-public struct Range : ITickRange<TickTime>
-{
-	/// <summary>
-	/// The inclusive start of the range, or <see langword="null"/> for unbounded.
-	/// </summary>
-	public TickTime? Start { get; }
-	/// <summary>
-	/// The inclusive end of the range, or <see langword="null"/> for unbounded.
-	/// </summary>
-	public TickTime? End { get; }
-	/// <summary>
-	/// Creates a new range with the specified start and end boundaries.
-	/// </summary>
-	/// <param name="start">The inclusive start boundary.</param>
-	/// <param name="end">The inclusive end boundary.</param>
-	public Range(TickTime? start, TickTime? end)
-	{
-		Start = start;
-		End = end;
-	}
-	/// <summary>
-	/// Determines whether the specified tick time falls within this range.
-	/// </summary>
-	/// <param name="b">The tick time to test.</param>
-	/// <returns><see langword="true"/> if <paramref name="b"/> is within the range.</returns>
-	public bool Contains(TickTime b)
-	{
-		throw new NotImplementedException();
-	}
-	/// <summary>
-	/// Resolves the start and end tick times, substituting defaults where boundaries are unbounded.
-	/// </summary>
-	/// <param name="endTime">The fallback end time if the end boundary is unbounded.</param>
-	/// <returns>A tuple of resolved start and end tick times.</returns>
-	public (TickTime Start, TickTime End) GetStartAndEnd(TickTime endTime)
-	{
-		throw new NotImplementedException();
-	}
+		if (right._calculator != null)
+		{
+			// 用 right 的单位比较
+			right.Cache();
+			return (left._isTickLoaded ? left._tick.CompareTo(right.Tick)
+				: left._isTimeSpanLoaded ? right.Tick.CompareTo(right._calculator.TimeSpanToTick(left.TimeSpan))
+				: throw new InvalidOperationException("The beat cannot be compared."));
+		}
 
-	/// <summary>
-	/// Returns the intersection of this range with another.
-	/// </summary>
-	/// <param name="other">The range to intersect with.</param>
-	/// <returns>A new range representing the overlap.</returns>
-	public ITickRange<TickTime> Intersect(ITickRange<TickTime> other)
-	{
-		throw new NotImplementedException();
+		throw new InvalidOperationException("The beat cannot be compared.");
 	}
-
-	/// <summary>
-	/// Returns the union of this range with another.
-	/// </summary>
-	/// <param name="other">The range to union with.</param>
-	/// <returns>A new range covering both ranges.</returns>
-	public ITickRange<TickTime> Union(ITickRange<TickTime> other)
+	public override partial string ToString()
 	{
-		throw new NotImplementedException();
+		string ToString;
+		if (IsEmpty)
+			ToString = $"[{(
+				_isTickLoaded ? _tick.ToString() : "?"
+				)},{(
+				_isTimeSpanLoaded ? _TimeSpan.ToString() : "?"
+				)}]";
+		else
+			ToString = $"[{_tick}?]";
+		return ToString;
 	}
-#if NET8_0_OR_GREATER
-	static ITickRange<TickTime> ITickRange<TickTime>.Infinity => new Range(null, null);
-	static ITickRange<TickTime> ITickRange<TickTime>.Empty => new Range(new(), new());
-#endif
 }

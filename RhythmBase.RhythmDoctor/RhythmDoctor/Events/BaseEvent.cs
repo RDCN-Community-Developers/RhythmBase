@@ -22,12 +22,12 @@ public abstract record class BaseEvent : IBaseEvent
 		{
 			if (!value.IsEmpty && _beat == value)
 				return;
-			BeatCalculator? c = _beat.BaseLevel?.Calculator;
-			_beat.BaseLevel?.Remove(this);
+			BeatCalculator? c = _beat.BaseChart?.Calculator;
+			_beat.BaseChart?.Remove(this);
 			_beat = c == null ?
 				value.WithoutLink() :
 				new(c,value);
-			_beat.BaseLevel?.Add(this);
+			_beat.BaseChart?.Add(this);
 		}
 	}
 	///<inheritdoc/>

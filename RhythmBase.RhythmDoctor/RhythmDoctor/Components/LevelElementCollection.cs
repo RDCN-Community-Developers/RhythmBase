@@ -1,3 +1,4 @@
+using RhythmBase.RhythmDoctor.Events;
 using System.Collections;
 
 namespace RhythmBase.RhythmDoctor.Components;
@@ -14,8 +15,8 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// <param name="parent">The parent <see cref="Level"/> instance associated with this collection.</param>  
 /// <param name="limited">A boolean value indicating whether the collection has a fixed size limit.</param>  
 public abstract class LevelElementCollection<T, TEvent>(Level parent, bool limited) : ICollection<T>
-	where T : OrderedEventCollection<TEvent, EventType, TickTime>, new()
-	where TEvent : IEvent<EventType, TickTime>
+	where T : OrderedEventCollection<TEvent>, new()
+	where TEvent : IBaseEvent
 {
 	/// <summary>  
 	/// The parent <see cref="Level"/> instance associated with this collection.  

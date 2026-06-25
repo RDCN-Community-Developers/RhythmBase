@@ -965,10 +965,10 @@ public enum PlayerHand
 [JsonEnumSerializable]
 public enum PlayerType
 {
-	/// <summary>  
-	/// Automatically detect the player.  
-	/// </summary>  
-	AutoDetect,
+	/// <summary>
+	/// No change in player type.
+	/// </summary>
+	NoChange,
 	/// <summary>
 	/// Player 1.
 	/// </summary>
@@ -980,15 +980,19 @@ public enum PlayerType
 	/// <summary>
 	/// Computer player.
 	/// </summary>
-	CPU,
+	[JsonAlias("CPU")]
+	Cpu,
 	/// <summary>
 	/// Both.
 	/// </summary>
-	BOTH,
-	/// <summary>
-	/// No change in player type.
-	/// </summary>
-	NoChange,
+	[JsonAlias("BOTH")]
+	[Obsolete("This value is deprecated and only for backward compatibility. Use other values instead.")]
+	Both,
+	/// <summary>  
+	/// Automatically detect the player.  
+	/// </summary>  
+	[Obsolete("This value is deprecated and only for backward compatibility. Use other values instead.")]
+	AutoDetect,
 }
 /// <summary>
 /// Defines the types of custom sounds.

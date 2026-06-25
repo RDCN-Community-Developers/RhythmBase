@@ -7,7 +7,7 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// <summary>
 /// A collection of row events.
 /// </summary>
-public class Row : OrderedEventCollection<BaseRowAction, EventType, TickTime>, IEventEnumerable<BaseRowAction>
+public class Row : OrderedEventCollection<BaseRowAction>, IEventEnumerable<BaseRowAction>
 {
 	/// <summary>
 	/// Gets or sets the character associated with the row.
@@ -86,17 +86,6 @@ public class Row : OrderedEventCollection<BaseRowAction, EventType, TickTime>, I
 	/// Initializes a new instance of the <see cref="Row"/> class.
 	/// </summary>
 	public Row() { }
-	/// <inheritdoc/>
-	protected override TickTime CreateInstance(float beat) => new(beat);
-	/// <inheritdoc/>
-	protected override ITickRange<TickTime> CreateRange(float? start, float? end) => new Range(
-	start is float s ? new TickTime(s) : null,
-	end is float e ? new TickTime(e) : null
-	);
-	/// <inheritdoc/>
-	protected override ReadOnlyEnumCollection<EventType> Types => EventTypeRegistry.ToEnums<BaseRowAction>();
-	/// <inheritdoc/>
-	protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => EventTypeRegistry.ToEnums(typeof(TTarget));
 	/// <summary>
 	/// Adds an item to the row.
 	/// </summary>

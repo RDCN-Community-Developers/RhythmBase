@@ -7,8 +7,9 @@ namespace RhythmBase.BeatBlock
 	/// <summary>
 	/// Contains constant values used by the BeatBlock level format.
 	/// </summary>
-	public static class Constants
+	public static partial class Constants
 	{ 
+		public static partial float DefaultBpm => 100f;
 		/// <summary>
 		/// Represents the minimum supported version of the Rhythm Doctor application required for compatibility.
 		/// </summary>

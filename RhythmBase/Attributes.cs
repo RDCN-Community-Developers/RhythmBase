@@ -113,6 +113,20 @@ public sealed class JsonConverterSourceTypeAttribute(
     ) : Attribute
 { }
 /// <summary>
+/// TickTime generation attribute for a game adapter, specifying the chart type, calculator type, and tick time type.
+/// </summary>
+/// <param name="chartType">The chart type. Must implement <see cref="IChart{TBeat}"/>.</param>
+/// <param name="calculatorType">The calculator type. Must implement <see cref="IBeatCalculator{TBeat}"/>.</param>
+/// <param name="tickTimeType">The tick time type. Must implement <see cref="ITickTime{TBeat}"/>.</param>
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false, Inherited = false)]
+public sealed class TickTimeAttribute(
+  Type chartType,
+  Type calculatorType,
+  Type tickTimeType,
+  Type typeEnumType,
+  Type typeInterfaceType
+  ) : Attribute { }
+/// <summary>
 /// Specifies the unit of time used when serializing a <see cref="System.TimeSpan"/> property.
 /// </summary>
 public enum JsonTimeType

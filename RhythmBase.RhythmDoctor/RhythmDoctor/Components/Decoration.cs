@@ -7,7 +7,7 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// <summary>
 /// A decoration.
 /// </summary>
-public class Decoration : OrderedEventCollection<BaseDecorationAction, EventType, TickTime>, IEventEnumerable<BaseDecorationAction>
+public class Decoration : OrderedEventCollection<BaseDecorationAction>, IEventEnumerable<BaseDecorationAction>
 {
 	/// <summary>
 	/// Decorated ID.
@@ -77,17 +77,6 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction, EventType
 		Room = room;
 		_id = GetHashCode().ToString();
 	}
-	/// <inheritdoc/>
-	protected override TickTime CreateInstance(float beat) => new(beat);
-	/// <inheritdoc/>
-	protected override ITickRange<TickTime> CreateRange(float? start, float? end) => new Range(
-			start.HasValue ? new TickTime(start.Value) : null,
-			end.HasValue ? new TickTime(end.Value) : null
-	);
-	/// <inheritdoc/>
-	protected override ReadOnlyEnumCollection<EventType> Types => EventTypeRegistry.ToEnums<BaseDecorationAction>();
-	/// <inheritdoc/>
-	protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => EventTypeRegistry.ToEnums(typeof(TTarget));
 	/// <summary>
 	/// Add an event to decoration.
 	/// </summary>

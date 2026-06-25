@@ -16,10 +16,6 @@ public abstract record class BaseEvent : IBaseEvent
     /// </summary>
     public abstract EventType Type { get; }
     /// <summary>
-    /// Gets or sets the time of the event.
-    /// </summary>
-    public float Time { get; set; }
-    /// <summary>
     /// Gets or sets the angle of the event.
     /// </summary>
     public float Angle { get; set; }

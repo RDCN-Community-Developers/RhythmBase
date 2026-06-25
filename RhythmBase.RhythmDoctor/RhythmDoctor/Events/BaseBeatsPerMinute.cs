@@ -34,9 +34,9 @@ public abstract record class BaseBeatsPerMinute : BaseEvent
 	/// </summary>
 	private void ResetTimeLine()
 	{
-		if (TickTime.BaseLevel != null)
+		if (TickTime.BaseChart != null)
 		{
-			foreach (IBaseEvent item in from i in TickTime.BaseLevel
+			foreach (IBaseEvent item in from i in TickTime.BaseChart
 										where i.TickTime > TickTime
 										select i)
 			{

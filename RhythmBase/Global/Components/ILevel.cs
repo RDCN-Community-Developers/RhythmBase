@@ -8,10 +8,6 @@ namespace RhythmBase.Global.Components;
 /// <typeparam name="TBeat">The type of beat used for timing calculations.</typeparam>
 public interface IChart<TBeat> where TBeat : struct, ITickTime<TBeat>
 {
-    /// <summary>
-    /// Gets the beat calculator associated with this chart.
-    /// </summary>
-    IBeatCalculator<TBeat> Calculator { get; }
 }
 /// <summary>
 /// Marker interface for all level types.

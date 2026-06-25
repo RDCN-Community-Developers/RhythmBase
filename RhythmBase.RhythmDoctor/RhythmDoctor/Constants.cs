@@ -3,14 +3,10 @@ using System.Collections.ObjectModel;
 namespace RhythmBase.RhythmDoctor;
 
 /// <summary>
-/// Provides constant values in the Rhythm Doctor game.
+/// Provides constant values in the game.
 /// </summary>
-public static class Constants
+public static partial class Constants
 {
-	/// <summary>
-	/// The default version number used when creating a new level.
-	/// </summary>
-	public const int DefaultVersion = 67;
 	/// <summary>
 	/// Bitmask flags that describe the capabilities and application targets of a VFX preset.
 	/// </summary>
@@ -83,13 +79,31 @@ public static class Constants
 		EnableSpeed = 0b1000_000_000_0,
 	}
 	/// <summary>
-	/// The default beats per minute for a new level.
+	/// The default version number used when creating a new level.
 	/// </summary>
-	public const float DefaultBpm = 100f;
+	public const int DefaultVersion = 67;
+	public static partial float DefaultBpm => 100f;
 	/// <summary>
 	/// The default number of crotchets per bar for a new level.
 	/// </summary>
 	public const int DefaultCpb = 8;
+	/// <summary>
+	/// Represents the total number of rooms available.
+	/// </summary>
+	public const int RoomCapacity = 4;
+	/// <summary>
+	/// Represents the total number of rows available in the game.
+	/// </summary>
+	public const int RowCapacity = 16;
+	/// <summary>
+	/// Represents the total number of beat in an <see cref="RhythmBase.RhythmDoctor.Events.AddClassicBeat"/> event.
+	/// </summary>
+	public const int ClassicBeatCapacity = 7;
+	/// <summary>
+	/// Represents the total number of palette colors available.
+	/// </summary>
+	public const int PaletteColorCount = 21;
+
 	/// <summary>
 	/// Read-only mapping that associates each <see cref="VfxPreset"/> with the corresponding <see cref="VfxAttribute"/> flags.
 	/// </summary>
@@ -98,16 +112,6 @@ public static class Constants
 	/// supports intensity, color, easing, etc.). The values are intended to be tested with bitwise operations.
 	/// </remarks>
 	public static ReadOnlyDictionary<VfxPreset, VfxAttribute> VfxAttributes => _vfxAttributes;
-	/// <summary>
-	/// Represents the total number of rooms available.
-	/// </summary>
-
-	public const int RoomCount = 4;
-	/// <summary>
-	/// Represents the total number of palette colors available.
-	/// </summary>
-	public const int PaletteColorCount = 21;
-
 	private static readonly ReadOnlyDictionary<VfxPreset, VfxAttribute> _vfxAttributes = new(new Dictionary<VfxPreset, VfxAttribute>
 	{
 		[VfxPreset.Vignette] = VfxAttribute.MultiRooms,

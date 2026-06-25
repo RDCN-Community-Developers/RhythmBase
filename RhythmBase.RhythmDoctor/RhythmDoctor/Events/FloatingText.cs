@@ -61,7 +61,7 @@ public record class FloatingText : BaseEvent, IRoomEvent, IDurationEvent, IColor
 	/// Gets the unique identifier for the entity.
 	/// </summary>
 	[JsonAlias("id")]
-	public int Id => _beat.BaseLevel?._floatingTexts.IndexOf(this) ?? -1;
+	public int Id => _beat.BaseChart?._floatingTexts.IndexOf(this) ?? -1;
 	/// <summary>
 	/// Gets or sets the position of the text.
 	/// </summary>

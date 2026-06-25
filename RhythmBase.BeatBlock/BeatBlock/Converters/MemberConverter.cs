@@ -1,5 +1,5 @@
-﻿using RhythmBase.BeatBlock.Events;
-using System.Text;
+﻿using RhythmBase.BeatBlock.Components;
+using RhythmBase.BeatBlock.Events;
 using System.Text.Json;
 
 namespace RhythmBase.BeatBlock.Converters;
@@ -63,13 +63,13 @@ internal class BaseEventConverter : BackwardCompatibleMetadataJsonConverter
 		Register<Play>(12, (e) =>
 		{
 			if (e is not Play p) return;
-			_12_playSongTime = p.Time;
+			_12_playSongTime = p.TickTime.Tick;
 		});
 		Register<SetBeatsPerMinute>(12, (e) =>
 		{
 			if (e is not SetBeatsPerMinute s) return;
-			if(_12_playSongTime == 0) return;
-			e.Time += _12_playSongTime;
+			if (_12_playSongTime == 0) return;
+			e.TickTime += _12_playSongTime;
 		});
 		//Register<PlaySound>(13, (e) =>
 		//{
@@ -186,7 +186,7 @@ internal abstract class MemberConverter<TEvent> : EventInstanceConverterBase whe
 				value[fieldName] = fieldValue;
 			}
 		}
-		value.Time = time;
+		value.TickTime = new TickTime(time);
 		value.Angle = angle;
 		return value;
 	}
@@ -208,7 +208,7 @@ internal abstract class MemberConverter<TEvent> : EventInstanceConverterBase whe
 		if (reader.ValueTextEquals("angle"u8) && reader.Read())
 			value.Angle = reader.GetSingle();
 		else if (reader.ValueTextEquals("time"u8) && reader.Read())
-			value.Time = reader.GetSingle();
+			value.TickTime = new TickTime(reader.GetSingle());
 		else if (reader.ValueTextEquals("variant"u8) && reader.Read())
 			value.Variant = reader.GetString();
 		else if (reader.ValueTextEquals("order"u8) && reader.Read())
@@ -220,7 +220,7 @@ internal abstract class MemberConverter<TEvent> : EventInstanceConverterBase whe
 	protected virtual void Write(Utf8JsonWriter writer, ref TEvent value, MetadataJsonSerializerOptions options)
 	{
 		writer.WriteNumber("angle"u8, value.Angle);
-		writer.WriteNumber("time"u8, value.Time);
+		writer.WriteNumber("time"u8, value.TickTime.Tick);
 		if (value.Variant is not null)
 			writer.WriteString("variant"u8, value.Variant);
 		if (value.Order is int valueNotNull)

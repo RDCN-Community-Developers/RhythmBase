@@ -5,7 +5,7 @@ namespace RhythmBase.Adofai.Components;
 /// <summary>
 /// Represents a tile in the ADOFAI level, containing events and properties related to the tile.
 /// </summary>
-public class Tile : TypedEventCollection<EventType, TickTime>
+public class Tile : TypedEventCollection
 {
     /// <summary>
     /// Gets or sets the angle of the tile.

@@ -7,8 +7,9 @@ namespace RhythmBase.Adofai;
 /// <summary>
 /// Provides constants and utility methods for A Dance of Fire and Ice level files.
 /// </summary>
-public static class Constants
+public static partial class Constants
 {
+	public static partial float DefaultBpm => 100f;
 	/// <summary>
 	/// Represents the minimum supported version of the A Dance of Fire and Ice (ADOFAI) game required by this application.
 	/// </summary>

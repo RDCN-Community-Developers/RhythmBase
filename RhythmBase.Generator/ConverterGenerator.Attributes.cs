@@ -19,6 +19,7 @@ partial class ConverterGenerator
 	private const string JsonConverterIdAttrName = "RhythmBase.JsonConverterIdAttribute";
 	private const string JsonConverterSourceTypeAttrName = "RhythmBase.JsonConverterSourceTypeAttribute";
 	private const string JsonFlattenAttrName = "RhythmBase.JsonFlattenAttribute";
+	private const string TickTimeAttrName = "RhythmBase.TickTimeAttribute";
 
 	// Type 类型
 	private const string IEventTypeName = "RhythmBase.Global.Events.IEvent";

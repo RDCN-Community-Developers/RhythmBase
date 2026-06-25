@@ -127,8 +127,8 @@ namespace RhythmBase.Test;
         public void CreateBeatWithBinding()
         {
             // Create a beat associated with a level
-            TickTime beat1 = _rdlevel.BeatOf(11);
-            TickTime beat2 = _rdlevel.Calculator.BeatOf(2, 3);
+            TickTime beat1 = _rdlevel.TickOf(11);
+            TickTime beat2 = _rdlevel.Calculator.TickOf(2, 3);
             TickTime beat3 = beat1 - 10 + TimeSpan.FromSeconds(11.45);
 
             Console.WriteLine(beat1); // [2,3]
@@ -138,7 +138,7 @@ namespace RhythmBase.Test;
         [TestMethod]
         public void LinkBeats()
         {
-            TickTime beat1 = _rdlevel.BeatOf(1);
+            TickTime beat1 = _rdlevel.TickOf(1);
             TickTime beat2 = beat1.WithoutLink();
 
             Console.WriteLine(beat1.FromSameLevel(beat2));       // False
@@ -157,7 +157,7 @@ namespace RhythmBase.Test;
         [TestMethod]
         public void RangeUsage()
         {
-            IEnumerable<IBaseEvent> result = _rdlevel.InRange(new RhythmDoctor.Components.Range(_rdlevel.DefaultBeat + 10, null));
+            IEnumerable<IBaseEvent> result = _rdlevel.InRange(new RhythmDoctor.Components.TickRange(_rdlevel.DefaultBeat + 10, null));
         }
         [TestMethod]
         public void ExpressionUsage()

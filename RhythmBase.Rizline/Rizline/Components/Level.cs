@@ -2,59 +2,6 @@
 
 namespace RhythmBase.Rizline.Components;
 
-///// <summary>
-///// Represents a generic key point used for timeline-based changes such as BPM shifts,
-///// canvas speed/position and camera transforms.
-///// </summary>
-///// <remarks>
-///// Time is expressed in ticks (1 tick = 60 / BPM seconds in Rizline format).
-///// The <see cref="FloorPosition"/> field stores a precomputed cumulative vertical offset.
-///// </remarks>
-//public record struct KeyPoint
-//{
-//	/// <summary>
-//	/// Time when the key point takes effect, in ticks. 
-//	/// </summary>
-//	public float Time { get; set; }
-
-//	/// <summary>
-//	/// Value applied at <see cref="Time"/> (meaning depends on context). 
-//	/// </summary>
-//	public float Value { get; set; }
-
-//	/// <summary>
-//	/// Ease type used to interpolate from this key point to the next. 
-//	/// </summary>
-//	public EaseType EaseType { get; set; }
-
-//	/// <summary>
-//	/// Cumulative floor position (height) at this key point. For canvas speed changes
-//	/// this represents the vertical offset in the canvas at <see cref="Time"/>.
-//	/// </summary>
-//	public float FloorPosition { get; set; }
-//}
-
-///// <summary>
-///// Represents a color transition that starts at a given time. 
-///// </summary>
-//public struct ColorDuration
-//{
-//	/// <summary>
-//	/// Start color of the duration segment. 
-//	/// </summary>
-//	public Color StartColor { get; set; }
-
-//	/// <summary>
-//	/// End color of the duration segment. 
-//	/// </summary>
-//	public Color EndColor { get; set; }
-
-//	/// <summary>
-//	/// Start time of the color segment in ticks. 
-//	/// </summary>
-//	public float Time { get; set; }
-//}
-
 /// <summary>
 /// Guide line that contains line points, notes and optional color overlays for the line
 /// and its judge rings.
@@ -168,7 +115,10 @@ public class Chart : IChart<TickTime>
 	/// Camera movement and zoom key points for this chart.
 	/// </summary>
 	public CameraMove CameraMove { get; set; } = new();
-	IBeatCalculator<TickTime> IChart<TickTime>.Calculator { get; }
+	/// <summary>
+	/// The calculator used for timing and tick calculations in this chart.
+	/// </summary>
+	public BeatCalculator Calculator => new(this);
 }
 
 /// <summary>
@@ -237,11 +187,6 @@ public partial class Level :
 	/// Original file path of the level, if any. 
 	/// </summary>
 	public string? Filepath { get; internal set; }
-
-	/// <summary>
-	/// Beat calculator instance used for timing calculations. 
-	/// </summary>
-	public IBeatCalculator<TickTime> Calculator { get; }
 
 	/// <summary>
 	/// Resolved absolute path to the level file. 
