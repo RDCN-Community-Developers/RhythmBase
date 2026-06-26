@@ -56,7 +56,7 @@ public partial class ConverterGenerator
 			{
 				enums.Add((enumType, pascalCase, members));
 			}
-			foreach(var (enumType, pascalCase, members) in enums2)
+			foreach (var (enumType, pascalCase, members) in enums2)
 			{
 				enums.Add((enumType, pascalCase, members));
 			}
@@ -391,36 +391,39 @@ public partial class ConverterGenerator
 			var jsonFlattenAttrSmp = compilation.GetTypeByMetadataName(JsonFlattenAttrName);
 
 			bool shouldGenerate = GetShouldGenerate(prop, compilation);
-			if (!shouldGenerate) continue;
-
 			bool isNullable = prop.Property.Type.NullableAnnotation == NullableAnnotation.Annotated;
-
-			string alias = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, aliasAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string
-					?? ToLowerCamelCase(prop.Property.ToDisplayParts().Last().ToString());
-			string? condition = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, condAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string;
-			INamedTypeSymbol? jsonCvtr = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as INamedTypeSymbol;
-			int? timeEnum = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, timeCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as int?;
-
-			string valueAccess = $"value.{prop.Property.ToDisplayParts().Last()}";
+			if (shouldGenerate)
 			{
-				sb.AppendLine($$"""{{(index == 0 ? "" : "else ")}}if (reader.ValueTextEquals("{{alias}}"u8) && reader.Read())""");
-				if (isNullable)
-					sb.AppendLine($$"""
+
+				string alias = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, aliasAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string
+						?? ToLowerCamelCase(prop.Property.ToDisplayParts().Last().ToString());
+				string? condition = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, condAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string;
+				INamedTypeSymbol? jsonCvtr = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as INamedTypeSymbol;
+				int? timeEnum = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, timeCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as int?;
+
+				string valueAccess = $"value.{prop.Property.ToDisplayParts().Last()}";
+				{
+					sb.AppendLine($$"""{{(index == 0 ? "" : "else ")}}if (reader.ValueTextEquals("{{alias}}"u8) && reader.Read())""");
+					if (isNullable)
+						sb.AppendLine($$"""
 							{ if (reader.TokenType == JsonTokenType.Null) value.{{prop.Property.ToDisplayParts().Last()}} = null;
 								else
 					""");
 
-				var type = UnwarpNullable(prop.Property.Type);
+					var type = UnwarpNullable(prop.Property.Type);
 
-				GenerateReadProperty(new GeneratePropertyInfo(compilation, sb, classGenMap, index, attrs, dftCvtrAttrSmp, jsonEnumAttrSmp, isNullable, jsonCvtr, timeEnum, valueAccess, type));
-				if (isNullable)
-					sb.Append("}");
-				sb.AppendLine();
+					GenerateReadProperty(new GeneratePropertyInfo(compilation, sb, classGenMap, index, attrs, dftCvtrAttrSmp, jsonEnumAttrSmp, isNullable, jsonCvtr, timeEnum, valueAccess, type));
+					if (isNullable)
+						sb.Append("}");
+					sb.AppendLine();
+				}
 			}
 			// JsonFlatten: 展平子属性到当前层级
 			AttributeData[] jsonFlattenAttrs = attrs.Where(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonFlattenAttrSmp)).ToArray();
 			if (jsonFlattenAttrs.Length > 0)
 			{
+				var parentType = UnwarpNullable(prop.Property.Type);
+				bool parentIsValueType = parentType.TypeKind == TypeKind.Struct;
 				foreach (var attr in jsonFlattenAttrs)
 				{
 					string subPropName = attr.ConstructorArguments[0].Value is string s ? s : throw new InvalidOperationException("Invalid JsonFlatten attribute: missing property name.");
@@ -428,30 +431,65 @@ public partial class ConverterGenerator
 					int mode = attr.ConstructorArguments.Length >= 3 && attr.ConstructorArguments[2].Value is int m ? m : 3; // ReadWrite = 3
 					if ((mode & 1) == 0) continue; // bit 0 = ReadOnly
 
-					var subProp = UnwarpNullable(prop.Property.Type).GetMembers().FirstOrDefault(m => m.Name == subPropName) as IPropertySymbol;
+					var subProp = parentType.GetMembers().FirstOrDefault(m => m.Name == subPropName) as IPropertySymbol;
 					if (subProp is null) continue;
 
 					bool subIsNullable = subProp.Type.NullableAnnotation == NullableAnnotation.Annotated;
 					var subType = UnwarpNullable(subProp.Type);
-					string flatValueAccess = $"value.{prop.Property.Name}.{subPropName}";
 					string parentAccess = $"value.{prop.Property.Name}";
 
 					sb.AppendLine($$"""else if (reader.ValueTextEquals("{{aliasName}}"u8) && reader.Read())""");
-					if (isNullable)
+
+					string flatValueAccess;
+					if (parentIsValueType)
 					{
-						sb.AppendLine($$"""
-							{ {{parentAccess}} ??= new();
-						""");
+						if (isNullable)
+						{
+							sb.AppendLine($$"""
+								{ {{parentAccess}} ??= new();
+								  var __flatParent = {{parentAccess}}.Value;
+							""");
+						}
+						else
+						{
+							sb.AppendLine($$"""
+								{ var __flatParent = {{parentAccess}};
+							""");
+						}
+						flatValueAccess = $"__flatParent.{subPropName}";
 					}
 					else
 					{
-						sb.AppendLine("{");
+						if (isNullable)
+						{
+							sb.AppendLine($$"""
+								{ {{parentAccess}} ??= new();
+							""");
+						}
+						else
+						{
+							sb.AppendLine("{");
+						}
+						flatValueAccess = $"{parentAccess}.{subPropName}";
 					}
+
+					if (subIsNullable)
+					{
+						sb.AppendLine($$"""
+							if (reader.TokenType == JsonTokenType.Null) {{flatValueAccess}} = null;
+							else
+						""");
+					}
+
 					// 查找子属性上的 JsonAlias / JsonTime / JsonConverter / JsonDefaultSerializer
 					var subAttrs = subProp.GetAttributes();
 					INamedTypeSymbol? subJsonCvtr = subAttrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as INamedTypeSymbol;
 					int? subTimeEnum = subAttrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, timeCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as int?;
 					GenerateReadProperty(new GeneratePropertyInfo(compilation, sb, classGenMap, index, subAttrs, dftCvtrAttrSmp, jsonEnumAttrSmp, subIsNullable, subJsonCvtr, subTimeEnum, flatValueAccess, subType));
+					if (parentIsValueType)
+					{
+						sb.AppendLine($$"""  {{parentAccess}} = __flatParent;""");
+					}
 					sb.AppendLine("}");
 				}
 			}
@@ -757,120 +795,124 @@ public partial class ConverterGenerator
 				) &&
 				attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, ignoreAttrSmp)) is null
 				);
-			if (!shouldGenerate) continue;
-
 			bool isNullable = prop.Property.Type.NullableAnnotation == NullableAnnotation.Annotated;
-
-			string alias = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, aliasAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string
-					?? ToLowerCamelCase(prop.Property.ToDisplayParts().Last().ToString());
-			string? condition = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, condAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string;
-			INamedTypeSymbol? jsonCvtr = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as INamedTypeSymbol;
-			int? timeEnum = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, timeCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as int?;
-
-			var type = UnwarpNullable(prop.Property.Type);
-
-			string valueAccess = $"value.{prop.Property.ToDisplayParts().Last().ToString()}";
-			if (isNullable)
+			if (shouldGenerate)
 			{
-				valueAccess = $"localValue{index}";
-				sb.Append($$"""
+
+				string alias = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, aliasAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string
+						?? ToLowerCamelCase(prop.Property.ToDisplayParts().Last().ToString());
+				string? condition = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, condAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string;
+				INamedTypeSymbol? jsonCvtr = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as INamedTypeSymbol;
+				int? timeEnum = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, timeCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as int?;
+
+				var type = UnwarpNullable(prop.Property.Type);
+
+				string valueAccess = $"value.{prop.Property.ToDisplayParts().Last().ToString()}";
+				if (isNullable)
+				{
+					valueAccess = $"localValue{index}";
+					sb.Append($$"""
 						if (value.{{prop.Property.ToDisplayParts().Last().ToString()}} is {{type.ToDisplayString()}} localValue{{index}})
 						{ 
 				""");
-				;
-				index++;
-			}
-
-			bool hasCondition = false;
-			if (!string.IsNullOrEmpty(condition))
-			{
-				var conditionLines = ReplaceVariableWithName(condition).Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
-				sb.AppendLine($"		if ({string.Join("\n\t\t\t", conditionLines)})");
-				hasCondition = true;
-			}
-
-			// 已注册转换器
-			if (jsonCvtr is null && classGenMap.FirstOrDefault(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)) is var (classGen, cvtr) && classGen is not null)
-			{
-				sb.Append($$"""{{(hasCondition ? "{" : "")}} writer.WritePropertyName("{{alias}}"u8); TypeConverterRegistry.Write(writer, {{valueAccess}}, options); {{(hasCondition ? "}" : "")}}""");
-			}
-			// 自定义转换器
-			else if (jsonCvtr is not null)
-			{
-				if (SymbolEqualityComparer.Default.Equals(jsonCvtr.BaseType.OriginalDefinition, metadataJsonConverterType))
-					sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); new {{jsonCvtr.ToDisplayString()}}().Write(writer, {{valueAccess}}, options); }""");
-				else
-					sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); new {{jsonCvtr.ToDisplayString()}}().Write(writer, {{valueAccess}}, options.JsonSerializerOptions); }""");
-			}
-			// 时间
-			else if (timeEnum is int timeType)
-			{
-				switch (timeType)
-				{
-					case 0:
-						sb.Append($"writer.WriteNumber(\"{alias}\"u8, {valueAccess}.TotalMilliseconds);");
-						break;
-					case 1:
-						sb.Append($"writer.WriteNumber(\"{alias}\"u8, {valueAccess}.TotalSeconds);");
-						break;
-					default:
-						sb.Append($$"""{ throw new NotImplementedException(); /* Unsupported time converter type: {{timeType}} */ }""");
-						break;
+					;
+					index++;
 				}
-			}
-			// 枚举
-			else if (type.TypeKind == TypeKind.Enum)
-			{
-				if (
-					!attrs.Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) &&
-					type.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
-					sb.Append($"writer.WriteString(\"{alias}\"u8, {valueAccess}.ToEnumUtf8String());");
-				else
-					// - 非枚举或无需序列化器
-					sb.Append($"writer.WriteNumber(\"{alias}\"u8, System.Convert.ToInt64({valueAccess}));");
-			}
-			// 默认类型
-			else if (type.SpecialType is not SpecialType.None)
-				sb.Append($$"""{ writer.Write{{GetJsonWriterMethod(type)}}("{{alias}}"u8, {{valueAccess}}); }""");
-			// 其他
-			else if (IsConcreteEnumerable(type) is ITypeSymbol elementType)
-			{
-				string itemVar = $"item{index}";
-				sb.AppendLine($$"""
+
+				bool hasCondition = false;
+				if (!string.IsNullOrEmpty(condition))
+				{
+					var conditionLines = ReplaceVariableWithName(condition).Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
+					sb.AppendLine($"		if ({string.Join("\n\t\t\t", conditionLines)})");
+					hasCondition = true;
+				}
+
+				// 已注册转换器
+				if (jsonCvtr is null && classGenMap.FirstOrDefault(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)) is var (classGen, cvtr) && classGen is not null)
+				{
+					sb.Append($$"""{{(hasCondition ? "{" : "")}} writer.WritePropertyName("{{alias}}"u8); TypeConverterRegistry.Write(writer, {{valueAccess}}, options); {{(hasCondition ? "}" : "")}}""");
+				}
+				// 自定义转换器
+				else if (jsonCvtr is not null)
+				{
+					if (SymbolEqualityComparer.Default.Equals(jsonCvtr.BaseType.OriginalDefinition, metadataJsonConverterType))
+						sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); new {{jsonCvtr.ToDisplayString()}}().Write(writer, {{valueAccess}}, options); }""");
+					else
+						sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); new {{jsonCvtr.ToDisplayString()}}().Write(writer, {{valueAccess}}, options.JsonSerializerOptions); }""");
+				}
+				// 时间
+				else if (timeEnum is int timeType)
+				{
+					switch (timeType)
+					{
+						case 0:
+							sb.Append($"writer.WriteNumber(\"{alias}\"u8, {valueAccess}.TotalMilliseconds);");
+							break;
+						case 1:
+							sb.Append($"writer.WriteNumber(\"{alias}\"u8, {valueAccess}.TotalSeconds);");
+							break;
+						default:
+							sb.Append($$"""{ throw new NotImplementedException(); /* Unsupported time converter type: {{timeType}} */ }""");
+							break;
+					}
+				}
+				// 枚举
+				else if (type.TypeKind == TypeKind.Enum)
+				{
+					if (
+						!attrs.Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) &&
+						type.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
+						sb.Append($"writer.WriteString(\"{alias}\"u8, {valueAccess}.ToEnumUtf8String());");
+					else
+						// - 非枚举或无需序列化器
+						sb.Append($"writer.WriteNumber(\"{alias}\"u8, System.Convert.ToInt64({valueAccess}));");
+				}
+				// 默认类型
+				else if (type.SpecialType is not SpecialType.None)
+					sb.Append($$"""{ writer.Write{{GetJsonWriterMethod(type)}}("{{alias}}"u8, {{valueAccess}}); }""");
+				// 其他
+				else if (IsConcreteEnumerable(type) is ITypeSymbol elementType)
+				{
+					string itemVar = $"item{index}";
+					sb.AppendLine($$"""
 				{ writer.WritePropertyName("{{alias}}"u8);
 					writer.WriteStartArray();
 					foreach (var {{itemVar}} in {{valueAccess}})
 					{
 				""");
-				// 根据 elementType 写入每个元素
-				if (elementType.SpecialType is not SpecialType.None)
-					sb.Append($$"""  writer.Write{{GetJsonWriterMethod(elementType)}}Value({{itemVar}});""");
-				else if (elementType.TypeKind == TypeKind.Enum)
-					if (
-						elementType.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
-						sb.Append($$"""  writer.WriteStringValue({{itemVar}}.ToEnumUtf8String());""");
+					// 根据 elementType 写入每个元素
+					if (elementType.SpecialType is not SpecialType.None)
+						sb.Append($$"""  writer.Write{{GetJsonWriterMethod(elementType)}}Value({{itemVar}});""");
+					else if (elementType.TypeKind == TypeKind.Enum)
+						if (
+							elementType.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
+							sb.Append($$"""  writer.WriteStringValue({{itemVar}}.ToEnumUtf8String());""");
+						else
+							// - 非枚举或无需序列化器
+							sb.Append($"writer.WriteNumberValue(System.Convert.ToInt64({valueAccess}));");
 					else
-						// - 非枚举或无需序列化器
-						sb.Append($"writer.WriteNumberValue(System.Convert.ToInt64({valueAccess}));");
-				else
-					sb.Append($$"""  TypeConverterRegistry.Write(writer, {{itemVar}}, options);""");
-				sb.AppendLine($$"""
+						sb.Append($$"""  TypeConverterRegistry.Write(writer, {{itemVar}}, options);""");
+					sb.AppendLine($$"""
 					}
 					writer.WriteEndArray(); }
 				""");
+				}
+				else
+					sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); TypeConverterRegistry.Write(writer, {{valueAccess}}, options); }""");
+				if (isNullable)
+					sb.AppendLine(" }");
+				else
+					sb.AppendLine();
 			}
-			else
-				sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); TypeConverterRegistry.Write(writer, {{valueAccess}}, options); }""");
-			if (isNullable)
-				sb.AppendLine(" }");
-			else
-				sb.AppendLine();
 
 			// JsonFlatten: 展平子属性写入
 			var jsonFlattenAttrSmp = compilation.GetTypeByMetadataName(JsonFlattenAttrName);
 			AttributeData[] jsonFlattenAttrs = attrs.Where(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonFlattenAttrSmp)).ToArray();
 			if (jsonFlattenAttrs.Length > 0)
 			{
+				string? parentCondition = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, condAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string;
+				var parentType = UnwarpNullable(prop.Property.Type);
+				bool parentIsNullableValueType = isNullable && parentType.TypeKind == TypeKind.Struct;
 				foreach (var attr in jsonFlattenAttrs)
 				{
 					string subPropName = attr.ConstructorArguments[0].Value is string s ? s : throw new InvalidOperationException("Invalid JsonFlatten attribute: missing property name.");
@@ -878,13 +920,15 @@ public partial class ConverterGenerator
 					int mode = attr.ConstructorArguments.Length >= 3 && attr.ConstructorArguments[2].Value is int m ? m : 3;
 					if ((mode & 2) == 0) continue; // bit 1 = WriteOnly
 
-					var subProp = UnwarpNullable(prop.Property.Type).GetMembers().FirstOrDefault(m => m.Name == subPropName) as IPropertySymbol;
+					var subProp = parentType.GetMembers().FirstOrDefault(m => m.Name == subPropName) as IPropertySymbol;
 					if (subProp is null) continue;
 
 					bool subIsNullable = subProp.Type.NullableAnnotation == NullableAnnotation.Annotated;
 					var subType = UnwarpNullable(subProp.Type);
-					string flatValueAccess = $"value.{prop.Property.Name}.{subPropName}";
 					string parentAccess = $"value.{prop.Property.Name}";
+					string flatValueAccess = parentIsNullableValueType
+						? $"{parentAccess}.Value.{subPropName}"
+						: $"{parentAccess}.{subPropName}";
 
 					// 查找子属性上的 JsonAlias / JsonTime / JsonConverter / JsonDefaultSerializer
 					var subAttrs = subProp.GetAttributes();
@@ -892,8 +936,15 @@ public partial class ConverterGenerator
 					int? subTimeEnum = subAttrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, timeCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as int?;
 					string? subCondition = subAttrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, condAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string;
 
+					// 父属性 JsonCondition 影响子属性
+					if (!string.IsNullOrEmpty(parentCondition))
+					{
+						var parentConditionLines = ReplaceVariableWithName(parentCondition).Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
+						sb.AppendLine($"if ({string.Join("\n\t\t\t", parentConditionLines)})");
+					}
+
 					// 父对象为空时跳过
-					if (isNullable || prop.Property.Type.NullableAnnotation == NullableAnnotation.Annotated)
+					if (isNullable)
 						sb.Append($$"""if ({{parentAccess}} is not null) """);
 
 					bool hasSubCondition = false;
@@ -902,6 +953,15 @@ public partial class ConverterGenerator
 						var conditionLines = ReplaceVariableWithName(subCondition).Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
 						sb.AppendLine($"if ({string.Join("\n\t\t\t", conditionLines)})");
 						hasSubCondition = true;
+					}
+
+					// 可空子属性：模式匹配获取非空值
+					if (subIsNullable)
+					{
+						string localVar = $"__flatValue{index}";
+						sb.Append($$"""if ({{flatValueAccess}} is {{subType.ToDisplayString()}} {{localVar}}) """);
+						flatValueAccess = localVar;
+						index++;
 					}
 
 					// 生成子属性写入

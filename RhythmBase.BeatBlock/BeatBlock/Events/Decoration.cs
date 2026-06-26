@@ -1,6 +1,7 @@
 using RhythmBase.BeatBlock.Components;
 using RhythmBase.BeatBlock.Converters;
 using RhythmBase.Global.Components.Easing;
+using RhythmBase.Global.Components.Vector;
 namespace RhythmBase.BeatBlock.Events;
 
 /// <summary>
@@ -35,41 +36,38 @@ public record class Decoration : BaseEvent, IEaseEvent
 	/// </summary>
 	public bool? Orbit { get; set; }
 	/// <summary>
-	/// X position
+	/// Position
 	/// </summary>
-	public float? X { get; set; }
-	/// <summary>
-	/// Y position
-	/// </summary>
-	public float? Y { get; set; }
+	[JsonFlatten(nameof(Point.X), "x")]
+	[JsonFlatten(nameof(Point.Y), "y")]
+	[JsonIgnore]
+	public Point Position { get; set; }
 	/// <summary>
 	/// Rotation
 	/// </summary>
-	public float? R { get; set; }
+	[JsonAlias("r")]
+	public float? Rotation { get; set; }
 	/// <summary>
-	/// X scale
+	/// Scale
 	/// </summary>
-	public float? Sx { get; set; }
+	[JsonFlatten(nameof(Size.Width), "sx")]
+	[JsonFlatten(nameof(Size.Height), "sy")]
+	[JsonIgnore]
+	public Size Scale { get; set; }
 	/// <summary>
-	/// Y scale
+	/// Offset
 	/// </summary>
-	public float? Sy { get; set; }
+	[JsonFlatten(nameof(Point.X), "ox")]
+	[JsonFlatten(nameof(Point.Y), "oy")]
+	[JsonIgnore]
+	public Point Offset { get; set; }
 	/// <summary>
-	/// X offset
+	/// Skew
 	/// </summary>
-	public float? Ox { get; set; }
-	/// <summary>
-	/// Y offset
-	/// </summary>
-	public float? Oy { get; set; }
-	/// <summary>
-	/// X skew
-	/// </summary>
-	public float? Kx { get; set; }
-	/// <summary>
-	/// Y skew
-	/// </summary>
-	public float? Ky { get; set; }
+	[JsonFlatten(nameof(Point.X), "kx")]
+	[JsonFlatten(nameof(Point.Y), "ky")]
+	[JsonIgnore]
+	public Point Skew { get; set; }
 	/// <summary>
 	/// Mirror this deco?
 	/// </summary>
@@ -108,25 +106,21 @@ public record class Decoration : BaseEvent, IEaseEvent
 	///// </summary>
 	//public TileRepeatMode TileRepeatMode { get; set; }
 	/// <summary>
-	/// UV X position
+	/// UV Position
 	/// </summary>
 	[JsonCondition($"$&.{nameof(Tiling)} == true")]
-	public float? Uvx { get; set; }
-	/// <summary>
-	/// UV Y position
-	/// </summary>
-	[JsonCondition($"$&.{nameof(Tiling)} == true")]
-	public float? Uvy { get; set; }
+	[JsonFlatten(nameof(Point.X), "uvx")]
+	[JsonFlatten(nameof(Point.Y), "uvy")]
+	[JsonIgnore]
+	public Point UvPosition { get; set; }
 	/// <summary>
 	/// UV Delta X per second
 	/// </summary>
 	[JsonCondition($"$&.{nameof(Tiling)} == true")]
-	public float? Uvdx { get; set; }
-	/// <summary>
-	/// UV Delta Y per second
-	/// </summary>
-	[JsonCondition($"$&.{nameof(Tiling)} == true")]
-	public float? Uvdy { get; set; }
+	[JsonFlatten(nameof(Point.X), "uvdx")]
+	[JsonFlatten(nameof(Point.Y), "uvdy")]
+	[JsonIgnore]
+	public Point UvDelta { get; set; }
 	/// <summary>
 	/// Name of deco shader
 	/// </summary>
