@@ -68,7 +68,7 @@ public partial class Level :
 	/// <summary>
 	/// Level condition collection.
 	/// </summary>
-	public ConditionalCollection Conditionals { get; }
+	public ConditionalList Conditionals { get; }
 
 	/// <summary>
 	/// Level bookmark collection.

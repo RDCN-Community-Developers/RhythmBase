@@ -20,7 +20,7 @@ public abstract class BaseConditional
 	/// <summary>
 	/// Gets the 1-based serial number of this condition in the parent collection.
 	/// </summary>
-	public int Id => checked((ParentCollection?.IndexOf(this) ?? 0) + 1);
+	public int Id => checked((ParentCollection?.DataIndexOf(this) ?? 0) + 1);
 	/// <summary>
 	/// Returns the name of the condition.
 	/// </summary>
@@ -29,7 +29,7 @@ public abstract class BaseConditional
 	/// <summary>
 	/// Gets or sets the parent collection of conditions.
 	/// </summary>
-	internal ConditionalCollection? ParentCollection;
+	internal ConditionalList? ParentCollection;
 	/// <summary>
 	/// Specifies the type of condition.
 	/// </summary>

@@ -74,6 +74,11 @@ namespace System
 				if (value.CompareTo(other) < 0)
 					throw new ArgumentOutOfRangeException(paramName, $"Value must be greater than or equal to {other}.");
 			}
+			public static void ThrowIfNegative(int value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
+			{
+				if (value < 0)
+					throw new ArgumentOutOfRangeException(paramName, "Value cannot be negative.");
+			}
 
 		}
 		extension(ObjectDisposedException)
@@ -83,6 +88,20 @@ namespace System
 			{
 				if (condition)
 					throw new ObjectDisposedException(instance.GetType().FullName);
+			}
+		}
+		extension<T>(Span<T> e)
+		{
+			public void Sort()
+			{
+				for (int i = 0; i < e.Length; i++)
+					for (int j = i + 1; j < e.Length; j++)
+						if (Comparer<T>.Default.Compare(e[i], e[j]) > 0)
+						{
+							T temp = e[i];
+							e[i] = e[j];
+							e[j] = temp;
+						}
 			}
 		}
 	}
@@ -128,6 +147,15 @@ namespace System
 			public static void Fill<T>(T[] array, T value)
 			{
 				for (int i = 0; i < array.Length; i++)
+					array[i] = value;
+			}
+			public static void Fill<T>(T[] array, T value, int startIndex, int count)
+			{
+				if (startIndex < 0 || startIndex >= array.Length)
+					throw new ArgumentOutOfRangeException(nameof(startIndex));
+				if (count < 0 || startIndex + count > array.Length)
+					throw new ArgumentOutOfRangeException(nameof(count));
+				for (int i = startIndex; i < startIndex + count; i++)
 					array[i] = value;
 			}
 		}
@@ -373,9 +401,9 @@ namespace System.Runtime.CompilerServices
 		public string MethodName { get; } = methodName;
 	}
 	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-	#pragma warning disable CS1591 // Polyfill type, XML doc not needed
+#pragma warning disable CS1591 // Polyfill type, XML doc not needed
 	internal sealed class ModuleInitializerAttribute : Attribute { }
-	#pragma warning restore CS1591
+#pragma warning restore CS1591
 }
 namespace System.Text
 {
@@ -428,6 +456,24 @@ namespace System.Collections.Generic
 
 			result = default;
 			return false;
+		}
+	}
+}
+namespace System.Numerics
+{
+	internal static class BitOperations
+	{
+		public static int TrailingZeroCount(ulong value)
+		{
+			if (value == 0)
+				return 64;
+			int count = 0;
+			while ((value & 1) == 0)
+			{
+				value >>= 1;
+				count++;
+			}
+			return count;
 		}
 	}
 }
