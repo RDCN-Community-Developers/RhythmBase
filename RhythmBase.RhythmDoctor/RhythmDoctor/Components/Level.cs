@@ -108,7 +108,7 @@ public partial class Level :
 		Variables = new Variables();
 		Calculator = new BeatCalculator(this);
 		Settings = new Settings();
-		Conditionals = [];
+		Conditionals = new(this);
 		Bookmarks = new(i => i.Tick);
 		ColorPalette = new Color[21];
 		Rows = new(this);

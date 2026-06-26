@@ -8,11 +8,16 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// </summary>
 public class ConditionalCollection : ICollection<BaseConditional>
 {
+	private readonly Level parent;
 	private readonly List<BaseConditional> cs = [];
 	/// <inheritdoc/>
 	public int Count => cs.Count;
 	/// <inheritdoc/>
 	public bool IsReadOnly => false;
+	internal ConditionalCollection(Level level)
+	{
+		parent = level;
+	}
 	/// <summary>
 	/// Gets or sets the <see cref="BaseConditional"/> at the specified index in the collection.
 	/// </summary>

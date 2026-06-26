@@ -56,26 +56,15 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 		Utf8JsonReader checkpoint = reader;
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType != JsonTokenType.PropertyName)
-				continue;
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 			if (reader.ValueTextEquals("type"u8) && reader.Read())
-			{
 				type = reader.GetString();
-				if (string.IsNullOrEmpty(type))
-					return null;
-			}
 			else if (reader.ValueTextEquals("name"u8) && reader.Read())
-			{
 				name = reader.GetString() ?? "";
-			}
 			else if (reader.ValueTextEquals("tag"u8) && reader.Read())
-			{
 				tag = reader.GetString() ?? "";
-			}
 			else
-			{
 				reader.Skip();
-			}
 		}
 		reader = checkpoint;
 		BaseConditional conditional;
@@ -110,14 +99,9 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 		CustomCondition condition = new();
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.PropertyName)
-			{
-				if (reader.ValueTextEquals("expression"u8))
-				{
-					reader.Read();
-					condition.Expression = reader.GetString() ?? string.Empty;
-				}
-			}
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
+			if (reader.ValueTextEquals("expression"u8) && reader.Read())
+				condition.Expression = reader.GetString() ?? string.Empty;
 		}
 		return condition;
 	}
@@ -126,11 +110,9 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 		LanguageCondition condition = new();
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.PropertyName)
-			{
-				if (reader.ValueTextEquals("Language"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out LanguageCondition.Language languages))
-					condition.TargetLanguage = languages;
-			}
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
+			if (reader.ValueTextEquals("Language"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out LanguageCondition.Language languages))
+				condition.TargetLanguage = languages;
 		}
 		return condition;
 	}
@@ -139,16 +121,11 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 		LastHitCondition condition = new();
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.PropertyName)
-			{
-				if (reader.ValueTextEquals("row"u8))
-				{
-					reader.Read();
-					condition.Row = reader.GetSByte();
-				}
-				else if (reader.ValueTextEquals("result"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out LastHitCondition.HitResult result))
-					condition.Result = result;
-			}
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
+			if (reader.ValueTextEquals("row"u8) && reader.Read())
+				condition.Row = reader.GetSByte();
+			else if (reader.ValueTextEquals("result"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out LastHitCondition.HitResult result))
+				condition.Result = result;
 		}
 		return condition;
 	}
@@ -157,14 +134,9 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 		PlayerModeCondition condition = new();
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.PropertyName)
-			{
-				if (reader.ValueTextEquals("twoPlayerMode"u8))
-				{
-					reader.Read();
-					condition.TwoPlayerMode = reader.GetBoolean();
-				}
-			}
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
+			if (reader.ValueTextEquals("twoPlayerMode"u8) && reader.Read())
+				condition.TwoPlayerMode = reader.GetBoolean();
 		}
 		return condition;
 	}
@@ -173,14 +145,9 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 		TimesExecutedCondition condition = new();
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.PropertyName)
-			{
-				if (reader.ValueTextEquals("maxTimes"u8))
-				{
-					reader.Read();
-					condition.MaxTimes = reader.GetInt32();
-				}
-			}
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
+			if (reader.ValueTextEquals("maxTimes"u8) && reader.Read())
+				condition.MaxTimes = reader.GetInt32();
 		}
 		return condition;
 	}
@@ -189,14 +156,9 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 		NarrationCondition condition = new();
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.PropertyName)
-			{
-				if (reader.ValueTextEquals("narrationEnabled"u8))
-				{
-					reader.Read();
-					condition.NarrationEnabled = reader.GetBoolean();
-				}
-			}
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
+			if (reader.ValueTextEquals("narrationEnabled"u8) && reader.Read())
+				condition.NarrationEnabled = reader.GetBoolean();
 		}
 		return condition;
 	}
@@ -205,11 +167,9 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 		AccessibilityCondition condition = new();
 		while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
 		{
-			if (reader.TokenType == JsonTokenType.PropertyName)
-			{
-				if (reader.ValueTextEquals("effectType"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out EffectType effectType))
-					condition.TargetEffectType = effectType;
-			}
+			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
+			if (reader.ValueTextEquals("effectType"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out EffectType effectType))
+				condition.TargetEffectType = effectType;
 		}
 		return condition;
 	}
