@@ -19,6 +19,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 	private static readonly BaseEventConverter baseEventConverter = new();
 	private static readonly BookmarkConverter bookmarkConverter = new();
 	private static readonly ConditionalConverter conditionalConverter = new();
+	private static readonly ConditionalConverterWithId conditionalConverterWithId = new();
 	private static readonly UnhandledPropertyHandler<ITintEvent> TintEventBorderHandler = (ref ITintEvent e, JsonElement value) =>
 	{
 		if (!value.TryGetInt32(out int alpha))
@@ -130,7 +131,7 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 			if (value.ValueKind != JsonValueKind.Array)
 				return false;
 			Utf8JsonReader reader = new(Encoding.UTF8.GetBytes(value.GetRawText()), new());
-			if(!reader.Read()) return false;
+			if (!reader.Read()) return false;
 			e.Sounds = soundCollectionConverter.Read(ref reader, typeof(SoundCollection), new JsonSerializerOptions()) ?? [];
 			return true;
 		});
@@ -314,9 +315,12 @@ internal sealed class LevelConverter : MetadataJsonConverter<Level>
 				JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
 				while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
 				{
-					BaseConditional? e = conditionalConverter.Read(ref reader, typeof(BaseConditional), options);
+					(BaseConditional? e, int i) = conditionalConverterWithId.Read(ref reader, typeof(BaseConditional), options);
 					if (e != null)
-						level.Conditionals.Add(e);
+						level.Conditionals.Insert(e, i);
+					//BaseConditional? e = conditionalConverter.Read(ref reader, typeof(BaseConditional), options);
+					//if (e != null)
+					//	level.Conditionals.Add(e);
 				}
 			}
 			else

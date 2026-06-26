@@ -20,6 +20,7 @@ public class Condition
 	/// Gets an array of indices derived from the current set of conditions.
 	/// </summary>
 	public int[] Indices => [.. conditions.Select(c => (int)(0x3FFFFFFF & c))];
+	public int Count => conditions.Count;
 	/// <summary>
 	/// Gets or sets the enabled or disabled state associated with the specified condition index.
 	/// </summary>

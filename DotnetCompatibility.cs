@@ -90,19 +90,174 @@ namespace System
 					throw new ObjectDisposedException(instance.GetType().FullName);
 			}
 		}
-		extension<T>(Span<T> e)
+		extension<T>(Span<T> span) where T : IComparable<T>
 		{
 			public void Sort()
 			{
-				for (int i = 0; i < e.Length; i++)
-					for (int j = i + 1; j < e.Length; j++)
-						if (Comparer<T>.Default.Compare(e[i], e[j]) > 0)
-						{
-							T temp = e[i];
-							e[i] = e[j];
-							e[j] = temp;
-						}
+				if (span.Length <= 1)
+					return;
+
+				// 小数组用插入排序，大数组用快速排序
+				if (span.Length <= 16)
+				{
+					InsertionSort(span);
+				}
+				else
+				{
+					QuickSort(span, 0, span.Length - 1);
+				}
 			}
+			public void Sort(IComparer<T> comparer)
+			{
+				if (span.Length <= 1)
+					return;
+
+				if (span.Length <= 16)
+				{
+					InsertionSort(span, comparer);
+				}
+				else
+				{
+					QuickSort(span, 0, span.Length - 1, comparer);
+				}
+			}
+		}
+		private static void InsertionSort<T>(Span<T> span) where T : IComparable<T>
+		{
+			for (int i = 1; i < span.Length; i++)
+			{
+				T key = span[i];
+				int j = i - 1;
+				while (j >= 0 && span[j].CompareTo(key) > 0)
+				{
+					span[j + 1] = span[j];
+					j--;
+				}
+				span[j + 1] = key;
+			}
+		}
+		private static void InsertionSort<T>(Span<T> span, IComparer<T> comparer)
+		{
+			for (int i = 1; i < span.Length; i++)
+			{
+				T key = span[i];
+				int j = i - 1;
+				while (j >= 0 && comparer.Compare(span[j], key) > 0)
+				{
+					span[j + 1] = span[j];
+					j--;
+				}
+				span[j + 1] = key;
+			}
+		}
+		private static void QuickSort<T>(Span<T> span, int left, int right) where T : IComparable<T>
+		{
+			while (left < right)
+			{
+				if (right - left < 16)
+				{
+					InsertionSort(span.Slice(left, right - left + 1));
+					return;
+				}
+
+				int pivot = Partition(span, left, right);
+
+				// 递归处理较小的一半，迭代处理较大的一半
+				if (pivot - left < right - pivot)
+				{
+					QuickSort(span, left, pivot - 1);
+					left = pivot + 1;
+				}
+				else
+				{
+					QuickSort(span, pivot + 1, right);
+					right = pivot - 1;
+				}
+			}
+		}
+		private static void QuickSort<T>(Span<T> span, int left, int right, IComparer<T> comparer)
+		{
+			while (left < right)
+			{
+				if (right - left < 16)
+				{
+					InsertionSort(span.Slice(left, right - left + 1), comparer);
+					return;
+				}
+
+				int pivot = Partition(span, left, right, comparer);
+
+				if (pivot - left < right - pivot)
+				{
+					QuickSort(span, left, pivot - 1, comparer);
+					left = pivot + 1;
+				}
+				else
+				{
+					QuickSort(span, pivot + 1, right, comparer);
+					right = pivot - 1;
+				}
+			}
+		}
+		private static int Partition<T>(Span<T> span, int left, int right) where T : IComparable<T>
+		{
+			// 三数取中
+			int mid = left + (right - left) / 2;
+			MedianOfThree(span, left, mid, right);
+
+			T pivot = span[right];
+			int i = left - 1;
+
+			for (int j = left; j < right; j++)
+			{
+				if (span[j].CompareTo(pivot) <= 0)
+				{
+					i++;
+					Swap(span, i, j);
+				}
+			}
+
+			Swap(span, i + 1, right);
+			return i + 1;
+		}
+		private static int Partition<T>(Span<T> span, int left, int right, IComparer<T> comparer)
+		{
+			int mid = left + (right - left) / 2;
+			MedianOfThree(span, left, mid, right, comparer);
+
+			T pivot = span[right];
+			int i = left - 1;
+
+			for (int j = left; j < right; j++)
+			{
+				if (comparer.Compare(span[j], pivot) <= 0)
+				{
+					i++;
+					Swap(span, i, j);
+				}
+			}
+
+			Swap(span, i + 1, right);
+			return i + 1;
+		}
+		private static void MedianOfThree<T>(Span<T> span, int a, int b, int c) where T : IComparable<T>
+		{
+			if (span[a].CompareTo(span[b]) > 0) Swap(span, a, b);
+			if (span[a].CompareTo(span[c]) > 0) Swap(span, a, c);
+			if (span[b].CompareTo(span[c]) > 0) Swap(span, b, c);
+		}
+		private static void MedianOfThree<T>(Span<T> span, int a, int b, int c, IComparer<T> comparer)
+		{
+			if (comparer.Compare(span[a], span[b]) > 0) Swap(span, a, b);
+			if (comparer.Compare(span[a], span[c]) > 0) Swap(span, a, c);
+			if (comparer.Compare(span[b], span[c]) > 0) Swap(span, b, c);
+		}
+		private static void Swap<T>(Span<T> span, int i, int j)
+		{
+			if (i == j) return;
+			T temp = span[i];
+			span[i] = span[j];
+			span[j] = temp;
 		}
 	}
 	internal readonly struct Index(int value, bool fromEnd = false) : IEquatable<Index>
