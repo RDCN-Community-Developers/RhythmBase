@@ -1,4 +1,4 @@
-namespace RhythmBase.BeatBlock.Events;
+namespace RhythmBase.BeatBlock.Components;
 
 /// <summary>
 /// Represents a character map for BeatBlock levels.
