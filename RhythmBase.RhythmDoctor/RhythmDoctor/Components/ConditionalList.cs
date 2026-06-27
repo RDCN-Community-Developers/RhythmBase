@@ -7,7 +7,7 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// Represents a list of <see cref="BaseConditional"/> objects that can be accessed by logical indices,
 /// allowing for sparse storage and efficient management of conditions.
 /// </summary>
-public class ConditionalList : ICollection<BaseConditional>
+public class ConditionalList : ICollection<BaseConditional>, IList<BaseConditional>
 {
 	private readonly Level parent;
 	private const int _defaultCapacity = 4;
@@ -19,7 +19,6 @@ public class ConditionalList : ICollection<BaseConditional>
 	private BaseConditional[] _value;
 	private int _firstEmptyIndex;
 	private int _trailingEmptyIndex;
-
 	/// <summary>
 	/// Initializes a new instance of the <see cref="ConditionalList"/> class with default capacity.
 	/// </summary>
@@ -67,9 +66,8 @@ public class ConditionalList : ICollection<BaseConditional>
 	/// Adds a <see cref="BaseConditional"/> item to the collection at the next available logical index.
 	/// </summary>
 	/// <param name="item">The item to add.</param>
-	public void Add(BaseConditional item) => Insert(item, _firstEmptyIndex);
-
-	public bool Insert(BaseConditional item, int index)
+	public void Add(BaseConditional item) => InsertToPhysicalIndex(item, _firstEmptyIndex);
+	internal bool InsertToPhysicalIndex(BaseConditional item, int index)
 	{
 		ArgumentOutOfRangeException.ThrowIfNegative(index);
 		EnsureCapacity(index);
@@ -90,21 +88,6 @@ public class ConditionalList : ICollection<BaseConditional>
 			FindNextEmpty();
 
 		return true;
-	}
-	internal BaseConditional? GetByPhysicalIndex(int physicalIndex)
-	{
-		if (physicalIndex < 0 || physicalIndex >= _logical_index.Length)
-			return null;
-
-		int mapPos = _logical_index[physicalIndex];
-		if (mapPos < 0 || mapPos >= _count)
-			return null;
-
-		int logicalIndex = _physical_index[mapPos];
-		if (logicalIndex != physicalIndex)
-			return null;
-
-		return _value[logicalIndex];
 	}
 	private void FindNextEmpty()
 	{
@@ -180,7 +163,7 @@ public class ConditionalList : ICollection<BaseConditional>
 		for (int i = logicalIndex; i < _count - 1; i++)
 		{
 			_physical_index[i] = _physical_index[i + 1];
-			_logical_index[_physical_index[i]] = i; 
+			_logical_index[_physical_index[i]] = i;
 		}
 		_count--;
 		if (physicalIndex < _firstEmptyIndex)
@@ -188,14 +171,6 @@ public class ConditionalList : ICollection<BaseConditional>
 
 		return true;
 	}
-
-	/// <summary>
-	/// Determines whether the collection contains a <see cref="BaseConditional"/> at the specified logical index.
-	/// </summary>
-	/// <param name="logicalIndex">The logical index to check.</param>
-	/// <returns></returns>
-	public bool Contains(int logicalIndex) => GetHasValue(logicalIndex);
-
 	/// <summary>
 	/// Gets or sets the <see cref="BaseConditional"/> at the specified logical index in the collection.
 	/// </summary>
@@ -214,7 +189,7 @@ public class ConditionalList : ICollection<BaseConditional>
 			}
 			else
 			{
-				Insert(value!, logicalIndex);
+				InsertToPhysicalIndex(value!, logicalIndex);
 			}
 		}
 	}
@@ -376,6 +351,49 @@ public class ConditionalList : ICollection<BaseConditional>
 	}
 
 	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+	public int IndexOf(BaseConditional item)
+	{
+		var comparer = EqualityComparer<BaseConditional>.Default;
+		for (int i = 0; i < _count; i++)
+		{
+			int logicalIndex = _physical_index[i];
+			if (comparer.Equals(_value[logicalIndex], item))
+				return i;
+		}
+		return -1;
+	}
+
+	public void Insert(int index, BaseConditional item)
+	{
+		if (index < 0 || index >= _count) throw new ArgumentOutOfRangeException(nameof(index));
+
+		int physicalIndex = _firstEmptyIndex;
+		EnsureCapacity(physicalIndex);
+
+		for (int i = _count; i > index; i--)
+		{
+			_physical_index[i] = _physical_index[i - 1];
+			//_logical_index[_physical_index[i]] = i;
+		}
+
+		_physical_index[index] = physicalIndex;
+		_value[physicalIndex] = item;
+		item.ParentCollection = this;
+		SetHasValue(physicalIndex, true);
+		_count++;
+
+		if (_logical_index != null)
+		{
+			for (int i = index; i < _count; i++)
+				_logical_index[_physical_index[i]] = i;
+		}
+
+		if (physicalIndex == _firstEmptyIndex)
+			FindNextEmpty();
+	}
+
+	void IList<BaseConditional>.RemoveAt(int index) => RemoveAt(index);
 
 	/// <inheritdoc/>
 	public bool IsReadOnly => false;

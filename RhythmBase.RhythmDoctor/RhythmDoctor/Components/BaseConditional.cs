@@ -18,10 +18,6 @@ public abstract class BaseConditional
 	/// </summary>
 	public string Name { get; set; } = "";
 	/// <summary>
-	/// Gets the 1-based serial number of this condition in the parent collection.
-	/// </summary>
-	public int Id => checked((ParentCollection?.DataIndexOf(this) ?? 0) + 1);
-	/// <summary>
 	/// Returns the name of the condition.
 	/// </summary>
 	/// <returns>The name of the condition.</returns>
