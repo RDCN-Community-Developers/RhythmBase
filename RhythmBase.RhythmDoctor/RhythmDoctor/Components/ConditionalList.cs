@@ -9,11 +9,12 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// </summary>
 public class ConditionalList : ICollection<BaseConditional>
 {
+	private readonly Level parent;
 	private const int _defaultCapacity = 4;
 	private const int _ulongSize = sizeof(ulong) * 8;
 	private int _count;
-	private int[] _valueIndexMap;
-	private int[] _reverseMap;
+	private int[] _physical_index;
+	private int[] _logical_index;
 	private ulong[] _hasValue;
 	private BaseConditional[] _value;
 	private int _firstEmptyIndex;
@@ -24,13 +25,14 @@ public class ConditionalList : ICollection<BaseConditional>
 	/// </summary>
 	internal ConditionalList(Level level)
 	{
-		_valueIndexMap = new int[_defaultCapacity];
-		_reverseMap = new int[_defaultCapacity];
-		Array.Fill(_reverseMap, -1);
+		_physical_index = new int[_defaultCapacity];
+		_logical_index = new int[_defaultCapacity];
+		Array.Fill(_logical_index, -1);
 		_hasValue = new ulong[1];
 		_value = new BaseConditional[_defaultCapacity];
 		_firstEmptyIndex = 0;
 		_trailingEmptyIndex = 0;
+		parent = level;
 	}
 
 	private void EnsureCapacity(int minLogicalIndex)
@@ -44,12 +46,12 @@ public class ConditionalList : ICollection<BaseConditional>
 
 		Array.Resize(ref _value, newCapacity);
 
-		int oldReverseLength = _reverseMap.Length;
-		Array.Resize(ref _reverseMap, newCapacity);
-		Array.Fill(_reverseMap, -1, oldReverseLength, newCapacity - oldReverseLength);
+		int oldReverseLength = _logical_index.Length;
+		Array.Resize(ref _logical_index, newCapacity);
+		Array.Fill(_logical_index, -1, oldReverseLength, newCapacity - oldReverseLength);
 
-		if (_valueIndexMap.Length < newCapacity)
-			Array.Resize(ref _valueIndexMap, newCapacity);
+		if (_physical_index.Length < newCapacity)
+			Array.Resize(ref _physical_index, newCapacity);
 
 		int requiredUlongs = minLogicalIndex / _ulongSize + 1;
 		if (_hasValue.Length < requiredUlongs)
@@ -67,52 +69,42 @@ public class ConditionalList : ICollection<BaseConditional>
 	/// <param name="item">The item to add.</param>
 	public void Add(BaseConditional item) => Insert(item, _firstEmptyIndex);
 
-	public bool Insert(BaseConditional item, int logicalIndex)
+	public bool Insert(BaseConditional item, int index)
 	{
-		ArgumentOutOfRangeException.ThrowIfNegative(logicalIndex);
-		EnsureCapacity(logicalIndex);
-		if (GetHasValue(logicalIndex))
+		ArgumentOutOfRangeException.ThrowIfNegative(index);
+		EnsureCapacity(index);
+		if (GetHasValue(index))
 			return false;
 
-		_value[logicalIndex] = item;
+		_value[index] = item;
 		item.ParentCollection = this;
-		_valueIndexMap[_count] = logicalIndex;
-		_reverseMap[logicalIndex] = _count;
+		_physical_index[_count] = index;
+		_logical_index[index] = _count;
 		_count++;
-		SetHasValue(logicalIndex, true);
+		SetHasValue(index, true);
 
-		if (logicalIndex >= _trailingEmptyIndex)
-			_trailingEmptyIndex = logicalIndex + 1;
+		if (index >= _trailingEmptyIndex)
+			_trailingEmptyIndex = index + 1;
 
-		if (logicalIndex == _firstEmptyIndex)
+		if (index == _firstEmptyIndex)
 			FindNextEmpty();
 
 		return true;
 	}
 	internal BaseConditional? GetByPhysicalIndex(int physicalIndex)
 	{
-		if (physicalIndex < 0 || physicalIndex >= _reverseMap.Length)
+		if (physicalIndex < 0 || physicalIndex >= _logical_index.Length)
 			return null;
 
-		int mapPos = _reverseMap[physicalIndex];
+		int mapPos = _logical_index[physicalIndex];
 		if (mapPos < 0 || mapPos >= _count)
 			return null;
 
-		int logicalIndex = _valueIndexMap[mapPos];
+		int logicalIndex = _physical_index[mapPos];
 		if (logicalIndex != physicalIndex)
 			return null;
 
 		return _value[logicalIndex];
-	}
-	public BaseConditional?[] GetConditionals(Condition condition)
-	{
-		BaseConditional?[] result = new BaseConditional?[condition.Count];
-		for (int i = 0; i < condition.Indices.Length; i++)
-		{
-			int index = condition.Indices[i];
-			result[i] = GetByPhysicalIndex(index);
-		}
-		return result;
 	}
 	private void FindNextEmpty()
 	{
@@ -176,27 +168,23 @@ public class ConditionalList : ICollection<BaseConditional>
 	/// <returns></returns>
 	public bool RemoveAt(int logicalIndex)
 	{
-		if (logicalIndex < 0 || !GetHasValue(logicalIndex))
+		if (logicalIndex < 0 || logicalIndex >= _count)
 			return false;
+		int physicalIndex = _physical_index[logicalIndex];
+		foreach (var e in parent)
+			e.Condition.SetIndexValueToNull(physicalIndex);
+		SetHasValue(physicalIndex, false);
+		_value[physicalIndex].ParentCollection = null;
+		_value[physicalIndex] = default!;
 
-		SetHasValue(logicalIndex, false);
-		_value[logicalIndex].ParentCollection = null;
-		_value[logicalIndex] = default!;
-
-		int mapPos = _reverseMap[logicalIndex];
-		int lastPos = --_count;
-
-		if (mapPos != lastPos)
+		for (int i = logicalIndex; i < _count - 1; i++)
 		{
-			int lastLogicalIndex = _valueIndexMap[lastPos];
-			_valueIndexMap[mapPos] = lastLogicalIndex;
-			_reverseMap[lastLogicalIndex] = mapPos;
+			_physical_index[i] = _physical_index[i + 1];
+			_logical_index[_physical_index[i]] = i; 
 		}
-
-		_reverseMap[logicalIndex] = -1;
-
-		if (logicalIndex < _firstEmptyIndex)
-			_firstEmptyIndex = logicalIndex;
+		_count--;
+		if (physicalIndex < _firstEmptyIndex)
+			_firstEmptyIndex = physicalIndex;
 
 		return true;
 	}
@@ -244,13 +232,18 @@ public class ConditionalList : ICollection<BaseConditional>
 
 		for (int i = 0; i < _count; i++)
 		{
-			int logicalIndex = _valueIndexMap[i];
+			int logicalIndex = _physical_index[i];
 			_value[logicalIndex].ParentCollection = null;
 			_value[logicalIndex] = default!;
 		}
+		foreach (var e in parent)
+		{
+			if (!e.Condition.IsEmpty)
+				e.Condition.Clear();
+		}
 
 		Array.Clear(_hasValue, 0, _hasValue.Length);
-		Array.Fill(_reverseMap, -1);
+		Array.Fill(_logical_index, -1);
 		_count = 0;
 		_firstEmptyIndex = 0;
 		_trailingEmptyIndex = 0;
@@ -267,7 +260,7 @@ public class ConditionalList : ICollection<BaseConditional>
 
 		for (int i = 0; i < _count; i++)
 		{
-			int logicalIndex = _valueIndexMap[i];
+			int logicalIndex = _physical_index[i];
 			if (comparer.Equals(_value[logicalIndex], item))
 				return true;
 		}
@@ -292,7 +285,7 @@ public class ConditionalList : ICollection<BaseConditional>
 
 		for (int i = 0; i < _count; i++)
 		{
-			int logicalIndex = _valueIndexMap[i];
+			int logicalIndex = _physical_index[i];
 			array[arrayIndex + i] = _value[logicalIndex];
 		}
 	}
@@ -308,7 +301,7 @@ public class ConditionalList : ICollection<BaseConditional>
 
 		for (int i = 0; i < _count; i++)
 		{
-			int logicalIndex = _valueIndexMap[i];
+			int logicalIndex = _physical_index[i];
 			if (comparer.Equals(_value[logicalIndex], item))
 				return RemoveAt(logicalIndex);
 		}
@@ -319,15 +312,45 @@ public class ConditionalList : ICollection<BaseConditional>
 	{
 		if (_count <= 1)
 			return;
-		Span<int> span = _valueIndexMap.AsSpan(0, _count);
-		span.Sort();
+
+		int[] oldPhys = new int[_count];
 		for (int i = 0; i < _count; i++)
-			_reverseMap[_valueIndexMap[i]] = i;
-		for (int i = _count; i < _reverseMap.Length; i++)
+			oldPhys[i] = _physical_index[i];
+
+		int[] remap = new int[_trailingEmptyIndex];
+		Array.Fill(remap, -1);
+
+		for (int i = 0; i < _count; i++)
 		{
-			if (_reverseMap[i] >= 0)
-				_reverseMap[i] = -1;
+			int oldP = oldPhys[i];
+			int newP = i;
+			_physical_index[i] = newP;
+			remap[oldP] = newP;
 		}
+
+		BaseConditional[] newValue = new BaseConditional[_count];
+		for (int i = 0; i < _count; i++)
+			newValue[i] = _value[oldPhys[i]];
+
+		int newCapacity = Math.Max(_count * 2, _defaultCapacity);
+		Array.Resize(ref newValue, newCapacity);
+		_value = newValue;
+
+		Array.Fill(_logical_index, -1);
+		for (int i = 0; i < _count; i++)
+			_logical_index[i] = i;
+
+		_trailingEmptyIndex = _count;
+		_firstEmptyIndex = _count;
+
+		foreach (var e in parent)
+		{
+			if (e.Condition.IsEmpty)
+				continue;
+			e.Condition.Remap(remap, _trailingEmptyIndex);
+		}
+
+		return;
 	}
 	public int DataIndexOf(BaseConditional item)
 	{
@@ -335,7 +358,7 @@ public class ConditionalList : ICollection<BaseConditional>
 
 		for (int i = 0; i < _count; i++)
 		{
-			int logicalIndex = _valueIndexMap[i];
+			int logicalIndex = _physical_index[i];
 			if (comparer.Equals(_value[logicalIndex], item))
 				return logicalIndex;
 		}
@@ -347,7 +370,7 @@ public class ConditionalList : ICollection<BaseConditional>
 	{
 		for (int i = 0; i < _count; i++)
 		{
-			int logicalIndex = _valueIndexMap[i];
+			int logicalIndex = _physical_index[i];
 			yield return _value[logicalIndex];
 		}
 	}

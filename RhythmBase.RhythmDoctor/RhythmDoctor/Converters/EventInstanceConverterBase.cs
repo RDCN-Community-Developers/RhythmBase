@@ -91,7 +91,7 @@ internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEve
 			writer.WriteString("tag"u8, value.Tag);
 		if (value.RunTag)
 			writer.WriteBoolean("runTag"u8, true);
-		if (value.Condition.HasValue)
+		if (!value.Condition.IsEmpty)
 			writer.WriteString("if"u8, value.Condition.Serialize());
 		if (!value.Active)
 			writer.WriteBoolean("active"u8, false);

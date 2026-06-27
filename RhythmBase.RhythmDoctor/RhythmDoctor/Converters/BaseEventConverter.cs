@@ -248,7 +248,7 @@ internal class BaseEventConverter : BackwardCompatibleMetadataJsonConverter
 			writer.WriteBoolean("runTag", value.RunTag);
 		if (!value.Active)
 			writer.WriteBoolean("active", value.Active);
-		if (value.Condition.HasValue)
+		if (!value.Condition.IsEmpty)
 			writer.WriteString("if", value.Condition.Serialize());
 		if (value.Y != 0)
 			writer.WriteNumber("y", value.Y);

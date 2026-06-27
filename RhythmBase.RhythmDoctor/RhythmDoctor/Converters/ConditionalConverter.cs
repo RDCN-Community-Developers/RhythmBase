@@ -24,7 +24,7 @@ internal class ConditionalConverterWithId : MetadataJsonConverter<(BaseCondition
 			}
 			else copy.Skip();
 		}
-		return (conditional, id - 1);
+		return (conditional, id);
 	}
 	public override void Write(Utf8JsonWriter writer, (BaseConditional?, int) value, MetadataJsonSerializerOptions options) => throw new NotImplementedException();
 }
