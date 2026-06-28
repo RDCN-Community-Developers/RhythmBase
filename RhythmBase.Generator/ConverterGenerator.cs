@@ -157,14 +157,14 @@ public partial class ConverterGenerator : IIncrementalGenerator
 	List<Exception> exceptions = new();
 	public void Initialize(IncrementalGeneratorInitializationContext context)
 	{
-		var errors = new HashSet<Diagnostic>();
-		IncrementalValueProvider<string?> registryInfo = context.CompilationProvider // checked
+		IncrementalValueProvider<(string?, List<Diagnostic>)> registryInfo = context.CompilationProvider
 				.Select((compilation, ct) =>
 		{
+			List<Diagnostic> diagnostics = new();
 			try
 			{
 				var attrType = compilation.GetTypeByMetadataName(JsonConverterIdAttrName);
-				if (attrType == null) return default;
+				if (attrType == null) return (default(string?), diagnostics);
 				var assembly = compilation.Assembly;
 				foreach (var attr in assembly.GetAttributes())
 				{
@@ -183,9 +183,9 @@ public partial class ConverterGenerator : IIncrementalGenerator
 
 						if (!IsValidNamespaceId(namespaceId))
 						{
-							errors.Add(Diagnostic.Create(InvalidNamespaceIdRule, attr.ApplicationSyntaxReference?.GetSyntax().GetLocation(), namespaceId));
+							diagnostics.Add(Diagnostic.Create(InvalidNamespaceIdRule, attr.ApplicationSyntaxReference?.GetSyntax().GetLocation(), namespaceId));
 						}
-						return namespaceId;
+						return (namespaceId, diagnostics);
 					}
 				}
 			}
@@ -193,15 +193,16 @@ public partial class ConverterGenerator : IIncrementalGenerator
 			{
 				exceptions.Add(ex);
 			}
-			return default;
+			return (default(string?), diagnostics);
 		});
-		var classEnumAttrPairInfo = context.CompilationProvider // checked
+		var classEnumAttrPairInfo = context.CompilationProvider
 			.Select((compilation, ct) =>
 			{
 				var attrType = compilation.GetTypeByMetadataName(JsonConverterSourceTypeAttrName);
 				if (attrType == null) return default;
 				var assembly = compilation.Assembly;
 				List<ClassGenAttr> types = [];
+				List<Diagnostic> diagnostics = new();
 				foreach (var attr in assembly.GetAttributes())
 				{
 					if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attrType))
@@ -210,7 +211,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 						if (args[0].Value is not INamedTypeSymbol type) return default;
 						if (args[1].Value is not INamedTypeSymbol enumType || enumType.TypeKind != TypeKind.Enum)
 						{
-							errors.Add(Diagnostic.Create(InvalidEnumTypeRule, type?.Locations.FirstOrDefault(), args[1].Value?.ToString() ?? "null"));
+							diagnostics.Add(Diagnostic.Create(InvalidEnumTypeRule, type?.Locations.FirstOrDefault(), args[1].Value?.ToString() ?? "null"));
 							continue;
 						}
 						if (args[2].Value is not INamedTypeSymbol converterBaseType)
@@ -218,7 +219,6 @@ public partial class ConverterGenerator : IIncrementalGenerator
 							continue;
 						}
 						if (args[3].Value is not string enumPropertyName) return default;
-						//types.Add((type, enumType, converterBaseType, enumPropertyName));
 						types.Add(new()
 						{
 							RootType = type,
@@ -228,7 +228,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 						});
 					}
 				}
-				return (compilation, types.ToArray(), errors);
+				return (compilation, types.ToArray(), diagnostics);
 			});
 		IncrementalValueProvider<IAssemblySymbol[]> allasms = context.CompilationProvider.Select((compilation, ct) =>
 		{
@@ -262,14 +262,15 @@ public partial class ConverterGenerator : IIncrementalGenerator
 			}
 			return (null, null, null, null, null);
 		});
-		IncrementalValueProvider<EventTypeRegistryGenerationInfo[]> EventTypeRegistryInfo = classEnumAttrPairInfo // checked
+		IncrementalValueProvider<EventTypeRegistryGenerationInfo[]> EventTypeRegistryInfo = classEnumAttrPairInfo
 				.Select((input, ct) =>
 		{
 			(
 				Compilation compilation,
 				ClassGenAttr[] types,
-				var errors
+				var incomingDiagnostics
 				) = input;
+			List<Diagnostic> diagnostics = new(incomingDiagnostics);
 			INamedTypeSymbol eventTypeInterface = compilation.GetTypeByMetadataName(IEventTypeName) ?? throw new NotImplementedException("1111");
 			var fallbackAttr = compilation.GetTypeByMetadataName(JsonObjectSerializationFallbackAttrName);
 			List<EventTypeRegistryGenerationInfo> typesToGenerate = [];
@@ -292,7 +293,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 					case 0:
 						break;
 					case > 1:
-						errors.Add(Diagnostic.Create(MultipleFallbackModelsRule, baseType.Locations.FirstOrDefault(), baseType.ToDisplayString(), string.Join(", ", fallbackTypes.Select(i => i.ToDisplayString()))));
+						diagnostics.Add(Diagnostic.Create(MultipleFallbackModelsRule, baseType.Locations.FirstOrDefault(), baseType.ToDisplayString(), string.Join(", ", fallbackTypes.Select(i => i.ToDisplayString()))));
 						continue;
 					default:
 						fallbackType = fallbackTypes.FirstOrDefault();
@@ -312,7 +313,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 					}
 					if (enumSymbol != null)
 						EventTypeRegistry[subClass] = enumSymbol;
-					else errors.Add(Diagnostic.Create(
+					else diagnostics.Add(Diagnostic.Create(
 						MissingEnumInitializerRule,
 						property?.Type.Locations.FirstOrDefault() ?? subClass.Locations.FirstOrDefault(),
 						property?.Name ?? subClass.Name,
@@ -328,7 +329,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 						{
 							var enumSymbol = GetEnumInitializerValue(propSymbol, compilation);
 							if (enumSymbol == null)
-								errors.Add(Diagnostic.Create(MissingEnumInitializerRule, propSymbol.Locations.FirstOrDefault(), propSymbol.Name, propSymbol.ContainingType?.ToDisplayString()));
+								diagnostics.Add(Diagnostic.Create(MissingEnumInitializerRule, propSymbol.Locations.FirstOrDefault(), propSymbol.Name, propSymbol.ContainingType?.ToDisplayString()));
 							else
 								fallbackEnumMember = enumSymbol;
 						}
@@ -358,6 +359,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 					Classes = subEventClasses,
 					EventTypeRegistry = dict,
 					ClassEnumDoubleMap = EventTypeRegistry,
+					Diagnostics = diagnostics,
 				});
 			}
 			return typesToGenerate.ToArray();
@@ -563,7 +565,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 
 		GenerateTypeConverterRegistry(context, registryInfo.Combine(jsonObjSlzLnksInfo));
 		GenerateConverter(context, (registryInfo.Combine(context.CompilationProvider)).Combine((jsonClassCvtrMapGenInfo.Combine(jsonObjSlzLnksInfo))));
-		GenerateEventTypeRegistry(context, registryInfo.Combine(context.CompilationProvider).Combine(EventTypeRegistryInfo), errors);
+		GenerateEventTypeRegistry(context, registryInfo.Combine(context.CompilationProvider).Combine(EventTypeRegistryInfo));
 		GenerateEnumConverter(context, registryInfo);
 		GenerateOtherFiles(context, registryInfo);
 		GenerateUpgrater(context, registryInfo.Combine(EventTypeRegistryInfo));
@@ -572,7 +574,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 	}
 
 	private void GenerateTickTimeType(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<((
-		string? Left, (
+		(string?, List<Diagnostic>) Left, (
 			INamedTypeSymbol? chartType,
 			INamedTypeSymbol? calculatorType,
 			INamedTypeSymbol? tickTimeType,
@@ -583,7 +585,9 @@ public partial class ConverterGenerator : IIncrementalGenerator
 		context.RegisterSourceOutput(incrementalValueProvider, (context, data) =>
 		{
 			(var values, EventTypeRegistryGenerationInfo[] registryGenerationInfos) = data;
-			(string registryId, var s) = values;
+			((var registryId, var diagnostics), var s) = values;
+			foreach (var diag in diagnostics)
+				context.ReportDiagnostic(diag);
 			if (string.IsNullOrEmpty(registryId) || registryId == CoreNs)
 				return;
 			if (
@@ -1740,10 +1744,13 @@ public partial class ConverterGenerator : IIncrementalGenerator
 	}
 
 	private const string CoreNs = "Global";
-	private void GenerateOtherFiles(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<string?> registryInfo)
+	private void GenerateOtherFiles(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<(string?, List<Diagnostic>)> registryInfo)
 	{
-		context.RegisterSourceOutput(registryInfo, (context, registryId) =>
+		context.RegisterSourceOutput(registryInfo, (context, registryInfoData) =>
 		{
+			var (registryId, diagnostics) = registryInfoData;
+			foreach (var diag in diagnostics)
+				context.ReportDiagnostic(diag);
 			if (string.IsNullOrEmpty(registryId) || registryId == CoreNs)
 				return;
 			string src = $$"""
@@ -1825,11 +1832,13 @@ public partial class ConverterGenerator : IIncrementalGenerator
 			context.AddSource($"FileMainEntryConverter.{registryId}.g.cs", src);
 		});
 	}
-	private static void GenerateUpgrater(IncrementalGeneratorInitializationContext cxt, IncrementalValueProvider<(string? Left, EventTypeRegistryGenerationInfo[] Right)> incrementalValueProvider)
+	private static void GenerateUpgrater(IncrementalGeneratorInitializationContext cxt, IncrementalValueProvider<((string?, List<Diagnostic>) Left, EventTypeRegistryGenerationInfo[] Right)> incrementalValueProvider)
 	{
 		cxt.RegisterSourceOutput(incrementalValueProvider, (source, value) =>
 		{
-			(string? registryId, EventTypeRegistryGenerationInfo[]? gens) = value;
+			((var registryId, var diagnostics), EventTypeRegistryGenerationInfo[]? gens) = value;
+			foreach (var diag in diagnostics)
+				source.ReportDiagnostic(diag);
 			if (string.IsNullOrEmpty(registryId))
 				return;
 			bool multiple = gens?.Length > 1;

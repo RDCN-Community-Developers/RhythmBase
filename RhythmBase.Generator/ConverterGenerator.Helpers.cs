@@ -15,11 +15,11 @@ public partial class ConverterGenerator
 			.Replace("$r", "_rs")
 			.Replace("$w", "_ws");
 	}
-	private static void GenerateEventTypeRegistry(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<((string, Compilation), EventTypeRegistryGenerationInfo[])> registryInfo, HashSet<Diagnostic> errors)
+	private static void GenerateEventTypeRegistry(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<(((string?, List<Diagnostic>), Compilation), EventTypeRegistryGenerationInfo[])> registryInfo)
 	{
 		context.RegisterSourceOutput(registryInfo, GenerateEventTypeUtils);
 	}
-	private static void GenerateEnumConverter(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<string?> registryInfo)
+	private static void GenerateEnumConverter(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<(string?, List<Diagnostic>)> registryInfo)
 	{
 		var enums1 = context.SyntaxProvider.ForAttributeWithMetadataName(
 			JsonEnumCastingAttrName,
@@ -49,7 +49,9 @@ public partial class ConverterGenerator
 			).Collect();
 		context.RegisterSourceOutput(registryInfo.Combine(enums1.Combine(enums2)), (spc, registryInfoAndEnumSymbols) =>
 		{
-			(var registryInfo, var enumSymbolsAll) = registryInfoAndEnumSymbols;
+			((var registryId, var diagnostics), var enumSymbolsAll) = registryInfoAndEnumSymbols;
+			foreach (var diag in diagnostics)
+				spc.ReportDiagnostic(diag);
 			(var enums1, var enums2) = enumSymbolsAll;
 			List<(INamedTypeSymbol Type, bool PascalCase, IFieldSymbol[] Members)> enums = new();
 			foreach (var (enumType, pascalCase, members) in enums1)
@@ -60,7 +62,7 @@ public partial class ConverterGenerator
 			{
 				enums.Add((enumType, pascalCase, members));
 			}
-			if (string.IsNullOrEmpty(registryInfo))
+			if (string.IsNullOrEmpty(registryId))
 				return;
 			StringBuilder sb1 = new();
 			StringBuilder sb2 = new();
@@ -71,7 +73,7 @@ public partial class ConverterGenerator
 						using System.Runtime.CompilerServices;
 						using System.Text.Json;
 					
-					namespace RhythmBase.{{registryInfo}}.Converters;
+					namespace RhythmBase.{{registryId}}.Converters;
 					/// <summary>
 					/// Provides extension methods for converting enum values to and from their JSON string representations.
 					/// </summary>
@@ -243,7 +245,7 @@ public partial class ConverterGenerator
 					{{sb2.ToString()}}
 					}
 					""");
-			spc.AddSource($"EnumConverters.{registryInfo}.g.cs", sb1.ToString());
+			spc.AddSource($"EnumConverters.{registryId}.g.cs", sb1.ToString());
 		});
 	}
 	private static IEnumerable<INamedTypeSymbol> GetDerivedTypes(INamedTypeSymbol baseType, Compilation compilation, bool includeReferences = false)
@@ -294,11 +296,13 @@ public partial class ConverterGenerator
 				yield return type;
 	}
 
-	private void GenerateTypeConverterRegistry(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<(string? Left, (ITypeSymbol, INamedTypeSymbol)[] Right)> incrementalValueProvider)
+	private void GenerateTypeConverterRegistry(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<((string?, List<Diagnostic>) Left, (ITypeSymbol, INamedTypeSymbol)[] Right)> incrementalValueProvider)
 	{
 		context.RegisterSourceOutput(incrementalValueProvider, (ctx, data) =>
 	{
-		var (left, right) = data;
+		var ((left, diagnostics), right) = data;
+		foreach (var diag in diagnostics)
+			ctx.ReportDiagnostic(diag);
 		if (string.IsNullOrEmpty(left) || left == CoreNs)
 			return;
 		StringBuilder sb = new();
@@ -367,7 +371,7 @@ public partial class ConverterGenerator
 			return namedType.TypeArguments[0];
 		return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
 	}
-	private void GenerateReadBody(Compilation compilation, StringBuilder sb, string id, ClassGenCvtrInfo info, (ITypeSymbol, INamedTypeSymbol)[] classGenMap)
+	private void GenerateReadBody(Compilation compilation, StringBuilder sb, ClassGenCvtrInfo info, (ITypeSymbol, INamedTypeSymbol)[] classGenMap)
 	{
 		//sb.AppendLine("/*\n");
 
@@ -766,7 +770,7 @@ public partial class ConverterGenerator
 			sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); TypeConverterRegistry.Write(writer, {{valueAccess}}, options); }""");
 	}
 
-	private void GenerateWriteBody(Compilation compilation, StringBuilder sb, string id, ClassGenCvtrInfo info, (ITypeSymbol, INamedTypeSymbol)[] classGenMap)
+	private void GenerateWriteBody(Compilation compilation, StringBuilder sb, ClassGenCvtrInfo info, (ITypeSymbol, INamedTypeSymbol)[] classGenMap)
 	{
 		//sb.AppendLine("/*\n");
 
@@ -1014,16 +1018,18 @@ public partial class ConverterGenerator
 		};
 	}
 
-	private void GenerateConverter(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<((string, Compilation), ((IClassGen[], ClassGenAttr)[], (ITypeSymbol, INamedTypeSymbol)[]))> jsonClassCvtrMapGenInfo)
+	private void GenerateConverter(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<(((string?, List<Diagnostic>), Compilation), ((IClassGen[], ClassGenAttr)[], (ITypeSymbol, INamedTypeSymbol)[]))> jsonClassCvtrMapGenInfo)
 	{
 		context.RegisterSourceOutput(jsonClassCvtrMapGenInfo, (ctx, classGenInfoArray) =>
 		{
 			var (idAndCompilation, classGensAndClassGenMap) = classGenInfoArray;
-			var (id, compilation) = idAndCompilation;
+			var ((registryId, diagnostics), compilation) = idAndCompilation;
 			var (classGens, classGenMap) = classGensAndClassGenMap;
-			if (string.IsNullOrEmpty(id) || id == CoreNs)
+			foreach (var diag in diagnostics)
+				ctx.ReportDiagnostic(diag);
+			if (string.IsNullOrEmpty(registryId) || registryId == CoreNs)
 				return;
-			string ns = $"RhythmBase.{id}.Converters";
+			string ns = $"RhythmBase.{registryId}.Converters";
 			StringBuilder classCvtrSb = new();
 			StringBuilder classMapSb = new();
 			classCvtrSb.AppendLine($"""
@@ -1100,7 +1106,7 @@ public partial class ConverterGenerator
 							{
 						""");
 						if (c1.Properties.Any(i => GetShouldGenerate(i, compilation)))
-							GenerateReadBody(compilation, classCvtrSb, id, c1, classGenMap);
+							GenerateReadBody(compilation, classCvtrSb, c1, classGenMap);
 						else
 							classCvtrSb.AppendLine($$"""
 								return base.Read(ref reader, ref value, options);
@@ -1110,7 +1116,7 @@ public partial class ConverterGenerator
 							protected override void Write(Utf8JsonWriter writer, ref {{t.ToDisplayString()}} value, global::RhythmBase.Global.Converters.MetadataJsonSerializerOptions options)
 							{
 						""");
-						GenerateWriteBody(compilation, classCvtrSb, id, c1, classGenMap);
+						GenerateWriteBody(compilation, classCvtrSb, c1, classGenMap);
 						classCvtrSb.AppendLine("""
 							}
 						}
@@ -1141,7 +1147,7 @@ public partial class ConverterGenerator
 						""");
 			classCvtrSb.Append(classMapSb);
 
-			ctx.AddSource($"Converters.{id}.g.cs", classCvtrSb.ToString());
+			ctx.AddSource($"Converters.{registryId}.g.cs", classCvtrSb.ToString());
 		});
 	}
 	private class EventTypeRegistryGenerationInfo
@@ -1153,12 +1159,17 @@ public partial class ConverterGenerator
 		public Dictionary<INamedTypeSymbol, ISymbol> ClassEnumDoubleMap { get; internal set; }
 		public INamedTypeSymbol? FallbackClassType { get; internal set; }
 		public ISymbol? FallbackClassTypeEnum { get; internal set; }
+		public List<Diagnostic> Diagnostics { get; set; } = new();
 	}
-	private static void GenerateEventTypeUtils(SourceProductionContext spc, ((string, Compilation), EventTypeRegistryGenerationInfo[]) classSymbols)
+	private static void GenerateEventTypeUtils(SourceProductionContext spc, (((string?, List<Diagnostic>), Compilation), EventTypeRegistryGenerationInfo[]) classSymbols)
 	{
-		var (configIdAndCompilation, infos) = classSymbols;
-		var (configId, compilation) = configIdAndCompilation;
-		if (string.IsNullOrEmpty(configId) || configId == CoreNs || infos.Length == 0)
+		((var registryId, var pipelineDiagnostics), var compilation, var infos) = (classSymbols.Item1.Item1, classSymbols.Item1.Item2, classSymbols.Item2);
+		foreach (var diag in pipelineDiagnostics)
+			spc.ReportDiagnostic(diag);
+		foreach (var info in infos)
+			foreach (var diag in info.Diagnostics)
+				spc.ReportDiagnostic(diag);
+		if (string.IsNullOrEmpty(registryId) || registryId == CoreNs || infos.Length == 0)
 			return;
 		var jsonEnumAttrSmp = compilation.GetTypeByMetadataName(JsonEnumAttrName);
 		StringBuilder sb = new();
@@ -1166,7 +1177,7 @@ public partial class ConverterGenerator
 // <auto-generated/>
 #nullable enable
 using System;
-namespace RhythmBase.{{configId}}.Converters;
+			namespace RhythmBase.{{registryId}}.Converters;
 
 /// <summary>
 /// Utility class for converting between event types and enumerations.
@@ -1414,7 +1425,7 @@ internal static class UnhandledFieldHelper
 """);
 		}
 
-		string filename = $"EventTypeRegistry.{configId}.g.cs";
+		string filename = $"EventTypeRegistry.{registryId}.g.cs";
 		spc.AddSource(filename, sb.ToString());
 	}
 
