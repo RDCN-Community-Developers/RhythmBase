@@ -159,6 +159,7 @@ public class ConditionalList : ICollection<BaseConditional>, IList<BaseCondition
 		SetHasValue(physicalIndex, false);
 		_value[physicalIndex].ParentCollection = null;
 		_value[physicalIndex] = default!;
+		_logical_index[physicalIndex] = -1;
 
 		for (int i = logicalIndex; i < _count - 1; i++)
 		{
@@ -176,21 +177,26 @@ public class ConditionalList : ICollection<BaseConditional>, IList<BaseCondition
 	/// </summary>
 	/// <param name="logicalIndex">The logical index of the item to get or set.</param>
 	/// <returns></returns>
-	public BaseConditional? this[int logicalIndex]
+	public BaseConditional this[int logicalIndex]
 	{
-		get => GetHasValue(logicalIndex) ? _value[logicalIndex] : default;
+		get
+		{
+			if (logicalIndex < 0 || logicalIndex >= _count)
+				throw new ArgumentOutOfRangeException(nameof(logicalIndex));
+			return _value[_physical_index[logicalIndex]];
+		}
+
 		set
 		{
-			if (GetHasValue(logicalIndex))
+			if (logicalIndex < 0 || logicalIndex >= _count)
+				throw new ArgumentOutOfRangeException(nameof(logicalIndex));
+			int physicalIndex = _physical_index[logicalIndex];
+			if (GetHasValue(physicalIndex))
 			{
-				_value[logicalIndex].ParentCollection = null;
-				_value[logicalIndex] = value!;
-				value!.ParentCollection = this;
+				_value[physicalIndex].ParentCollection = null;
+				value.ParentCollection = this;
 			}
-			else
-			{
-				InsertToPhysicalIndex(value!, logicalIndex);
-			}
+			_value[physicalIndex] = value;
 		}
 	}
 
@@ -276,13 +282,16 @@ public class ConditionalList : ICollection<BaseConditional>, IList<BaseCondition
 
 		for (int i = 0; i < _count; i++)
 		{
-			int logicalIndex = _physical_index[i];
-			if (comparer.Equals(_value[logicalIndex], item))
-				return RemoveAt(logicalIndex);
+			int physicalIndex = _physical_index[i];
+			if (comparer.Equals(_value[physicalIndex], item))
+				return RemoveAt(i);
 		}
 
 		return false;
 	}
+	/// <summary>
+	/// Defragments the collection by removing gaps and reordering items to ensure contiguous storage.
+	/// </summary>
 	public void Defrag()
 	{
 		if (_count <= 1)
@@ -311,9 +320,12 @@ public class ConditionalList : ICollection<BaseConditional>, IList<BaseCondition
 		Array.Resize(ref newValue, newCapacity);
 		_value = newValue;
 
+		Array.Resize(ref _logical_index, newCapacity);
 		Array.Fill(_logical_index, -1);
 		for (int i = 0; i < _count; i++)
 			_logical_index[i] = i;
+
+		Array.Resize(ref _physical_index, newCapacity);
 
 		_trailingEmptyIndex = _count;
 		_firstEmptyIndex = _count;
@@ -327,7 +339,7 @@ public class ConditionalList : ICollection<BaseConditional>, IList<BaseCondition
 
 		return;
 	}
-	public int DataIndexOf(BaseConditional item)
+	internal int DataIndexOf(BaseConditional item)
 	{
 		var comparer = EqualityComparer<BaseConditional>.Default;
 
@@ -351,7 +363,7 @@ public class ConditionalList : ICollection<BaseConditional>, IList<BaseCondition
 	}
 
 	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
+	/// <inheritdoc/>
 	public int IndexOf(BaseConditional item)
 	{
 		var comparer = EqualityComparer<BaseConditional>.Default;
@@ -363,19 +375,16 @@ public class ConditionalList : ICollection<BaseConditional>, IList<BaseCondition
 		}
 		return -1;
 	}
-
+	/// <inheritdoc/>
 	public void Insert(int index, BaseConditional item)
 	{
-		if (index < 0 || index >= _count) throw new ArgumentOutOfRangeException(nameof(index));
+		if (index < 0 || index > _count) throw new ArgumentOutOfRangeException(nameof(index));
 
 		int physicalIndex = _firstEmptyIndex;
 		EnsureCapacity(physicalIndex);
 
 		for (int i = _count; i > index; i--)
-		{
 			_physical_index[i] = _physical_index[i - 1];
-			//_logical_index[_physical_index[i]] = i;
-		}
 
 		_physical_index[index] = physicalIndex;
 		_value[physicalIndex] = item;
@@ -383,11 +392,11 @@ public class ConditionalList : ICollection<BaseConditional>, IList<BaseCondition
 		SetHasValue(physicalIndex, true);
 		_count++;
 
-		if (_logical_index != null)
-		{
-			for (int i = index; i < _count; i++)
-				_logical_index[_physical_index[i]] = i;
-		}
+		if (physicalIndex >= _trailingEmptyIndex)
+			_trailingEmptyIndex = physicalIndex + 1;
+
+		for (int i = index; i < _count; i++)
+			_logical_index[_physical_index[i]] = i;
 
 		if (physicalIndex == _firstEmptyIndex)
 			FindNextEmpty();

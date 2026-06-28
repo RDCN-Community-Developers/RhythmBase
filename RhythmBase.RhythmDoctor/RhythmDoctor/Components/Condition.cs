@@ -1,4 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace RhythmBase.RhythmDoctor.Components;
@@ -210,44 +209,49 @@ public class Condition
 	/// <returns>A string in the format supported by RDLevel.</returns>
 	public string Serialize()
 	{
-		string result = "";
+		StringBuilder sb = new();
 		bool isFirst = true;
 		if (_index_conditions is not null)
 		{
-			foreach (var conditionals in _index_conditions)
+			for (int u = 0; u < _index_conditions.Length; u++)
 			{
+				ulong conditionals = _index_conditions[u];
 				for (int i = 0; i < ulongSize; i += 2)
 				{
 					ulong value = (conditionals >> i) & 0b11;
 					if (value == 0b00) continue;
-					int index = (int)(i / 2);
+					int index = u * (ulongSize / 2) + i / 2;
 					bool isEnabled = (value & 0b01) != 0;
 					if (!isFirst)
-						result += "&";
+						sb.Append('&');
 					isFirst = false;
-					result += $"{(isEnabled ? "" : "~")}{index}";
+					if (!isEnabled) sb.Append('~');
+					sb.Append(index);
 				}
 			}
 		}
 		if (_char_conditions is not null)
 		{
-			foreach (var conditionals in _char_conditions)
+			for (int u = 0; u < _char_conditions.Length; u++)
 			{
+				ulong conditionals = _char_conditions[u];
 				for (int i = 0; i < ulongSize; i += 2)
 				{
 					ulong value = (conditionals >> i) & 0b11;
 					if (value == 0b00) continue;
-					int index = (int)(i / 2);
+					int index = u * (ulongSize / 2) + i / 2;
 					bool isEnabled = (value & 0b01) != 0;
 					if (!isFirst)
-						result += "&";
+						sb.Append('&');
 					isFirst = false;
-					result += $"{(isEnabled ? "" : "~")}{(char)index}&";
+					if (!isEnabled) sb.Append('~');
+					sb.Append((char)index);
 				}
 			}
 		}
-		result += $"d{Duration}";
-		return result;
+		sb.Append('d');
+		sb.Append(Duration);
+		return sb.ToString();
 	}
 	/// <inheritdoc/>
 	public override string ToString() => Serialize();

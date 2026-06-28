@@ -129,6 +129,11 @@ public sealed class TickTimeAttribute(
 	Type typeInterfaceType
 	) : Attribute
 { }
+/// <summary>
+/// Specifies that a given enum type should be serialized as a string in JSON in new package, with an option for PascalCase or camelCase.
+/// </summary>
+/// <param name="enumType"></param>
+/// <param name="pascalCase"></param>
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true, Inherited = false)]
 public sealed class JsonEnumCastingAttribute(Type enumType, bool pascalCase = true) : Attribute { }
 /// <summary>
