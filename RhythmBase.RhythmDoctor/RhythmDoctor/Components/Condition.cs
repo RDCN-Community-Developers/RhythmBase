@@ -5,7 +5,7 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// <summary>
 /// The conditions of the event.
 /// </summary>
-public class Condition
+public struct Condition
 {
 	private const int ulongSize = sizeof(ulong) * 8;
 	private ulong[]? _index_conditions;
@@ -17,7 +17,7 @@ public class Condition
 	/// <summary>
 	/// Gets a value indicating whether the collection contains any conditions.
 	/// </summary>
-	public bool IsEmpty => (_index_conditions is null || _index_conditions.All(c => c == 0)) && (_char_conditions is null || _char_conditions.All(c => c == 0));
+	public readonly bool IsEmpty => (_index_conditions is null || _index_conditions.All(c => c == 0)) && (_char_conditions is null || _char_conditions.All(c => c == 0));
 	private static bool? GetValue(ulong[]? conditions, int index)
 	{
 		if (conditions == null) return null;
@@ -48,7 +48,7 @@ public class Condition
 		} << bitIndex;
 		conditions[ulongIndex] = (conditions[ulongIndex] & ~mask) | newValue;
 	}
-	internal void SetIndexValueToNull(int index)
+	internal readonly void SetIndexValueToNull(int index)
 	{
 		int ulongIndex = index * 2 / ulongSize;
 		int bitIndex = index * 2 % ulongSize;
@@ -207,7 +207,7 @@ public class Condition
 	/// Converts conditions to a string.
 	/// </summary>
 	/// <returns>A string in the format supported by RDLevel.</returns>
-	public string Serialize()
+	public readonly string Serialize()
 	{
 		StringBuilder sb = new();
 		bool isFirst = true;
