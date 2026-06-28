@@ -7,7 +7,7 @@ using RhythmBase.Adofai.Events;
 [assembly: RhythmBase.JsonConverterSourceType(typeof(IBaseEvent), typeof(EventType), typeof(RhythmBase.Adofai.Converters.MemberConverter<>), nameof(IBaseEvent.Type))]
 [assembly: RhythmBase.JsonConverterSourceType(typeof(IFilter), typeof(AdvancedFilter), typeof(FilterMemberConverter<>), nameof(IFilter.Type))]
 [assembly: RhythmBase.JsonConverterLink(typeof(Color), typeof(ColorConverter.RgbaHex))]
-[assembly: RhythmBase.TickTime(
+[assembly: RhythmBase.AdapterType(
 	typeof(RhythmBase.Adofai.Components.Level),
 	typeof(RhythmBase.Adofai.Utils.BeatCalculator),
 	typeof(RhythmBase.Adofai.Components.TickTime),

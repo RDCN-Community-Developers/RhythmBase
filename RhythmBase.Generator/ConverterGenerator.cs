@@ -236,7 +236,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 		});
 		var tickTimeGenInfo = context.CompilationProvider.Select((compilation, ct) =>
 		{
-			var tickTimeAttr = compilation.GetTypeByMetadataName(TickTimeAttrName);
+			var tickTimeAttr = compilation.GetTypeByMetadataName(AdapterTypeAttrName);
 			if (tickTimeAttr == null) return default;
 			List<INamedTypeSymbol> types = [];
 			foreach (var attr in compilation.Assembly.GetAttributes())

@@ -90,7 +90,7 @@ using RhythmBase.RhythmDoctor.Components;
 
 LevelReadSettings settings = new()
 {
-	ZipFileProcessMethod = ZipFileProcessMethod.AllFiles,
+	ZipProcessingMode = ZipProcessingMode.AllEntries,
 	LoadAssets = true,
 	InactiveEventsHandling = InactiveEventsHandling.Store,
 	UnreadableEventsHandling = UnreadableEventHandling.Store,
@@ -114,7 +114,7 @@ foreach (var unreadableEvent in settings.UnreadableEvents)
 	Console.WriteLine($"Unreadable Event: {unreadableEvent}");
 ```
 
-When reading archives, `LevelReadSettings.ZipFileProcessMethod` defaults to `AllFiles`, which extracts level resources to a temporary directory.\
+When reading archives, `LevelReadSettings.ZipProcessingMode` defaults to `AllEntries`, which extracts level resources to a temporary directory.\
 You can customize the temporary directory or clean up manually:
 
 ```cs
@@ -234,7 +234,7 @@ Each game type has its own time units, expressions, rooms, etc. The following us
 
 Each game type implements the `ITickTime<TickTime>` interface, representing a point on the level timeline. Rhythm Doctor's implementation is the `TickTime` struct, caching the following read-only information:
 
-- `BeatOnly`: `float`, total beat count from the start of the level (starting from 1).
+- `Tick`: `float`, total tick count from the start of the level (starting from 1).
 - `Bar` / `Beat`: `int` / `float`, current bar and beat position, obtained via deconstruction:
   ```cs
   (int bar, float beat) = someBeat;
@@ -243,36 +243,33 @@ Each game type implements the `ITickTime<TickTime>` interface, representing a po
 - `Bpm`: `float`, current BPM.
 - `Cpb`: `int`, current crotchets per bar.
 
-`TickTime` maintains association with the level when possible, preferring to derive other time units from `BeatOnly`.\
+`TickTime` maintains association with the level when possible, preferring to derive other time units from `Tick`.\
 When unassociated, it uses cached values for calculations.
 
 ```cs
 Level level = [];
 
 // === Associated with level ===
-TickTime beat1 = new(level.Calculator, 20);
-TickTime beat2 = new(level.Calculator, 3, 5);
-TickTime beat3 = new(level.Calculator, TimeSpan.FromSeconds(15));
-TickTime beat4 = level.Calculator.BeatOf(20);
-TickTime beat5 = level.Calculator.BeatOf(3, 5);
-TickTime beat6 = level.Calculator.BeatOf(TimeSpan.FromSeconds(15));
-// Level default beat
-TickTime beat7 = level.DefaultBeat;
-// Link an existing beat to a specific level
-TickTime beat8 = beat1.WithLink(level);
-TickTime beat9 = beat2.WithLinkIfNull(level);
+TickTime tick1 = level.Calculator.TickOf(20);
+TickTime tick2 = level.Calculator.TickOf(3, 5);
+TickTime tick3 = level.Calculator.TickOf(TimeSpan.FromSeconds(15));
+// Level default tick
+TickTime tick4 = level.DefaultTick;
+// Link an existing tick to a specific level
+TickTime tick5 = tick1.WithLink(level.Calculator);
+TickTime tick6 = tick2.WithLinkIfNull(level.Calculator);
 
 // === Not associated with level ===
-TickTime beat10 = new(20);
-TickTime beat11 = new(3, 5);
-TickTime beat12 = new(TimeSpan.FromSeconds(15));
+TickTime tick10 = new(20);
+TickTime tick11 = new(3, 5);
+TickTime tick12 = new(TimeSpan.FromSeconds(15));
 // Tuple implicit conversion
-TickTime beat13 = (3, 5);
+TickTime tick13 = (3, 5);
 // Break association
-TickTime beat14 = beat1.WithoutLink();
+TickTime tick14 = tick1.WithoutLink();
 
 // === Check association state ===
-bool isLinked = !beat13.IsEmpty;
+bool isLinked = !tick13.IsEmpty;
 ```
 
 When an event is added to a level, its time unit automatically associates; when removed, it automatically disassociates.\
@@ -281,11 +278,11 @@ Two associated time units must point to the same level when used in operations.
 ```cs
 using RhythmBase.RhythmDoctor.Components;
 
-TickTime beat1 = level.Calculator.BeatOf(1);
-TickTime beat2 = beat1.WithoutLink();
+TickTime tick1 = level.Calculator.TickOf(1);
+TickTime tick2 = tick1.WithoutLink();
 
-Console.WriteLine(beat1.FromSameLevel(beat2));       // False
-Console.WriteLine(beat1.FromSameLevelOrNull(beat2)); // True
+Console.WriteLine(tick1.FromSameChart(tick2));       // False
+Console.WriteLine(tick1.FromSameChartOrNull(tick2)); // True
 ```
 
 ### Expression `Expression`
@@ -378,18 +375,18 @@ using RhythmBase.RhythmDoctor.Components;
 var moves = rdlevel.OfEvent<MoveRow>();
 
 // Filter by time range
-var inRange = rdlevel.InRange(level.Calculator.BeatOf(3), level.Calculator.BeatOf(5));
+var inRange = rdlevel.InRange(level.Calculator.TickOf(3), level.Calculator.TickOf(5));
 
 // Filter by exact time
-var atBeat = rdlevel.AtBeat(level.Calculator.BeatOf(2, 1));
+var atBeat = rdlevel.AtBeat(level.Calculator.TickOf(2, 1));
 
 // Combined conditions
 var list = rdlevel.OfEvent<MoveRow>()
 	.Where(i => 0 <= i.Y && i.Y < 3)
-	.InRange(level.Calculator.BeatOf(3), level.Calculator.BeatOf(5));
+	.InRange(level.Calculator.TickOf(3), level.Calculator.TickOf(5));
 ```
 
-In Rhythm Doctor, `Row` and `Decoration` also hold event collections, so the above extension methods work on tracks and sprites too.
+In Rhythm Doctor, `Row` and `Decoration` also hold event collections, so the above extension methods work on rows and decorations too.
 
 ```cs
 var list = rdlevel.Decorations[0]
@@ -424,7 +421,7 @@ Console.WriteLine(comment); // [11,?,?] Comment My_comment.
 ```
 
 In Rhythm Doctor, adding, modifying, or removing `SetCrotchetsPerBar` events automatically updates the timeline.\
-Track and sprite events must be added via `Add()` on the corresponding track or sprite; removal can be called at any level (level, track, or sprite).
+Row and decoration events must be added via `Add()` on the corresponding row or decoration; removal can be called at any level (level, row, or decoration).
 
 ## Custom Events
 
@@ -610,15 +607,16 @@ Used to construct associated `TickTime` instances, convert between various time 
 Level level = [];
 BeatCalculator calculator = level.Calculator;
 
-Console.WriteLine(calculator.BarBeatToBeatOnly(3, 1));
-Console.WriteLine(calculator.BarBeatToTimeSpan(3, 1));
-Console.WriteLine(calculator.BeatOnlyToBarBeat(3));
-Console.WriteLine(calculator.BeatOnlyToTimeSpan(3));
-Console.WriteLine(calculator.TimeSpanToBarBeat(TimeSpan.FromSeconds(3)));
-Console.WriteLine(calculator.TimeSpanToBeatOnly(TimeSpan.FromSeconds(3)));
+// Construct associated TickTime instances
+TickTime tick1 = calculator.TickOf(20);
+TickTime tick2 = calculator.TickOf(3, 1);
+TickTime tick3 = calculator.TickOf(TimeSpan.FromSeconds(19.19));
 
-Console.WriteLine(calculator.BeatsPerMinuteOf((3, 1)));
-Console.WriteLine(calculator.CrotchetsPerBarOf((3, 1)));
+// Get time range
+TickTimeRange interval = calculator.IntervalOf(tick1, tick2);
+
+// Query BPM at any moment
+Console.WriteLine(calculator.BeatsPerMinuteOf(tick1));
 ```
 
 You can manually refresh the internal cache via `BeatCalculator.Refresh()`.
@@ -657,11 +655,11 @@ using Level vfxLevel = Level.FromFile(@"vfx.rdlevel");
 // Load beatmap level
 using Level audioLevel = Level.FromFile(@"beat.rdlevel");
 
-// Remove all tracks from VFX level
+// Remove all rows from VFX level
 foreach (var row in vfxLevel.Rows.ToList())
 	vfxLevel.Rows.Remove(row);
 
-// Copy tracks from beatmap level to VFX level
+// Copy rows from beatmap level to VFX level
 foreach (var row in audioLevel.Rows)
 {
 	Row row2 = new()
@@ -677,7 +675,7 @@ foreach (var row in audioLevel.Rows)
 		row2.Add(evt);
 }
 
-// Copy non-track events from sound bar
+// Copy non-row events from sound bar
 foreach (var sound in audioLevel.Where(e =>
 	e.Tab == Tabs.Sounds &&
 	e is not BaseRowAction &&
@@ -699,16 +697,45 @@ vfxLevel.SaveToFile(@"result.rdlevel");
 
 The process of adapting a new game can be summarized as:
 
-```
-Define Enum → Define TickTime → Define Event Interface/Base Class → Define Event Subclasses
-→ Define Level → Register AssemblyInfo → Implement Hand-Written Converters → Implement Serialization Methods
-```
+1. Register AssemblyInfo
+1. Define Enum
+1. Define Event Interface/Base Class
+1. Define Event Subclasses
+1. Define Level
+1. Create GlobalUsing
+1. Implement Hand-Written Converters
+1. Implement Serialization Methods
+
+Files the developer **must hand-write**:
+
+| File | Content |
+|---|---|
+| `AssemblyInfo.cs` | `JsonConverterId`, `JsonConverterSourceType`, `AdapterType`, `JsonConverterLink` |
+| `Enums.cs` | `EventType` enum + `[JsonEnumSerializable]` |
+| `GlobalUsing.cs` | global using directives |
+| `IBaseEvent.cs` | Event interface (extends `IEvent<EventType, TickTime>`) |
+| `BaseEvent.cs` | Abstract event base class (`record class`, tagged with `[JsonObjectHasSerializer]`) |
+| Event subclasses | Tagged with `[JsonObjectSerializable]` |
+| `Level.cs` (partial) | Extends `OrderedEventCollection<IBaseEvent>` + format interfaces |
+| `Level.SerializeMethods.cs` | `FromFile` / `SaveToFile` and other file IO |
+| `MemberConverter<T>` | Empty generic converter base class (source generator fills in specifics) |
+| Hand-written converters | `BaseEventConverter` (event routing), `LevelConverter` (level read/write) |
 
 The source generator automatically produces the following based on declarations in `AssemblyInfo.cs`:
-- Property-level converters for each event class (`MemberConverter<T>`)
-- Bidirectional type-enum mappings (`EventTypeRegistry`)
-- Converter routing table (`EventConverterMap`)
-- String conversion extension methods for enums (`TryParse` / `ToEnumString`)
+
+| Generated | Trigger Attribute | Description |
+|---|---|---|
+| `TickTime` struct (partial) | `[assembly: AdapterType(...)]` | Constructors, operators, `FromSameChart`, etc. |
+| `TickTimeRange` struct | Same | `Intersect`, `Union`, `Contains`, etc. |
+| `Calculator` class (partial) | Same | `TickOf`, `IntervalOf`, `BeatsPerMinuteOf`, etc. |
+| `OrderedEventCollection<TEvent>` | `[assembly: JsonConverterSourceType(...)]` | Event collection base class |
+| `IEventEnumerable<TEvent>` | Same | Enumerable event interface |
+| `EventTypeRegistry` | Same | Enum-type bidirectional mapping (`ToEnum`, `ToEnums`, `ToType`) |
+| `EventConverterMap` | Same | Type routing table |
+| `EnumConverterExtensions` | `[JsonEnumSerializable]` | Enum string conversion (`TryParse`, `ToEnumString`) |
+| Event `MemberConverter<T>` | `[JsonObjectSerializable]` | Property-level serializer |
+| `UnhandledFieldHelper` | Auto-detected when interfaces present | Interface-level unhandled field registration |
+| Version upgrade base class | `[assembly: JsonConverterSourceType(...)]` | `BackwardCompatibleXXXConverter` |
 
 The following uses `MyGame` as a hypothetical game type name. The four completed implementations (RhythmDoctor, Adofai, BeatBlock, Rizline) serve as practical references.
 
@@ -730,7 +757,7 @@ Create a .NET class library project and reference the `RhythmBase` NuGet package
 </Project>
 ```
 
-> **`RootNamespace` must be set to `RhythmBase`** to ensure the source generator places generated code in the correct `RhythmBase.{GameType}.Converters` namespace.
+> **`RootNamespace` should be set to `RhythmBase`** to ensure the source generator places generated code in the correct `RhythmBase.{GameType}.Converters` namespace.
 
 ## Step 2: Define the Event Type Enum
 
@@ -750,8 +777,7 @@ public enum EventType
 ```
 
 **Rules**:
-- Enum member names must exactly match event class names
-- Fallback compatibility types are fixed: `ForwardEvent`, `ForwardRowEvent`, `ForwardDecorationEvent`
+- Enum member names do not need to exactly match event class names; the source generator finds them by examining attributes on the event classes.
 - Must be marked with `[JsonEnumSerializable]`
 
 **Implementation differences**:
@@ -760,27 +786,21 @@ public enum EventType
 |---|---|---|
 | RhythmDoctor | Default PascalCase | `[JsonEnumSerializable]` |
 | BeatBlock | camelCase serialization | `[JsonEnumSerializable(false)]` |
-| Rizline | Numeric member names, serialized as numbers | Member names like `_0`, `_1` |
 | Adofai | Multiple enums coexist | Register `EventType` + `FilterType` separately |
 
 ## Step 3: Define the Time Unit (TickTime)
 
-Create a struct implementing `ITickTime<TickTime>`, representing a point on the level timeline:
+The `TickTime` struct, its operators, constructors, `FromSameChart`, etc. are **source-generated** by the `[assembly: AdapterType(...)]` attribute. The developer only needs to declare an empty `partial struct` implementing `ITickTime<TickTime>`:
 
 ```csharp
-public struct TickTime : ITickTime<TickTime>
+public partial struct TickTime : ITickTime<TickTime>
 {
-    public TimeSpan TimeSpan { get; }
-    public float Tick { get; }
-    // ... comparison operators, constructors, etc.
+    // Source generator fills in: constructors, operators, FromSameChart, etc.
+    // Developer only needs to add any game-specific extension methods
 }
 ```
 
-Key design points:
-- Support construction from `float` (beat), `(bar, beat)` tuple, `TimeSpan`, etc.
-- Associate/disassociate with `BeatCalculator` (lazy computation + caching)
-- Support tuple implicit conversion: `(int bar, float beat) => TickTime`
-- Comparison operators (`>`, `<`, `>=`, `<=`, `==`, `!=`)
+If you need to extend the `Calculator` behavior (e.g., RhythmDoctor's `BarBeatToTick` and other game-specific methods), declare a `partial class` in `BeatCalculator.cs` and add custom methods.
 
 Reference implementation: `RhythmBase.RhythmDoctor/RhythmDoctor/Components/TickTime.cs`
 
@@ -864,18 +884,16 @@ public record class Note : BaseEvent
 
 ```csharp
 public partial class Level :
-    OrderedEventCollection<IBaseEvent, EventType, TickTime>,
+    OrderedEventCollection<IBaseEvent>,
     IArchiveLevel<Level, IBaseEvent, EventType, TickTime>,
     // Choose interfaces based on format
     IChart<TickTime>
 {
     // ... game-specific components (Settings, Rows, etc.)
-
-    protected override TickTime CreateInstance(float beat) => new TickTime(beat);
-    protected override ReadOnlyEnumCollection<EventType> Types => EventTypeRegistry.Types;
-    protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => EventTypeRegistry.ToEnums(typeof(TTarget));
 }
 ```
+
+> `OrderedEventCollection<IBaseEvent>` is source-generated and already implements `Types`, `TypesOf<TTarget>()`, etc. No manual override needed.
 
 **Level format selection**:
 
@@ -890,22 +908,35 @@ Multi-file formats (BeatBlock, Rizline) do not implement `IJsonLevel` because JS
 
 ## Step 7: Register AssemblyInfo
 
-Create `AssemblyInfo.cs` in the project root:
+Create `AssemblyInfo.cs` in the project root, declaring the adapter's core type system with 4 attributes:
 
 ```csharp
+// 1. Adapter identifier
 [assembly: RhythmBase.JsonConverterId(nameof(RhythmBase.MyGame))]
 
+// 2. Event type system (generates EventTypeRegistry, EventConverterMap, event converters, etc.)
 [assembly: RhythmBase.JsonConverterSourceType(
     typeof(IBaseEvent),                                    // Event interface
     typeof(RhythmBase.MyGame.EventType),                   // Event enum
-    typeof(RhythmBase.MyGame.Converters.MemberConverter<>), // Converter base class
+    typeof(RhythmBase.MyGame.Converters.MemberConverter<>), // Converter base class (generic, only needs declaration)
     nameof(IBaseEvent.Type)                                // Enum property name
 )]
 
-// Link custom converters for shared types (as needed)
+// 3. Core type registration (generates TickTime, TickTimeRange, Calculator, etc.)
+[assembly: RhythmBase.AdapterType(
+    typeof(RhythmBase.MyGame.Components.Level),            // Level/Chart type (IChart<TickTime>)
+    typeof(RhythmBase.MyGame.Components.BeatCalculator),   // Calculator type
+    typeof(RhythmBase.MyGame.Components.TickTime),         // Time unit type (ITickTime<TickTime>)
+    typeof(RhythmBase.MyGame.EventType),                   // Event enum
+    typeof(RhythmBase.MyGame.Events.IBaseEvent)            // Event interface
+)]
+
+// 4. Link custom converters for shared types (as needed)
 [assembly: RhythmBase.JsonConverterLink(typeof(Color), typeof(ColorConverter.RgbaHex))]
 [assembly: RhythmBase.JsonConverterLink(typeof(RichLine<RichStringStyle>), typeof(RichTextConverter<RichStringStyle>))]
 ```
+
+> `MemberConverter<T>` only needs an empty generic class declaration; the source generator produces concrete `MemberConverter<SpecificEvent>` implementations for each `[JsonObjectSerializable]` event.
 
 **`JsonConverterLink` differences across implementations**:
 
@@ -942,11 +973,11 @@ global using static RhythmBase.MyGame.Converters.EnumConverterExtensions;
 
 ## Step 9: Implement Hand-Written Converters
 
-The source generator auto-generates event property-level converters, but the following compound types need hand-written converters:
+The source generator auto-generates event property-level converters and type routing tables, but the following compound types need hand-written converters:
 
-- **LevelConverter**: Reads/writes the entire level
-- **SettingsConverter**: Reads/writes level settings
-- **BaseEventConverter**: Event type routing (dispatches to `ConverterMap` based on the `type` field)
+- **`MemberConverter<T>`**: Generic base class for event property-level converters. Only needs an empty class declaration; the source generator produces concrete `MemberConverter<SpecificEvent>` implementations for each `[JsonObjectSerializable]` event.
+- **`BaseEventConverter`**: Event type routing, dispatches to the source-generated `EventConverterMap` based on the `type` field.
+- **`LevelConverter`**: Reads/writes the entire level.
 
 All hand-written converters inherit from `MetadataJsonConverter<T>`, whose `Read`/`Write` accept `MetadataJsonSerializerOptions` (serialization options with attached metadata).
 
@@ -956,13 +987,9 @@ All hand-written converters inherit from `MetadataJsonConverter<T>`, whose `Read
 JsonConverter<T>              — .NET framework, handles arbitrary type JSON serialization
 └── MetadataJsonConverter<T>  — RhythmBase, adds metadata awareness
     ├── LevelConverter        — reads/writes entire level
-    ├── SettingsConverter     — reads/writes settings
-    ├── BaseEventConverter    — event routing
-    └── ...
+    └── BaseEventConverter    — event routing
 
 MemberConverter<T>            — RhythmBase, reads/writes event properties field by field
-├── BaseRowAction<T>          — + "row"
-├── BaseDecorationAction<T>   — + "target"
 └── Concrete event converter  — generated by source generator
 ```
 
@@ -1124,8 +1151,7 @@ public static async Task<Level> FromZipAsync(string filepath, LevelReadSettings?
 1. All events are `record` types, supporting `with` expressions
 2. `_extraData` dictionary stores unknown properties, ensuring lossless round-tripping
 3. The source generator handles most serialization code; hand-written converters are only for complex logic
-4. `ConverterMap` + `ConverterHub` form the complete type routing and serializer registration system
-5. `EventTypeRegistry` provides bidirectional type-enum queries and classification
-6. `ForwardEvent` mechanism ensures backward compatibility for unknown event types
+4. `EventConverterMap` + `EventTypeRegistry` form the complete type routing and enum mapping system
+5. `ForwardEvent` mechanism ensures backward compatibility for unknown event types
 7. `Path.GetRelativePath` is unavailable on .NET Standard 2.0; use `file.Substring(dir.Length + 1)` instead
 8. Multi-file format `FromZip` needs to set `isZip` / `isExtracted` status fields

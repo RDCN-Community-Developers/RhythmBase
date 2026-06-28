@@ -90,7 +90,7 @@ using RhythmBase.RhythmDoctor.Components;
 
 LevelReadSettings settings = new()
 {
-	ZipFileProcessMethod = ZipFileProcessMethod.AllFiles,
+	ZipProcessingMode = ZipProcessingMode.AllEntries,
 	LoadAssets = true,
 	InactiveEventsHandling = InactiveEventsHandling.Store,
 	UnreadableEventsHandling = UnreadableEventHandling.Store,
@@ -114,7 +114,7 @@ foreach (var unreadableEvent in settings.UnreadableEvents)
 	Console.WriteLine($"Unreadable Event: {unreadableEvent}");
 ```
 
-读取压缩包时，`LevelReadSettings.ZipFileProcessMethod` 默认为 `AllFiles`，会将关卡资源解压到临时目录。\
+读取压缩包时，`LevelReadSettings.ZipProcessingMode` 默认为 `AllEntries`，会将关卡资源解压到临时目录。\
 可通过以下方式自定义临时目录或手动清理：
 
 ```cs
@@ -234,7 +234,7 @@ bool hasAll = a.ContainsAll([EventType.Tint]);        // true
 
 每个游戏类型实现 `ITickTime<TickTime>` 接口，表示关卡时间线上的某个时刻。节奏医生的实现为 `TickTime` 结构体，缓存了以下只读信息：
 
-- `BeatOnly`：`float`，从关卡起始算起的总节拍数（从 1 开始）。
+- `Tick`：`float`，从关卡起始算起的总节拍数（从 1 开始）。
 - `Bar` / `Beat`：`int` / `float`，当前所在小节与拍数，通过解构获取：
   ```cs
   (int bar, float beat) = someBeat;
@@ -243,36 +243,33 @@ bool hasAll = a.ContainsAll([EventType.Tint]);        // true
 - `Bpm`：`float`，当前 BPM。
 - `Cpb`：`int`，当前每小节四分音符数。
 
-`TickTime` 会尽量与关卡保持关联，并优先通过 `BeatOnly` 推算其他时间单位。\
+`TickTime` 会尽量与关卡保持关联，并优先通过 `Tick` 推算其他时间单位。\
 无关联时则使用缓存值参与计算。
 
 ```cs
 Level level = [];
 
 // === 与关卡关联 ===
-TickTime beat1 = new(level.Calculator, 20);
-TickTime beat2 = new(level.Calculator, 3, 5);
-TickTime beat3 = new(level.Calculator, TimeSpan.FromSeconds(15));
-TickTime beat4 = level.Calculator.BeatOf(20);
-TickTime beat5 = level.Calculator.BeatOf(3, 5);
-TickTime beat6 = level.Calculator.BeatOf(TimeSpan.FromSeconds(15));
+TickTime tick1 = level.Calculator.TickOf(20);
+TickTime tick2 = level.Calculator.TickOf(3, 5);
+TickTime tick3 = level.Calculator.TickOf(TimeSpan.FromSeconds(15));
 // 关卡默认节拍
-TickTime beat7 = level.DefaultBeat;
+TickTime tick4 = level.DefaultTick;
 // 将已有节拍链接到指定关卡
-TickTime beat8 = beat1.WithLink(level);
-TickTime beat9 = beat2.WithLinkIfNull(level);
+TickTime tick5 = tick1.WithLink(level.Calculator);
+TickTime tick6 = tick2.WithLinkIfNull(level.Calculator);
 
 // === 不与关卡关联 ===
-TickTime beat10 = new(20);
-TickTime beat11 = new(3, 5);
-TickTime beat12 = new(TimeSpan.FromSeconds(15));
+TickTime tick10 = new(20);
+TickTime tick11 = new(3, 5);
+TickTime tick12 = new(TimeSpan.FromSeconds(15));
 // 使用元组隐式转换
-TickTime beat13 = (3, 5);
+TickTime tick13 = (3, 5);
 // 断开关联
-TickTime beat14 = beat1.WithoutLink();
+TickTime tick14 = tick1.WithoutLink();
 
 // === 检查关联状态 ===
-bool isLinked = !beat13.IsEmpty;
+bool isLinked = !tick13.IsEmpty;
 ```
 
 事件被添加至关卡时会自动建立时间单位关联，移除时自动断开。\
@@ -281,11 +278,11 @@ bool isLinked = !beat13.IsEmpty;
 ```cs
 using RhythmBase.RhythmDoctor.Components;
 
-TickTime beat1 = level.Calculator.BeatOf(1);
-TickTime beat2 = beat1.WithoutLink();
+TickTime tick1 = level.Calculator.TickOf(1);
+TickTime tick2 = tick1.WithoutLink();
 
-Console.WriteLine(beat1.FromSameLevel(beat2));       // False
-Console.WriteLine(beat1.FromSameLevelOrNull(beat2)); // True
+Console.WriteLine(tick1.FromSameChart(tick2));       // False
+Console.WriteLine(tick1.FromSameChartOrNull(tick2)); // True
 ```
 
 ### 表达式 `Expression`
@@ -378,15 +375,15 @@ using RhythmBase.RhythmDoctor.Components;
 var moves = rdlevel.OfEvent<MoveRow>();
 
 // 按时间范围筛选
-var inRange = rdlevel.InRange(level.Calculator.BeatOf(3), level.Calculator.BeatOf(5));
+var inRange = rdlevel.InRange(level.Calculator.TickOf(3), level.Calculator.TickOf(5));
 
 // 按精确时间筛选
-var atBeat = rdlevel.AtBeat(level.Calculator.BeatOf(2, 1));
+var atBeat = rdlevel.AtBeat(level.Calculator.TickOf(2, 1));
 
 // 组合条件
 var list = rdlevel.OfEvent<MoveRow>()
 	.Where(i => 0 <= i.Y && i.Y < 3)
-	.InRange(level.Calculator.BeatOf(3), level.Calculator.BeatOf(5));
+	.InRange(level.Calculator.TickOf(3), level.Calculator.TickOf(5));
 ```
 
 RhythmDoctor 的 `Row` 与 `Decoration` 内部同样持有事件集合，因此上述扩展方法对轨道和精灵也适用。
@@ -485,7 +482,7 @@ record MyComment: Comment
 
 ## 事件类型与枚举
 
-源生成器为每个游戏类型自动生成 `EnumConverterExtensions`，提供枚举与类型之间的转换方法。每个游戏类型的 `ClassEnumMap` 提供类型分类查询。
+源生成器为每个游戏类型自动生成 `EnumConverterExtensions`，提供枚举与类型之间的转换方法。`EventTypeRegistry` 提供类型分类查询。
 
 ```cs
 using RhythmBase.RhythmDoctor.Components;
@@ -495,9 +492,9 @@ using RhythmBase.RhythmDoctor.Converters;
 Console.WriteLine(EventType.Tint.ToEnumString()); // "Tint"
 Console.WriteLine("Tint".TryParseEventType(out var t)); // true, t = EventType.Tint
 
-// ClassEnumMap 提供的分类查询
-var decorationTypes = ClassEnumMap.ToEnums<BaseDecorationAction>();
-var rowTypes = ClassEnumMap.ToEnums<BaseRowAction>();
+// EventTypeRegistry 提供的分类查询
+var decorationTypes = EventTypeRegistry.ToEnums<BaseDecorationAction>();
+var rowTypes = EventTypeRegistry.ToEnums<BaseRowAction>();
 ```
 
 # 富文本和对话组件
@@ -610,20 +607,21 @@ Console.WriteLine(var2); // 6.5
 Level level = [];
 BeatCalculator calculator = level.Calculator;
 
-Console.WriteLine(calculator.BarBeatToBeatOnly(3, 1));
-Console.WriteLine(calculator.BarBeatToTimeSpan(3, 1));
-Console.WriteLine(calculator.BeatOnlyToBarBeat(3));
-Console.WriteLine(calculator.BeatOnlyToTimeSpan(3));
-Console.WriteLine(calculator.TimeSpanToBarBeat(TimeSpan.FromSeconds(3)));
-Console.WriteLine(calculator.TimeSpanToBeatOnly(TimeSpan.FromSeconds(3)));
+// 构造关联状态的 TickTime
+TickTime beat1 = calculator.TickOf(20);
+TickTime beat2 = calculator.TickOf(3, 1);
+TickTime beat3 = calculator.TickOf(TimeSpan.FromSeconds(19.19));
 
-Console.WriteLine(calculator.BeatsPerMinuteOf((3, 1)));
-Console.WriteLine(calculator.CrotchetsPerBarOf((3, 1)));
+// 获取时间区间
+TickTimeRange interval = calculator.IntervalOf(beat1, beat2);
+
+// 查询任意时刻的 BPM
+Console.WriteLine(calculator.BeatsPerMinuteOf(beat1));
 ```
 
 可通过 `BeatCalculator.Refresh()` 手动刷新内部缓存。
 
-### RDCode 解析器 `RDLang` (即将弃用)
+### RDCode 解析器 `RDLang` （已弃用）
 
 提供 `TryRun()` 方法执行节奏医生表达式。
 
@@ -699,16 +697,45 @@ vfxLevel.SaveToFile(@"result.rdlevel");
 
 适配新游戏的流程可概括为以下步骤：
 
-```
-定义枚举 → 定义 TickTime → 定义事件接口/基类 → 定义事件子类
-→ 定义 Level → 注册 AssemblyInfo → 实现手写转换器 → 实现序列化方法
-```
+1. 注册 AssemblyInfo
+1. 定义枚举
+1. 定义事件接口/基类
+1. 定义事件子类
+1. 定义 Level
+1. 创建 GlobalUsing
+1. 实现手写转换器
+1. 实现序列化方法
 
-源代码生成器会根据 `AssemblyInfo.cs` 中的声明自动生成：
-- 每个事件类的属性级转换器（`MemberConverter<T>`）
-- 事件类型与枚举的双向映射（`ClassEnumMap`）
-- 转换器路由表（`ConverterMap`）
-- 枚举的字符串转换扩展方法（`TryParse` / `ToEnumString`）
+开发者**必须手写**的文件：
+
+| 文件 | 内容 |
+|---|---|
+| `AssemblyInfo.cs` | `JsonConverterId`、`JsonConverterSourceType`、`AdapterType`、`JsonConverterLink` |
+| `Enums.cs` | `EventType` 枚举 + `[JsonEnumSerializable]` |
+| `GlobalUsing.cs` | global using 指令 |
+| `IBaseEvent.cs` | 事件接口（继承 `IEvent<EventType, TickTime>`） |
+| `BaseEvent.cs` | 事件抽象基类（`record class`，需 `[JsonObjectHasSerializer]` 标记） |
+| 各事件类 | 使用 `[JsonObjectSerializable]` 标记 |
+| `Level.cs`（partial） | 继承 `OrderedEventCollection<IBaseEvent>` + 格式接口 |
+| `Level.SerializeMethods.cs` | `FromFile` / `SaveToFile` 等文件 IO |
+| `MemberConverter<T>` | 空泛型转换器基类（源生成器填充具体内容） |
+| 手写转换器 | `BaseEventConverter`（事件路由）、`LevelConverter`（关卡读写） |
+
+源代码生成器会根据 `AssemblyInfo.cs` 中的声明自动生成以下内容（开发者无需手写）：
+
+| 生成内容 | 触发属性 | 说明 |
+|---|---|---|
+| `TickTime` 结构体（partial） | `[assembly: AdapterType(...)]` | 构造函数、运算符、`FromSameChart` 等 |
+| `TickTimeRange` 结构体 | 同上 | `Intersect`、`Union`、`Contains` 等 |
+| `Calculator` 类（partial） | 同上 | `TickOf`、`IntervalOf`、`BeatsPerMinuteOf` 等 |
+| `OrderedEventCollection<TEvent>` | `[assembly: JsonConverterSourceType(...)]` | 事件集合基类 |
+| `IEventEnumerable<TEvent>` | 同上 | 可枚举事件接口 |
+| `EventTypeRegistry` | 同上 | 枚举-类型双向映射（`ToEnum`、`ToEnums`、`ToType`） |
+| `EventConverterMap` | 同上 | 类型路由表 |
+| `EnumConverterExtensions` | `[JsonEnumSerializable]` | 枚举字符串转换（`TryParse`、`ToEnumString`） |
+| 各事件类的 `MemberConverter<T>` | `[JsonObjectSerializable]` | 属性级序列化器 |
+| `UnhandledFieldHelper` | 自动检测到接口时 | 接口级未处理字段注册 |
+| 历史版本升级基类 | `[assembly: JsonConverterSourceType(...)]` | `BackwardCompatibleXXXConverter` |
 
 下文使用 `MyGame` 作为假想的游戏类型名称。已完成的四个实现（RhythmDoctor、Adofai、BeatBlock、Rizline）可作为实际参考。
 
@@ -730,7 +757,7 @@ vfxLevel.SaveToFile(@"result.rdlevel");
 </Project>
 ```
 
-> **`RootNamespace` 必须设为 `RhythmBase`**，以确保源生成器生成的代码能正确放入 `RhythmBase.{游戏类型}.Converters` 命名空间。
+> **`RootNamespace` 建议设为 `RhythmBase`**，以确保源生成器生成的代码能正确放入 `RhythmBase.{游戏类型}.Converters` 命名空间。
 
 ## 步骤 2：定义事件类型枚举
 
@@ -750,9 +777,8 @@ public enum EventType
 ```
 
 **规则**：
-- 枚举成员名必须与事件类名完全一致
-- 回退兼容类型固定为 `ForwardEvent`、`ForwardRowEvent`、`ForwardDecorationEvent`
-- 必须使用 `[JsonEnumSerializable]` 标记
+- 枚举成员名可以与事件类名不一致，由源生成器查找事件类上的属性上查找。
+- 必须使用 `[JsonEnumSerializable]` 标记。
 
 **各实现的差异**：
 
@@ -760,27 +786,21 @@ public enum EventType
 |---|---|---|
 | RhythmDoctor | 默认 PascalCase | `[JsonEnumSerializable]` |
 | BeatBlock | 小驼峰序列化 | `[JsonEnumSerializable(false)]` |
-| Rizline | 数字成员名，序列化为数字 | 成员名如 `_0`、`_1` |
 | Adofai | 多个枚举共存 | 分别注册 `EventType` + `FilterType` |
 
 ## 步骤 3：定义时间单位（TickTime）
 
-创建实现 `ITickTime<TickTime>` 的结构体，用于表示关卡时间线上的某个时刻：
+`TickTime` 结构体及其运算符、构造函数、`FromSameChart` 等方法由源生成器根据 `[assembly: AdapterType(...)]` 自动**源生成**，开发者只需在 `TickTime.cs` 中声明一个空的 `partial struct` 并实现 `ITickTime<TickTime>` 接口的骨架：
 
 ```csharp
-public struct TickTime : ITickTime<TickTime>
+public partial struct TickTime : ITickTime<TickTime>
 {
-    public TimeSpan TimeSpan { get; }
-    public float Tick { get; }
-    // ... 比较运算符、构造函数等
+    // 源生成器会自动填充：构造函数、运算符、FromSameChart 等
+    // 开发者只需补充任何游戏特有的扩展方法
 }
 ```
 
-核心设计要点：
-- 支持从 `float`（节拍）、`(bar, beat)` 元组、`TimeSpan` 等方式构造
-- 与 `BeatCalculator` 关联/取消关联（延迟计算 + 缓存）
-- 支持元组隐式转换：`(int bar, float beat) => TickTime`
-- 比较运算符（`>`, `<`, `>=`, `<=`, `==`, `!=`）
+如果需要扩展 `Calculator` 的行为（如 RhythmDoctor 的 `BarBeatToTick` 等游戏特有方法），声明 `partial class BeatCalculator` 并添加自定义方法即可。
 
 参考实现：`RhythmBase.RhythmDoctor/RhythmDoctor/Components/TickTime.cs`
 
@@ -831,7 +851,7 @@ BaseEvent (abstract)
 └── ...
 ```
 
-并非所有游戏都需要行/装饰的区分。Adofai 的事件树以 `BaseTileEvent` 为主干，BeatBlock 和 Rizline 的事件树更扁平。
+并非所有游戏都需要这样的区分。Adofai 的事件树以 `BaseTileEvent` 为主干，BeatBlock 和 Rizline 的事件树更扁平。
 
 ## 步骤 5：定义事件子类
 
@@ -864,18 +884,16 @@ public record class Note : BaseEvent
 
 ```csharp
 public partial class Level :
-    OrderedEventCollection<IBaseEvent, EventType, TickTime>,
+    OrderedEventCollection<IBaseEvent>,
     IArchiveLevel<Level, IBaseEvent, EventType, TickTime>,
     // 根据格式选择实现哪些接口
     IChart<TickTime>
 {
     // ... 游戏特有的组件（Settings、Rows 等）
-
-    protected override TickTime CreateInstance(float beat) => new TickTime(beat);
-    protected override ReadOnlyEnumCollection<EventType> Types => ClassEnumMap.Types;
-    protected override ReadOnlyEnumCollection<EventType> TypesOf<TTarget>() => ClassEnumMap.ToEnums(typeof(TTarget));
 }
 ```
+
+> `OrderedEventCollection<IBaseEvent>` 由源生成器生成，内部已实现 `Types`、`TypesOf<TTarget>()` 等属性和方法，开发者无需手动覆盖。
 
 **关卡格式选择**：
 
@@ -890,22 +908,35 @@ public partial class Level :
 
 ## 步骤 7：注册 AssemblyInfo
 
-在项目根目录创建 `AssemblyInfo.cs`：
+在项目根目录创建 `AssemblyInfo.cs`，使用 4 个属性声明适配器的核心类型系统：
 
 ```csharp
+// 1. 适配器标识
 [assembly: RhythmBase.JsonConverterId(nameof(RhythmBase.MyGame))]
 
+// 2. 事件类型系统（生成 EventTypeRegistry、EventConverterMap、事件转换器等）
 [assembly: RhythmBase.JsonConverterSourceType(
     typeof(IBaseEvent),                                    // 事件接口
     typeof(RhythmBase.MyGame.EventType),                   // 事件枚举
-    typeof(RhythmBase.MyGame.Converters.MemberConverter<>), // 转换器基类
+    typeof(RhythmBase.MyGame.Converters.MemberConverter<>), // 转换器基类（泛型，仅需声明）
     nameof(IBaseEvent.Type)                                // 枚举属性名
 )]
 
-// 链接公共类型的自定义转换器（按需选择）
+// 3. 核心类型注册（生成 TickTime、TickTimeRange、Calculator 等）
+[assembly: RhythmBase.AdapterType(
+    typeof(RhythmBase.MyGame.Components.Level),            // 关卡/图谱类型（IChart<TickTime>）
+    typeof(RhythmBase.MyGame.Components.BeatCalculator),   // 计算器类型
+    typeof(RhythmBase.MyGame.Components.TickTime),         // 时间单位类型（ITickTime<TickTime>）
+    typeof(RhythmBase.MyGame.EventType),                   // 事件枚举
+    typeof(RhythmBase.MyGame.Events.IBaseEvent)            // 事件接口
+)]
+
+// 4. 链接公共类型的自定义转换器（按需选择）
 [assembly: RhythmBase.JsonConverterLink(typeof(Color), typeof(ColorConverter.RgbaHex))]
 [assembly: RhythmBase.JsonConverterLink(typeof(RichLine<RichStringStyle>), typeof(RichTextConverter<RichStringStyle>))]
 ```
+
+> `MemberConverter<T>` 只需声明一个空的泛型类，源生成器会为每个 `[JsonObjectSerializable]` 事件生成具体的转换器实现。
 
 **各实现的 `JsonConverterLink` 差异**：
 
@@ -942,11 +973,11 @@ global using static RhythmBase.MyGame.Converters.EnumConverterExtensions;
 
 ## 步骤 9：实现手写转换器
 
-源生成器自动生成事件属性级转换器，但以下复合类型需要手写：
+源生成器自动生成事件属性级转换器和类型路由表，但以下复合类型需要手写：
 
-- **LevelConverter**：读写整个关卡
-- **SettingsConverter**：读写关卡设置
-- **BaseEventConverter**：事件类型路由（根据 `type` 字段分发到 `ConverterMap`）
+- **`MemberConverter<T>`**：事件属性级转换器的泛型基类。只需声明一个空类，源生成器为每个 `[JsonObjectSerializable]` 事件生成具体的 `MemberConverter<具体事件>` 实现。
+- **`BaseEventConverter`**：事件类型路由，根据 `type` 字段分发到源生成的 `EventConverterMap`。
+- **`LevelConverter`**：读写整个关卡。
 
 所有手写转换器继承 `MetadataJsonConverter<T>`，其泛型参数的 `Read` / `Write` 接收 `MetadataJsonSerializerOptions`（附加元数据的序列化选项）。
 
@@ -956,13 +987,9 @@ global using static RhythmBase.MyGame.Converters.EnumConverterExtensions;
 JsonConverter<T>              — .NET 框架，处理任意类型的 JSON 序列化
 └── MetadataJsonConverter<T>  — RhythmBase，加了元数据感知
     ├── LevelConverter        — 读写整个关卡
-    ├── SettingsConverter     — 读写设置
-    ├── BaseEventConverter    — 事件路由
-    └── ...
+    └── BaseEventConverter    — 事件路由
 
 MemberConverter<T>            — RhythmBase，逐字段读写事件属性
-├── BaseRowAction<T>          — + "row"
-├── BaseDecorationAction<T>   — + "target"
 └── 具体事件 converter        — 源生成器生成
 ```
 
@@ -970,7 +997,7 @@ MemberConverter<T>            — RhythmBase，逐字段读写事件属性
 
 ## 未处理属性的自定义处理
 
-反序列化时，转换器系统会自动将 JSON 属性映射到事件模型的字段。当属性未被转换器识别时，会回退存入事件的 `_extraData` 字典（通过索引器 `event["propertyName"]` 访问）。
+反序列化时，转换器系统会自动将 JSON 属性映射到事件模型的字段。当属性未被转换器识别时，应当回退存入事件的 `_extraData` 字典（通过索引器 `event["propertyName"]` 访问）。
 
 如需更精细地控制此行为，RhythmBase 提供两级处理机制：
 
@@ -1037,10 +1064,6 @@ settings.RegisterHandler<ITintEvent>("mod_customTint", (ref ITintEvent e, JsonEl
     return true;
 });
 ```
-
-### 匹配机制
-
-两级均通过 `EventTypeRegistry` 使用枚举匹配。注册时将类型转换为 `ReadOnlyEnumCollection<EventType>`，分发时通过 O(1) 位运算检查事件的 `Type` 属性是否在集合中。这意味着基于接口的处理器只会对 `EventType` 属于注册集合的事件触发 —— 无冗余检查。
 
 ### 总结
 
@@ -1124,8 +1147,7 @@ public static async Task<Level> FromZipAsync(string filepath, LevelReadSettings?
 1. 所有事件都是 `record` 类型，支持 `with` 表达式
 2. `_extraData` 字典用于存储未知属性，确保无损往返
 3. 源生成器负责大部分序列化代码，手写转换器仅用于复杂逻辑
-4. `ConverterMap` + `ConverterHub` 构成完整的类型路由和序列化器注册体系
-5. `ClassEnumMap` 提供类型-枚举双向查询和分类功能
-6. `ForwardEvent` 机制确保对未知事件类型的向后兼容
-7. .NET Standard 2.0 下 `Path.GetRelativePath` 不可用，需用 `file.Substring(dir.Length + 1)` 替代
-8. 多文件格式的 `FromZip` 需要设置 `isZip` / `isExtracted` 等状态字段
+4. `EventConverterMap` + `EventTypeRegistry` 构成完整的类型路由和枚举映射体系
+5. `ForwardEvent` 机制确保对未知事件类型的向后兼容
+6. .NET Standard 2.0 下 `Path.GetRelativePath` 不可用，需用 `file.Substring(dir.Length + 1)` 替代
+7. 多文件格式的 `FromZip` 需要设置 `isZip` / `isExtracted` 等状态字段

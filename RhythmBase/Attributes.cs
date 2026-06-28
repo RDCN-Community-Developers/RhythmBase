@@ -121,7 +121,7 @@ public sealed class JsonConverterSourceTypeAttribute(
 /// <param name="typeEnumType">The enum type representing event categories (e.g. <c>EventType</c>).</param>
 /// <param name="typeInterfaceType">The event interface (e.g. <c>IBaseEvent</c>).</param>
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false, Inherited = false)]
-public sealed class TickTimeAttribute(
+public sealed class AdapterTypeAttribute(
 	Type chartType,
 	Type calculatorType,
 	Type tickTimeType,

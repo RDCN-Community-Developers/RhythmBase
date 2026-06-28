@@ -141,8 +141,8 @@ namespace RhythmBase.Test;
             TickTime beat1 = _rdlevel.TickOf(1);
             TickTime beat2 = beat1.WithoutLink();
 
-            Console.WriteLine(beat1.FromSameLevel(beat2));       // False
-            Console.WriteLine(beat1.FromSameLevelOrNull(beat2)); // True
+            Console.WriteLine(beat1.FromSameChart(beat2));       // False
+            Console.WriteLine(beat1.FromSameChartOrNull(beat2)); // True
 
             TickTime beat3 = beat2.WithLink(_rdlevel.Calculator);
 
@@ -157,7 +157,7 @@ namespace RhythmBase.Test;
         [TestMethod]
         public void RangeUsage()
         {
-            IEnumerable<IBaseEvent> result = _rdlevel.InRange(new RhythmDoctor.Components.TickRange(_rdlevel.DefaultBeat + 10, null));
+            IEnumerable<IBaseEvent> result = _rdlevel.InRange(new RhythmDoctor.Components.TickRange(_rdlevel.DefaultTick + 10, null));
         }
         [TestMethod]
         public void ExpressionUsage()

@@ -30,7 +30,7 @@ RhythmBase                         ← 核心库（NuGet 包）
 │   └── Extensions/                ← LINQ 查询, 事件导航...
 
 RhythmBase.Generator              ← 源代码生成器（Roslyn Incremental SourceGenerator）
-└── 自动生成: EventTypeRegistry / EventConverterMap / EnumConverterExtensions
+└── 自动生成: TickTime / TickTimeRange / Calculator / OrderedEventCollection / EventTypeRegistry / EventConverterMap / EnumConverterExtensions / 各事件转换器 / ...
 
 RhythmBase.RhythmDoctor            ← 节奏医生适配
 RhythmBase.Adofai                  ← 冰与火之舞适配
@@ -45,8 +45,8 @@ RhythmBase.Rizline                 ← Rizline 适配
 | 游戏       | 单文件     | 多文件目录                             | 压缩包          | JSON 读写          | 时间解析           | 历史版本适配                 |
 | ---------- | ---------- | -------------------------------------- | --------------- | ------------------ | ------------------ | ---------------------------- |
 | 节奏医生   | `.rdlevel` | -                                      | `.rdzip` `.zip` | :white_check_mark: | :white_check_mark: | :white_check_mark:           |
-| 冰与火之舞 | `.adofai`  | -                                      | `.zip`          |                    |                    |                              |
-| BeatBlock  | -          | `manifest.json` + `level.json` + chart | `.zip`          | :white_check_mark: |                    | :white_check_mark:(需要验证) |
+| 冰与火之舞 | `.adofai`  | -                                      | `.zip`          | :white_check_mark: |                    |                              |
+| BeatBlock  | -          | `manifest.json` + `level.json` + chart | `.zip`          |                    |                    | :white_check_mark:(需要验证) |
 | Rizline    | -          | `metadata.json` + chart                | `.zip`          |                    |                    |                              |
 
 ## 特别感谢
@@ -82,8 +82,6 @@ RhythmBase.Rizline                 ← Rizline 适配
   为音乐游戏提供强类型事件模型，兼容未来新事件模型。
 - **智能事件处理**\
   灵活的 LINQ 查询、自动关系管理、内置时间线生成工具。
-- **RichText 与对话组件**\
-  完整的富文本语法解析和代码生成，用于对话和标题事件。
 - **源代码生成器驱动的序列化**\
   AOT 兼容的 JSON 序列化，无需反射，由 Roslyn 源代码生成器自动为事件类型生成转换器。
 - **位图枚举集合**\
@@ -121,7 +119,7 @@ level.SaveToFile("out.rdlevel");
 
 ## AI 辅助
 
-本项目在开发过程中的以下内容使用了 AI 辅助工具（如 GitHub Copilot、ChatGPT 等）。
+本项目在开发过程中的以下内容使用了 AI 辅助工具。
 
 - 代码补全
 - API 文档查询
@@ -131,8 +129,6 @@ level.SaveToFile("out.rdlevel");
 
 ## 关于这个项目
 
-这个项目最初命名为
-`RhythmToolkit`，目标是为《节奏医生》开发一些简化关卡处理的小工具。\
+这个项目最初命名为 `RhythmToolkit`，目标是为《节奏医生》开发一些简化关卡处理的小工具。\
 随着项目逐渐完善，发展方向逐步偏向成为其他工具的基础框架，并扩展支持了《冰与火之舞》（Adofai）的关卡模型。\
-基于以上原因，项目更名为
-`RhythmBase`，工具性质的内容迁移至其他仓库。当然，你也可以简称它为 `RDTK`！
+基于以上原因，项目更名为 `RhythmBase`，工具性质的内容迁移至其他仓库。当然，你也可以简称它为 `RDTK`！

@@ -6,7 +6,7 @@ using RhythmBase.RhythmDoctor.Events;
 [assembly: RhythmBase.JsonConverterSourceType(typeof(IBaseEvent), typeof(RhythmBase.RhythmDoctor.EventType), typeof(RhythmBase.RhythmDoctor.Converters.MemberConverter<>), nameof(IBaseEvent.Type))]
 [assembly: RhythmBase.JsonConverterLink(typeof(Color), typeof(ColorConverter.RgbaHex))]
 [assembly: RhythmBase.JsonConverterLink(typeof(RichLine<RichStringStyle>), typeof(RichTextConverter<RichStringStyle>))]
-[assembly: RhythmBase.TickTime(
+[assembly: RhythmBase.AdapterType(
 	typeof(RhythmBase.RhythmDoctor.Components.Level),
 	typeof(RhythmBase.RhythmDoctor.Utils.BeatCalculator),
 	typeof(RhythmBase.RhythmDoctor.Components.TickTime),

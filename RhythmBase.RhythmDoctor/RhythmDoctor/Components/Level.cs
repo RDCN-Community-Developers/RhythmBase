@@ -98,7 +98,7 @@ public partial class Level :
 	/// Default beats with levels.
 	/// The beat is 1.
 	/// </summary>
-	public TickTime DefaultBeat => Calculator.TickOf(1f);
+	public TickTime DefaultTick => Calculator.TickOf(1f);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Level"/> class.

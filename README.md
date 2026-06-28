@@ -30,7 +30,7 @@ RhythmBase                         ← Core library (NuGet package)
 │   └── Extensions/                ← LINQ queries, event navigation...
 
 RhythmBase.Generator              ← Source generator (Roslyn Incremental SourceGenerator)
-└── Auto-generates: EventTypeRegistry / EventConverterMap / EnumConverterExtensions
+└── Auto-generates: TickTime / TickTimeRange / Calculator / OrderedEventCollection / EventTypeRegistry / EventConverterMap / EnumConverterExtensions / event converters / ...
 
 RhythmBase.RhythmDoctor            ← Rhythm Doctor adapter
 RhythmBase.Adofai                  ← A Dance of Fire and Ice adapter
@@ -42,12 +42,12 @@ RhythmBase.Rizline                 ← Rizline adapter
 
 **Supported level formats**:
 
-| Game                  | Single file  | Multi-file directory                       | Archive         | JSON read/write    |
-| --------------------- | ------------ | ------------------------------------------ | --------------- | ------------------ |
-| Rhythm Doctor         | `.rdlevel`   | -                                          | `.rdzip` `.zip` | :white_check_mark: |
-| A Dance of Fire and Ice | `.adofai`  | -                                          | `.zip`          | :white_check_mark: |
-| BeatBlock             | -            | `manifest.json` + `level.json` + chart     | `.bbz` `.zip`   | -                  |
-| Rizline               | -            | `metadata.json` + chart                    | `.rlz` `.zip`   | -                  |
+| Game                  | Single file  | Multi-file directory                       | Archive         | JSON read/write    | Time parsing       | Version adaptation               |
+| --------------------- | ------------ | ------------------------------------------ | --------------- | ------------------ | ------------------ | -------------------------------- |
+| Rhythm Doctor         | `.rdlevel`   | -                                          | `.rdzip` `.zip` | :white_check_mark: | :white_check_mark: | :white_check_mark:               |
+| A Dance of Fire and Ice | `.adofai`  | -                                          | `.zip`          | :white_check_mark: |                    |                                  |
+| BeatBlock             | -            | `manifest.json` + `level.json` + chart     | `.bbz` `.zip`   |                    |                    | :white_check_mark:(needs verify) |
+| Rizline               | -            | `metadata.json` + chart                    | `.rlz` `.zip`   |                    |                    |                                  |
 
 ## Special Thanks
 
