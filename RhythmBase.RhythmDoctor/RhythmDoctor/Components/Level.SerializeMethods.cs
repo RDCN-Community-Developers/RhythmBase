@@ -9,53 +9,6 @@ namespace RhythmBase.RhythmDoctor.Components;
 
 partial class Level
 {
-	#region file
-	/// <summary>
-	/// Loads a level from a single chart file (<c>.rdlevel</c> or <c>.json</c>).
-	/// </summary>
-	public static Level FromFile(string filepath, LevelReadConfig? settings = null)
-		=> FromFileAsync(filepath, settings).GetAwaiter().GetResult();
-	/// <summary>
-	/// Asynchronously loads a level from a single chart file (<c>.rdlevel</c> or <c>.json</c>).
-	/// </summary>
-	public static async Task<Level> FromFileAsync(string filepath, LevelReadConfig? settings = null, CancellationToken cancellationToken = default)
-	{
-		settings ??= new LevelReadConfig();
-		Chart main = await Chart.FromFileAsync(filepath, settings, cancellationToken);
-		Level level = new(main)
-		{
-			Filepath = main.Filepath,
-			ResolvedPath = main.ResolvedPath,
-		};
-		if (settings.LoadReferencedCharts)
-			LoadReferencedCharts(level, settings);
-		return level;
-	}
-	/// <summary>
-	/// Saves the main chart of this level to a single chart file. When the level contains other charts,
-	/// they are written as sibling <c>.rdlevel</c> files next to <paramref name="filepath"/>.
-	/// </summary>
-	public void SaveToFile(string filepath, LevelWriteConfig? settings = null)
-		=> SaveToFileAsync(filepath, settings).GetAwaiter().GetResult();
-	/// <summary>
-	/// Asynchronously saves the main chart of this level to a single chart file. When the level contains
-	/// other charts, they are written as sibling <c>.rdlevel</c> files next to <paramref name="filepath"/>.
-	/// </summary>
-	public async Task SaveToFileAsync(string filepath, LevelWriteConfig? settings = null, CancellationToken cancellationToken = default)
-	{
-		settings ??= new LevelWriteConfig();
-		await MainChart.SaveToFileAsync(filepath, settings, cancellationToken);
-		string directoryPath = Path.GetDirectoryName(Path.GetFullPath(filepath)) ?? "";
-		if (string.IsNullOrEmpty(directoryPath))
-			return;
-		foreach (var pair in _charts)
-		{
-			if (pair.Key == DefaultChartName)
-				continue;
-			await pair.Value.SaveToFileAsync(Path.Combine(directoryPath, ChartNaming.Instance.GetFileName(pair.Value.Name)), settings, cancellationToken);
-		}
-	}
-	#endregion
 	#region directory
 	/// <summary>
 	/// Loads a level from a directory containing <c>.rdlevel</c> chart files. The <c>main.rdlevel</c>
@@ -106,28 +59,6 @@ partial class Level
 		foreach (var pair in _charts)
 			await pair.Value.SaveToFileAsync(Path.Combine(directoryPath, ChartNaming.Instance.GetFileName(pair.Value.Name)), settings, cancellationToken);
 	}
-	#endregion
-	#region stream
-	/// <summary>
-	/// Loads a level from a chart stream.
-	/// </summary>
-	public static Level FromStream(Stream rdlevelStream, LevelReadConfig? settings = null)
-		=> FromStreamAsync(rdlevelStream, settings).GetAwaiter().GetResult();
-	/// <summary>
-	/// Asynchronously loads a level from a chart stream.
-	/// </summary>
-	public static async Task<Level> FromStreamAsync(Stream rdlevelStream, LevelReadConfig? settings = null, CancellationToken cancellationToken = default)
-		=> new(await Chart.FromStreamAsync(rdlevelStream, settings, cancellationToken));
-	/// <summary>
-	/// Saves the main chart of this level to the specified stream.
-	/// </summary>
-	public void SaveToStream(Stream stream, LevelWriteConfig? settings = null)
-		=> SaveToStreamAsync(stream, settings).GetAwaiter().GetResult();
-	/// <summary>
-	/// Asynchronously saves the main chart of this level to the specified stream.
-	/// </summary>
-	public Task SaveToStreamAsync(Stream stream, LevelWriteConfig? settings = null, CancellationToken cancellationToken = default)
-		=> MainChart.SaveToStreamAsync(stream, settings, cancellationToken);
 	#endregion
 	#region zip
 	/// <summary>
@@ -308,28 +239,6 @@ partial class Level
 			}
 		}
 	}
-	#endregion
-	#region json
-	/// <summary>
-	/// Loads a level from a JSON string.
-	/// </summary>
-	public static Level FromJsonString(string json, LevelReadConfig? settings = null)
-		=> new(Chart.FromJsonString(json, settings));
-	/// <summary>
-	/// Loads a level from a <see cref="JsonDocument"/>.
-	/// </summary>
-	public static Level FromJsonDocument(JsonDocument jsonDocument, LevelReadConfig? settings = null)
-		=> new(Chart.FromJsonDocument(jsonDocument, settings));
-	/// <summary>
-	/// Serializes the main chart of this level to a JSON string.
-	/// </summary>
-	public string ToJsonString(LevelWriteConfig? settings = null)
-		=> MainChart.ToJsonString(settings);
-	/// <summary>
-	/// Serializes the main chart of this level to a <see cref="JsonDocument"/>.
-	/// </summary>
-	public JsonDocument ToJsonDocument(LevelWriteConfig? settings = null)
-		=> MainChart.ToJsonDocument(settings);
 	#endregion
 	/// <summary>
 	/// Resolves the directory used to locate a chart's referenced assets, giving precedence to
