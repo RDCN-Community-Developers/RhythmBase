@@ -77,7 +77,7 @@ partial class Level
 		if (extension is not ".rdzip" and not ".zip")
 		{
 			if (extension is ".rdlevel" or ".json")
-				throw new NotSupportedException($"File type '{extension}' is not supported. Use {nameof(FromFileAsync)} instead.");
+				throw new NotSupportedException($"File type '{extension}' is not supported. Use {nameof(Chart)}{nameof(Chart.FromFileAsync)} instead.");
 			throw new NotSupportedException($"File type '{extension}' is not supported.");
 		}
 		switch (settings.ZipProcessingMode)
