@@ -344,6 +344,7 @@ public enum EventType
 	TintText,
 	SetFont,
 	GoToLevel,
+	LinkRows,
 }
 
 /// <summary>
@@ -2468,4 +2469,17 @@ public enum GoToLevelAction
 	LoadImmediately,
 	SetNext,
 	LoadNext
+}
+[JsonEnumSerializable]
+public enum LinkRowsAction
+{
+	Link,
+	Unlink,
+}
+[JsonEnumSerializable]
+public enum LinkRowsBeatBehavior
+{
+	CopyBeats,
+	ReactToBeats,
+	DontCopy,
 }
