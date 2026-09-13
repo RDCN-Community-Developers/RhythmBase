@@ -26,6 +26,10 @@ public enum EventType
 	/// </summary>
 	AdvanceText,
 	/// <summary>
+	/// Advance the text the decoration version.
+	/// </summary>
+	AdvanceTextDecoration,
+	/// <summary>
 	/// Drop the bass.
 	/// </summary>
 	BassDrop,
@@ -93,6 +97,10 @@ public enum EventType
 	/// </summary>
 	ForwardRowEvent,
 	/// <summary>
+	/// Go to level.
+	/// </summary>
+	GoToLevel,
+	/// <summary>
 	/// Hide the row.
 	/// </summary>
 	HideRow,
@@ -104,6 +112,10 @@ public enum EventType
 	/// Invert the colors.
 	/// </summary>
 	InvertColors,
+	/// <summary>
+	/// Link rows.
+	/// </summary>
+	LinkRows,
 	/// <summary>
 	/// Mask the room.
 	/// </summary>
@@ -213,6 +225,10 @@ public enum EventType
 	/// </summary>
 	SetCrotchetsPerBar,
 	/// <summary>
+	/// Set the font of the text.
+	/// </summary>
+	SetFont,
+	/// <summary>
 	/// Set the foreground.
 	/// </summary>
 	SetForeground,
@@ -260,6 +276,10 @@ public enum EventType
 	/// Set the speed.
 	/// </summary>
 	SetSpeed,
+	/// <summary>
+	/// The decoration version of the <see cref="FloatingText"/>.
+	/// </summary>
+	SetText,
 	/// <summary>
 	/// Set the theme.
 	/// </summary>
@@ -332,6 +352,10 @@ public enum EventType
 	/// Tint rows effect.
 	/// </summary>
 	TintRows,
+	/// <summary>
+	/// Tint the text.
+	/// </summary>
+	TintText,
 	/// <summary>  
 	/// Resize the game window.  
 	/// </summary>  
@@ -339,12 +363,6 @@ public enum EventType
 
 
 
-	AdvanceTextDecoration,
-	SetText,
-	TintText,
-	SetFont,
-	GoToLevel,
-	LinkRows,
 }
 
 /// <summary>
