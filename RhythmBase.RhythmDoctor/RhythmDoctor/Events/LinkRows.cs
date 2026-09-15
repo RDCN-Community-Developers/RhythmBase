@@ -4,9 +4,12 @@ using System.Text;
 
 namespace RhythmBase.RhythmDoctor.Events
 {
+	[JsonObjectSerializable]
 	public record class LinkRows : BaseRowAction
 	{
+		/// <inheritdoc/>
 		public override EventType Type => EventType.LinkRows;
+		/// <inheritdoc/>
 		public override Tab Tab => Tab.Actions;
 		public int SourceRow { get; set; }
 		[JsonCondition($"$&.{(nameof(Parent))}.{nameof(Parent.Index)} != $&.{nameof(SourceRow)}")]
