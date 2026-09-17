@@ -9,7 +9,7 @@ public struct Hit
 	/// <summary>
 	/// Gets the moment of pressing the beat.
 	/// </summary>
-	public TickTime Beat { get; }
+	public TickTime Tick { get; }
 	/// <summary>
 	/// Gets the length of time the player held the beat.
 	/// </summary>
@@ -33,12 +33,12 @@ public struct Hit
 	{
 		this = default;
 		Parent = parent;
-		Beat = beat;
+		Tick = beat;
 		Hold = hold;
 	}
 	/// <summary>
 	/// Returns a string that represents the current object.
 	/// </summary>
 	/// <returns>A string that represents the current object.</returns>
-	public readonly override string ToString() => $"{{{Beat}, {Parent}}}";
+	public readonly override string ToString() => $"{{{Tick}, {Parent}}}";
 }
