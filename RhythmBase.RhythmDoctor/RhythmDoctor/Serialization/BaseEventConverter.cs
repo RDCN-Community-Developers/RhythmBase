@@ -6,6 +6,9 @@ namespace RhythmBase.RhythmDoctor.Serialization;
 
 internal class BaseEventConverter : BackwardCompatibleMetadataJsonConverter
 {
+	private const string ReorderDeoraionOldName = "ReorderSprite";
+	private const string ReorderDeoraionNewName = "ReorderDeoraion";
+
 	protected override void InitializeUpgraters()
 	{
 		// 在这里注册升级器
@@ -178,8 +181,8 @@ internal class BaseEventConverter : BackwardCompatibleMetadataJsonConverter
 				{
 					reader.Read();
 					type = reader.GetString();
-					if (type == "ReorderSprite")
-						type = "ReorderDeoraion";
+					if (type == ReorderDeoraionOldName)
+						type = ReorderDeoraionNewName;
 					break;
 				}
 				else
