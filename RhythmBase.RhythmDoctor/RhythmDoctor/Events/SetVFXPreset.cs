@@ -55,6 +55,4 @@ public record class SetVFXPreset : BaseEvent, IEaseEvent, IRoomEvent, IColorEven
 	public override EventType Type => EventType.SetVFXPreset;
 	///<inheritdoc/>
 	public override Tab Tab => Tab.Actions;
-	///<inheritdoc/>
-	public override string ToString() => $"{base.ToString()} {Preset}";
 }

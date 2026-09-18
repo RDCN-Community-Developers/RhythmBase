@@ -66,9 +66,5 @@ public record class FloatingText : BaseEvent, IRoomEvent, IDurationEvent, IColor
 	/// Initializes a new instance of the <see cref="FloatingText"/> class.
 	/// </summary>
 	public FloatingText() { }
-	/// <summary>
-	/// Returns a string that represents the current object.
-	/// </summary>
-	public override string ToString() => base.ToString() + $" {Text}";
 	private readonly List<AdvanceText> _children = [];
 }

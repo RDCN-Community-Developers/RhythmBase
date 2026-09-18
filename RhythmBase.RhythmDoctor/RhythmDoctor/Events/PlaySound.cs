@@ -28,6 +28,4 @@ public record class PlaySound : BaseEvent, IAudioFileEvent
 
 	IEnumerable<FileReference> IAudioFileEvent.AudioFiles => Sound is not null && Sound.IsFile ? [Sound.Filename] : [];
 	IEnumerable<FileReference> IFileEvent.Files => Sound is not null && Sound.IsFile ? [Sound.Filename] : [];
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() + $" {CustomSoundType}";
 }

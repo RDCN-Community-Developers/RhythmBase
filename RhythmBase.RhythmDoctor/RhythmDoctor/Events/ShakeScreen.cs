@@ -27,10 +27,4 @@ public record class ShakeScreen : BaseEvent, IRoomEvent
 	/// Gets the tab associated with the event.
 	/// </summary>
 	public override Tab Tab => Tab.Actions;
-
-	/// <summary>
-	/// Returns a string that represents the current object.
-	/// </summary>
-	/// <returns>A string that represents the current object.</returns>
-	public override string ToString() => base.ToString() + $" {ShakeLevel}";
 }

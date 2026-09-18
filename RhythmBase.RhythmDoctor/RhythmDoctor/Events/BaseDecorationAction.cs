@@ -41,4 +41,15 @@ public abstract record class BaseDecorationAction : BaseEvent, IBaseEvent
 			baseDecorationAction.Target = Target;
 		return temp;
 	}
+	/// <inheritdoc/>
+	protected override bool PrintMembers(System.Text.StringBuilder builder)
+	{
+		if (base.PrintMembers(builder))
+			builder.Append(", ");
+		if (Parent is null)
+			builder.Append($"{nameof(Decoration)} = [?]");
+		else
+			builder.Append($"{nameof(Decoration)} = [{Parent.Id}]{Parent.Character}");
+		return true;
+	}
 }

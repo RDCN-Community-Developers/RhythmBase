@@ -118,9 +118,4 @@ public partial record class SetGameSound : BaseEvent, IAudioFileEvent
 		SoundType.FreezeshotSound,
 		SoundType.HoldshotSound
 	];
-	/// <summary>  
-	/// Returns a string that represents the current object.  
-	/// </summary>  
-	/// <returns>A string that represents the current object.</returns>  
-	public override string ToString() => base.ToString() + $" {SoundType}";
 }

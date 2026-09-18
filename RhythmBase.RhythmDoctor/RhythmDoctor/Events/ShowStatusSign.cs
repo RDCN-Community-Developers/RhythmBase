@@ -44,6 +44,4 @@ public record class ShowStatusSign : BaseEvent, IDurationEvent
 	public override EventType Type { get; } = EventType.ShowStatusSign;
 	///<inheritdoc/>
 	public override Tab Tab { get; } =  Tab.Actions;
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() + $" {Text}";
 }

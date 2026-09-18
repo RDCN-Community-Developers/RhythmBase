@@ -62,7 +62,4 @@ public record class Tint : BaseDecorationAction, IEaseEvent, IColorEvent, ITintE
 	public override EventType Type => EventType.Tint;
 	///<inheritdoc/>
 	public override Tab Tab => Tab.Decorations;
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() +
-	                                     $" {Border}{(Border == RhythmDoctor.Border.None ? "" : ":" + BorderColor.ToString())}";
 }

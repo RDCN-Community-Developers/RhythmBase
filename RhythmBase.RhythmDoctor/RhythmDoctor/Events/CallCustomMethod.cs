@@ -22,6 +22,4 @@ public partial record class CallCustomMethod : BaseEvent
 	public override EventType Type => EventType.CallCustomMethod;
 	/// <inheritdoc/>
 	public override Tab Tab => Tab.Actions;
-	/// <inheritdoc/>
-	public override string ToString() => base.ToString() + $" {MethodName}";
 }

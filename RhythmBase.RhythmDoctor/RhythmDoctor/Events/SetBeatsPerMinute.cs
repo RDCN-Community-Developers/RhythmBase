@@ -14,7 +14,4 @@ public record class SetBeatsPerMinute : BaseBeatsPerMinute
 
 	/// <inheritdoc/>
 	public override Tab Tab => Tab.Sounds;
-
-	/// <inheritdoc/>
-	public override string ToString() => base.ToString() + $" BPM:{BeatsPerMinute}";
 }

@@ -24,6 +24,4 @@ public record class SetSpeed : BaseEvent, IEaseEvent
 	public override EventType Type => EventType.SetSpeed;
 	///<inheritdoc/>
 	public override Tab Tab => Tab.Actions;
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() + $" Speed:{Speed}";
 }

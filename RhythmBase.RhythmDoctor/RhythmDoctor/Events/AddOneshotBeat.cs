@@ -106,8 +106,4 @@ public record class AddOneshotBeat : BaseBeat
 	[JsonCondition($"$&.{nameof(Sound)} is not null")]
 	public Audio? Sound { get; set; }
 	/// <inheritdoc/>
-	public override EventType Type => EventType.AddOneshotBeat;
-	/// <inheritdoc/>
-	public override string ToString() => base.ToString() + $" {FreezeBurnMode} {PulseType}";
-	private string GetDebuggerDisplay() => ToString();
-}
+	public override EventType Type => EventType.AddOneshotBeat;}

@@ -15,11 +15,6 @@ public record class SetText : BaseDecorationAction, IRoomEvent, IDurationEvent, 
 	/// <inheritdoc/>
 	public override Tab Tab => Tab.Actions;
 	/// <summary>
-	/// Gets the list of child advance texts.
-	/// </summary>
-	[JsonIgnore]
-	public List<AdvanceText> Children => _children;
-	/// <summary>
 	/// Gets or sets the room associated with the event.
 	/// </summary>
 	public Room Rooms { get; set; } = new Room([0]);
@@ -63,6 +58,4 @@ public record class SetText : BaseDecorationAction, IRoomEvent, IDurationEvent, 
 	/// </summary>
 	IEnumerable<FileReference> IFontFileEvent.FontFiles => Font.IsCustom ? [Font.Value] : [];
 	IEnumerable<FileReference> IFileEvent.Files => Font.IsCustom ? [Font.Value] : [];
-	public override string ToString() => base.ToString() + $" {Text}";
-	private readonly List<AdvanceText> _children = [];
 }

@@ -30,6 +30,4 @@ public record class ShowDialogue : BaseEvent, IRoomEvent
 	public override Tab Tab => Tab.Actions;
 	///<inheritdoc/>
 	public Room Rooms { get; set; } = new Room([4]);
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() + $" {Text}";
 }

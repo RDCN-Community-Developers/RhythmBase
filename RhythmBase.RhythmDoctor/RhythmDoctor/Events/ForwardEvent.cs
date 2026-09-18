@@ -49,5 +49,16 @@ public record class ForwardEvent : BaseEvent, IForwardEvent
 		this._tick = (_bar, _beat);
 	}
 	/// <inheritdoc/>
-	public override string ToString() => $"{TickTime} *{ActualType}";
+	protected override bool PrintMembers(System.Text.StringBuilder builder)
+	{
+		builder.Append($"[{(BaseChart is null ? "U" : "L")}]");
+		builder.Append($" {nameof(TickTime)} = {TickTime}");
+		builder.Append($", {nameof(Type)} = *{ActualType}");
+		builder.Append($", {nameof(Tab)} = {Tab}");
+		builder.Append($", {nameof(Y)} = {Y}");
+		builder.Append($", {nameof(Tag)} = {Tag}");
+		builder.Append($", {nameof(RunTag)} = {RunTag}");
+		builder.Append($", {nameof(Condition)} = {Condition}");
+		return true;
+	}
 }

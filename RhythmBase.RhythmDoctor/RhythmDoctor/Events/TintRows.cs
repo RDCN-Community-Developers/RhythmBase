@@ -88,7 +88,4 @@ public record class TintRows : BaseRowAction, IEaseEvent, IColorEvent, IRoomEven
 	/// </summary>
 	[JsonIgnore]
 	public bool TintAll => Parent is null;
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() +
-	                                     $" {Border}{(Border == RhythmDoctor.Border.None ? "" : ":" + BorderColor.ToString())}";
 }

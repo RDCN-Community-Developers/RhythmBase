@@ -35,4 +35,18 @@ public record class FlipScreen : BaseEvent, IRoomEvent
 				: "";
 		return base.ToString() + $" {result}";
 	}
+	/// <inheritdoc/>
+	protected override bool PrintMembers(System.Text.StringBuilder builder)
+	{
+		if (base.PrintMembers(builder))
+			builder.Append(", ");
+		builder.Append($"{nameof(Room)} = {this.Rooms}");
+		builder.Append($", Flip = {(FlipX, FlipY) switch { 
+			(true, true) => "X",
+			(true, false) => "^v",
+			(false, true) => "<>",
+			(false, false) => "",
+		}}");
+		return true;
+	}
 }

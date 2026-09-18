@@ -28,6 +28,4 @@ public record class TintText : BaseDecorationAction, IEaseEvent, IColorEvent
 	public float Duration { get; set; }
 	///<inheritdoc/>
 	public override EventType Type => EventType.TintText;
-	///<inheritdoc/>
-	public override string ToString() => base.ToString()+ $" [{BorderColor}|{TintColor}";
 }

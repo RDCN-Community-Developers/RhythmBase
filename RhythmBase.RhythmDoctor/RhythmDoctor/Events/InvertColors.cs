@@ -19,7 +19,4 @@ public record class InvertColors : BaseEvent, IRoomEvent
 
 	///<inheritdoc/>
 	public override Tab Tab => Tab.Actions;
-
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() + $" {Enable}";
 }

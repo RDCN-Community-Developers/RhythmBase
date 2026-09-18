@@ -116,10 +116,4 @@ public record class SetForeground : BaseEvent, IEaseEvent, IRoomEvent, IColorEve
 	public override Tab Tab => Tab.Actions;
 	IEnumerable<FileReference> IImageFileEvent.ImageFiles => [.. Images];
 	IEnumerable<FileReference> IFileEvent.Files => [.. Images];
-
-	/// <summary>  
-	/// Returns a string that represents the current object.  
-	/// </summary>  
-	/// <returns>A string that represents the current object.</returns>  
-	public override string ToString() => base.ToString() + $" {Color},{string.Join(',', Images.Select(i => i.ToString()))}";
 }

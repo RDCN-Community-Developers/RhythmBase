@@ -40,5 +40,13 @@ public abstract record class BaseRowAction : BaseEvent
 			_row = value;
 		}
 	}
+	/// <inheritdoc/>
+	protected override bool PrintMembers(System.Text.StringBuilder builder)
+	{
+		if (base.PrintMembers(builder))
+			builder.Append(", ");
+		builder.Append($"{nameof(Row)} = [{Row}]{Parent?.Character}");
+		return true;
+	}
 	internal int _row;
 }

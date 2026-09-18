@@ -62,6 +62,4 @@ public record class SetRowXs : BaseBeat
 	/// </remarks>
 	[JsonCondition($"$&.{nameof(SyncoBeat)} >= 0")]
 	public int SyncoPitch { get; set; } = 100;	
-	/// <inheritdoc />
-	public override string ToString() => base.ToString() + $" {Pattern}";
 }

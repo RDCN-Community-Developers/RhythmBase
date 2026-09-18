@@ -64,7 +64,4 @@ public record class PaintHands : BaseEvent, IEaseEvent, IRoomEvent, IColorEvent,
 	public override EventType Type => EventType.PaintHands;
 	///<inheritdoc/>
 	public override Tab Tab => Tab.Actions;
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() +
-																			 $" {Border}{(Border == RhythmDoctor.Border.None ? "" : ":" + BorderColor.ToString())}";
 }

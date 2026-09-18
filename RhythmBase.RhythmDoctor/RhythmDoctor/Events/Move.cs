@@ -56,6 +56,4 @@ public record class Move : BaseDecorationAction, IEaseEvent
 	public float Duration { get; set; }
 	///<inheritdoc/>
 	public EaseType Ease { get; set; } = EaseType.Linear;
-	///<inheritdoc/>
-	public override string ToString() => base.ToString();
 }

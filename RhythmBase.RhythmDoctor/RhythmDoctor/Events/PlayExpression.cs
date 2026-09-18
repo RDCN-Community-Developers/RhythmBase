@@ -23,6 +23,4 @@ public record class PlayExpression : BaseRowAction
 	public override EventType Type => EventType.PlayExpression;
 	///<inheritdoc/>
 	public override Tab Tab => Tab.Actions;
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() + $" {Expression}";
 }

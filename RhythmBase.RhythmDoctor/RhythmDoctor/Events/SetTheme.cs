@@ -78,8 +78,6 @@ public record class SetTheme : BaseEvent, IRoomEvent, IEaseEvent
 	RhythmBase.RhythmDoctor.Events.{nameof(SetTheme)}.{nameof(ThemesHasPosition)}.{nameof(ReadOnlyEnumCollection<>.Contains)}($&.{nameof(Preset)})
 	""")]
 	public float Duration { get; set; }
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() + $" {Preset}";
 	internal static readonly ReadOnlyEnumCollection<Theme> ThemesHasPosition = [
 		Theme.TrainDay,
 		Theme.TrainNight,

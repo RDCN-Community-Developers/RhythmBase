@@ -55,7 +55,4 @@ public record class CustomFlash : BaseEvent, IEaseEvent, IRoomEvent, IColorEvent
 
 	/// <inheritdoc />
 	public override Tab Tab => Tab.Actions;
-
-	/// <inheritdoc />
-	public override string ToString() => base.ToString() + $" {StartColor} {StartOpacity}%=>{EndColor} {EndOpacity}%";
 }

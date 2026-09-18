@@ -53,4 +53,20 @@ public record class AdvanceText : BaseEvent, IRoomEvent, IDurationEvent, IAdvanc
 			: base.ToString() + $" ?";
 	}
 	private string GetDebuggerDisplay() => ToString();
+	/// <inheritdoc/>
+	protected override bool PrintMembers(System.Text.StringBuilder builder)
+	{
+		if (base.PrintMembers(builder))
+			builder.Append(", ");
+		builder.Append($"{nameof(Room)} = {this.Rooms}");
+		builder.Append($", {nameof(Duration)} = {this.Duration}");
+		if (Head is null)
+			return true;
+		string[] texts = Head.SplittedTexts;
+		int index = Head.Children.IndexOf(this);
+		if (index < 0 || texts.Length < index + 1)
+			return true;
+		builder.Append($", {nameof(Head)} = \"{texts[index + 1]}\"");
+		return true;
+	}
 }

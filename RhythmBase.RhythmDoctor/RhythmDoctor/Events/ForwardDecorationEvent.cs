@@ -51,6 +51,22 @@ public record class ForwardDecorationEvent : BaseDecorationAction, IForwardEvent
 		_extraData.Remove("condition");
 		_extraData.Remove("target");
 	}
-	/// <inheritdoc />
-	public override string ToString() => $"{TickTime} *{ActualType}";
+	/// <inheritdoc/>
+	protected override bool PrintMembers(System.Text.StringBuilder builder)
+	{
+		builder.Append($"[{(BaseChart is null ? "U" : "L")}]");
+		builder.Append($" {nameof(TickTime)} = {TickTime}");
+		builder.Append($", {nameof(Type)} = *{ActualType}");
+		builder.Append($", {nameof(Tab)} = {Tab}");
+		builder.Append($", {nameof(Y)} = {Y}");
+		builder.Append($", {nameof(Tag)} = {Tag}");
+		builder.Append($", {nameof(RunTag)} = {RunTag}");
+		builder.Append($", {nameof(Condition)} = {Condition}");
+		builder.Append(", ");
+		if (Parent is null)
+			builder.Append($"{nameof(Decoration)} = [?]");
+		else
+			builder.Append($"{nameof(Decoration)} = [{Parent.Id}]{Parent.Character}");
+		return true;
+	}
 }

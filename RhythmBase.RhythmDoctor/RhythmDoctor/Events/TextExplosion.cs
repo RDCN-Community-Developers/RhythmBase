@@ -43,6 +43,4 @@ public record class TextExplosion : BaseEvent, IRoomEvent, IColorEvent
 	/// Gets or sets the easing type.
 	/// </summary>
 	public EaseType Ease { get; set; }
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() + $" {Text}";
 }

@@ -20,6 +20,4 @@ public record class Flash : BaseEvent
 	public override EventType Type => EventType.Flash;
 	///<inheritdoc/>
 	public override Tab Tab => Tab.Actions;
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() + $" {Duration}";
 }

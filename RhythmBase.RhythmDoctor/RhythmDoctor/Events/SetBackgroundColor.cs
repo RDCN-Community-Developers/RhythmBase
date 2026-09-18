@@ -143,11 +143,4 @@ public record class SetBackgroundColor : BaseEvent, IEaseEvent, IRoomEvent, ICol
 	public override Tab Tab => Tab.Actions;
 	IEnumerable<FileReference> IImageFileEvent.ImageFiles => [.. Images];
 	IEnumerable<FileReference> IFileEvent.Files => [.. Images];
-
-	/// <summary>
-	/// Returns a string that represents the current object.
-	/// </summary>
-	public override string ToString() => BackgroundType == BackgroundType.Color
-	? base.ToString() + $" {Color}"
-	: base.ToString() + $" {string.Join(',', Images)}";
 }

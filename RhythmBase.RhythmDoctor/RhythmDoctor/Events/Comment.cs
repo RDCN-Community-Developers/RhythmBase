@@ -52,6 +52,4 @@ public partial record class Comment : BaseDecorationAction, IColorEvent
 	public PaletteColor Color { get; set; } = new Color(0xFFF2E644u);
 	/// <inheritdoc />
 	public override EventType Type => EventType.Comment;
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() + $" {Text}";
 }

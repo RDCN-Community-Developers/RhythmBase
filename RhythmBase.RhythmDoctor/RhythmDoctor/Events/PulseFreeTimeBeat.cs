@@ -27,25 +27,21 @@ public record class PulseFreeTimeBeat : BaseBeat
 	public PulseAction Action { get; set; } = PulseAction.Increment;
 	///<inheritdoc/>
 	public override EventType Type => EventType.PulseFreeTimeBeat;
-	///<inheritdoc/>
-	public override string ToString()
+
+	/// <inheritdoc/>
+	protected override bool PrintMembers(System.Text.StringBuilder builder)
 	{
-		string Out = "";
-		switch (Action)
+		if (base.PrintMembers(builder))
+			builder.Append(", ");
+		builder.Append($"{nameof(Hold)} = {this.Hold}");
+		builder.Append($", Action = {this.Action switch
 		{
-			case PulseAction.Increment:
-				Out = ">";
-				break;
-			case PulseAction.Decrement:
-				Out = "<";
-				break;
-			case PulseAction.Custom:
-				Out = (CustomPulse + 1).ToString();
-				break;
-			case PulseAction.Remove:
-				Out = "X";
-				break;
-		}
-		return base.ToString() + $"{Out}";
+			PulseAction.Increment => ">",
+			PulseAction.Decrement => "<",
+			PulseAction.Custom => (CustomPulse + 1).ToString(),
+			PulseAction.Remove => "X",
+			_ => throw new NotImplementedException()
+		}}");
+		return true;
 	}
 }

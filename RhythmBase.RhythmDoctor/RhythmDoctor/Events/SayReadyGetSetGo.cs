@@ -55,10 +55,4 @@ public record class SayReadyGetSetGo : BaseEvent, IRoomEvent
 		SayReadyGetSetGoWord.SayReadyGetSetGo;
 	///<inheritdoc/>
 	public Room Rooms { get; set; } = new(0);
-
-	/// <summary>
-	/// Returns a string that represents the current object.
-	/// </summary>
-	/// <returns>A string that represents the current object.</returns>
-	public override string ToString() => base.ToString() + $" {VoiceSource}: {PhraseToSay}";
 }

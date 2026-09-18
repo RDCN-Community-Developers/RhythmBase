@@ -19,7 +19,4 @@ public record class BassDrop : BaseEvent, IRoomEvent
 
 	/// <inheritdoc/>
 	public override Tab Tab => Tab.Actions;
-
-	/// <inheritdoc/>
-	public override string ToString() => base.ToString() + $" {Strength}";
 }

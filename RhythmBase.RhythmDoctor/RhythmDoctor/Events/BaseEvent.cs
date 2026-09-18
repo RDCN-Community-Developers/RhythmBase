@@ -106,7 +106,19 @@ public abstract record class BaseEvent : IBaseEvent
 		return temp;
 	}
 	/// <inheritdoc/>
-	public override string ToString() => $"{TickTime} {Type}";
 	internal TickTime _tick = new(1f);
 	internal Condition _condition = new();
+	/// <summary></summary>
+	protected virtual bool PrintMembers(System.Text.StringBuilder builder)
+	{
+		builder.Append($"[{(BaseChart is null ? "U" : "L")}]");
+		builder.Append($" {nameof(TickTime)} = {TickTime}");
+		builder.Append($", {nameof(Type)} = {Type}");
+		builder.Append($", {nameof(Tab)} = {Tab}");
+		builder.Append($", {nameof(Y)} = {Y}");
+		builder.Append($", {nameof(Tag)} = {Tag}");
+		builder.Append($", {nameof(RunTag)} = {RunTag}");
+		builder.Append($", {nameof(Condition)} = {Condition}");
+		return true;
+	}
 }

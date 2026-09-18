@@ -57,6 +57,19 @@ public record class ForwardRowEvent : BaseRowAction, IForwardEvent
 		_extraData.Remove("condition");
 		_extraData.Remove("row");
 	}
-	///<inheritdoc/>
-	public override string ToString() => $"{TickTime} *{ActualType}";
+
+	/// <inheritdoc/>
+	protected override bool PrintMembers(System.Text.StringBuilder builder)
+	{
+		builder.Append($"[{(BaseChart is null ? "U" : "L")}]");
+		builder.Append($" {nameof(TickTime)} = {TickTime}");
+		builder.Append($", {nameof(Type)} = *{ActualType}");
+		builder.Append($", {nameof(Tab)} = {Tab}");
+		builder.Append($", {nameof(Y)} = {Y}");
+		builder.Append($", {nameof(Tag)} = {Tag}");
+		builder.Append($", {nameof(RunTag)} = {RunTag}");
+		builder.Append($", {nameof(Condition)} = {Condition}");
+		builder.Append($", {nameof(Row)} = [{Row}]{Parent?.Character}");
+		return true;
+	}
 }

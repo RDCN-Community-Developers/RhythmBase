@@ -15,6 +15,4 @@ public record class SetVisible : BaseDecorationAction
 	/// Gets or sets a value indicating whether the decoration is visible.
 	/// </summary>
 	public bool Visible { get; set; }
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() + $" {Visible}";
 }

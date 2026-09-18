@@ -24,8 +24,4 @@ public record class AddFreeTimeBeat : BaseBeat
 	/// </summary>
 	public sbyte Pulse { get; set; }
 	/// <inheritdoc/>
-	public override EventType Type => EventType.AddFreeTimeBeat;
-	/// <inheritdoc/>
-	public override string ToString() => base.ToString() + $" {Pulse + 1}";
-	private string GetDebuggerDisplay() => ToString();
-}
+	public override EventType Type => EventType.AddFreeTimeBeat;}

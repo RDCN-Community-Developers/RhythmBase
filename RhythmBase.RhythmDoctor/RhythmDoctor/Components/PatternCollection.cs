@@ -148,4 +148,6 @@ public struct PatternCollection : IEnumerable<Pattern>
 			yield return p;
 	}
 	readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+	/// <inheritdoc/>
+	public readonly override string ToString() => (string)this;
 }

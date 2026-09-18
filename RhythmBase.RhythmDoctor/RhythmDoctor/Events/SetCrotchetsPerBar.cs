@@ -91,9 +91,5 @@ public record class SetCrotchetsPerBar : BaseEvent, IBarBeginningEvent
 			base.Active = value;
 		}
 	}
-	/// <summary>
-	/// Returns a string that represents the current object.
-	/// </summary>
-	public override string ToString() => base.ToString() + $" CPB:{_crotchetsPerBar + 1}";
 	internal int _crotchetsPerBar = 7;
 }

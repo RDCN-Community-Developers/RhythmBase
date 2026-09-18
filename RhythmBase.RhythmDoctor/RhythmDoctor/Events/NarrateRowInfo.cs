@@ -44,6 +44,4 @@ public record class NarrateRowInfo : BaseRowAction
 	/// </summary>
 	[JsonCondition($"$&.{nameof(CustomRowLength)} is 7")]
 	public int CustomRowLength { get; set; } = 7;
-	///<inheritdoc/>
-	public override string ToString() => base.ToString() + $" {InfoType}:{NarrateSkipBeat}";
 }
