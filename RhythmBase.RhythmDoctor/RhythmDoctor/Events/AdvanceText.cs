@@ -19,16 +19,16 @@ public record class AdvanceText : BaseEvent, IRoomEvent, IDurationEvent, IAdvanc
 	[JsonIgnore]
 	public Room Rooms
 	{
-		get => Parent?.Rooms ?? new();
-		set => Parent?.Rooms = value;
+		get => Head?.Rooms ?? new();
+		set => Head?.Rooms = value;
 	}
 	/// <inheritdoc/>
 	public override Tab Tab => Tab.Actions;
 	/// <summary>
-	/// Gets or sets the parent floating text associated with the event.
+	/// The head <see cref="FloatingText"/> event of this <see cref="AdvanceText"/> event.
 	/// </summary>
 	[JsonIgnore]
-	public FloatingText? Parent { get; internal set; }
+	public FloatingText? Head { get; internal set; }
 	/// <summary>
 	/// Gets or sets the duration of the fade-out effect, in beats. A value of null indicates that the duration is not
 	/// specified.
@@ -41,13 +41,13 @@ public record class AdvanceText : BaseEvent, IRoomEvent, IDurationEvent, IAdvanc
 	/// Gets the ID of the parent floating text.
 	/// </summary>
 	[JsonAlias("id")]
-	internal int Id => Parent?.Id ?? -1;
-	float IDurationEvent.Duration { get => Duration ?? this.FrontOrDefault<FloatingText>()?.Duration ?? -1; set => Duration = value; }
+	internal int Id => Head?.Id ?? -1;
+	float IDurationEvent.Duration { get => Duration ?? Head?.Duration ?? 0; set => Duration = value; }
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		string[]? texts = Parent?.Splitted;
-		int? index = Parent?.Children.IndexOf(this);
+		string[]? texts = Head?.SplittedTexts;
+		int? index = Head?.Children.IndexOf(this);
 		return texts is not null && index is not null && texts.Length > index + 1
 			? base.ToString() + $" \"{texts[index.Value + 1]}\""
 			: base.ToString() + $" ?";

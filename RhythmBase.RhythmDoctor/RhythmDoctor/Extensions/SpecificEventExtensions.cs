@@ -9,6 +9,55 @@ namespace RhythmBase.RhythmDoctor.Extensions;
 
 public static partial class Extensions
 {
+	private static string[] SplitText(string original)
+	{
+			if (string.IsNullOrEmpty(original))
+				return [];
+			List<string> strs = [];
+			StringBuilder sb = new();
+			int i = 0;
+			while (i < original.Length)
+			{
+				char c = original[i];
+				switch (c)
+				{
+					case '/':
+						strs.Add(sb.ToString());
+						break;
+					case '\\':
+						if (i + 1 >= original.Length)
+						{
+							sb.Append(c);
+							break;
+						}
+						i++;
+						char nextChar = original[i];
+						switch (nextChar)
+						{
+							case 'n':
+								sb.Append('\n');
+								break;
+							case '/':
+								sb.Append('/');
+								break;
+							default:
+								sb.Append(c);
+								sb.Append(nextChar);
+								break;
+						}
+						break;
+					case '\n':
+						strs.Add(sb.ToString());
+						sb.Clear();
+						break;
+					default:
+						sb.Append(c);
+						break;
+				}
+				i++;
+			}
+			return [.. strs];
+	}
 	extension(AddClassicBeat e)
 	{
 		/// <summary>
@@ -16,7 +65,7 @@ public static partial class Extensions
 		/// </summary>
 		public Hit Hit => new(
 				e,
-				e.TickTime + (e.Tick * (e.Length - ((e.Swing == 0) ? 1 : e.Swing))),
+				e.TickTime + (e.Tick * (e.Length - (e.Length % 2) * ((e.Swing == 0) ? 1 : e.Swing))),
 				e.Hold);
 		/// <summary>
 		/// Gets the synchronization offset value for the current event, based on the most recent active parent row's
@@ -114,7 +163,7 @@ public static partial class Extensions
 		/// <summary>
 		/// Check if it can be hit by player or cpu.
 		/// </summary>
-		public bool IsHittable => e.Pulse == 6;
+		public bool IsHittable => e.Pulse == (e.Parent?.Length ?? throw new NullReferenceException());
 
 		/// <summary>
 		/// Gets the hit information for the current instance.
@@ -168,10 +217,12 @@ public static partial class Extensions
 			get
 			{
 				Hit[] hits = new Hit[e.Loop + 1];
+				int sub = (e.PulseType is OneshotPulseShapeType.Triangle ? e.Subdivisions : 0) + 1;
 				for (int i = 0; i <= e.Loop; ++i)
-					hits[i] = new Hit(
+					for (int j = 0; j < sub; ++j)
+						hits[i] = new Hit(
 							e,
-							new(e.Tick + (i * e.Interval) + e.Tick),
+							e.TickTime + i * e.Interval + e.Tick + (e.Interval - e.Tick) * (j / sub),
 							e.Hold ? e.Interval - e.Tick : 0);
 				return hits;
 			}
@@ -194,6 +245,15 @@ public static partial class Extensions
 			}
 			return l;
 		}
+	}
+	extension(AdvanceTextDecoration e)
+	{
+		/// <summary>
+		/// The head <see cref="SetText"/> event of this <see cref="AdvanceTextDecoration"/> event.
+		/// </summary>
+		public SetText? Head => e.Parent?
+			.OfEvent<SetText>()
+			.LastOrDefault(i => i.Active && e.IsBehind(i));
 	}
 	extension(PulseFreeTimeBeat e)
 	{
@@ -277,58 +337,7 @@ public static partial class Extensions
 		/// Splits the <see cref="FloatingText"/> text into an array of strings based on custom delimiters.
 		/// Supports '/' as a line break, '\n' as a newline, and escape sequences such as '\\n' and '\/'.
 		/// </summary>
-		public string[] Splitted
-		{
-			get
-			{
-				if (string.IsNullOrEmpty(e.Text))
-					return [];
-				List<string> strs = [];
-				StringBuilder sb = new();
-				int i = 0;
-				while (i < e.Text.Length)
-				{
-					char c = e.Text[i];
-					switch (c)
-					{
-						case '/':
-							strs.Add(sb.ToString());
-							break;
-						case '\\':
-							if (i + 1 >= e.Text.Length)
-							{
-								sb.Append(c);
-								break;
-							}
-							i++;
-							char nextChar = e.Text[i];
-							switch (nextChar)
-							{
-								case 'n':
-									sb.Append('\n');
-									break;
-								case '/':
-									sb.Append('/');
-									break;
-								default:
-									sb.Append(c);
-									sb.Append(nextChar);
-									break;
-							}
-							break;
-						case '\n':
-							strs.Add(sb.ToString());
-							sb.Clear();
-							break;
-						default:
-							sb.Append(c);
-							break;
-					}
-					i++;
-				}
-				return [.. strs];
-			}
-		}
+		public string[] SplittedTexts => SplitText(e.Text);
 		/// <summary>
 		/// Creates a new <see cref="T:AdvanceText" /> subordinate to <see cref="T:FloatingText" /> at the specified beat. The new event created will be attempted to be added to the <see cref="T:FloatingText" />'s source level.
 		/// </summary>
@@ -337,7 +346,7 @@ public static partial class Extensions
 		{
 			AdvanceText A = new()
 			{
-				Parent = e,
+				Head = e,
 				TickTime = beat.WithoutLink()
 			};
 			e.Children.Add(A);
@@ -383,6 +392,38 @@ public static partial class Extensions
 			],
 			_ => [e],
 		};
+	}
+	extension(SetText e)
+	{
+		/// <summary>
+		/// Splits the <see cref="SetText"/> text into an array of strings based on custom delimiters.
+		/// Supports '/' as a line break, '\n' as a newline, and escape sequences such as '\\n' and '\/'.
+		/// </summary>
+		public string[] SplittedTexts => SplitText(e.Text);
+		/// <summary>
+		/// Creates a new <see cref="T:AdvanceText" /> subordinate to <see cref="T:FloatingText" /> at the specified beat. The new event created will be attempted to be added to the <see cref="T:FloatingText" />'s source level.
+		/// </summary>
+		/// <param name="beat">Specified beat.</param>
+		public AdvanceTextDecoration CreateChild(TickTime beat)
+		{
+			AdvanceTextDecoration A = new()
+			{
+				TickTime = beat.WithoutLink()
+			};
+			e.Parent?.Add(A);
+			return A;
+		}
+		public List<AdvanceTextDecoration> Children
+		{
+			get
+			{
+				var next = e.NextOrDefault();
+				return e
+					.After<AdvanceTextDecoration>()
+					.TakeWhile(i => next is null || i.TickTime < next.TickTime)
+					.ToList();
+			}
+		}
 	}
 	extension(Row e)
 	{
