@@ -277,7 +277,7 @@ public static partial class Extensions
 		/// <summary>
 		/// Check if it can be hit by player or cpu.
 		/// </summary>
-		public bool IsHitable
+		public bool IsHittable
 		{
 			get
 			{
