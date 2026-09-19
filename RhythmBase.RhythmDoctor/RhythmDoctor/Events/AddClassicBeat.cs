@@ -7,7 +7,6 @@ namespace RhythmBase.RhythmDoctor.Events;
 /// Represents an event to add a classic beat.
 /// </summary>
 [JsonObjectSerializable]
-[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public record class AddClassicBeat : BaseBeat
 {
 	/// <summary>

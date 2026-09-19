@@ -176,11 +176,11 @@ public static partial class Extensions
 		{
 			get
 			{
-				if (e.Parent == null)
+				if (e.Parent is null)
 					return [];
 				List<PulseFreeTimeBeat> result = [];
 				sbyte pulse = e.Pulse;
-				foreach (PulseFreeTimeBeat item in e.Parent.OfEvent<PulseFreeTimeBeat>().Where(i => i.Active && e.IsInFrontOf(i)))
+				foreach (PulseFreeTimeBeat item in e.After<PulseFreeTimeBeat>().Where(i => i.Active))
 				{
 					switch (item.Action)
 					{
