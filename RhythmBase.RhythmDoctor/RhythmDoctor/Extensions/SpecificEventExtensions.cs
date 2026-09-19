@@ -216,14 +216,31 @@ public static partial class Extensions
 		{
 			get
 			{
-				Hit[] hits = new Hit[e.Loop + 1];
-				int sub = (e.PulseType is OneshotPulseShapeType.Triangle ? e.Subdivisions : 0) + 1;
-				for (int i = 0; i <= e.Loop; ++i)
-					for (int j = 0; j < sub; ++j)
-						hits[i] = new Hit(
+				int sub = (e.PulseType is OneshotPulseShapeType.Triangle) ? e.Subdivisions : 1;
+				if (sub <= 0) sub = 1;
+
+				uint loopCount = e.Loop + 1;
+				Hit[] hits = new Hit[loopCount * sub];
+
+				for (int i = 0; i < loopCount; i++)
+				{
+					float cycleOffset = i * e.Interval;
+					float cycleEndOffset = cycleOffset + e.Interval;
+
+					for (int j = 0; j < sub; j++)
+					{
+						float hitOffset = e.Tick + e.Delay + j * (e.Tick / sub);
+						float hitTickOffset = cycleOffset + hitOffset;
+						float hold = 0f;
+						if (e.Hold && j == sub - 1 && hitTickOffset < cycleEndOffset)
+							hold = cycleEndOffset - hitTickOffset;
+
+						hits[i * sub + j] = new Hit(
 							e,
-							e.TickTime + i * e.Interval + e.Tick + (e.Interval - e.Tick) * (j / sub),
-							e.Hold ? e.Interval - e.Tick : 0);
+							e.TickTime + hitTickOffset,
+							hold);
+					}
+				}
 				return hits;
 			}
 		}
