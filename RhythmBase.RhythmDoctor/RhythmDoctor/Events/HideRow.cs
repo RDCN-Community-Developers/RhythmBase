@@ -36,6 +36,8 @@ public record class HideRow : BaseRowAction
 	/// </summary>
 	[JsonConverter(typeof(HideRowShowPropertyConverter))]
 	public ShowTargetType Show { get; set; } = ShowTargetType.Hidden;
+	[JsonCondition($"$&.{nameof(Transition)} is not RhythmBase.RhythmDoctor.{nameof(Transition)}.{nameof(Transition.Instant)}")]
+	public bool Shake { get; set; } = false;
 	/// <summary>
 	/// Gets the type of the event.
 	/// </summary>
