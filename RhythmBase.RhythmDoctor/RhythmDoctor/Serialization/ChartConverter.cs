@@ -264,7 +264,7 @@ internal sealed class ChartConverter : MetadataJsonConverter<Chart>
 							je.TryGetInt32(out int targetId) &&
 							floatingTexts.TryGetValue(targetId, out FloatingText? ft))
 					{
-						at.Head = ft;
+						at.Header = ft;
 						ft.Children.Add(at);
 						at._extraData.Remove("id");
 					}

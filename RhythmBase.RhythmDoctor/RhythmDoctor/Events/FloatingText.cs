@@ -39,8 +39,8 @@ public record class FloatingText : BaseEvent, IRoomEvent, IDurationEvent, IColor
 	/// </summary>
 	[JsonAlias("id")]
 	public int Id => _tick.BaseChart?._floatingTexts.IndexOf(this) ?? -1;
-	[JsonAlias("textPosition")]
 	/// <inheritdoc/>
+	[JsonAlias("textPosition")]
 	public Point Position { get; set; } = new(50f, 50f);
 	/// <inheritdoc/>
 	[JsonConverter(typeof(FloatingTextAnchorStylesConverter))]

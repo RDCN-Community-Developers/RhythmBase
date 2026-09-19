@@ -19,8 +19,8 @@ public record class AdvanceText : BaseEvent, IRoomEvent, IDurationEvent, IAdvanc
 	[JsonIgnore]
 	public Room Rooms
 	{
-		get => Head?.Rooms ?? new();
-		set => Head?.Rooms = value;
+		get => Header?.Rooms ?? new();
+		set => Header?.Rooms = value;
 	}
 	/// <inheritdoc/>
 	public override Tab Tab => Tab.Actions;
@@ -28,7 +28,7 @@ public record class AdvanceText : BaseEvent, IRoomEvent, IDurationEvent, IAdvanc
 	/// The head <see cref="FloatingText"/> event of this <see cref="AdvanceText"/> event.
 	/// </summary>
 	[JsonIgnore]
-	public FloatingText? Head { get; internal set; }
+	public FloatingText? Header { get; internal set; }
 	/// <summary>
 	/// Gets or sets the duration of the fade-out effect, in beats. A value of null indicates that the duration is not
 	/// specified.
@@ -41,13 +41,13 @@ public record class AdvanceText : BaseEvent, IRoomEvent, IDurationEvent, IAdvanc
 	/// Gets the ID of the parent floating text.
 	/// </summary>
 	[JsonAlias("id")]
-	internal int Id => Head?.Id ?? -1;
-	float IDurationEvent.Duration { get => Duration ?? Head?.Duration ?? 0; set => Duration = value; }
+	internal int Id => Header?.Id ?? -1;
+	float IDurationEvent.Duration { get => Duration ?? Header?.Duration ?? 0; set => Duration = value; }
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		string[]? texts = Head?.SplittedTexts;
-		int? index = Head?.Children.IndexOf(this);
+		string[]? texts = Header?.SplittedTexts;
+		int? index = Header?.Children.IndexOf(this);
 		return texts is not null && index is not null && texts.Length > index + 1
 			? base.ToString() + $" \"{texts[index.Value + 1]}\""
 			: base.ToString() + $" ?";
@@ -60,13 +60,13 @@ public record class AdvanceText : BaseEvent, IRoomEvent, IDurationEvent, IAdvanc
 			builder.Append(", ");
 		builder.Append($"{nameof(Room)} = {this.Rooms}");
 		builder.Append($", {nameof(Duration)} = {this.Duration}");
-		if (Head is null)
+		if (Header is null)
 			return true;
-		string[] texts = Head.SplittedTexts;
-		int index = Head.Children.IndexOf(this);
+		string[] texts = Header.SplittedTexts;
+		int index = Header.Children.IndexOf(this);
 		if (index < 0 || texts.Length < index + 1)
 			return true;
-		builder.Append($", {nameof(Head)} = \"{texts[index + 1]}\"");
+		builder.Append($", {nameof(Header)} = \"{texts[index + 1]}\"");
 		return true;
 	}
 }

@@ -22,7 +22,7 @@ public record class AdvanceTextDecoration : BaseDecorationAction, IAdvanceText
 		if (base.PrintMembers(builder))
 			builder.Append(", ");
 		builder.Append($", {nameof(Duration)} = {this.Duration}");
-		var head = this.Head;
+		var head = this.Header;
 		if (head is null)
 			return true;
 		string[] texts = head.SplittedTexts;

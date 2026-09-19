@@ -251,7 +251,7 @@ public static partial class Extensions
 		/// <summary>
 		/// The head <see cref="SetText"/> event of this <see cref="AdvanceTextDecoration"/> event.
 		/// </summary>
-		public SetText? Head => e.Parent?
+		public SetText? Header => e.Parent?
 			.OfEvent<SetText>()
 			.LastOrDefault(i => i.Active && e.IsBehind(i));
 	}
@@ -346,7 +346,7 @@ public static partial class Extensions
 		{
 			AdvanceText A = new()
 			{
-				Head = e,
+				Header = e,
 				TickTime = beat.WithoutLink()
 			};
 			e.Children.Add(A);
