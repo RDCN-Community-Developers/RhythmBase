@@ -97,9 +97,12 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction>, IEventEn
 	/// <param name="item">Decoration event.</param>
 	public override bool Add(BaseDecorationAction item)
 	{
-		if (item._tick.BaseChart is not null)
+		if(item.Parent == this)
 			return false;
-		item.Target = this.Id;
+		item.Parent?.Remove(item);
+		if(Parent is not null)
+			item._tick = item._tick.WithLink(Parent);
+		item._target = Id;
 		bool success = base.Add(item);
 		if (Parent is not null)
 			success &= Parent.AddDirectlyInternal(item);

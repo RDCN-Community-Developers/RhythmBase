@@ -17,16 +17,17 @@ public abstract record class BaseDecorationAction : BaseEvent, IBaseEvent
 	}
 	/// <inheritdoc/>
 	public override Tab Tab => Tab.Decorations;
+	internal string _target = "";
 	/// <summary>
 	/// Gets the target identifier.
 	/// </summary>
 	public virtual string? Target
 	{
-		get; set
+		get => _target; set
 		{
 			if (_tick.BaseChart is not null)
 				throw new InvalidOperationException($"The property {nameof(Target)} is readonly because it has been added to the chart.");
-			field = value;
+			_target = value ?? "";
 		}
 	}
 	/// <summary>
