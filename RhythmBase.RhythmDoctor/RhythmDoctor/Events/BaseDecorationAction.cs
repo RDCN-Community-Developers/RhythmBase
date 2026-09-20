@@ -13,7 +13,7 @@ public abstract record class BaseDecorationAction : BaseEvent, IBaseEvent
 	/// </summary>
 	public BaseDecorationAction(BaseDecorationAction source) : base(source)
 	{
-		Target = source.Target;
+		_target = source.Target ?? "";
 	}
 	/// <inheritdoc/>
 	public override Tab Tab => Tab.Decorations;

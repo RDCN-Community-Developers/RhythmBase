@@ -4,6 +4,9 @@ using System.Text;
 
 namespace RhythmBase.RhythmDoctor.Events
 {
+	/// <summary>
+	/// Defines an interface for events that reference chart files in a rhythm doctor level.
+	/// </summary>
 	public interface IChartFileEvent : IFileEvent
 	{
 		/// <summary>
@@ -15,6 +18,9 @@ namespace RhythmBase.RhythmDoctor.Events
 		/// </value>
 		public IEnumerable<FileReference> ChartFiles { get; }
 	}
+	/// <summary>
+	/// Defines an interface for events that reference font files in a rhythm doctor level.
+	/// </summary>
 	public interface IFontFileEvent : IFileEvent
 	{
 		/// <summary>

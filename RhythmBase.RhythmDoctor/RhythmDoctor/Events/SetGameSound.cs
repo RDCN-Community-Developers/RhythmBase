@@ -8,15 +8,16 @@ namespace RhythmBase.RhythmDoctor.Events;
 [JsonObjectSerializable]
 public partial record class SetGameSound : BaseEvent, IAudioFileEvent
 {
+	/// <summary>
+	/// Gets or sets the audio associated with the game sound event.
+	/// This property is used for single sound types and is read-only when multiple sound types are present.
+	/// </summary>
 	[JsonCondition($"""!$&.{nameof(MultipleSoundTypes)}.Contains($&.{nameof(SoundType)})""")]
 	[JsonFlatten(nameof(Audio.Filename), mode: JsonFlattenMode.ReadOnly)]
 	[JsonFlatten(nameof(Audio.Volume), mode: JsonFlattenMode.ReadOnly)]
 	[JsonFlatten(nameof(Audio.Pitch), mode: JsonFlattenMode.ReadOnly)]
 	[JsonFlatten(nameof(Audio.Pan), mode: JsonFlattenMode.ReadOnly)]
 	[JsonFlatten(nameof(Audio.Offset), mode: JsonFlattenMode.ReadOnly)]
-	/// <summary>  
-	/// Gets or sets the audio associated with the event.  
-	/// </summary>  
 	internal Audio? Audio
 	{
 		get => Sounds.First;
@@ -97,18 +98,13 @@ public partial record class SetGameSound : BaseEvent, IAudioFileEvent
 	///<inheritdoc/>
 	public override Tab Tab => Tab.Sounds;
 
-	IEnumerable<FileReference> IAudioFileEvent.AudioFiles => (Audio.IsFile &&
-		SoundType is not SoundType.ClapSoundHold
-					and not SoundType.FreezeshotSound
-					and not SoundType.BurnshotSound)
-					? [Audio.Filename]
-					: [];
-	IEnumerable<FileReference> IFileEvent.Files => (Audio.IsFile &&
-		SoundType is not SoundType.ClapSoundHold
-					and not SoundType.FreezeshotSound
-					and not SoundType.BurnshotSound)
-					? [Audio.Filename]
-					: [];
+	IEnumerable<FileReference> IAudioFileEvent.AudioFiles => Sounds.Values
+				.Where(a => a is Audio au && au.IsFile)
+				.Select(a => a!.Filename);
+
+	IEnumerable<FileReference> IFileEvent.Files => Sounds.Values
+				.Where(a => a is Audio au && au.IsFile)
+				.Select(a => a!.Filename);
 	internal readonly ReadOnlyEnumCollection<SoundType> MultipleSoundTypes = [
 		SoundType.ClapSoundHold,
 		SoundType.ClapSoundHoldP2,

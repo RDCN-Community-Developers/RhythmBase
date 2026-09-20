@@ -35,7 +35,9 @@ internal class DecorationConverter : MetadataJsonConverter<Decoration>
 			else if (reader.ValueTextEquals("depth"u8) && reader.Read())
 				value.Depth = reader.GetInt32();
 			else if (reader.ValueTextEquals("filter"u8) && reader.Read() && EnumConverter.TryParse(ref reader, out Filter result))
+#pragma warning disable CS0612
 				value.Filter = result;
+#pragma warning restore CS0612
 			else if (reader.ValueTextEquals("visible"u8) && reader.Read())
 				value.Visible = reader.GetBoolean();
 			else if (reader.ValueTextEquals("row"u8) && reader.Read())
@@ -91,12 +93,14 @@ internal class DecorationConverter : MetadataJsonConverter<Decoration>
 		else
 		{
 			writer.WriteString("decoName"u8, value.Name);
-			writer.WriteString("font"u8, value.Font.ToString());
+			writer.WriteString("font"u8, value.Font.Value);
 			writer.WriteString("sortingLayer"u8, value.Layer.ToEnumString());
 		}
 		writer.WriteNumber("depth"u8, value.Depth);
+#pragma warning disable CS0612
 		if (value.Filter is not Filter.NearestNeighbor)
 			writer.WriteString("filter"u8, value.Filter.ToEnumString());
+#pragma warning restore CS0612
 		if (!value.Visible)
 			writer.WriteBoolean("visible"u8, value.Visible);
 		foreach (var kvp in value.ExtraData)

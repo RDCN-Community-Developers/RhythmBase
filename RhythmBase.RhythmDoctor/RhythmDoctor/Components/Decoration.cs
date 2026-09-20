@@ -41,6 +41,9 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction>, IEventEn
 	/// Room.
 	/// </summary>
 	public SingleRoom Room { get; set; }
+	/// <summary>
+	/// Decoration type.
+	/// </summary>
 	public DecorationType Type { get; set; } = DecorationType.Sprite;
 	#region sprite
 	/// <summary>
@@ -55,11 +58,20 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction>, IEventEn
 	public bool Preview { get; set; } = false;
 	#endregion
 	#region text
+	/// <summary>
+	/// The name of the text decoration.
+	/// </summary>
 	[JsonAlias("decoName")]
 	[JsonCondition($"$&.{nameof(Type)} is {nameof(DecorationType.Text)}")]
 	public string Name { get; set; } = string.Empty;
+	/// <summary>
+	/// The font used for the text decoration.
+	/// </summary>
 	[JsonCondition($"$&.{nameof(Type)} is {nameof(DecorationType.Text)}")]
 	public FontName Font { get; set; } = FontName.Default;
+	/// <summary>
+	/// The layer used for the text decoration.
+	/// </summary>
 	[JsonCondition($"$&.{nameof(Type)} is {nameof(DecorationType.Text)}")]
 	public LayerType Layer { get; set; } = LayerType.Foreground;
 	#endregion

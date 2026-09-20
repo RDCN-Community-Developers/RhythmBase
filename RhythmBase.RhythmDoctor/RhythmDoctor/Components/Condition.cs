@@ -84,7 +84,7 @@ public struct Condition
 	{
 		if (_index_conditions is not null)
 		{
-			ulong[] newIndexConditions = new ulong[trailingEmptyIndex * 2 / ulongSize + 1];
+			ulong[]? newIndexConditions = new ulong[trailingEmptyIndex * 2 / ulongSize + 1];
 			for (int i = 0; i < remap.Length; i++)
 			{
 				if (remap[i] == -1) continue;

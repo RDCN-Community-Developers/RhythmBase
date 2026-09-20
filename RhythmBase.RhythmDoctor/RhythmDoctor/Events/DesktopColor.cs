@@ -22,6 +22,9 @@ public record class DesktopColor : BaseWindowEvent, IEaseEvent, IColorEvent
 	/// </summary>
 	[JsonCondition($"$&.{nameof(IsCustom)}")]
 	public PaletteColor? EndColor { get; set; }
+	/// <summary>
+	/// The brightness of the desktop background color, ranging from 0 to 100.
+	/// </summary>
 	[JsonCondition($"!$&.{nameof(IsCustom)}")]
 	public float Brightness { get; set; } = 100f;
 	///<inheritdoc/>

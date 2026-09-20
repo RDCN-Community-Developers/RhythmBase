@@ -196,7 +196,15 @@ public partial class Chart :
 			return rdlevel;
 		}
 	}
+	/// <summary>
+	/// Occurs when an event is added to the chart.
+	/// </summary>
+	/// <param name="e"></param>
 	public void OnEventAdded(RDEventArgs e) => EventAdded?.Invoke(this, e);
+	/// <summary>
+	/// Occurs when an event is removed from the chart.
+	/// </summary>
+	/// <param name="e"></param>
 	public void OnEventRemoved(RDEventArgs e) => EventRemoved?.Invoke(this, e);
 	/// <summary>
 	/// Adds an event to the level.

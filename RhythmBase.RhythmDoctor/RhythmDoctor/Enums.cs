@@ -681,20 +681,6 @@ public enum FloatingTextFadeOutMode
 	/// The text will hide abruptly.
 	/// </summary>
 	HideAbruptly = 1,
-}/// <summary>
-/// Specifies the mode of the text.
-/// </summary>
-[JsonEnumSerializable]
-public enum SetTextFadeOutMode
-{
-	/// <summary>
-	/// The text will fade out gradually.
-	/// </summary>
-	FadeOut = 0,
-	/// <summary>
-	/// The text will hide abruptly.
-	/// </summary>
-	HideAbruptly = 1,
 	/// <summary>
 	/// The text will never hide.
 	/// </summary>

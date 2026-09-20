@@ -433,6 +433,9 @@ public static partial class Extensions
 			e.Parent?.Add(A);
 			return A;
 		}
+		/// <summary>
+		/// Gets the collection of <see cref="AdvanceTextDecoration"/> events that are children of this <see cref="SetText"/> event.
+		/// </summary>
 		public List<AdvanceTextDecoration> Children
 		{
 			get

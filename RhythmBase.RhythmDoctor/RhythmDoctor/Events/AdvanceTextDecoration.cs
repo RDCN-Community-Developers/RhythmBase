@@ -3,6 +3,10 @@ using RhythmBase.RhythmDoctor.Extensions;
 
 namespace RhythmBase.RhythmDoctor.Events;
 
+/// <summary>
+/// Represents an event that advances the text decoration in a rhythm doctor level.
+/// the decoration version of the <see cref="AdvanceText"/> event.
+/// </summary>
 [JsonObjectSerializable]
 public record class AdvanceTextDecoration : BaseDecorationAction, IAdvanceText
 {
@@ -17,6 +21,7 @@ public record class AdvanceTextDecoration : BaseDecorationAction, IAdvanceText
 	[JsonAlias("fadeOutDuration")]
 	public float? Duration { get; set; }
 	float IDurationEvent.Duration { get => Duration ?? this.FrontOrDefault<SetText>()?.Duration ?? -1; set => Duration = value; }
+	/// <inheritdoc/>
 	protected override bool PrintMembers(System.Text.StringBuilder builder)
 	{
 		if (base.PrintMembers(builder))

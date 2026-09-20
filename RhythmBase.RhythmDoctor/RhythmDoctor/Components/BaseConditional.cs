@@ -3,7 +3,7 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// <summary>
 /// Represents a base class for different types of conditions.
 /// </summary>
-public abstract class BaseConditional
+public abstract record class BaseConditional
 {
 	/// <summary>
 	/// Gets the type of this condition.

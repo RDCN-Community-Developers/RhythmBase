@@ -607,11 +607,16 @@ public static partial class Extensions
 			return null;
 		}
 	}
-
+	/// <summary>
+	/// The default strategy for handling beat changes in the game.
+	/// </summary>
 	public const BeatChangeStrategy DefaultStrategy = BeatChangeStrategy.Default;
 	private static BeatChangeStrategy _strategy = DefaultStrategy;
 	extension(Global.Config)
 	{
+		/// <summary>
+		/// Gets or sets the strategy for handling beat changes in the game.
+		/// </summary>
 		public static BeatChangeStrategy Strategy
 		{
 			get => _strategy;

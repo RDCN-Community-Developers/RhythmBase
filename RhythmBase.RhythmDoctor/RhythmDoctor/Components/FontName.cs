@@ -7,15 +7,33 @@ using System.Text;
 
 namespace RhythmBase.RhythmDoctor.Components;
 
-[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
+/// <summary>
+/// The font name.
+/// Can be the preset font name or a custom font file name.
+/// </summary>
 public readonly struct FontName
 {
+	/// <summary>
+	/// Built-in font names.
+	/// </summary>
 	[JsonEnumSerializable]
 	public enum BuiltInFontType
 	{
+		/// <summary>
+		/// Using the font that follows the game setting.
+		/// </summary>
 		Default,
+		/// <summary>
+		/// Using the pixel font <b>RDLatinFont</b>, which is suitable for pixel art style.
+		/// </summary>
 		Pixel,
+		/// <summary>
+		/// Using the font <b>Noto Sans CJK Bold</b>, which is a vector style font.
+		/// </summary>
 		Vector,
+		/// <summary>
+		/// Using the font <b>Futura</b>, which is a vector style font.
+		/// </summary>
 		Flash
 	}
 	/// <summary>
@@ -36,9 +54,19 @@ public readonly struct FontName
 	public static FontName Flash => new(BuiltInFontType.Flash);
 	private readonly BuiltInFontType _type;
 	private readonly FileReference? _fileReference;
+	/// <summary>
+	/// Indicates whether the font is a built-in type.
+	/// </summary>
 	[MemberNotNullWhen(true, nameof(_fileReference))]
 	public readonly bool IsCustom { get; }
+	/// <summary>
+	/// The name of the font, either a built-in type or a custom file reference.
+	/// </summary>
 	public readonly string Value => IsCustom ? _fileReference : _type.ToEnumString();
+	/// <summary>
+	/// Creates a new instance of the <see cref="FontName"/> struct with the specified font name.
+	/// </summary>
+	/// <param name="fontName"></param>
 	public FontName(string fontName)
 	{
 		if (EnumConverter.TryParse(fontName, out BuiltInFontType type))
@@ -60,7 +88,9 @@ public readonly struct FontName
 		_fileReference = null;
 		IsCustom = false;
 	}
+	/// <summary>
+	/// Converts the string representation of a font name to its <see cref="FontName"/> equivalent.
+	/// </summary>
+	/// <param name="fontName"></param>
 	public static implicit operator FontName(string fontName) => new(fontName);
-	public override string ToString() => Value;
-	private string GetDebuggerDisplay() => IsCustom ? _fileReference : $"*{_type}";
 }

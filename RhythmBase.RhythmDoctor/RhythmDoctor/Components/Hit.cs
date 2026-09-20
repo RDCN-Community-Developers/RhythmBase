@@ -36,6 +36,16 @@ public struct Hit
 		TickTime = beat;
 		Hold = hold;
 	}
+	/// <summary>
+	/// Indicates whether the specified <see cref="Hit"/> is compatible to the current <see cref="Hit"/>.
+	/// </summary>
+	/// <remarks>
+	/// This method checks if the two hits can be considered compatible based on their timing and hold duration.
+	/// </remarks>
+	/// <param name="other">The other <see cref="Hit"/> to compare with the current <see cref="Hit"/>.</param>
+	/// <returns>
+	/// Returns <c>true</c> if the specified <see cref="Hit"/> is compatible with the current <see cref="Hit"/>; otherwise, <c>false</c>.
+	/// </returns>
 	public bool IsCompatible(Hit other)
 	{
 		if (Hold == 0 || other.Hold == 0)
@@ -50,6 +60,15 @@ public struct Hit
 			return true;
 		return false;
 	}
+	/// <summary>
+	/// Merges the current <see cref="Hit"/> with another <see cref="Hit"/> if they are compatible.
+	/// </summary>
+	/// <remarks>
+	/// This method combines the timing and hold duration of two compatible hits into a single hit if they overlap or are adjacent.
+	/// </remarks>
+	/// <param name="other">The other <see cref="Hit"/> to merge with the current <see cref="Hit"/>.</param>
+	/// <param name="result">The resulting <see cref="Hit"/> after merging, if the hits are compatible; otherwise, it will be the default value.</param>
+	/// <returns>Returns <c>true</c> if the hits were successfully merged; otherwise, <c>false</c>.</returns>
 	public bool Merge(Hit other, [MaybeNullWhen(false)] out Hit result)
 	{
 		if (!IsCompatible(other))
