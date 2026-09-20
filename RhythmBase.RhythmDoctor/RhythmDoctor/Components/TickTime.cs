@@ -1,7 +1,9 @@
 using RhythmBase.RhythmDoctor.Utils;
 namespace RhythmBase.RhythmDoctor.Components;
 
+#pragma warning disable CS0282
 partial struct TickTime
+#pragma warning restore CS0282
 {
 	public partial float Tick
 	{
