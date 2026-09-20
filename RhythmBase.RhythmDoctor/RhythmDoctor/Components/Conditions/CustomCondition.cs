@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents a custom condition with an expression.
 /// </summary>
-public class CustomCondition : BaseConditional
+public record class CustomCondition : BaseConditional
 {
 	/// <summary>
 	/// Gets or sets the expression for the custom condition.
@@ -11,8 +11,4 @@ public class CustomCondition : BaseConditional
 	public string Expression { get; set; } = "";
 	///<inheritdoc/>
 	public override ConditionType Type => ConditionType.Custom;
-	public override string ToString()
-	{
-		return $"exp: {Expression}";
-	}
 }
