@@ -11,52 +11,52 @@ public static partial class Extensions
 {
 	private static string[] SplitText(string original)
 	{
-			if (string.IsNullOrEmpty(original))
-				return [];
-			List<string> strs = [];
-			StringBuilder sb = new();
-			int i = 0;
-			while (i < original.Length)
+		if (string.IsNullOrEmpty(original))
+			return [];
+		List<string> strs = [];
+		StringBuilder sb = new();
+		int i = 0;
+		while (i < original.Length)
+		{
+			char c = original[i];
+			switch (c)
 			{
-				char c = original[i];
-				switch (c)
-				{
-					case '/':
-						strs.Add(sb.ToString());
-						break;
-					case '\\':
-						if (i + 1 >= original.Length)
-						{
-							sb.Append(c);
-							break;
-						}
-						i++;
-						char nextChar = original[i];
-						switch (nextChar)
-						{
-							case 'n':
-								sb.Append('\n');
-								break;
-							case '/':
-								sb.Append('/');
-								break;
-							default:
-								sb.Append(c);
-								sb.Append(nextChar);
-								break;
-						}
-						break;
-					case '\n':
-						strs.Add(sb.ToString());
-						sb.Clear();
-						break;
-					default:
+				case '/':
+					strs.Add(sb.ToString());
+					break;
+				case '\\':
+					if (i + 1 >= original.Length)
+					{
 						sb.Append(c);
 						break;
-				}
-				i++;
+					}
+					i++;
+					char nextChar = original[i];
+					switch (nextChar)
+					{
+						case 'n':
+							sb.Append('\n');
+							break;
+						case '/':
+							sb.Append('/');
+							break;
+						default:
+							sb.Append(c);
+							sb.Append(nextChar);
+							break;
+					}
+					break;
+				case '\n':
+					strs.Add(sb.ToString());
+					sb.Clear();
+					break;
+				default:
+					sb.Append(c);
+					break;
 			}
-			return [.. strs];
+			i++;
+		}
+		return [.. strs];
 	}
 	extension(AddClassicBeat e)
 	{
@@ -85,9 +85,7 @@ public static partial class Extensions
 		{
 			get
 			{
-				SetRowXs? x = e.Parent?
-						.OfEvent<SetRowXs>()
-						.LastOrDefault(i => i.Active && e.IsBehind(i));
+				SetRowXs? x = e.FrontOrDefault<SetRowXs>();
 				if (x is null || 0 > x.SyncoBeat)
 					return 0f;
 				else return x.SyncoSwing == 0f ? 0.5f : x.SyncoSwing;
@@ -291,16 +289,15 @@ public static partial class Extensions
 		{
 			get
 			{
-
-				int pulseIndexMin = 6;
-				int pulseIndexMax = 6;
 				if (e.Parent is null)
 					return false;
-				foreach (BaseBeat item in ((IEnumerable<BaseBeat>)e.Parent
-				.OfEvent<BaseBeat>()
-				.InRange(new TickTimeRange(e.TickTime, null))
-				.Where(e.IsBehind))
-				.Reverse())
+				int HitPulse = e.Parent.Length;
+				int pulseIndexMin = HitPulse;
+				int pulseIndexMax = HitPulse;
+				foreach (BaseBeat item in e
+					.Before<BaseBeat>()
+					.Concat([e])
+					.Reverse())
 				{
 					EventType type = item.Type;
 					switch (type)
@@ -318,24 +315,20 @@ public static partial class Extensions
 								switch (temp.Action)
 								{
 									case PulseAction.Increment:
-										if (pulseIndexMin > 0)
-											pulseIndexMin--;
-										if (!(pulseIndexMax > 0))
-											return false;
+										if (pulseIndexMax <= 0) return false;
+										pulseIndexMin = Math.Max(0, pulseIndexMin - 1);
 										pulseIndexMax--;
 										break;
 									case PulseAction.Decrement:
-										if (pulseIndexMin > 0)
-											pulseIndexMin++;
-										if (!(pulseIndexMax < 6))
-											return false;
+										if (pulseIndexMin > 0) pulseIndexMin++;
+										if (pulseIndexMax >= HitPulse) return false; ;
 										pulseIndexMax++;
 										break;
 									case PulseAction.Custom:
-										if (!(pulseIndexMin <= temp.CustomPulse & temp.CustomPulse <= pulseIndexMax))
+										if (!(pulseIndexMin <= temp.CustomPulse && temp.CustomPulse <= pulseIndexMax))
 											return false;
 										pulseIndexMin = 0;
-										pulseIndexMax = 5;
+										pulseIndexMax = HitPulse - 1;
 										break;
 									case PulseAction.Remove:
 										return false;
