@@ -8,7 +8,7 @@ namespace RhythmBase.RhythmDoctor.Events;
 /// Represents a event that displays floating text on the screen, which can be used for various purposes such as showing lyrics, dialogue, or other textual information during gameplay.
 /// </summary>
 [JsonObjectSerializable]
-public record class FloatingText : BaseEvent, IRoomEvent, IDurationEvent, IColorEvent, IFontFileEvent
+public record class FloatingText : BaseEvent, IRoomEvent, IDurationEvent, IColorEvent, IFontFileEvent, ITextEvent
 {
 	/// <inheritdoc/>
 	public override EventType Type => EventType.FloatingText;
@@ -30,6 +30,7 @@ public record class FloatingText : BaseEvent, IRoomEvent, IDurationEvent, IColor
 	public PaletteColorWithAlpha Color { get; set; } = Global.Components.Color.White;
 	/// <inheritdoc/>
 	public float Angle { get; set; } = 0;
+	float? ITextEvent.Angle { get => Angle; set => Angle = value ?? 0; }
 	/// <inheritdoc/>
 	public int Size { get; set; } = 8;
 	/// <inheritdoc/>
@@ -42,6 +43,7 @@ public record class FloatingText : BaseEvent, IRoomEvent, IDurationEvent, IColor
 	/// <inheritdoc/>
 	[JsonAlias("textPosition")]
 	public Point Position { get; set; } = new(50f, 50f);
+	Point? ITextEvent.Position { get => Position; set => Position = value ?? new Point(50f, 50f); }
 	/// <inheritdoc/>
 	[JsonConverter(typeof(FloatingTextAnchorStylesConverter))]
 	public FloatingTextAnchorStyle Anchor { get; set; } = FloatingTextAnchorStyle.Center;

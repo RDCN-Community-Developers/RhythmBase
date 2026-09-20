@@ -8,7 +8,7 @@ namespace RhythmBase.RhythmDoctor.Events;
 /// Represents a event that displays floating text on the screen, which can be used for various purposes such as showing lyrics, dialogue, or other textual information during gameplay.
 /// </summary>
 [JsonObjectSerializable]
-public record class SetText : BaseDecorationAction, IRoomEvent, IDurationEvent, IColorEvent, IFontFileEvent
+public record class SetText : BaseDecorationAction, IRoomEvent, IDurationEvent, IColorEvent, IFontFileEvent, ITextEvent
 {
 	/// <inheritdoc/>
 	public override EventType Type => EventType.SetText;
@@ -29,8 +29,8 @@ public record class SetText : BaseDecorationAction, IRoomEvent, IDurationEvent, 
 	public int Size { get; set; } = 8;
 	/// <inheritdoc/>
 	public PaletteColorWithAlpha OutlineColor { get; set; } = Global.Components.Color.Black;
-	[JsonAlias("textPosition")]
 	/// <inheritdoc/>
+	[JsonAlias("textPosition")]
 	public Point? Position { get; set; }
 	/// <inheritdoc/>
 	[JsonConverter(typeof(FloatingTextAnchorStylesConverter))]
@@ -42,7 +42,7 @@ public record class SetText : BaseDecorationAction, IRoomEvent, IDurationEvent, 
 	[JsonCondition($"$&.{nameof(Narrate)}")]
 	public NarrationCategory NarrationCategory { get; set; } = NarrationCategory.Subtitles;
 	/// <inheritdoc/>
-	public SetTextFadeOutMode Mode { get; set; } = SetTextFadeOutMode.FadeOut;
+	public FloatingTextFadeOutMode Mode { get; set; } = FloatingTextFadeOutMode.FadeOut;
 	/// <inheritdoc/>
 	public bool ShowChildren { get; set; } = true;
 	/// <inheritdoc/>

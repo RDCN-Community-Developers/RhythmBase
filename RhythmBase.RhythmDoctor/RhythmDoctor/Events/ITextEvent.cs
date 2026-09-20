@@ -3,6 +3,9 @@ using RhythmBase.RhythmDoctor.Components;
 
 namespace RhythmBase.RhythmDoctor.Events;
 
+/// <summary>
+/// Defines an interface for events that display text in a rhythm doctor level.
+/// </summary>
 public interface ITextEvent : IBaseEvent, IFontFileEvent
 {
 	/// <summary>
@@ -15,7 +18,7 @@ public interface ITextEvent : IBaseEvent, IFontFileEvent
 	/// Unit is degree.
 	/// </remark>
 	/// </summary>
-	float Angle { get; set; }
+	float? Angle { get; set; }
 	/// <summary>
 	/// Gets or sets the color of the text.
 	/// </summary>
@@ -50,7 +53,7 @@ public interface ITextEvent : IBaseEvent, IFontFileEvent
 	/// <summary>
 	/// Gets or sets the position of the text.
 	/// </summary>
-	Point Position { get; set; }
+	Point? Position { get; set; }
 	/// <summary>
 	/// Gets or sets a value indicating whether to show child texts.
 	/// </summary>
