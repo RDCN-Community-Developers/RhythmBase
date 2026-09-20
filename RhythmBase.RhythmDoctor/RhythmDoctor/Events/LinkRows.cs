@@ -21,14 +21,14 @@ namespace RhythmBase.RhythmDoctor.Events
 		/// <summary>
 		/// Gets or sets the action to perform when linking the rows.
 		/// </summary>
-		[JsonCondition($"$&.{nameof(Parent)}.{nameof(Parent.Index)} != $&.{nameof(SourceRow)}")]
+		[JsonCondition($"$&.{nameof(Parent)}?.{nameof(Parent.Index)} != $&.{nameof(SourceRow)}")]
 		public LinkRowsAction Action { get; set; }
 		/// <summary>
 		/// Gets or sets the behavior of the beats when linking the rows.
 		/// </summary>
 		[JsonAlias("beatBehavior")]
 		[JsonCondition($"""
-			$&.{nameof(Parent)}.{nameof(Parent.Index)} != $&.{nameof(SourceRow)} &&
+			$&.{nameof(Parent)}?.{nameof(Parent.Index)} != $&.{nameof(SourceRow)} &&
 			$&.{nameof(Action)} is {nameof(LinkRowsAction)}.{nameof(LinkRowsAction.Link)}
 			""")]
 		public LinkRowsBeatBehavior Behavior { get; set; }
@@ -37,7 +37,7 @@ namespace RhythmBase.RhythmDoctor.Events
 		/// </summary>
 		[JsonAlias("muteBeatsounds")]
 		[JsonCondition($"""
-			$&.{nameof(Parent)}.{nameof(Parent.Index)} != $&.{nameof(SourceRow)} &&
+			$&.{nameof(Parent)}?.{nameof(Parent.Index)} != $&.{nameof(SourceRow)} &&
 			$&.{nameof(Action)} is {nameof(LinkRowsAction)}.{nameof(LinkRowsAction.Link)} &&
 			$&.{nameof(Behavior)} is {nameof(LinkRowsBeatBehavior)}.{nameof(LinkRowsBeatBehavior.CopyBeats)}
 			""")]
@@ -47,7 +47,7 @@ namespace RhythmBase.RhythmDoctor.Events
 		/// </summary>
 		[JsonAlias("normalizeMistakeWeight")]
 		[JsonCondition($"""
-			$&.{nameof(Parent)}.{nameof(Parent.Index)} != $&.{nameof(SourceRow)} &&
+			$&.{nameof(Parent)}?.{nameof(Parent.Index)} != $&.{nameof(SourceRow)} &&
 			$&.{nameof(Action)} is {nameof(LinkRowsAction)}.{nameof(LinkRowsAction.Link)} &&
 			$&.{nameof(Behavior)} is {nameof(LinkRowsBeatBehavior)}.{nameof(LinkRowsBeatBehavior.CopyBeats)}
 			""")]
@@ -57,7 +57,7 @@ namespace RhythmBase.RhythmDoctor.Events
 		/// </summary>
 		[JsonAlias("copyPaintEffects")]
 		[JsonCondition($"""
-			$&.{nameof(Parent)}.{nameof(Parent.Index)} != $&.{nameof(SourceRow)} &&
+			$&.{nameof(Parent)}?.{nameof(Parent.Index)} != $&.{nameof(SourceRow)} &&
 			$&.{nameof(Action)} is {nameof(LinkRowsAction)}.{nameof(LinkRowsAction.Link)}
 			""")]
 		public bool EnableCopyPaintEffects { get; set; } 

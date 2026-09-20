@@ -49,7 +49,7 @@ public record class Move : BaseDecorationAction, IEaseEvent
 	/// Leave it null to keep the original pivot point.
 	/// </remark>
 	/// </summary>
-	[JsonCondition($"$&.{nameof(Parent)}.{nameof(Decoration.Type)} is not RhythmBase.RhythmDoctor.{nameof(DecorationType)}.{nameof(DecorationType.Text)}")]
+	[JsonCondition($"$&.{nameof(Parent)}?.{nameof(Decoration.Type)} is not RhythmBase.RhythmDoctor.{nameof(DecorationType)}.{nameof(DecorationType.Text)}")]
 	[Tween]
 	public Point? Pivot { get; set; }
 	///<inheritdoc/>
