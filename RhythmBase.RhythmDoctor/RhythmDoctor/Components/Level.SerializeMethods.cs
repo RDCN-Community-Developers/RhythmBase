@@ -246,9 +246,9 @@ partial class Level
 	/// own <see cref="Chart.ResolvedDirectory"/>.
 	/// </summary>
 	private static string ResolveChartDirectory(Chart chart, LevelWriteConfig settings) =>
-		!string.IsNullOrWhiteSpace(settings.ResolvedDirectory)
-		? settings.ResolvedDirectory
-		: chart.ResolvedDirectory;
+		string.IsNullOrWhiteSpace(settings.ResolvedDirectory)
+		? chart.ResolvedDirectory
+		: settings.ResolvedDirectory;
 	/// <summary>
 	/// Recursively resolves charts referenced by <see cref="GoToLevel"/> events into the level's chart
 	/// collection. Each referenced file is loaded only once and shared by all <see cref="GoToLevel"/>

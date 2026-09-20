@@ -174,7 +174,7 @@ public class LevelWriteConfig : LevelReadOrWriteConfig
 	/// Gets or sets the directory used to locate referenced asset files when writing a ZIP archive.
 	/// Takes precedence over the level's own <see cref="ILevel.ResolvedDirectory"/> when specified.
 	/// </summary>
-	public string? ResolvedDirectory { get; set; }
+	public string ResolvedDirectory { get; set; } = "";
 	/// <summary>
 	/// When <c>true</c>, the referenced assets of charts referenced via <c>GoToLevel</c> are also
 	/// included when the level is packed to a ZIP archive. The referenced charts themselves are always
