@@ -63,10 +63,20 @@ public static partial class Extensions
 		/// <summary>
 		/// Gets the hit information for the current instance.
 		/// </summary>
-		public Hit Hit => new(
+		public Hit Hit
+		{
+			get
+			{
+				float synco = e.SyncoOffset;
+				float correction = (e.Length % 2 == 0 && e.Swing != 0) ? e.Swing : 1;
+				return new(
 				e,
-				e.TickTime + (e.Tick * (e.Length - (e.Length % 2) * ((e.Swing == 0) ? 1 : e.Swing))),
+				e.TickTime +
+					(e.Tick * (e.Length - synco - correction)),
 				e.Hold);
+			}
+		}
+
 		/// <summary>
 		/// Gets the synchronization offset value for the current event, based on the most recent active parent row's
 		/// synchronization settings.
