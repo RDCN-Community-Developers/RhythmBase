@@ -79,8 +79,6 @@ internal sealed class ChartConverter : MetadataJsonConverter<Chart>
 			return true;
 		});
 		UnhandledFieldRegistry.Ignore<FloatingText>("times");
-		UnhandledFieldRegistry.Ignore<FloatingText>("id");
-		UnhandledFieldRegistry.Ignore<AdvanceText>("id");
 		UnhandledFieldRegistry.Register<FloatingText>("narrationCategory", (ref e, value) =>
 		{
 			if (value.ValueKind != JsonValueKind.String)
