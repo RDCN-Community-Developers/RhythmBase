@@ -48,7 +48,6 @@ public record class FloatingText : BaseEvent, IRoomEvent, IDurationEvent, IColor
 	[JsonConverter(typeof(FloatingTextAnchorStylesConverter))]
 	public FloatingTextAnchorStyle Anchor { get; set; } = FloatingTextAnchorStyle.Center;
 	/// <inheritdoc/>
-	[JsonCondition($"$&.{nameof(Narrate)}")]
 	public bool Narrate { get; set; } = true;
 	/// <inheritdoc/>
 	[JsonCondition($"$&.{nameof(Narrate)}")]
@@ -59,7 +58,9 @@ public record class FloatingText : BaseEvent, IRoomEvent, IDurationEvent, IColor
 	public bool ShowChildren { get; set; } = true;
 	/// <inheritdoc/>
 	public string Text { get; set; } = "等/呀/等/得/好/心/慌……";
-	/// <inheritdoc/>
+	/// <summary>
+	/// Gets or sets the font style to use for rendering text.
+	/// </summary>
 	public FontName Font { get; set; } = FontName.Default;
 	IEnumerable<FileReference> IFontFileEvent. FontFiles => Font.IsCustom ? [Font.Value] : [];
 	IEnumerable<FileReference> IFileEvent.Files => Font.IsCustom ? [Font.Value] : [];
