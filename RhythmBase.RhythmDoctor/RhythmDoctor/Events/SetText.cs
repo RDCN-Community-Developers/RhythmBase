@@ -8,7 +8,7 @@ namespace RhythmBase.RhythmDoctor.Events;
 /// Represents a event that displays floating text on the screen, which can be used for various purposes such as showing lyrics, dialogue, or other textual information during gameplay.
 /// </summary>
 [JsonObjectSerializable]
-public record class SetText : BaseDecorationAction, IRoomEvent, IDurationEvent, IColorEvent, IFontFileEvent, ITextEvent
+public record class SetText : BaseDecorationAction, IRoomEvent, IDurationEvent, IColorEvent, ITextEvent
 {
 	/// <inheritdoc/>
 	public override EventType Type => EventType.SetText;
@@ -47,15 +47,8 @@ public record class SetText : BaseDecorationAction, IRoomEvent, IDurationEvent, 
 	public bool ShowChildren { get; set; } = true;
 	/// <inheritdoc/>
 	public string Text { get; set; } = "等/呀/等/得/好/心/慌……";
-	/// <inheritdoc/>
-	public FontName Font { get; set; } = FontName.Default;
 	/// <summary>
 	/// Initializes a new instance of the <see cref="FloatingText"/> class.
 	/// </summary>
 	public SetText() { }
-	/// <summary>
-	/// Returns a string that represents the current object.
-	/// </summary>
-	IEnumerable<FileReference> IFontFileEvent.FontFiles => Font.IsCustom ? [Font.Value] : [];
-	IEnumerable<FileReference> IFileEvent.Files => Font.IsCustom ? [Font.Value] : [];
 }

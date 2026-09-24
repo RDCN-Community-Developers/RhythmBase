@@ -6,7 +6,7 @@ namespace RhythmBase.RhythmDoctor.Events;
 /// <summary>
 /// Defines an interface for events that display text in a rhythm doctor level.
 /// </summary>
-public interface ITextEvent : IBaseEvent, IFontFileEvent
+public interface ITextEvent : IBaseEvent
 {
 	/// <summary>
 	/// Gets or sets the anchor style of the text.
@@ -30,10 +30,6 @@ public interface ITextEvent : IBaseEvent, IFontFileEvent
 	/// </remark>
 	/// </summary>
 	float Duration { get; set; }
-	/// <summary>
-	/// Gets or sets the font style to use for rendering text.
-	/// </summary>
-	FontName Font { get; set; }
 	/// <summary>
 	/// Gets or sets the mode of the text.
 	/// </summary>
