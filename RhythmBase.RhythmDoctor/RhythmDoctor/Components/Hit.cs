@@ -18,7 +18,7 @@ public struct Hit
 	/// <summary>
 	/// Gets the source event for this hit.
 	/// </summary>
-	public BaseBeat Parent { get; }
+	public BaseBeat Source { get; }
 	/// <summary>
 	/// Gets a value indicating whether this hit needs to be held down continuously.
 	/// </summary>
@@ -32,7 +32,7 @@ public struct Hit
 	public Hit(BaseBeat parent, TickTime beat, float hold = 0f)
 	{
 		this = default;
-		Parent = parent;
+		Source = parent;
 		TickTime = beat;
 		Hold = hold;
 	}
@@ -80,7 +80,7 @@ public struct Hit
 		{
 			if (TickTime == other.TickTime)
 			{
-				result = new Hit(Parent, TickTime, 0);
+				result = new Hit(Source, TickTime, 0);
 				return true;
 			}
 			result = default;
@@ -96,7 +96,7 @@ public struct Hit
 			float rangeEnd = rangeHit.TickTime.Tick + rangeHit.Hold;
 			if (pointTick >= rangeStart && pointTick <= rangeEnd)
 			{
-				result = new Hit(Parent, rangeHit.TickTime, rangeHit.Hold);
+				result = new Hit(Source, rangeHit.TickTime, rangeHit.Hold);
 				return true;
 			}
 			result = default;
@@ -108,12 +108,12 @@ public struct Hit
 		float end2 = other.TickTime.Tick + other.Hold;
 		if (start1 <= start2 && end1 >= end2)
 		{
-			result = new Hit(Parent, TickTime, Hold);
+			result = new Hit(Source, TickTime, Hold);
 			return true;
 		}
 		if (start2 <= start1 && end2 >= end1)
 		{
-			result = new Hit(Parent, other.TickTime, other.Hold);
+			result = new Hit(Source, other.TickTime, other.Hold);
 			return true;
 		}
 		result = default;
@@ -123,5 +123,5 @@ public struct Hit
 	/// Returns a string that represents the current object.
 	/// </summary>
 	/// <returns>A string that represents the current object.</returns>
-	public readonly override string ToString() => $"{{{TickTime}, {Parent}}}";
+	public readonly override string ToString() => $"{{{TickTime}, {Source}}}";
 }
