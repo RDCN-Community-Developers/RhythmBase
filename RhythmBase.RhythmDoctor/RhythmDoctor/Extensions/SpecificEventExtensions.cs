@@ -695,7 +695,7 @@ public static partial class Extensions
 		/// Creates a rotated rectangle for the MoveCamera event.
 		/// </summary>
 		/// <returns>A rotated rectangle representing the camera's position, zoom, and angle.</returns>
-		public RotatedRectE RotatedRect() => new(e.CameraPosition, new(e.Zoom, e.Zoom), null, e.Angle);
+		public RotatedRectE RotatedRect() => new(e.Position, new(e.Zoom, e.Zoom), null, e.Angle);
 	}
 
 	extension(MoveRow e)
