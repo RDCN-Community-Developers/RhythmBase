@@ -83,9 +83,9 @@ internal partial class RDMemberConverter
 			base.Write(writer, ref value, options);
 		}
 	}
-	internal class SetVFXPreset : MemberConverter<Events.SetVFXPreset>
+	internal class SetVFXPreset : MemberConverter<Events.SetVfxPreset>
 	{
-		protected override bool Read(ref Utf8JsonReader reader, ref Events.SetVFXPreset value, MetadataJsonSerializerOptions options)
+		protected override bool Read(ref Utf8JsonReader reader, ref Events.SetVfxPreset value, MetadataJsonSerializerOptions options)
 		{
 			if (base.Read(ref reader, ref value, options))
 				return true;
