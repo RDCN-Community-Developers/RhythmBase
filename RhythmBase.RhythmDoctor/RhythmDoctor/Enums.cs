@@ -2264,10 +2264,6 @@ public enum RoomIndex : byte
 	/// Represents the top room.
 	/// </summary>
 	RoomTop = 0b0001_0000,
-	/// <summary>
-	/// Indicates that the room is not available.
-	/// </summary>
-	RoomNotAvaliable = byte.MaxValue,
 }
 
 /// <summary>

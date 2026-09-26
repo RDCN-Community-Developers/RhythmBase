@@ -111,7 +111,6 @@ public static partial class Constants
 	/// Represents the total number of palette colors available.
 	/// </summary>
 	public const int PaletteColorCount = 21;
-
 	/// <summary>
 	/// Read-only mapping that associates each <see cref="VfxPreset"/> with the corresponding <see cref="VfxAttribute"/> flags.
 	/// </summary>

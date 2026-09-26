@@ -2,6 +2,10 @@ using System.Collections;
 using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+// Index type: 0-based room ordinal in the range 0..RoomCapacity.
+using _it = System.Byte;
+// Storage type: bitmask where bit i represents the room at index i.
+using _dt = System.UInt32;
 namespace RhythmBase.RhythmDoctor.Components;
 
 /// <summary>
@@ -12,50 +16,58 @@ public struct Room :
 #if NET7_0_OR_GREATER
 	IEqualityOperators<Room, Room, bool>,
 #endif
-	IEquatable<Room>, IEnumerable<byte>
+	IEquatable<Room>, IEnumerable<_it>
 {
+	/// <summary>
+	/// The number of valid rooms, including the top room; valid indices are 0..<see cref="RoomCapacity"/>.
+	/// </summary>
+	private const int TotalRoomCount = RoomCapacity + 1;
+	/// <summary>
+	/// The bitmask of valid rooms, where bit i represents index i.
+	/// </summary>
+	private const _dt ValidRoomsMask = ((_dt)1 << TotalRoomCount) - 1;
 	/// <summary>
 	/// Gets or sets whether the specified room is enabled. 0-base.
 	/// </summary>
 	/// <param name="index">The index of the room.</param>
 	/// <returns>True if the room is enabled; otherwise, false.</returns>
 	[IndexerName("Room")]
-	public bool this[byte index]
+	public bool this[_it index]
 	{
-		readonly get => _data.HasFlag((RoomIndex)(1 << index));
+		readonly get => (_data & ((_dt)1 << index)) != 0;
 		set
 		{
-			if (index <= 4)
-				_data = value ? _data | (RoomIndex)(1 << index) : _data & (RoomIndex)(~(1 << index));
+			if (index <= RoomCapacity)
+				_data = value ? (_data | ((_dt)1 << index)) : (_data & ~((_dt)1 << index));
 		}
 	}
 	/// <summary>
 	/// Gets or sets whether the specified room is enabled.
 	/// </summary>
-	/// <param name="index">The index of the room.</param>
+	/// <param name="index">The room flag.</param>
 	/// <returns>True if the room is enabled; otherwise, false.</returns>
 	[IndexerName("Room")]
 	public bool this[RoomIndex index]
 	{
-		readonly get => _data.HasFlag(index);
+		readonly get => (_data & (_dt)index) != 0;
 		set
 		{
-			if (((byte)index & 0b1111) != 0)
-				_data = value ? _data | index : _data & (~index);
+			if (index != RoomIndex.None && ((_dt)index & ~ValidRoomsMask) == 0)
+				_data = value ? (_data | (_dt)index) : (_data & ~(_dt)index);
 		}
 	}
 	/// <summary>
-	/// Gets the list of enabled rooms.
+	/// Gets the list of enabled rooms as 0-base indices.
 	/// </summary>
-	public readonly byte[] Rooms
+	public readonly _it[] Rooms
 	{
 		get
 		{
-			RoomIndex indexes = _data;
+			_dt indexes = _data;
 			return [..Enumerable
-				.Range(0, 5)
-				.Where(x => indexes.HasFlag((RoomIndex)(1 << x)))
-				.Select(x => (byte)x)];
+				.Range(0, TotalRoomCount)
+				.Where(x => (indexes & ((_dt)1 << x)) != 0)
+				.Select(x => (_it)x)];
 		}
 	}
 	/// <inheritdoc/>
@@ -64,15 +76,17 @@ public struct Room :
 	/// Returns an instance with only room 1 enabled.
 	/// </summary>
 	/// <returns>An instance with only room 1 enabled.</returns>
-	public static Room Default => new([])
-	{
-		_data = RoomIndex.Room1
-	};
-	///// <summary>
-	///// Initializes a new instance of the <see cref="RDRoom"/> struct.
-	///// </summary>
-	///// <param name="enableTop">Indicates if the top room can be applied.</param>
-	//public RDRoom(bool enableTop) => EnableTop = enableTop;
+	public static Room Default => new() { _data = 0b1, };
+	/// <summary>
+	/// Returns an instance with every room enabled.
+	/// </summary>
+	/// <returns>An instance with every room enabled.</returns>
+	public static Room All => new() { _data = ValidRoomsMask };
+	/// <summary>
+	/// Returns an instance with every room except the top room enabled.
+	/// </summary>
+	/// <returns>An instance with every room except the top room enabled.</returns>
+	public static Room AllExceptTop => new() { _data = ValidRoomsMask & ~((_dt)1 << RoomCapacity) };
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Room"/> struct with the specified room indices.
 	/// </summary>
@@ -81,19 +95,10 @@ public struct Room :
 	/// <param name="rooms">An array of room indices to initialize. Each index represents a specific room to be enabled. If the array is
 	/// empty, the room is marked as not available. If the array contains a single element, only that room is enabled. If
 	/// the array contains multiple elements, all specified rooms are enabled.</param>
-	public Room(params byte[] rooms)
+	public Room(params _it[] rooms)
 	{
-		this = default;
-		//EnableTop = enableTop;
-		int num = rooms.Length;
-		if (num != 0)
-			if (num != 1)
-				foreach (byte item in rooms)
-					this[item] = true;
-			else
-				this[rooms.Single()] = true;
-		else
-			_data = RoomIndex.RoomNotAvaliable;
+		foreach (_it item in rooms)
+			this[item] = true;
 	}
 	/// <summary>
 	/// Checks if the specified rooms are included.
@@ -102,19 +107,7 @@ public struct Room :
 	/// <returns>True if the rooms are included; otherwise, false.</returns>
 	public readonly bool Contains(Room rooms)
 	{
-		if (_data == RoomIndex.RoomNotAvaliable)
-			return false;
-		else
-		{
-			for (int i = 0; i < 5; i++)
-			{
-				if (this[(byte)i] != rooms[(byte)i])
-					break;
-				if (i > 4)
-					return true;
-			}
-			return false;
-		}
+		return (_data & rooms._data) == rooms._data;
 	}
 	/// <summary>
 	/// Checks if the specified room is included.
@@ -123,7 +116,7 @@ public struct Room :
 	/// <returns>True if the room is included; otherwise, false.</returns>
 	public readonly bool Contains(RoomIndex room)
 	{
-		return _data.HasFlag(room);
+		return (_data & (_dt)room) != 0;
 	}
 	/// <inheritdoc/>
 	public static bool operator ==(Room R1, Room R2) => R1._data == R2._data;
@@ -134,7 +127,10 @@ public struct Room :
 	/// </summary>
 	/// <param name="room">The SingleRoom instance to convert.</param>
 	/// <returns>A Room instance.</returns>
-	public static implicit operator Room(SingleRoom room) => new([((byte)room.Room)]);
+	public static implicit operator Room(SingleRoom room) =>
+		room.Value <= RoomCapacity
+			? new Room(room.Value)
+			: new Room([]);
 	/// <summary>
 	/// Explicitly converts a Room to a SingleRoom.
 	/// </summary>
@@ -160,24 +156,23 @@ public struct Room :
 #endif
 	/// <inheritdoc/>
 	public readonly bool Equals(Room other) => this == other;
-    /// <summary>
-    /// Returns an enumerator that iterates through the collection of bytes with indices from 0 to 4 for which the
-    /// corresponding value is set to <see langword="true"/>.
-    /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public readonly IEnumerator<byte> GetEnumerator()
+	/// <summary>
+	/// Returns an enumerator that iterates through the enabled room indices, from 0 to <see cref="RoomCapacity"/>.
+	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	public readonly IEnumerator<_it> GetEnumerator()
 	{
-		for (int i = 0; i < 5; i++)
-			if (this[(byte)i])
-				yield return (byte)i;
+		for (int i = 0; i < TotalRoomCount; i++)
+			if (this[(_it)i])
+				yield return (_it)i;
 		yield break;
 	}
 
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    readonly IEnumerator IEnumerable.GetEnumerator()
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	readonly IEnumerator IEnumerable.GetEnumerator()
 	{
 		return GetEnumerator();
 	}
 
-	private RoomIndex _data;
+	private _dt _data;
 }
