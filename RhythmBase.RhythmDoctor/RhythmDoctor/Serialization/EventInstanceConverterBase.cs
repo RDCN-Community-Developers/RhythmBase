@@ -39,6 +39,7 @@ internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEve
 
 					value[fieldName] = fieldValue;
 #if DEBUG
+					if ((value.Type, fieldName) is not (EventType.FloatingText, "id") and not (EventType.AdvanceText, "id"))
 					Console.WriteLine($"{options.Version}\t| {value.Type}\t| {fieldName} => ({value[fieldName].ValueKind}){value[fieldName]}");
 #endif
 				}
