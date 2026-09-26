@@ -14,12 +14,12 @@ internal class PointEConverter : JsonConverter<PointE>
         var value = new PointE(
             reader.Read() ?
             reader.TokenType == JsonTokenType.Number ? new Expression(reader.GetSingle()) :
-            reader.TokenType == JsonTokenType.String ? new Expression(reader.GetString() ?? string.Empty) :
+            reader.TokenType == JsonTokenType.String ? new Expression(reader.GetString()?.TrimStart('{').TrimEnd('}') ?? string.Empty) :
             (Expression?)null :
             null,
             reader.Read() ?
             reader.TokenType == JsonTokenType.Number ? new Expression(reader.GetSingle()) :
-            reader.TokenType == JsonTokenType.String ? new Expression(reader.GetString() ?? string.Empty) :
+            reader.TokenType == JsonTokenType.String ? new Expression(reader.GetString()?.TrimStart('{').TrimEnd('}') ?? string.Empty) :
             (Expression?)null :
             null
             );
@@ -34,14 +34,14 @@ internal class PointEConverter : JsonConverter<PointE>
             if (value.X.Value.IsNumeric)
                 writer.WriteNumberValue(value.X.Value.NumericValue);
             else
-                writer.WriteStringValue(value.X.Value.ExpressionValue);
+                writer.WriteStringValue($"{{{value.X.Value.ExpressionValue}}}");
         else
             writer.WriteNullValue();
         if (value.Y != null)
             if (value.Y.Value.IsNumeric)
                 writer.WriteNumberValue(value.Y.Value.NumericValue);
             else
-                writer.WriteStringValue(value.Y.Value.ExpressionValue);
+                writer.WriteStringValue($"{{{value.Y.Value.ExpressionValue}}}");
         else
             writer.WriteNullValue();
         writer.WriteEndArray();
