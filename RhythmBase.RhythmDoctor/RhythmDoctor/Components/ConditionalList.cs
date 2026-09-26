@@ -339,7 +339,7 @@ public class ConditionalList : ICollection<BaseConditional>, IList<BaseCondition
 
 		return;
 	}
-	internal int DataIndexOf(BaseConditional item)
+	internal int LogicalIndexOf(BaseConditional item)
 	{
 		var comparer = EqualityComparer<BaseConditional>.Default;
 

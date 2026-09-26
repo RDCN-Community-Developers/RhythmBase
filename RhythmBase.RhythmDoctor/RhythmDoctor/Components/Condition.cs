@@ -127,12 +127,12 @@ public struct Condition
 	{
 		get
 		{
-			int index = conditional.ParentCollection?.DataIndexOf(conditional) ?? -1;
+			int index = conditional.ParentCollection?.LogicalIndexOf(conditional) ?? -1;
 			return GetValue(_index_conditions, index);
 		}
 		set
 		{
-			int index = conditional.ParentCollection?.DataIndexOf(conditional) ?? -1;
+			int index = conditional.ParentCollection?.LogicalIndexOf(conditional) ?? -1;
 			SetValue(ref _index_conditions, index, value);
 		}
 	}
