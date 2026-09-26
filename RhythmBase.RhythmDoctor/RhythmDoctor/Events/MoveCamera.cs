@@ -20,7 +20,8 @@ public record class MoveCamera : BaseEvent, IEaseEvent, IRoomEvent
 	/// Leave it null to keep the original position.
 	/// </remarks>
 	[Tween]
-	public Point? CameraPosition { get; set; }
+	[JsonAlias("cameraPosition")]
+	public Point? Position { get; set; }
 	/// <summary>
 	/// Gets or sets the zoom level.
 	/// </summary>
