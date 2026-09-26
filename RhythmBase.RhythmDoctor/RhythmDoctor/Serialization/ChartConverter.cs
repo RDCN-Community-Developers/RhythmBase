@@ -58,7 +58,7 @@ internal sealed class ChartConverter : MetadataJsonConverter<Chart>
 			};
 			return true;
 		});
-		UnhandledFieldRegistry.Register<SetVFXPreset>("speed", (ref e, value) =>
+		UnhandledFieldRegistry.Register<SetVfxPreset>("speed", (ref e, value) =>
 		{
 			float?[] xs = value.EnumerateArray().Select(x => x.ValueKind == JsonValueKind.Number && x.TryGetSingle(out float f) ? f : (float?)null).ToArray();
 			if (xs.Length != 2)

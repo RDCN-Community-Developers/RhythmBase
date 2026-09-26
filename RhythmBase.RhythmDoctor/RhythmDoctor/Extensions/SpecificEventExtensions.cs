@@ -526,7 +526,7 @@ public static partial class Extensions
 		/// </summary>
 		public RoomIndex RoomAt(TickTime beat) => e.InRange(null, beat).OfEvent<ReorderRow>().LastOrDefault()?.NewRoom ?? e.Room.Room;
 	}
-	extension(SetVFXPreset e)
+	extension(SetVfxPreset e)
 	{
 		/// <summary>
 		/// Calculates the duration of the VFX effect for the given preset.
@@ -537,7 +537,7 @@ public static partial class Extensions
 			{
 				if (e.Preset != VfxPreset.DisableAll && e.Enable)
 				{
-					SetVFXPreset? close = e.After().FirstOrDefault(i =>
+					SetVfxPreset? close = e.After().FirstOrDefault(i =>
 							i.Rooms.Contains(e.Rooms) && (
 									i.Preset == e.Preset ||
 									i.Preset == VfxPreset.DisableAll

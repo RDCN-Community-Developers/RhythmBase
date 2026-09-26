@@ -109,9 +109,9 @@ internal class BaseEventConverter : BackwardCompatibleMetadataJsonConverter
 			if (e is ShowDialogue sd)
 				sd.PlayTextSounds = false;
 		});
-		Register<SetVFXPreset>(67, static e =>
+		Register<SetVfxPreset>(67, static e =>
 		{
-			if (e is not SetVFXPreset svp)
+			if (e is not SetVfxPreset svp)
 				return;
 			switch (svp.Preset)
 			{

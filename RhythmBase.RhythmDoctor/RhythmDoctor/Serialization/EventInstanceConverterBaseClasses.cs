@@ -153,7 +153,7 @@ internal partial class RDMemberConverter
 			else return false;
 			return true;
 		}
-		protected override void Write(Utf8JsonWriter writer, ref Events.SetVFXPreset value, MetadataJsonSerializerOptions options)
+		protected override void Write(Utf8JsonWriter writer, ref Events.SetVfxPreset value, MetadataJsonSerializerOptions options)
 		{
 			base.Write(writer, ref value, options);
 			{ TypeConverterRegistry.Write(writer, "rooms"u8, value.Rooms, options); }

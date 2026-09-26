@@ -71,7 +71,7 @@ partial class EventTypeRegistry
     /// Event types for visual effects.  
     /// </summary>  
     public static readonly ReadOnlyEnumCollection<EventType> EventTypeEnumsForVisualFX = new(
-        EventType.SetVFXPreset,
+        EventType.SetVfxPreset,
         EventType.SetSpeed,
         EventType.Flash,
         EventType.CustomFlash,
