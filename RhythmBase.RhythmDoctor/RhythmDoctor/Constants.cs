@@ -119,7 +119,7 @@ public static partial class Constants
 	/// Use this dictionary to determine what features a given preset supports (for example, whether it affects multiple rooms,
 	/// supports intensity, color, easing, etc.). The values are intended to be tested with bitwise operations.
 	/// </remarks>
-	public static ReadOnlyDictionary<VfxPreset, VfxAttribute> VfxAttributes => _vfxAttributes;
+	public static IReadOnlyDictionary<VfxPreset, VfxAttribute> VfxAttributes => _vfxAttributes;
 	private static readonly ReadOnlyDictionary<VfxPreset, VfxAttribute> _vfxAttributes = new(new Dictionary<VfxPreset, VfxAttribute>
 	{
 		[VfxPreset.Vignette] = MultiRooms,
@@ -175,7 +175,7 @@ public static partial class Constants
 		[VfxPreset.OrangeBloom] = MultiRooms,
 		[VfxPreset.BlueBloom] = MultiRooms,
 		[VfxPreset.Funk] = MultiRooms,
-		[VfxPreset.Drawing] = MultiRooms | EnableIntensity | EnableEase | EnableSpeed | EnableColor ,
+		[VfxPreset.Drawing] = MultiRooms | EnableIntensity | EnableEase | EnableSpeed | EnableColor,
 		[VfxPreset.Dots] = MultiRooms | EnableIntensity | EnableEase,
 		[VfxPreset.EyesBig] = MultiRooms | EnableIntensity | EnableXY | EnableSpeed | EnableEase | EnableColor | EnablePosition,
 		[VfxPreset.EyesSmall] = MultiRooms | EnableIntensity | EnableXY | EnableSpeed | EnableEase | EnableColor | EnablePosition,
@@ -197,23 +197,37 @@ public static partial class Constants
 		[VfxPreset.MiawMiaw] = MultiRooms | Disabled,
 		[VfxPreset.DisableAll] = MultiRoomsWithTop,
 	});
-
+	/// <summary>
+	/// Read-only mapping that associates each <see cref="SoundType"/> with a collection of related <see cref="SoundType"/> values.
+	/// </summary>
+	public static IReadOnlyDictionary<SoundType, ReadOnlyEnumCollection<SoundType>> SoundGroupTypeMap => _soundGroupTypeMap;
+	private static readonly ReadOnlyDictionary<SoundType, ReadOnlyEnumCollection<SoundType>> _soundGroupTypeMap = new(
+		new Dictionary<SoundType, ReadOnlyEnumCollection<SoundType>>
+		{
+			[SoundType.ClapSoundHold] = [SoundType.ClapSoundHoldLongEnd, SoundType.ClapSoundHoldLongStart, SoundType.ClapSoundHoldShortEnd, SoundType.ClapSoundHoldShortStart,],
+			[SoundType.PulseSoundHold] = [SoundType.PulseSoundHoldStart, SoundType.PulseSoundHoldShortEnd, SoundType.PulseSoundHoldEnd, SoundType.PulseSoundHoldStartAlt, SoundType.PulseSoundHoldShortEndAlt, SoundType.PulseSoundHoldEndAlt,],
+			[SoundType.ClapSoundHoldP2] = [SoundType.ClapSoundHoldLongEndP2, SoundType.ClapSoundHoldLongStartP2, SoundType.ClapSoundHoldShortEndP2, SoundType.ClapSoundHoldShortStartP2,],
+			[SoundType.PulseSoundHoldP2] = [SoundType.PulseSoundHoldStartP2, SoundType.PulseSoundHoldShortEndP2, SoundType.PulseSoundHoldEndP2, SoundType.PulseSoundHoldStartAltP2, SoundType.PulseSoundHoldShortEndAltP2, SoundType.PulseSoundHoldEndAltP2,],
+			[SoundType.FreezeshotSound] = [SoundType.FreezeshotSoundCueLow, SoundType.FreezeshotSoundCueHigh, SoundType.FreezeshotSoundRiser, SoundType.FreezeshotSoundCymbal,],
+			[SoundType.BurnshotSound] = [SoundType.BurnshotSoundCueLow, SoundType.BurnshotSoundCueHigh, SoundType.BurnshotSoundRiser, SoundType.BurnshotSoundCymbal,],
+			[SoundType.HoldshotSound] = [SoundType.HoldshotSoundCue, SoundType.HoldshotSoundClapStart, SoundType.HoldshotSoundClapShortEnd, SoundType.HoldshotSoundClapLongEnd,],
+		});
 	/// <summary>
 	/// File extensions recognized as Rhythm Doctor level files.
 	/// </summary>
-	public static readonly string[] LevelFileExtensions = new[] { ".json", ".rdlevel" };
+	public static readonly string[] LevelFileExtensions = [".json", ".rdlevel"];
 	/// <summary>
 	/// File extensions recognized as Rhythm Doctor level archives.
 	/// </summary>
-	public static readonly string[] LevelZipExtensions = new[] { ".zip", ".rdzip" };
+	public static readonly string[] LevelZipExtensions = [".zip", ".rdzip"];
 	/// <summary>
 	/// File extensions recognized as image files.
 	/// </summary>
-	public static readonly string[] ImageFileExtensions = new[] { ".png", ".jpg", ".jpeg", ".bmp", ".gif" };
+	public static readonly string[] ImageFileExtensions = [".png", ".jpg", ".jpeg", ".bmp", ".gif"];
 	/// <summary>
 	/// File extensions recognized as audio files.
 	/// </summary>
-	public static readonly string[] WaveFileExtensions = new[] { ".wav", ".mp3", ".ogg", ".aac" };
+	public static readonly string[] WaveFileExtensions = [".wav", ".mp3", ".ogg", ".aac"];
 	/// <summary>
 	/// Determines whether the specified file path has a Rhythm Doctor level file extension.
 	/// </summary>
