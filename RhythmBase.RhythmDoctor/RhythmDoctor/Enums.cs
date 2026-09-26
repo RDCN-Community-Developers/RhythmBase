@@ -287,7 +287,8 @@ public enum EventType
 	/// <summary>
 	/// Set the VFX preset.
 	/// </summary>
-	SetVFXPreset,
+	[JsonAlias("SetVFXPreset")]
+	SetVfxPreset,
 	/// <summary>
 	/// Set the visibility.
 	/// </summary>

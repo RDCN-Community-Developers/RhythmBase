@@ -9,7 +9,7 @@ namespace RhythmBase.RhythmDoctor.Events;
 /// Represents an event to set a VFX preset.
 /// </summary>
 [JsonObjectHasSerializer(typeof(RDMemberConverter.SetVFXPreset))]
-public record class SetVFXPreset : BaseEvent, IEaseEvent, IRoomEvent, IColorEvent
+public record class SetVfxPreset : BaseEvent, IEaseEvent, IRoomEvent, IColorEvent
 {
 	///<inheritdoc/>
 	public Room Rooms { get; set; } = new Room([0]);
@@ -58,7 +58,7 @@ public record class SetVFXPreset : BaseEvent, IEaseEvent, IRoomEvent, IColorEven
 	///<inheritdoc/>
 	public float Duration { get; set; } = 0f;
 	///<inheritdoc/>
-	public override EventType Type => EventType.SetVFXPreset;
+	public override EventType Type => EventType.SetVfxPreset;
 	///<inheritdoc/>
 	public override Tab Tab => Tab.Actions;
 }
