@@ -199,9 +199,9 @@ public static partial class Constants
 	/// <summary>
 	/// Read-only mapping that associates each <see cref="SoundType"/> with a collection of related <see cref="SoundType"/> values.
 	/// </summary>
-	public static IReadOnlyDictionary<SoundType, ReadOnlyEnumCollection<SoundType>> SoundGroupTypeMap => _soundGroupTypeMap;
-	private static readonly ReadOnlyDictionary<SoundType, ReadOnlyEnumCollection<SoundType>> _soundGroupTypeMap = new(
-		new Dictionary<SoundType, ReadOnlyEnumCollection<SoundType>>
+	public static IReadOnlyDictionary<SoundType, SoundType[]> SoundGroupTypeMap => _soundGroupTypeMap;
+	private static readonly ReadOnlyDictionary<SoundType, SoundType[]> _soundGroupTypeMap = new(
+		new Dictionary<SoundType, SoundType[]>
 		{
 			[SoundType.ClapSoundHold] = [SoundType.ClapSoundHoldLongEnd, SoundType.ClapSoundHoldLongStart, SoundType.ClapSoundHoldShortEnd, SoundType.ClapSoundHoldShortStart,],
 			[SoundType.PulseSoundHold] = [SoundType.PulseSoundHoldStart, SoundType.PulseSoundHoldShortEnd, SoundType.PulseSoundHoldEnd, SoundType.PulseSoundHoldStartAlt, SoundType.PulseSoundHoldShortEndAlt, SoundType.PulseSoundHoldEndAlt,],

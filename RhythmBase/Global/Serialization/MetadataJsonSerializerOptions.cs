@@ -38,6 +38,17 @@ public record class MetadataJsonSerializerOptions
 	public bool UpgradeToLatest { get; set; } = true;
 
 	/// <summary>
+	/// Gets or sets sub-project-specific state preserved across a deserialization, used by upgraders.
+	/// </summary>
+	public JsonUpgradeState? UpgradeState { get; set; }
+
+	/// <summary>
+	/// Gets or sets the amount added to condition numeric indices when writing, so that the smallest written
+	/// condition id is 1 (the game convention) regardless of the source base.
+	/// </summary>
+	public int ConditionIdOffset { get; set; }
+
+	/// <summary>
 	/// Gets or sets the directory used to resolve referenced asset files during read/write operations.
 	/// </summary>
 	public string? DirectoryName { get; set; }

@@ -8,7 +8,7 @@ public static class CollectionBuilders
 		Room result = default;
 		foreach (byte item in rooms)
 		{
-			if (item < 0 || item > 4) continue;
+			if (item > RoomCapacity) continue;
 			result[item] = true;
 		}
 		return result;
@@ -21,7 +21,7 @@ public static class CollectionBuilders
 	public static PlayerTypeGroup BuildPlayerTypeGroup(ReadOnlySpan<PlayerType> playerTypes)
 	{
 		PlayerTypeGroup group = default;
-		for (int i = 0; i < 16 && i < playerTypes.Length; i++)
+		for (int i = 0; i < RowCapacity && i < playerTypes.Length; i++)
 		{
 			group[i] = playerTypes[i];
 		}

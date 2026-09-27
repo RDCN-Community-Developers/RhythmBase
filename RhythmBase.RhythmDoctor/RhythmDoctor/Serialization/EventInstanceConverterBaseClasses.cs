@@ -99,7 +99,7 @@ internal partial class RDMemberConverter
 					value.Preset = (VfxPreset)intValue0;
 				else
 					value.Preset = default;
-				if (value.Preset is VfxPreset.HeatDistortion && options.Version < 68)
+				if (false && value.Preset is VfxPreset.HeatDistortion) // Temporarily disabled: migrated to RhythmDoctorUpgrader.
 					value.Position = (100, 100);
 			}
 			else if (reader.ValueTextEquals("enable"u8) && reader.Read())
@@ -218,6 +218,144 @@ internal partial class RDMemberConverter
 			}
 			if (value.Action is not GoToLevelAction.SetNext)
 				writer.WriteBoolean("skippable"u8, value.Skippable);
+		}
+	}
+	internal class SetGameSound : MemberConverter<Events.SetGameSound>
+	{
+		protected override bool Read(ref Utf8JsonReader reader, ref Events.SetGameSound value, MetadataJsonSerializerOptions options)
+		{
+			if (base.Read(ref reader, ref value, options))
+				return true;
+			if (reader.ValueTextEquals("soundType"u8) && reader.Read())
+			{
+				if (EnumConverter.TryParse(ref reader, out SoundType type))
+					value.SoundType = type;
+				else
+					return false;
+				return true;
+			}
+			if (reader.ValueTextEquals("sounds"u8) && reader.Read())
+			{
+				// The array is positional: entries align with the group members of soundType.
+				SoundType type = value.SoundType;
+				if (!Constants.SoundGroupTypeMap.ContainsKey(type))
+				{
+					// soundType may appear after sounds; resolve it with a split reader.
+					SoundType? scanned = ScanSoundType(ref reader);
+					if (scanned is SoundType scannedType)
+						type = scannedType;
+				}
+				value.Sounds = BuildCollection(type, ReadAudioSlots(ref reader));
+				return true;
+			}
+			return false;
+		}
+		protected override void Write(Utf8JsonWriter writer, ref Events.SetGameSound value, MetadataJsonSerializerOptions options)
+		{
+			base.Write(writer, ref value, options);
+			writer.WriteString("soundType"u8, value.SoundType.ToEnumUtf8String());
+			writer.WritePropertyName("sounds"u8);
+			writer.WriteStartArray();
+			foreach (KeyValuePair<SoundType, Audio?> slot in value.Sounds)
+			{
+				writer.WriteStartObject();
+				Audio? audio = slot.Value;
+				if (audio is null)
+					writer.WriteBoolean("used"u8, false);
+				else
+				{
+					writer.WriteString("filename"u8, audio.Filename);
+					if (audio.Volume != 100)
+						writer.WriteNumber("volume"u8, audio.Volume);
+					if (audio.Pitch != 100)
+						writer.WriteNumber("pitch"u8, audio.Pitch);
+					if (audio.Pan != 0)
+						writer.WriteNumber("pan"u8, audio.Pan);
+					if (audio.Offset != TimeSpan.Zero)
+						writer.WriteNumber("offset"u8, audio.Offset.TotalMilliseconds);
+				}
+				writer.WriteEndObject();
+			}
+			writer.WriteEndArray();
+		}
+
+		private static SoundCollection BuildCollection(SoundType soundType, List<Audio?> slots)
+		{
+			if (slots.Count > 1 && Constants.SoundGroupTypeMap.TryGetValue(soundType, out SoundType[]? members))
+			{
+				SoundCollection group = new(members);
+				for (int i = 0; i < members.Length && i < slots.Count; i++)
+					group._values[i] = slots[i];
+				return group;
+			}
+			return new SoundCollection.SingleAudioSoundCollection(SoundType.ClapSoundP1Classic)
+			{
+				Audio = slots.Count > 0 ? slots[0] : null,
+			};
+		}
+
+		private static List<Audio?> ReadAudioSlots(ref Utf8JsonReader reader)
+		{
+			List<Audio?> slots = [];
+			while (reader.Read() && reader.TokenType is not JsonTokenType.EndArray)
+			{
+				if (reader.TokenType is not JsonTokenType.StartObject)
+				{
+					reader.Skip();
+					slots.Add(null);
+					continue;
+				}
+
+				Audio audio = new();
+				bool used = true;
+				while (reader.Read() && reader.TokenType is not JsonTokenType.EndObject)
+				{
+					if (reader.TokenType is not JsonTokenType.PropertyName)
+						continue;
+					if (reader.ValueTextEquals("used"u8) && reader.Read())
+						used = reader.GetBoolean();
+					else if (reader.ValueTextEquals("filename"u8) && reader.Read())
+						audio.Filename = reader.GetString() ?? "";
+					else if (reader.ValueTextEquals("volume"u8) && reader.Read())
+						audio.Volume = reader.GetInt32();
+					else if (reader.ValueTextEquals("pitch"u8) && reader.Read())
+						audio.Pitch = reader.GetInt32();
+					else if (reader.ValueTextEquals("pan"u8) && reader.Read())
+						audio.Pan = reader.GetInt32();
+					else if (reader.ValueTextEquals("offset"u8) && reader.Read())
+						audio.Offset = TimeSpan.FromMilliseconds(reader.GetSingle());
+					else
+					{
+						reader.Read();
+						reader.Skip();
+					}
+				}
+				slots.Add(used ? audio : null);
+			}
+			return slots;
+		}
+
+		private static SoundType? ScanSoundType(ref Utf8JsonReader reader)
+		{
+			Utf8JsonReader scan = reader;
+			scan.Skip();
+			while (scan.Read())
+			{
+				if (scan.TokenType is JsonTokenType.EndObject)
+					break;
+				if (scan.TokenType is not JsonTokenType.PropertyName)
+					break;
+				if (scan.ValueTextEquals("soundType"u8))
+				{
+					scan.Read();
+					return scan.TokenType is JsonTokenType.String && EnumConverter.TryParse(ref scan, out SoundType type)
+						? type
+						: null;
+				}
+				scan.Read();
+				scan.Skip();
+			}
+			return null;
 		}
 	}
 }

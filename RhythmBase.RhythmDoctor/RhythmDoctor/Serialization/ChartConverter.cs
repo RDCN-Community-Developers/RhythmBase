@@ -36,9 +36,10 @@ internal sealed class ChartConverter : MetadataJsonConverter<Chart>
 		e.TintColor = c;
 		return true;
 	};
-	private static readonly SoundCollectionConverter soundCollectionConverter = new();
 	static ChartConverter()
 	{
+#if false
+		// Temporarily disabled: backward compatibility is now handled by RhythmDoctorUpgrader.
 		// Legacy fields ignored by newer versions
 		UnhandledFieldRegistry.Ignore<ShowDialogue>("speed");
 		UnhandledFieldRegistry.Ignore<SetClapSounds>("p1Used");
@@ -123,17 +124,37 @@ internal sealed class ChartConverter : MetadataJsonConverter<Chart>
 			e.SubdivisionSound = value.GetBoolean();
 			return true;
 		});
-		UnhandledFieldRegistry.Register<SetGameSound>("sounds", (ref e, value) =>
-		{
-			if (value.ValueKind != JsonValueKind.Array)
-				return false;
-			Utf8JsonReader reader = new(Encoding.UTF8.GetBytes(value.GetRawText()), new());
-			if (!reader.Read()) return false;
-			e.Sounds = soundCollectionConverter.Read(ref reader, typeof(SoundCollection), new JsonSerializerOptions()) ?? [];
-			return true;
-		});
+		//UnhandledFieldRegistry.Register<SetGameSound>("sounds", (ref e, value) =>
+		//{
+		//	if (value.ValueKind != JsonValueKind.Array)
+		//		return false;
+		//	Utf8JsonReader reader = new(Encoding.UTF8.GetBytes(value.GetRawText()), new());
+		//	if (!reader.Read()) return false;
+		//	e.Sounds = soundCollectionConverter.Read(ref reader, typeof(SoundCollection), new JsonSerializerOptions()) ?? [];
+		//	return true;
+		//});
 		UnhandledFieldRegistry.Ignore<PlaySound>("isCustom");
 		UnhandledFieldRegistry.Ignore<MaskRoom>("contentMode");
+#else
+		// Interface-based field mappings are schema mappings rather than legacy upgrades, so they stay active.
+		UnhandledFieldHelper.RegisterForIEaseEvent("ease", (ref IEaseEvent e, JsonElement value) =>
+		{
+			if (value.ValueKind != JsonValueKind.String)
+				return false;
+			// 按演出效果映射
+			e.Ease = value.GetString() switch
+			{
+				"InFlash" => EaseType.InQuad,
+				"OutFlash" => EaseType.OutQuad,
+				"Flash" or "InOutFlash" => EaseType.InOutQuad,
+				_ => e.Ease
+			};
+			return true;
+		});
+		UnhandledFieldHelper.RegisterForITintEvent("borderOpacity", TintEventBorderHandler);
+		UnhandledFieldHelper.RegisterForITintEvent("tintOpacity", TintEventTintHandler);
+		UnhandledFieldHelper.RegisterForITintEvent("effectSound", (ref ITintEvent _, JsonElement ___) => true);
+#endif
 	}
 
 	internal LevelReadConfig ReadSettings { get; set; } = new LevelReadConfig();
@@ -329,6 +350,10 @@ internal sealed class ChartConverter : MetadataJsonConverter<Chart>
 			{ WriteIndented = false, }
 		};
 		byte[] bytes = GetIndentByte(writer, options.JsonSerializerOptions.IndentCharacter, 2);
+		// Canonicalize the written condition base to 1 (the game convention); a 0-based source shifts by one.
+		int minConditionId = value.Conditionals.MinPhysicalIndex();
+		options.ConditionIdOffset = minConditionId <= 0 ? 1 - minConditionId : 0;
+		localOptions.ConditionIdOffset = options.ConditionIdOffset;
 		writer.WriteStartObject();
 		writer.WritePropertyName("settings");
 		settingsConverter.Write(writer, value.Settings, options);

@@ -78,107 +78,28 @@ partial class Level
 		{
 			List<IBaseEvent> events = [];
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartArray);
-#if DEBUG
-			int index = 0;
-#endif
-			bool _14_useEffectCanvas = false;
-			float _14_firstDecoTime = float.MaxValue;
-			bool _17_useEaseSequence = false;
-			float _17_firstEaseTime = float.MaxValue;
 			while (reader.Read())
 			{
 				if (reader.TokenType == JsonTokenType.EndArray)
 					break;
-				IBaseEvent? e = null;
-#if DEBUG
+				Utf8JsonReader checkpoint = reader;
+				IBaseEvent? e;
 				try
 				{
 					e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
-					if (options.Version <= 10 && e is Paddles && e["paddles"] is JsonElement { ValueKind: JsonValueKind.Number } p)
-					{
-						p.TryGetInt32(out int paddles);
-						float paddleDistance = 360 / paddles;
-						for (int i = 0; i < paddles; i++)
-						{
-							events.Add(new Paddles()
-							{
-								Angle = e.Angle,
-								TickTime = e.TickTime,
-								Order = e.Order,
-								// Enabled = true,
-								Duration = 0,
-								Paddle = i + 1,
-								NewAngle = i * paddleDistance,
-							});
-						}
-					}
-					else if (options.Version <= 14 && e is Decoration d && d.EffectCanvas)
-					{
-						_14_useEffectCanvas = true;
-						_14_firstDecoTime = float.Min(_14_firstDecoTime, d.TickTime.Tick);
-					}
-					else if (options.Version <= 17 && e is IEaseSequenceEvent s)
-					{
-						_17_useEaseSequence = true;
-						_17_firstEaseTime = float.Min(_17_firstEaseTime, s.TickTime.Tick);
-					}
-					index++;
 				}
-				catch (Exception)
+				catch (JsonException)
 				{
-					Debug.Print($"Current index: {index}");
 					throw;
 				}
-#else
-        Utf8JsonReader checkpoint = reader;
-        try
-        {
-            e = baseEventConverter.Read(ref reader, typeof(IBaseEvent), options);
-        }
-        catch (JsonException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            JsonElement element = JsonElement.ParseValue(ref checkpoint);
-            settings.OnUnreadableEventEncountered(null, element, ex.Message);
-						continue;
-        }
-#endif
-				if (e == null)
+				catch (Exception ex)
+				{
+					JsonElement element = JsonElement.ParseValue(ref checkpoint);
+					settings.OnUnreadableEventEncountered(null, element, ex.Message);
 					continue;
-				events.Add(e);
-			}
-			if(_14_useEffectCanvas)
-			{
-				events.Add(new SetBoolean()
-				{
-					TickTime = new TickTime(_14_firstDecoTime),
-					Order = -999,
-					Enable = true,
-					Var = "vfx.effectCanvas.oldColors",
-				});
-			}
-			if(_17_useEaseSequence)
-			{
-				events.Add(new SetBoolean()
-				{
-					TickTime = new TickTime(_17_firstEaseTime - (/*level.properties.offset ??*/ 8)),
-					Order = -1,
-					Enable = false,
-					Var = "vfx.useVFXDistanceForVFXAngle",
-				});
-				events.Add(new Comment()
-				{
-					Angle = 10,
-					TickTime = new TickTime(_17_firstEaseTime - (/*level.properties.offset ??*/ 8)),
-					Text = """
-	 This boolean was added for backwards compatibility when this level was upgraded from format 17 to format 18.
-	 Version 18: use VFX distance (from ease sequence) for VFX angle calculation
-	 If the new behavior is wanted, simply delete the boolean and this comment.
-	 """
-				});
+				}
+				if (e != null)
+					events.Add(e);
 			}
 			return events;
 		}
@@ -241,11 +162,12 @@ partial class Level
 		}
 		using FileStream manifestFs = File.Open(manifestFilePath, FileMode.Open, FileAccess.Read);
 		level = await FileMainEntryConverter.DeserializeMainEntryAsync<Level>(new StreamDataSource(manifestFs), options, cancellationToken);
+		options.Version = level.Properties.FormatVersion;
 		string defaultLevelFile = Path.Combine(directoryPath, "level.json");
 		if (File.Exists(defaultLevelFile))
 		{
 			using FileStream levelFs = File.Open(defaultLevelFile, FileMode.Open, FileAccess.Read);
-			FileConverter.DeserializeLevel(new StreamDataSource(levelFs), options, level.Variants.Default, settings);
+			FileConverter.DeserializeLevel(BeatBlockUpgrader.Wrap(new StreamDataSource(levelFs), options), options, level.Variants.Default, settings);
 		}
 		foreach (Chart variant in level.Variants)
 		{
@@ -255,14 +177,14 @@ partial class Level
 				if (File.Exists(levelFile))
 				{
 					using FileStream levelFsVariant = File.Open(levelFile, FileMode.Open, FileAccess.Read);
-					FileConverter.DeserializeLevel(new StreamDataSource(levelFsVariant), options, variant, settings);
+					FileConverter.DeserializeLevel(BeatBlockUpgrader.Wrap(new StreamDataSource(levelFsVariant), options), options, variant, settings);
 				}
 			}
 			string chartFile = Path.Combine(directoryPath, ChartNaming.Instance.GetFileName(variant.Name));
 			if (options.Strictness == JsonStrictness.Strict || File.Exists(chartFile))
 			{
 				using FileStream chartFs = File.Open(chartFile, FileMode.Open, FileAccess.Read);
-				FileConverter.DeserializeChart(new StreamDataSource(chartFs), options, variant, settings);
+				FileConverter.DeserializeChart(BeatBlockUpgrader.Wrap(new StreamDataSource(chartFs), options), options, variant, settings);
 			}
 		}
 		if (Directory.Exists(Path.Combine(directoryPath, "tags")))
@@ -272,7 +194,7 @@ partial class Level
 			{
 				TagEventCollection collection = [];
 				using FileStream tagFs = File.Open(tagFile, FileMode.Open, FileAccess.Read);
-				FileConverter.DeserializeTag(new StreamDataSource(tagFs), options, collection, settings);
+				FileConverter.DeserializeTag(BeatBlockUpgrader.Wrap(new StreamDataSource(tagFs), options), options, collection, settings);
 				string tagName = Path.GetFileNameWithoutExtension(tagFile);
 				level.TagEvents[tagName] = collection;
 			}

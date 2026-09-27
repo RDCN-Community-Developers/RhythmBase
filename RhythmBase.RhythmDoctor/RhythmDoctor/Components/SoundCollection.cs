@@ -71,17 +71,6 @@ public class SoundCollection : IReadOnlyDictionary<SoundType, Audio?>
 		value = default;
 		return false;
 	}
-	/*
-			"ClapSoundHold": ["ClapSoundHoldLongEnd", "ClapSoundHoldLongStart", "ClapSoundHoldShortEnd", "ClapSoundHoldShortStart"],
-			"PulseSoundHold": ["PulseSoundHoldStart", "PulseSoundHoldShortEnd", "PulseSoundHoldEnd", "PulseSoundHoldStartAlt", "PulseSoundHoldShortEndAlt", "PulseSoundHoldEndAlt"],
-			"ClapSoundHoldP2": ["ClapSoundHoldLongEndP2", "ClapSoundHoldLongStartP2", "ClapSoundHoldShortEndP2", "ClapSoundHoldShortStartP2"],
-			"PulseSoundHoldP2": ["PulseSoundHoldStartP2", "PulseSoundHoldShortEndP2", "PulseSoundHoldEndP2", "PulseSoundHoldStartAltP2", "PulseSoundHoldShortEndAltP2", "PulseSoundHoldEndAltP2"],
-			"FreezeshotSound": ["FreezeshotSoundCueLow", "FreezeshotSoundCueHigh", "FreezeshotSoundRiser", "FreezeshotSoundCymbal"],
-			"BurnshotSound": ["BurnshotSoundCueLow", "BurnshotSoundCueHigh", "BurnshotSoundRiser", "BurnshotSoundCymbal"],
-			"HoldshotSound": ["HoldshotSoundCue", "HoldshotSoundClapStart", "HoldshotSoundClapShortEnd", "HoldshotSoundClapLongEnd"]
-
-	 */
-
 	///<inheritdoc/>
 	IEnumerator IEnumerable.GetEnumerator()
 	{

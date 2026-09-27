@@ -7,8 +7,8 @@
 		<AssemblyName>RhythmBase.RhythmDoctor</AssemblyName>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<Title>RhythmBase.RhythmDoctor</Title>
-		<Version>1.3.11-alpha9</Version>
-		<RhythmBaseVersion Condition="'$(RhythmBaseVersion)' == ''">1.3.11-alpha9</RhythmBaseVersion>
+		<Version>1.3.12</Version>
+		<RhythmBaseVersion Condition="'$(RhythmBaseVersion)' == ''">1.3.12</RhythmBaseVersion>
 		<Authors>obugs</Authors>
 		<Description>Rhythm Doctor level adapter for RhythmBase. Provides complete event model, serialization, and beat calculator for Rhythm Doctor levels.</Description>
 		<PackageProjectUrl>https://github.com/RDCN-Community-Developers/RhythmToolkit</PackageProjectUrl>

@@ -3,90 +3,8 @@ using System.Text.Json;
 
 namespace RhythmBase.BeatBlock.Serialization;
 
-internal class BaseEventConverter : BackwardCompatibleMetadataJsonConverter
+internal class BaseEventConverter : MetadataJsonConverter<IBaseEvent>
 {
-	private float _6_bpm;
-	private float _12_playSongTime;
-	public void Reset()
-	{
-		_6_bpm = 0;
-		_12_playSongTime = 0;
-	}
-	public BaseEventConverter()
-	{
-		Reset();
-	}
-	protected override void InitializeUpgraters()
-	{
-		Register<Hold>(2, (e) =>
-		{
-			e.Angle = e["angle1"].TryGetSingle(out var angle1) ? angle1 : 0;
-			e["angle1"] = default;
-		});
-		Register<MineHold>(3, (e) =>
-		{
-			e.Angle = e["angle1"].TryGetSingle(out var angle1) ? angle1 : 0;
-			e["angle1"] = default;
-		});
-		Register<Play>(6, (e) =>
-		{
-			if (e is not Play p) return;
-			_6_bpm = p.BeatsPerMinute;
-		});
-		Register<Paddles>(6, (e) =>
-		{
-			if (e is not Paddles p) return;
-			p.Duration /= 3600 / _6_bpm;
-		});
-		Register<Decoration>(9, (e) =>
-		{
-			if (e is not Decoration p) return;
-			p.DrawOrder = p.Order;
-			p.Order = null;
-		});
-		Register<Decoration>(11, (e) =>
-		{
-			if (e is not Decoration p) return;
-			p.Order = p.Order is null or 0 ? -999 : p.Order;
-		});
-		Register<SetColor>(11, (e) =>
-		{
-			if (e is not SetColor p) return;
-			p.Order = p.Order is null or 0 ? -999 : p.Order;
-		});
-		Register<Ease>(11, (e) =>
-		{
-			if (e is not Ease p) return;
-			p.Order = p.Order is null or 0 ? -999 : p.Order;
-		});
-		Register<Play>(12, (e) =>
-		{
-			if (e is not Play p) return;
-			_12_playSongTime = p.TickTime.Tick;
-		});
-		Register<SetBeatsPerMinute>(12, (e) =>
-		{
-			if (e is not SetBeatsPerMinute s) return;
-			if (_12_playSongTime == 0) return;
-			e.TickTime += _12_playSongTime;
-		});
-		//Register<PlaySound>(13, (e) =>
-		//{
-		//	if(e is not PlaySound p) return;
-		//	if(false /*not in built-in sounds*/)
-		//		p.Sound += ".ogg";
-		//});
-		Register<Paddles>(15, (e) =>
-		{
-			if (e is not Paddles p) return;
-			p.ForceStoreInLevel = true;
-		});
-		Register<Decoration>(16, (e) =>
-		{
-			if (e is not Decoration d) return;
-			d.EffectCanvasRaw = d.EffectCanvas;
-		});
-	}
 	public override bool CanConvert(Type typeToConvert)
 	{
 		return Type.IsAssignableFrom(typeToConvert);
@@ -110,14 +28,8 @@ internal class BaseEventConverter : BackwardCompatibleMetadataJsonConverter
 		if (EnumConverter.TryParse(ref reader, out EventType typeEnum))
 			e = EventConverterMap.GetConverter(typeEnum).ReadProperties(ref checkpoint, options);
 		else
-		{
-			if (options.Version <= 1 && reader.ValueTextEquals("beat"u8))
-				e = EventConverterMap.GetConverter(EventType.Block).ReadProperties(ref checkpoint, options);
-			else if (options.Version <= 10 && reader.ValueTextEquals("width"u8))
-				e = EventConverterMap.GetConverter(EventType.Paddles).ReadProperties(ref checkpoint, options);
-			else
-				e = ReadForwardEvent(ref checkpoint) ?? throw new JsonException("Unknown event type and failed to parse.");
-		}
+			// Temporarily disabled: missing-type inference is replaced by BeatBlockUpgrader.
+			e = ReadForwardEvent(ref checkpoint) ?? throw new JsonException("Unknown event type and failed to parse.");
 		JsonException.ThrowIfNotMatch(ref checkpoint, JsonTokenType.EndObject);
 		reader = checkpoint;
 		return e;

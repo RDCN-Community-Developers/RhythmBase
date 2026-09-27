@@ -40,7 +40,7 @@ internal class ConditionalConverter : MetadataJsonConverter<BaseConditional>
 		writer.WriteString("name"u8, value.Name);
 		writer.WriteString("tag"u8, value.Tag);
 		if (value.ParentCollection != null)
-			writer.WriteNumber("id"u8, value.ParentCollection.LogicalIndexOf(value));
+			writer.WriteNumber("id"u8, value.ParentCollection.LogicalIndexOf(value) + serializer.ConditionIdOffset);
 		switch (value.Type)
 		{
 			case BaseConditional.ConditionType.LastHit:

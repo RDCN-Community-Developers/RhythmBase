@@ -40,7 +40,7 @@ internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEve
 					value[fieldName] = fieldValue;
 #if DEBUG
 					if ((value.Type, fieldName) is not (EventType.FloatingText, "id") and not (EventType.AdvanceText, "id"))
-					Console.WriteLine($"{options.Version}\t| {value.Type}\t| {fieldName} => ({value[fieldName].ValueKind}){value[fieldName]}");
+						Console.WriteLine($"{options.Version}\t| {value.Type}\t| {fieldName} => ({value[fieldName].ValueKind}){value[fieldName]}");
 #endif
 				}
 			}
@@ -91,7 +91,7 @@ internal abstract class MemberConverter<TEvent> : MemberConverterBase where TEve
 		if (value.RunTag)
 			writer.WriteBoolean("runTag"u8, true);
 		if (!value.Condition.IsEmpty)
-			writer.WriteString("if"u8, value.Condition.Serialize());
+			writer.WriteString("if"u8, value.Condition.Serialize(options.ConditionIdOffset));
 		if (!value.Active)
 			writer.WriteBoolean("active"u8, false);
 	}

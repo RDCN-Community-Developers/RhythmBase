@@ -7,8 +7,8 @@
 		<AssemblyName>RhythmBase.Adofai</AssemblyName>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<Title>RhythmBase.Adofai</Title>
-		<Version>1.3.11-alpha9</Version>
-		<RhythmBaseVersion Condition="'$(RhythmBaseVersion)' == ''">1.3.11-alpha9</RhythmBaseVersion>
+		<Version>1.3.12</Version>
+		<RhythmBaseVersion Condition="'$(RhythmBaseVersion)' == ''">1.3.12</RhythmBaseVersion>
 		<Authors>obugs</Authors>
 		<Description>A Dance of Fire and Ice level adapter for RhythmBase. Provides event model, filter system, and serialization for Adofai levels.</Description>
 		<PackageProjectUrl>https://github.com/RDCN-Community-Developers/RhythmToolkit</PackageProjectUrl>

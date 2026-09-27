@@ -734,6 +734,9 @@ public partial class ConverterGenerator : IIncrementalGenerator
 				return;
 			bool multiple = gens?.Length > 1;
 			StringBuilder sb = new();
+			sb.AppendLine("using RhythmBase.Global.Serialization;");
+			sb.AppendLine("using System.Buffers;");
+			sb.AppendLine("using System.Text.Json;");
 			sb.AppendLine($"namespace RhythmBase.{registryId}.Serialization;");
 			foreach (var info in gens ?? [])
 			{
@@ -742,6 +745,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 					("infoRootClassType", info.RootClassType.ToDisplayString()),
 					("infoClassTypeEnumToDisplayString", info.ClassTypeEnum.ToDisplayString()),
 					("enumSuffix", multiple ? info.ClassTypeEnum.Name : ""),
+					("registryId", registryId),
 					("mtpName", mtpName));
 				sb.AppendLine(src);
 			}

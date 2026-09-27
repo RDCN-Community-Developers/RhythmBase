@@ -10,31 +10,42 @@ public struct Hit
 	/// <summary>
 	/// Gets the moment of pressing the beat.
 	/// </summary>
-	public TickTime TickTime { get; }
+	public readonly TickTime TickTime { get; }
 	/// <summary>
 	/// Gets the length of time the player held the beat.
 	/// </summary>
-	public float Hold { get; }
+	public readonly float Hold { get; }
 	/// <summary>
 	/// Gets the source event for this hit.
 	/// </summary>
-	public BaseBeat Source { get; }
+	public readonly BaseBeat Source { get; }
 	/// <summary>
 	/// Gets a value indicating whether this hit needs to be held down continuously.
 	/// </summary>
 	public readonly bool Holdable => Hold > 0f;
+	public readonly PlayerType Player { get; }
+	public readonly float MistakeWeitght { get; }
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Hit"/> struct.
 	/// </summary>
-	/// <param name="parent">The source event for this hit.</param>
+	/// <param name="source">The source event for this hit.</param>
 	/// <param name="beat">The moment of pressing the beat.</param>
 	/// <param name="hold">The length of time the player held the beat.</param>
-	public Hit(BaseBeat parent, TickTime beat, float hold = 0f)
+	internal Hit(
+		BaseBeat source,
+		TickTime beat,
+		PlayerType player,
+		float hold = 0f,
+		float mistakeWeight = 1f
+		)
 	{
-		this = default;
-		Source = parent;
+		if(player is not PlayerType.P1 and not PlayerType.P2)
+			throw new ArgumentException("Player must be either P1 or P2.", nameof(player));
+		Source = source;
 		TickTime = beat;
+		Player = player;
 		Hold = hold;
+		MistakeWeitght = mistakeWeight;
 	}
 	/// <summary>
 	/// Indicates whether the specified <see cref="Hit"/> is compatible to the current <see cref="Hit"/>.
@@ -71,7 +82,7 @@ public struct Hit
 	/// <returns>Returns <c>true</c> if the hits were successfully merged; otherwise, <c>false</c>.</returns>
 	public bool Merge(Hit other, [MaybeNullWhen(false)] out Hit result)
 	{
-		if (!IsCompatible(other))
+		if (!IsCompatible(other) || this.Player != other.Player)
 		{
 			result = default;
 			return false;
@@ -96,7 +107,7 @@ public struct Hit
 			float rangeEnd = rangeHit.TickTime.Tick + rangeHit.Hold;
 			if (pointTick >= rangeStart && pointTick <= rangeEnd)
 			{
-				result = new Hit(Source, rangeHit.TickTime, rangeHit.Hold);
+				result = new Hit(Source, rangeHit.TickTime, Player, rangeHit.Hold);
 				return true;
 			}
 			result = default;
@@ -108,12 +119,12 @@ public struct Hit
 		float end2 = other.TickTime.Tick + other.Hold;
 		if (start1 <= start2 && end1 >= end2)
 		{
-			result = new Hit(Source, TickTime, Hold);
+			result = new Hit(Source, TickTime, Player, Hold);
 			return true;
 		}
 		if (start2 <= start1 && end2 >= end1)
 		{
-			result = new Hit(Source, other.TickTime, other.Hold);
+			result = new Hit(Source, other.TickTime, Player, other.Hold);
 			return true;
 		}
 		result = default;

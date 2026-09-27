@@ -208,7 +208,13 @@ public struct Condition
 	/// Converts conditions to a string.
 	/// </summary>
 	/// <returns>A string in the format supported by RDLevel.</returns>
-	public readonly string Serialize()
+	public readonly string Serialize() => Serialize(0);
+	/// <summary>
+	/// Converts conditions to a string, offsetting the numeric indices by <paramref name="idOffset"/>.
+	/// </summary>
+	/// <param name="idOffset">The amount added to every numeric condition index (1-base canonicalization).</param>
+	/// <returns>A string in the format supported by RDLevel.</returns>
+	public readonly string Serialize(int idOffset)
 	{
 		StringBuilder sb = new();
 		bool isFirst = true;
@@ -227,7 +233,7 @@ public struct Condition
 						sb.Append('&');
 					isFirst = false;
 					if (!isEnabled) sb.Append('~');
-					sb.Append(index);
+					sb.Append(index + idOffset);
 				}
 			}
 		}

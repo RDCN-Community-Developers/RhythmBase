@@ -1,64 +1,50 @@
 /// <summary>
-/// A JSON converter for <see cref="_g_infoRootClassType_"/> that uses metadata-aware serializer options.
+/// Scaffolding for the <see cref="_g_infoRootClassType_"/> JSON upgrade pass of this project.
+/// Derive from this type and implement <see cref="AddUpgraders"/> with the concrete registrations.
+/// The discriminator resolution, version gating and data-source wiring are provided here so every
+/// project behaves consistently.
 /// </summary>
-internal abstract class BackwardCompatible_g_mtpName_MetadataJsonConverter : RhythmBase.Global.Serialization.MetadataJsonConverter<_g_infoRootClassType_>
+internal abstract class _g_mtpName__g_registryId_UpgraderBase
 {
-	protected class Upgrater
+	private readonly JsonUpgradePipeline _pipeline;
+
+	protected _g_mtpName__g_registryId_UpgraderBase()
 	{
-		internal int MaxVersion { get; init; }
-		internal required Action<_g_infoRootClassType_> UpgrateFunc { get; init; }
-		internal required _g_infoClassTypeEnumToDisplayString_ Type { get; init; }
+		JsonUpgradePipeline pipeline = new();
+		// Event arrays live either under "events" or as the document root array.
+		pipeline.AddDiscriminator("$.events[*]", "type", ResolveEventType);
+		pipeline.AddDiscriminator("$[*]", "type", ResolveEventType);
+		AddUpgraders(pipeline);
+		_pipeline = pipeline;
 	}
-	private readonly List<Upgrater> _upgraters = [];
-	private readonly EnumCollection<_g_infoClassTypeEnumToDisplayString_> _typeHasUpgrater = [];
-	private int _maxVersion;
+
+	/// <summary>Registers this project's concrete upgraders.</summary>
+	protected abstract void AddUpgraders(JsonUpgradePipeline pipeline);
+
 	/// <summary>
-	/// The maximum version that this converter can upgrade.
+	/// Returns the source version of the document. The default uses the version already known to the host
+	/// (for example a value read from a separate manifest); override to read it from the document instead.
 	/// </summary>
-	internal int MaxVersion => _maxVersion;
-	/// <summary>
-	/// The types of events that this converter can upgrade.
-	/// </summary>
-	internal EnumCollection<_g_infoClassTypeEnumToDisplayString_> TypeHasUpgrater => _typeHasUpgrater;
-	/// <summary>
-	/// Registers an upgrader for a specific event type and version.
-	/// </summary>
-	/// <typeparam name="T">The type of the event to upgrade.</typeparam>
-	/// <param name="version">
-	/// The version for which to register the upgrader.
-	/// Versions <b>equal to or lower than</b> this will be affected by this upgrader.
-	/// </param>
-	/// <param name="upgrateAction">The action to perform when upgrading the event.</param>
-	protected void Register<T>(int version, Action<_g_infoRootClassType_> upgrateAction) where T : _g_infoRootClassType_, new()
+	protected virtual int ReadSourceVersion(ReadOnlySequence<byte> source, MetadataJsonSerializerOptions options) => options.Version;
+
+	/// <summary>Creates the sub-project upgrade state, or <see langword="null"/> when it needs none.</summary>
+	protected virtual JsonUpgradeState? CreateState() => null;
+
+	/// <summary>Wraps a data source so its JSON is upgraded before it reaches the deserializer.</summary>
+	public IJsonDataSource WrapSource(IJsonDataSource source, MetadataJsonSerializerOptions options, int targetVersion)
 	{
-		var type = EventTypeRegistry.ToEnum_g_enumSuffix_<T>();
-		_maxVersion = int.Max(_maxVersion, version);
-		_typeHasUpgrater.Add(type);
-		_upgraters.Add(new Upgrater()
-		{
-			MaxVersion = version,
-			Type = type,
-			UpgrateFunc = upgrateAction
-		});
+		if (!options.UpgradeToLatest)
+			return source;
+		return new JsonUpgradingDataSource(source, _pipeline, targetVersion, s => ReadSourceVersion(s, options), CreateState());
 	}
+
 	/// <summary>
-	/// Upgrades the specified event to the latest version if an upgrader is registered for its type and version.
+	/// Resolves the discriminator string to this project's enum key. Override when the project has a generated
+	/// <c>EnumConverter.TryParse(ref Utf8JsonReader, out TEnum)</c> overload; the default matches nothing.
 	/// </summary>
-	/// <param name="version">The version of the event to upgrade.</param>
-	/// <param name="type">The type of the event to upgrade.</param>
-	/// <returns>An enumerable of upgraders that can upgrade the event.</returns>
-	protected IEnumerable<Upgrater> GetUpgraters(int version, _g_infoClassTypeEnumToDisplayString_ type)
+	protected virtual bool ResolveEventType(ref Utf8JsonReader reader, out int key)
 	{
-		foreach (Upgrater upgrater in _upgraters)
-			if (upgrater.Type == type && upgrater.MaxVersion >= version)
-				yield return upgrater;
+		key = 0;
+		return false;
 	}
-	internal BackwardCompatible_g_mtpName_MetadataJsonConverter()
-	{
-		InitializeUpgraters();
-	}
-	/// <summary>
-	/// Initializes the upgraders for this converter. This method is called once when the converter is first used.
-	/// </summary>
-	protected abstract void InitializeUpgraters();
 }

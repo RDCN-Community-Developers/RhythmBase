@@ -352,6 +352,21 @@ public class ConditionalList : ICollection<BaseConditional>, IList<BaseCondition
 
 		return -1;
 	}
+	/// <summary>
+	/// Gets the smallest physical (on-disk) index in use, or -1 when the collection is empty. Used to
+	/// canonicalize the written condition base to 1.
+	/// </summary>
+	internal int MinPhysicalIndex()
+	{
+		int min = -1;
+		for (int i = 0; i < _count; i++)
+		{
+			int index = _physical_index[i];
+			if (min < 0 || index < min)
+				min = index;
+		}
+		return min;
+	}
 	/// <inheritdoc/>
 	public IEnumerator<BaseConditional> GetEnumerator()
 	{

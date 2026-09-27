@@ -11,8 +11,6 @@ internal class AudioConverter : MetadataJsonConverter<Audio>
 	{
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject, JsonTokenType.String);
 		Audio audio = new();
-		int version = options.Version;
-		bool upgrade = options.UpgradeToLatest;
 		if (reader.TokenType == JsonTokenType.String)
 		{
 			audio.Filename = reader.GetString() ?? "";
@@ -23,22 +21,13 @@ internal class AudioConverter : MetadataJsonConverter<Audio>
 			JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.PropertyName);
 			if (reader.ValueTextEquals("filename"u8) && reader.Read())
 			{
-				string filename = reader.GetString() ?? "";
-				audio.Filename = upgrade && version <= 42
-					? (FileReference)(filename switch
-					{
-						"Stick" => "StickOld",
-						"ClosedHat" => "ClosedHatOld",
-						_ => filename
-					})
-					: (FileReference)filename;
+				// Temporarily disabled: filename upgrades are now handled by RhythmDoctorUpgrader.
+				audio.Filename = reader.GetString() ?? "";
 			}
 			else if (reader.ValueTextEquals("volume"u8) && reader.Read())
 			{
-				var volume = reader.GetInt32();
-				if (upgrade && version <= 9)				
-					volume = (int)(volume / 0.4f);				
-				audio.Volume = volume;
+				// Temporarily disabled: volume upgrades are now handled by RhythmDoctorUpgrader.
+				audio.Volume = reader.GetInt32();
 			}
 			else if (reader.ValueTextEquals("pitch"u8) && reader.Read())
 				audio.Pitch = reader.GetInt32();

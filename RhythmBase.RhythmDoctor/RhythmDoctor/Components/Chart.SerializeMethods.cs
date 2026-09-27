@@ -29,7 +29,7 @@ partial class Chart
 		using FileStream stream = File.Open(filepath, FileMode.Open, FileAccess.Read);
 		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
 		options.DirectoryName = new FileInfo(filepath).Directory?.FullName;
-		Chart chart = await FileMainEntryConverter.DeserializeMainEntryAsync<Chart>(new StreamDataSource(stream), options, cancellationToken);
+		Chart chart = await FileMainEntryConverter.DeserializeMainEntryAsync<Chart>(RhythmDoctorUpgrader.Wrap(new StreamDataSource(stream), options), options, cancellationToken);
 		chart.Filepath = chart.ResolvedPath = Path.GetFullPath(filepath);
 		if (ChartNaming.Instance.TryGetChartName(Path.GetFileName(filepath), out string name))
 			chart.Name = name;
@@ -69,7 +69,7 @@ partial class Chart
 	{
 		settings ??= new LevelReadConfig();
 		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
-		return await FileMainEntryConverter.DeserializeMainEntryAsync<Chart>(new StreamDataSource(rdlevelStream), options, cancellationToken);
+		return await FileMainEntryConverter.DeserializeMainEntryAsync<Chart>(RhythmDoctorUpgrader.Wrap(new StreamDataSource(rdlevelStream), options), options, cancellationToken);
 	}
 	/// <summary>
 	/// Saves this chart to the specified stream.
@@ -95,7 +95,7 @@ partial class Chart
 	{
 		settings ??= new LevelReadConfig();
 		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
-		return FileMainEntryConverter.DeserializeMainEntry<Chart>(new ReadOnlyMemoryDataSource(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(json))), options);
+		return FileMainEntryConverter.DeserializeMainEntry<Chart>(RhythmDoctorUpgrader.Wrap(new ReadOnlyMemoryDataSource(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(json))), options), options);
 	}
 	/// <summary>
 	/// Loads a single chart from a <see cref="JsonDocument"/>.
@@ -104,7 +104,7 @@ partial class Chart
 	{
 		settings ??= new LevelReadConfig();
 		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
-		return FileMainEntryConverter.DeserializeMainEntry<Chart>(new JsonDocumentDataSource(jsonDocument), options);
+		return FileMainEntryConverter.DeserializeMainEntry<Chart>(RhythmDoctorUpgrader.Wrap(new JsonDocumentDataSource(jsonDocument), options), options);
 	}
 	/// <summary>
 	/// Serializes this chart to a JSON string.

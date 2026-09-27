@@ -73,6 +73,7 @@ public static partial class Extensions
 				e,
 				e.TickTime +
 					(e.Tick * (e.Length - synco - correction)),
+							PlayerType.P1,
 				e.Hold);
 			}
 		}
@@ -176,7 +177,8 @@ public static partial class Extensions
 		/// <summary>
 		/// Gets the hit information for the current instance.
 		/// </summary>
-		public Hit Hit => new(e, e.TickTime, e.Hold);
+		public Hit Hit => new(e, e.TickTime,
+							PlayerType.P1, e.Hold);
 		/// <summary>
 		/// Get the sequence of <see cref="T:PulseFreeTimeBeat" /> belonging to this <see cref="T:AddFreeTimeBeat" />, return all of the <see cref="T:PulseFreeTimeBeat" /> from the time the pulse was created to the time it was removed or hit.
 		/// </summary>
@@ -246,6 +248,7 @@ public static partial class Extensions
 						hits[i * sub + j] = new Hit(
 							e,
 							e.TickTime + hitTickOffset,
+							PlayerType.P1,
 							hold);
 					}
 				}
@@ -349,7 +352,8 @@ public static partial class Extensions
 		/// <summary>
 		/// Gets the hit information for the current instance.
 		/// </summary>
-		public Hit Hit => new(e, e.TickTime, e.Hold);
+		public Hit Hit => new(e, e.TickTime,
+							PlayerType.P1, e.Hold);
 	}
 	extension(FloatingText e)
 	{
