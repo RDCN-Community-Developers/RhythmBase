@@ -36,11 +36,18 @@ public partial struct _g_TickTimeName_ : ITickTime<_g_TickTimeName_>
 	{
 		get
 		{
-			if (!_isBPMLoaded)
+			if (_calculator is not null)
 			{
-				_BPM = _calculator?.BeatsPerMinuteOf(this) ?? 0;
-				_isBPMLoaded = true;
+				int version = _calculator.VersionAt(Tick);
+				if (!_isBPMLoaded || _bpmVersion != version)
+				{
+					_BPM = _calculator.BeatsPerMinuteOf(this);
+					_bpmVersion = version;
+					_isBPMLoaded = true;
+				}
 			}
+			else if (!_isBPMLoaded)
+				_isBPMLoaded = true;
 			return _BPM;
 		}
 	}
@@ -368,6 +375,7 @@ public partial struct _g_TickTimeName_ : ITickTime<_g_TickTimeName_>
 	private bool _isTickLoaded;
 	private bool _isTimeSpanLoaded;
 	private bool _isBPMLoaded;
+	private int _bpmVersion;
 	private float _tick;
 	private TimeSpan _TimeSpan;
 	private float _BPM;

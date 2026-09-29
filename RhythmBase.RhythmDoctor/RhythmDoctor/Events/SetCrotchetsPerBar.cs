@@ -37,10 +37,19 @@ public record class SetCrotchetsPerBar : BaseEvent, IBarBeginningEvent
 		get => _crotchetsPerBar + 1;
 		set
 		{
-			_crotchetsPerBar = Math.Max(0, value - 1);
-			if (_tick._calculator != null)
+			int nv = Math.Max(1, value);
+			if (nv == _crotchetsPerBar + 1) return;
+			Chart? chart = _tick.BaseChart;
+			if (chart is not null && Active)
 			{
-				TickTime += 0f;
+				// 通过既有的删除/新增流程维护 _cpbCache、后续小节重排以及修正用的自动事件
+				chart.Remove(this, Config.Strategy);
+				_crotchetsPerBar = nv - 1;
+				chart.Add(this, Config.Strategy);
+			}
+			else
+			{
+				_crotchetsPerBar = nv - 1;
 			}
 		}
 	}

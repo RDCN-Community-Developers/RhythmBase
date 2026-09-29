@@ -15,6 +15,55 @@ public partial class _g_calculatorSymbolName_
 {
 	internal readonly _g_Chart_ Collection;
 	private BpmCache[] _bpmCache = [];
+	/// <summary>
+	/// Tolerance used when comparing beat/tick positions that should be identical but may drift by floating point error.
+	/// </summary>
+	private const float TickEpsilon = 1e-4f;
+	/// <summary>
+	/// Tolerance used when comparing time spans that should be identical but may drift by floating point error.
+	/// </summary>
+	private static readonly TimeSpan TimeSpanEpsilon = TimeSpan.FromMilliseconds(0.001);
+	private int _version;
+	private readonly System.Collections.Generic.List<(float Tick, int Version)> _versionMarks = [];
+	/// <summary>
+	/// Marks the cached layout as changed from <paramref name="tick"/> onward. Positions before that tick are
+	/// unaffected, so only cached values at or after it are invalidated.
+	/// </summary>
+	internal void BumpVersionAt(float tick)
+	{
+		int version = ++_version;
+		for (int i = _versionMarks.Count - 1; i >= 0; --i)
+		{
+			if (_versionMarks[i].Tick >= tick - TickEpsilon)
+				_versionMarks.RemoveAt(i);
+			else
+				break;
+		}
+		_versionMarks.Add((tick, version));
+	}
+	/// <summary>
+	/// Invalidates every cached value regardless of position.
+	/// </summary>
+	internal void InvalidateAll() => BumpVersionAt(float.NegativeInfinity);
+	/// <summary>
+	/// Gets the version in effect at <paramref name="tick"/>. Cached values compare against this to decide staleness.
+	/// </summary>
+	internal int VersionAt(float tick)
+	{
+		int lo = 0, hi = _versionMarks.Count - 1, result = 0;
+		while (lo <= hi)
+		{
+			int mid = (lo + hi) >> 1;
+			if (_versionMarks[mid].Tick <= tick + TickEpsilon)
+			{
+				result = _versionMarks[mid].Version;
+				lo = mid + 1;
+			}
+			else
+				hi = mid - 1;
+		}
+		return result;
+	}
 	internal _g_calculatorSymbolName_(_g_Chart_ chart)
 	{
 		Collection = chart;
@@ -24,6 +73,7 @@ public partial class _g_calculatorSymbolName_
 		if (_bpmCache.Length == 0)
 		{
 			_bpmCache = [bpm];
+			BumpVersionAt(bpm.Tick);
 			return;
 		}
 		int index = _bpmCache.BinarySearch(bpm);
@@ -32,10 +82,11 @@ public partial class _g_calculatorSymbolName_
 		BpmCache a, b;
 		if (index < 0) a = BpmCache.Default;
 		else a = _bpmCache[index];
-		if (a.Tick == bpm.Tick && (a.Bpm == bpm.Bpm)) return;
+		if (Math.Abs(a.Tick - bpm.Tick) <= TickEpsilon && (a.Bpm == bpm.Bpm)) return;
 		if (index >= _bpmCache.Length - 1)
 		{
 			_bpmCache = [.. _bpmCache, bpm];
+			BumpVersionAt(bpm.Tick);
 			return;
 		}
 		else
@@ -48,12 +99,13 @@ public partial class _g_calculatorSymbolName_
 				ti.TimeSpan += diff;
 				_bpmCache[i] = ti;
 			}
-			if (a.Tick != bpm.Tick)
+			if (Math.Abs(a.Tick - bpm.Tick) > TickEpsilon)
 				_bpmCache = [.. _bpmCache[..(index + 1)], bpm, .. _bpmCache[(index + 1)..]];
 			else if (index < 0)
 				_bpmCache = [bpm, .. _bpmCache];
 			else
 				_bpmCache[index] = bpm;
+			BumpVersionAt(bpm.Tick);
 			return;
 		}
 	}
@@ -69,6 +121,7 @@ public partial class _g_calculatorSymbolName_
 		if (index == _bpmCache.Length - 1)
 		{
 			_bpmCache = [.. _bpmCache[..(_bpmCache.Length - 1)]];
+			BumpVersionAt(bpm.Tick);
 			return;
 		}
 		else
@@ -82,6 +135,7 @@ public partial class _g_calculatorSymbolName_
 				_bpmCache[i] = ti;
 			}
 			_bpmCache = [.. _bpmCache[..index], .. _bpmCache[(index + 1)..]];
+			BumpVersionAt(bpm.Tick);
 			return;
 		}
 	}
@@ -110,12 +164,12 @@ public partial class _g_calculatorSymbolName_
 		foreach (BpmCache cache in cacheSet)
 		{
 			float cbeat = cache.Tick;
-			if (cbeat < tick)
+			if (cbeat < tick - TickEpsilon)
 			{
 				last = cache;
 				continue;
 			}
-			if (cbeat == tick)
+			if (cbeat <= tick + TickEpsilon)
 				return cache.TimeSpan;
 			break;
 		}
@@ -129,12 +183,12 @@ public partial class _g_calculatorSymbolName_
 		foreach (BpmCache cache in cacheSet)
 		{
 			TimeSpan ctime = cache.TimeSpan;
-			if (ctime < timeSpan)
+			if (ctime < timeSpan - TimeSpanEpsilon)
 			{
 				last = cache;
 				continue;
 			}
-			if (ctime == timeSpan)
+			if (ctime <= timeSpan + TimeSpanEpsilon)
 				return cache.Tick;
 			break;
 		}
@@ -182,12 +236,12 @@ public partial class _g_calculatorSymbolName_
 		foreach (BpmCache cache in _bpmCache)
 		{
 			float cbeat = cache.Tick;
-			if (cbeat < beat.Tick)
+			if (cbeat < beat.Tick - TickEpsilon)
 			{
 				last = cache;
 				continue;
 			}
-			if (cbeat == beat.Tick)
+			if (cbeat <= beat.Tick + TickEpsilon)
 				return cache.Bpm;
 			break;
 		}

@@ -99,7 +99,7 @@ partial struct TickTime
 			result._isTickLoaded = true;
 			result._isBarBeatLoaded = false;
 		}
-		if (left._isBarBeatLoaded)
+		else if (left._isBarBeatLoaded)
 		{
 			(result._b_bar, result._b_beat) = (left._b_bar, left._b_beat - right);
 			result._isBarBeatLoaded = true;
@@ -124,11 +124,18 @@ partial struct TickTime
 	{
 		get
 		{
-			if (!_isCPBLoaded)
+			if (_calculator is not null)
 			{
-				_CPB = _calculator?.CrotchetsPerBarOf(this) ?? 0;
-				_isCPBLoaded = true;
+				int version = _calculator.VersionAt(Tick);
+				if (!_isCPBLoaded || _cpbVersion != version)
+				{
+					_CPB = _calculator.CrotchetsPerBarOf(this);
+					_cpbVersion = version;
+					_isCPBLoaded = true;
+				}
 			}
+			else if (!_isCPBLoaded)
+				_isCPBLoaded = true;
 			return _CPB;
 		}
 	}
@@ -189,6 +196,8 @@ partial struct TickTime
 		_ = Tick;
 		_isBarBeatLoaded = false;
 		_isTimeSpanLoaded = false;
+		_isCPBLoaded = false;
+		_isBPMLoaded = false;
 	}
 	public partial void Cache()
 	{
@@ -202,7 +211,9 @@ partial struct TickTime
 	internal partial void ResetBPM()
 	{
 		if (!_isTickLoaded)
-			_tick = _calculator?.TimeSpanToTick(_TimeSpan) - 1f ?? throw new InvalidRDBeatException();
+			_tick = (_isBarBeatLoaded
+				? _calculator?.BarBeatToTick(_b_bar, _b_beat) - 1f
+				: _calculator?.TimeSpanToTick(_TimeSpan) - 1f) ?? throw new InvalidRDBeatException();
 		_isTickLoaded = true;
 		_isTimeSpanLoaded = false;
 		_isBPMLoaded = false;
@@ -317,4 +328,5 @@ partial struct TickTime
 	private int _b_bar;
 	private float _b_beat;
 	private int _CPB;
+	private int _cpbVersion;
 }

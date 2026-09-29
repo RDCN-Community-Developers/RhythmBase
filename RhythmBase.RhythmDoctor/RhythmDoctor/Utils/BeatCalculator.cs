@@ -49,12 +49,19 @@ partial class BeatCalculator
 	private CpbCache[] _cpbCache = [];
 	internal bool AddCpbAt(CpbCache cpb, byte strategy, out CpbCache fix) // 返回值表示是否需要插入一个新的 cpb 来修正节拍位置，fix 是需要插入的 cpb
 	{
+		// 仅从该拍号位置起失效，变更点之前的缓存结果不受影响
+		bool result = AddCpbAtInternal(cpb, strategy, out fix);
+		BumpVersionAt(cpb.Tick);
+		return result;
+	}
+	private bool AddCpbAtInternal(CpbCache cpb, byte strategy, out CpbCache fix)
+	{
 		bool moveTrival = (strategy & 0b10) == 0; // 是否需要移动变动部分小节内相对于事件自身所在小节的节拍不动的事件
 		fix = CpbCache.Default;
 		if (_cpbCache.Length == 0)
 		{
 			// 如果 cpb 的值不是默认值 (8), 需要迁移后续事件
-			if ((strategy & 0b01) != 0) MoveEvents(8, cpb, null, moveTrival);
+			if ((strategy & 0b01) != 0) MoveEvents(DefaultCpb, cpb, null, moveTrival);
 			_cpbCache = [cpb]; // 唯一的 cpb
 			return false;
 		}
@@ -66,6 +73,13 @@ partial class BeatCalculator
 		else a = _cpbCache[index];
 		if (index >= _cpbCache.Length - 1) // cpb 被添加到最后
 		{
+			if (Math.Abs(a.Tick - cpb.Tick) <= TickEpsilon) // 同一位置以最后一次设置为准，避免重复项导致扫描取到旧值
+			{
+				if (a.Cpb == cpb.Cpb) return false;
+				if ((strategy & 0b01) != 0) MoveEvents(a.Cpb, cpb, null, moveTrival);
+				_cpbCache[index] = cpb;
+				return false;
+			}
 			if ((strategy & 0b01) != 0) MoveEvents(a.Cpb, cpb, null, moveTrival);
 			_cpbCache = [.. _cpbCache, cpb];
 			return false;
@@ -73,17 +87,17 @@ partial class BeatCalculator
 		else // cpb 被添加到中间
 		{
 			b = _cpbCache[index + 1]; // 下一个 cpb
-			if (a.Tick == cpb.Tick && a.Cpb == cpb.Cpb) // 已经有一个完全相同的 cpb 了
+			if (Math.Abs(a.Tick - cpb.Tick) <= TickEpsilon && a.Cpb == cpb.Cpb) // 已经有一个完全相同的 cpb 了
 				return false;
 			bool needInsert = true;
-			if (cpb.Tick == a.Tick) // 如果 cpb 的位置和前一个 cpb 相同但值不同，则覆盖前一个 cpb
+			if (Math.Abs(cpb.Tick - a.Tick) <= TickEpsilon) // 如果 cpb 的位置和前一个 cpb 相同但值不同，则覆盖前一个 cpb
 			{
 				_cpbCache[index] = cpb;
 				needInsert = false;
 			}
 			if ((strategy & 0b01) == 0) // 保持范围内相对于第一个小节的节拍不动
 			{
-				(int barDiff, int diff) = int.DivRem((int)(b.Tick - cpb.Tick), cpb.Cpb); // 新的小节个数, 需要修正的节拍长度
+				(int barDiff, int diff) = int.DivRem((int)Math.Round(b.Tick - cpb.Tick), cpb.Cpb); // 新的小节个数, 需要修正的节拍长度
 				if (diff == 0) // 不需要修正节拍长度，直接移动后续 cpb 的位置
 				{
 					if (needInsert)
@@ -99,6 +113,16 @@ partial class BeatCalculator
 							cpb.Bar + barDiff,
 							diff
 							);
+					if (barDiff == 0)
+					{
+						// 新拍号到下一个拍号变更前不足一个完整小节，fix 与 cpb 落在同一 Tick/Bar。
+						// 合并为单条（本小节退化为长度 diff 的不完整小节），否则换算会出现二义。
+						if (needInsert)
+							_cpbCache = [.. _cpbCache.Take(index + 1), fix, .. _cpbCache.Skip(index + 1).Select(c => c with { Bar = c.Bar - (b.Bar - cpb.Bar) + 1 })];
+						else
+							_cpbCache = [.. _cpbCache.Take(index), fix, .. _cpbCache.Skip(index + 1).Select(c => c with { Bar = c.Bar - (b.Bar - cpb.Bar) + 1 })];
+						return true;
+					}
 					barDiff += 1;
 					if (needInsert)
 						_cpbCache = [.. _cpbCache.Take(index + 1), cpb, fix, .. _cpbCache.Skip(index + 1).Select(c => c with { Bar = c.Bar - (b.Bar - cpb.Bar) + barDiff })];
@@ -125,6 +149,12 @@ partial class BeatCalculator
 
 	internal bool RemoveCpbAt(CpbCache cpb, byte strategy, out CpbCache fix)
 	{
+		bool result = RemoveCpbAtInternal(cpb, strategy, out fix);
+		BumpVersionAt(cpb.Tick);
+		return result;
+	}
+	private bool RemoveCpbAtInternal(CpbCache cpb, byte strategy, out CpbCache fix)
+	{
 		bool moveTrival = (strategy & 0b10) == 0;
 		fix = CpbCache.Default;
 		if (_cpbCache.Length == 0)
@@ -144,8 +174,6 @@ partial class BeatCalculator
 		else
 		{
 			b = _cpbCache[index + 1];
-			int lenac = (int)(cpb.Tick - a.Tick);
-			int lencb = (int)(b.Tick - cpb.Tick);
 			if (a.Cpb == cpb.Cpb)
 			{
 				_cpbCache = [.. _cpbCache[..index], .. _cpbCache[(index + 1)..]];
@@ -153,8 +181,7 @@ partial class BeatCalculator
 			}
 			if ((strategy & 0b01) == 0)
 			{
-				int diff = (int)(b.Tick - cpb.Tick) % a.Cpb;
-				int barDiff = (int)((b.Tick - cpb.Tick) / a.Cpb);
+				(int barDiff, int diff) = int.DivRem((int)Math.Round(b.Tick - cpb.Tick), a.Cpb);
 				if (diff == 0)
 				{
 
@@ -237,21 +264,32 @@ partial class BeatCalculator
 			allBookmarks.Add(bookmark with { Tick = newBeat });
 		}
 	}
-	public partial void Refresh() // 潜在问题：没有处理两个不同值的 bpm/cpb 在同一位置的情况
+	public partial void Refresh()
 	{
-		SetCrotchetsPerBar[] cpbList = [.. Collection.OfEvent<SetCrotchetsPerBar>()];
-		BaseBeatsPerMinute[] bpmList = [.. Collection.OfEvent<BaseBeatsPerMinute>()];
-		_cpbCache = new CpbCache[cpbList.Length];
-		_bpmCache = new BpmCache[bpmList.Length];
-		for (int i = 0; i < cpbList.Length; i++)
+		// 同一 Tick 上只保留最后一个拍号/速度事件（游戏语义），避免线性扫描取到“先者”而实际生效值是“后者”。
+		List<CpbCache> cpbs = [];
+		foreach (SetCrotchetsPerBar e in Collection.OfEvent<SetCrotchetsPerBar>())
 		{
-			(int bar, _) = cpbList[i].TickTime;
-			_cpbCache[i] = new CpbCache(cpbList[i].TickTime.Tick, bar, cpbList[i].CrotchetsPerBar);
+			(int bar, _) = e.TickTime;
+			CpbCache cache = new(e.TickTime.Tick, bar, e.CrotchetsPerBar);
+			if (cpbs.Count > 0 && Math.Abs(cpbs[^1].Tick - cache.Tick) <= TickEpsilon)
+				cpbs[^1] = cache;
+			else
+				cpbs.Add(cache);
 		}
-		for (int i = 0; i < bpmList.Length; i++)
+		_cpbCache = [.. cpbs];
+
+		List<BpmCache> bpms = [];
+		foreach (BaseBeatsPerMinute e in Collection.OfEvent<BaseBeatsPerMinute>())
 		{
-			_bpmCache[i] = new BpmCache(bpmList[i].TickTime.Tick, bpmList[i].TickTime.TimeSpan, bpmList[i].BeatsPerMinute);
+			BpmCache cache = new(e.TickTime.Tick, e.TickTime.TimeSpan, e.BeatsPerMinute);
+			if (bpms.Count > 0 && Math.Abs(bpms[^1].Tick - cache.Tick) <= TickEpsilon)
+				bpms[^1] = cache;
+			else
+				bpms.Add(cache);
 		}
+		_bpmCache = [.. bpms];
+		InvalidateAll();
 	}
 
 	/// <summary>
@@ -284,6 +322,8 @@ partial class BeatCalculator
 	public (int bar, float beat) TimeSpanToBarBeat(TimeSpan timeSpan) => TickToBarBeat(TimeSpanToTick(timeSpan));
 	private static float BarBeatToTick(int bar, float beat, in CpbCache[] cacheSet)
 	{
+		if (bar < 1) bar = 1;
+		if (beat < 1f) beat = 1f;
 		CpbCache last = CpbCache.Default;
 		foreach (var cache in cacheSet)
 		{
@@ -309,17 +349,22 @@ partial class BeatCalculator
 		foreach (CpbCache cache in cacheSet)
 		{
 			float cbeat = cache.Tick;
-			if (cbeat < beat)
+			if (cbeat < beat - TickEpsilon)
 			{
 				last = cache;
 				continue;
 			}
-			if (cbeat == beat)
+			if (cbeat <= beat + TickEpsilon)
 				return (cache.Bar, 1f);
 			break;
 		}
-		(int finalBar, float finalBeat) result2 = ((int)Math.Round(last.Bar + Math.Floor((double)((beat - last.Tick) / last.Cpb))), (beat - last.Tick) % last.Cpb + 1f);
-		return result2;
+		int cpb = last.Cpb > 0 ? last.Cpb : DefaultCpb;
+		double delta = beat - last.Tick;
+		int bars = (int)Math.Floor(delta / cpb);
+		float within = (float)(delta - bars * cpb);
+		if (within < 0f) { within = 0f; bars--; }
+		if (within >= cpb) { within = 0f; bars++; }
+		return (last.Bar + bars, within + 1f);
 	}
 	/// <summary>
 	/// Creates an <see cref="TickTime"/> from a bar/beat pair.
@@ -348,12 +393,12 @@ partial class BeatCalculator
 		foreach (CpbCache cache in _cpbCache)
 		{
 			float cbeat = cache.Tick;
-			if (cbeat < beat.Tick)
+			if (cbeat < beat.Tick - TickEpsilon)
 			{
 				last = cache;
 				continue;
 			}
-			if (cbeat == beat.Tick)
+			if (cbeat <= beat.Tick + TickEpsilon)
 				return cache.Cpb;
 			break;
 		}

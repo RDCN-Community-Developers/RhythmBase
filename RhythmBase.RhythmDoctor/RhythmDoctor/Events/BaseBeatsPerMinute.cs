@@ -50,7 +50,19 @@ public abstract record class BaseBeatsPerMinute : BaseEvent
 		get => _bpm;
 		set
 		{
-			_bpm = value;
+			if (_bpm == value) return;
+			Chart? chart = TickTime.BaseChart;
+			if (chart is not null && Active)
+			{
+				// 通过既有的删除/新增流程让 BeatCalculator 的 _bpmCache 同步为新的速度值
+				chart.Remove(this);
+				_bpm = value;
+				chart.Add(this);
+			}
+			else
+			{
+				_bpm = value;
+			}
 			ResetTimeLine();
 		}
 	}
