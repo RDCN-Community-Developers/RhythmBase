@@ -36,7 +36,13 @@ internal abstract class MemberConverter<TEvent> : EventMemberConverterBase where
 		TEvent v = (TEvent)value;
 		writer.WriteStartObject();
 		Write(writer, ref v, options);
-		foreach (KeyValuePair<string,JsonElement> kv in ((BaseEvent)(IBaseEvent)v)._extraData)
+		Dictionary<string, JsonElement> extra = v switch
+		{
+			BaseEvent be => be._extraData,
+			BaseTileEvent bte => bte._extraData,
+			_ => []
+		};
+		foreach (KeyValuePair<string,JsonElement> kv in extra)
 		{
 			writer.WritePropertyName(kv.Key);
 			writer.WriteRawValue(kv.Value.GetRawText());
@@ -50,15 +56,21 @@ internal abstract class MemberConverter<TEvent> : EventMemberConverterBase where
 	}
 	protected virtual void Write(Utf8JsonWriter writer, ref TEvent value, MetadataJsonSerializerOptions options)
 	{
-		if (value is BaseTileEvent bte && bte._floor >= 0)
-			writer.WriteNumber("floor"u8, bte._floor);
-		writer.WriteString("eventType"u8, value.Type.ToEnumString());
-		if (value is BaseTaggedTileEvent btta)
+		int floor = value switch
 		{
-			if (btta.AngleOffset != 0)
-				writer.WriteNumber("angleOffset"u8, btta.AngleOffset);
-			if (!string.IsNullOrEmpty(btta.EventTag))
-				writer.WriteString("eventTag"u8, btta.EventTag);
+			BaseEvent be => be._floor,
+			BaseTileEvent bte => bte._floor,
+			_ => -1
+		};
+		if (floor >= 0)
+			writer.WriteNumber("floor"u8, floor);
+		writer.WriteString("eventType"u8, value.Type.ToEnumString());
+		if (value is BaseEvent angleEvent)
+		{
+			if (angleEvent.AngleOffset != 0f)
+				writer.WriteNumber("angleOffset"u8, angleEvent.AngleOffset);
+			if (angleEvent is BaseTaggedTileEvent tagged && !string.IsNullOrEmpty(tagged.EventTag))
+				writer.WriteString("eventTag"u8, tagged.EventTag);
 		}
 	}
 }

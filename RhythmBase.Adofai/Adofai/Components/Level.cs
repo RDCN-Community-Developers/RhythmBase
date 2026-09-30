@@ -23,6 +23,11 @@ public partial class Level :
     /// </summary>
     public List<IBaseEvent> Decorations { get; set; }
     /// <summary>
+    /// Time-authoritative events (those carrying an <see cref="BaseEvent.AngleOffset"/>), ordered by tick.
+    /// Their position is stored as <see cref="BaseEvent.TickTime"/>; the owning floor is assigned on export.
+    /// </summary>
+    public List<BaseEvent> FreeEvents { get; set; }
+    /// <summary>
     /// Get all the events of the level.
     /// </summary>
     public override IEnumerable<IBaseEvent> Events
@@ -31,9 +36,20 @@ public partial class Level :
         {
             foreach (IBaseEvent tile in base.Events)
                 yield return tile;
+            foreach (BaseEvent free in OrderedFreeEvents)
+                yield return free;
             foreach (IBaseEvent tile2 in Decorations)
                 yield return tile2;
         }
+    }
+    /// <summary>
+    /// Gets the time-authoritative events ordered by their tick, which is the canonical order for them.
+    /// </summary>
+    public IEnumerable<BaseEvent> OrderedFreeEvents => FreeEvents.OrderBy(GetFreeEventTick);
+    private static float GetFreeEventTick(BaseEvent item)
+    {
+        TickTime tick = item.TickTime;
+        return tick.IsEmpty ? float.MaxValue : tick.Tick;
     }
     /// <summary>
     /// The calculator that comes with the level.
@@ -46,6 +62,7 @@ public partial class Level :
     {
         Settings = new Settings();
         Decorations = [];
+        FreeEvents = [];
         Calculator = new BeatCalculator(this);
         End.Parent = this;
     }
@@ -57,6 +74,7 @@ public partial class Level :
     {
         Settings = new Settings();
         Decorations = [];
+        FreeEvents = [];
         Calculator = new BeatCalculator(this);
         End.Parent = this;
         this.InsertRange(0, items);
@@ -104,6 +122,42 @@ public partial class Level :
     /// </summary>  
     /// <param name="item">The tile to add to the level.</param>  
     public override void Add(Tile item) => Insert(Count, item);
+    /// <summary>
+    /// Adds a time-authoritative event (an event with an angle offset) to the level.
+    /// Such events are not attached to a tile; their floor is assigned on export.
+    /// </summary>
+    /// <param name="item">The event to add.</param>
+    /// <returns><see langword="true"/> when the event was added.</returns>
+    public bool Add(BaseEvent item)
+    {
+        FreeEvents.Add(item);
+        Calculator.MarkDirty();
+        return true;
+    }
+    /// <summary>
+    /// Removes a time-authoritative event from the level.
+    /// </summary>
+    /// <param name="item">The event to remove.</param>
+    /// <returns><see langword="true"/> when the event was removed.</returns>
+    public bool Remove(BaseEvent item)
+    {
+        bool result = FreeEvents.Remove(item);
+        if (result)
+            Calculator.MarkDirty();
+        return result;
+    }
+    /// <summary>
+    /// Places a time-authoritative event at a tile plus angle offset. The authoritative tick is
+    /// calculated from that position and the derived floor is cleared so it is reassigned on export.
+    /// </summary>
+    /// <param name="item">The event to place.</param>
+    /// <param name="tile">The tile to attach the position to.</param>
+    /// <param name="angleOffset">The angle offset (degrees) into the tile.</param>
+    public void PlaceFreeEvent(BaseEvent item, Tile tile, float angleOffset = 0f)
+    {
+        item.SetTick(Calculator.TickOf(tile, angleOffset));
+        Calculator.MarkDirty();
+    }
     /// <summary>  
     /// Inserts a tile into the level at the specified index.  
     /// Sets the parent of the tile to this level before inserting it into the base collection.  
@@ -114,6 +168,7 @@ public partial class Level :
     {
         item.Parent = this;
         base.Insert(index, item);
+        Calculator.MarkDirty();
     }
     /// <summary>
     /// Removes the tile at the specified index from the collection.
@@ -128,6 +183,7 @@ public partial class Level :
         tile.Previous = null;
         tile.Next = null!;
         tileOrder.RemoveAt(index);
+        Calculator.MarkDirty();
     }
     /// <summary>  
     /// Removes all tiles from the level.  
@@ -140,6 +196,7 @@ public partial class Level :
             item.Parent = null;
         }
         base.Clear();
+        Calculator.MarkDirty();
     }
     /// <inheritdoc/>
     public void Dispose()

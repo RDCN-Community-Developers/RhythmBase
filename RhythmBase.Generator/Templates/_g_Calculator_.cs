@@ -143,20 +143,33 @@ public partial class _g_calculatorSymbolName_
 	/// Refreshes the caches so subsequent conversions use up-to-date values.
 	/// </summary>
 	public partial void Refresh();
+	/// <summary>
+	/// Optional backend hook invoked before a cached conversion, so backends with lazily built
+	/// tables can flush pending changes first. Backends that do not need it may leave it unimplemented.
+	/// </summary>
+	partial void EnsureCache();
 
 	/// <summary>
 	/// Converts an absolute tick position to an absolute timespan using the current cache state.
 	/// </summary>
 	/// <param name="tick">The absolute tick position.</param>
 	/// <returns>The corresponding absolute time.</returns>
-	public TimeSpan TickToTimeSpan(float tick) => TickToTimeSpan(tick, in _bpmCache);
+	public TimeSpan TickToTimeSpan(float tick)
+	{
+		EnsureCache();
+		return TickToTimeSpan(tick, in _bpmCache);
+	}
 				
 	/// <summary>
 	/// Converts an absolute timespan to an absolute beat position using the current cache state.
 	/// </summary>
 	/// <param name="timeSpan">The absolute time to convert.</param>
 	/// <returns>The corresponding absolute beat.</returns>
-	public float TimeSpanToTick(TimeSpan timeSpan) => TimeSpanToTick(timeSpan, in _bpmCache);
+	public float TimeSpanToTick(TimeSpan timeSpan)
+	{
+		EnsureCache();
+		return TimeSpanToTick(timeSpan, in _bpmCache);
+	}
 
 	private static TimeSpan TickToTimeSpan(float tick, in BpmCache[] cacheSet)
 	{
@@ -232,6 +245,7 @@ public partial class _g_calculatorSymbolName_
 	/// <returns>The BPM active at the tick.</returns>
 	public float BeatsPerMinuteOf(_g_TickTime_ beat)
 	{
+		EnsureCache();
 		BpmCache last = BpmCache.Default;
 		foreach (BpmCache cache in _bpmCache)
 		{

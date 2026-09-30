@@ -15,17 +15,32 @@ public class Tile : TypedEventCollection
     public float Angle
     {
         get => _angle;
-        set => _angle = (value % 360 + 540) % 360 - 180;
+        set
+        {
+            _angle = (value % 360 + 540) % 360 - 180;
+            Parent?.Calculator.MarkDirty();
+        }
     }
     /// <summary>
-    /// Gets or sets the current beat information for the audio detection system.
+    /// Gets the tile-authoritative beat at this tile's entry. It is computed lazily from the owning
+    /// level's calculator (using this tile's current index), so changes to preceding tiles are
+    /// reflected automatically and no manual refresh is required.
     /// </summary>
-    public TickTime Beat { get; set; }
+    public TickTime Beat => Parent is null ? default : new TickTime(Parent.Calculator, this, 0f);
     /// <summary>
     /// Gets a value indicating whether the tile is in a mid-spin state.
     /// A tile is considered mid-spin if its angle is less than -180 or greater than 180.
     /// </summary>
-    public bool IsMidSpin { get; set; } = false;
+    public bool IsMidSpin
+    {
+        get => _isMidSpin;
+        set
+        {
+            _isMidSpin = value;
+            Parent?.Calculator.MarkDirty();
+        }
+    }
+    private bool _isMidSpin;
     /// <summary>  
     /// Gets a value indicating whether the tile is a hairpin.  
     /// A tile is considered a hairpin if the absolute difference between its angle and the previous tile's angle is exactly 180 degrees.  
@@ -77,11 +92,12 @@ public class Tile : TypedEventCollection
     /// Initializes a new instance of the <see cref="Tile"/> class with a collection of tile events.
     /// </summary>
     /// <param name="actions">The collection of tile events to associate with this tile.</param>
-    public Tile(IEnumerable<BaseTileEvent> actions)
+    public Tile(IEnumerable<IBaseEvent> actions)
     {
-        foreach (BaseTileEvent i in actions)
+        foreach (IBaseEvent i in actions)
         {
-            i.Parent = this;
+            if (i is BaseTileEvent bte)
+                bte.Parent = this;
             Add(i);
         }
     }
@@ -90,7 +106,7 @@ public class Tile : TypedEventCollection
     /// </summary>
     /// <param name="angle">The angle of the tile.</param>
     /// <param name="actions">The collection of tile events to associate with this tile.</param>
-    public Tile(float angle, IEnumerable<BaseTileEvent> actions) : this(actions) => Angle = angle;
+    public Tile(float angle, IEnumerable<IBaseEvent> actions) : this(actions) => Angle = angle;
     /// <summary>  
     /// Gets or sets the previous tile in the sequence.  
     /// This property is set internally and represents the tile that comes before the current tile.  
@@ -107,7 +123,7 @@ public class Tile : TypedEventCollection
     /// </summary>
     /// <param name="isMidSpin">A value indicating whether the tile is in a mid-spin state.</param>
     /// <param name="actions">The collection of tile events to associate with this tile.</param>
-    public Tile(bool isMidSpin, IEnumerable<BaseTileEvent> actions) : this(actions) => IsMidSpin = isMidSpin;
+    public Tile(bool isMidSpin, IEnumerable<IBaseEvent> actions) : this(actions) => IsMidSpin = isMidSpin;
     /// <summary>
     /// Gets the index of the tile within its parent level.
     /// Returns -1 if the tile does not belong to any level.
@@ -147,17 +163,17 @@ public class Tile : TypedEventCollection
         throw new NotImplementedException();
     }
     /// <inheritdoc />
-    public bool Add(BaseTileEvent item)
+    public override bool Add(IBaseEvent item)
     {
+        // Time-authoritative events (those with an angle offset) live on the level, not on a tile.
+        if (item is BaseEvent)
+            return false;
         bool result = false;
         if ((item is IBeginningEvent) || (Previous is not null))
         {
             if (Parent is not null)
                 switch (item)
                 {
-                    case SetSpeed: // tick
-                                   //Parent.Calculator
-                        break;
                     case Twirl: // reverse
                         break;
                     case Pause: // delay
@@ -172,15 +188,21 @@ public class Tile : TypedEventCollection
             result = base.Add(item);
         }
         if (result)
-            item.Parent = this;
+        {
+            if (item is BaseTileEvent tileEvent)
+                tileEvent.Parent = this;
+            Parent?.Calculator.MarkDirty();
+        }
         return result;
     }
     /// <inheritdoc />
-    public bool Remove(BaseTileEvent item)
+    public override bool Remove(IBaseEvent item)
     {
         if (base.Remove(item))
         {
-            item.Parent = null;
+            if (item is BaseTileEvent tileEvent)
+                tileEvent.Parent = null;
+            Parent?.Calculator.MarkDirty();
             return true;
         }
         return false;

@@ -20,7 +20,7 @@ internal class LevelConverter : MetadataJsonConverter<Level>
 		DirectoryName = options.DirectoryName ?? DirectoryName;
 		Level level = [];
 		bool isTileLoad = false;
-		List<BaseTileEvent> tileEventsNotLoad = [];
+		List<IBaseEvent> tileEventsNotLoad = [];
 		reader.Read();
 		JsonException.ThrowIfNotMatch(ref reader, JsonTokenType.StartObject);
 		reader.Read();
@@ -76,12 +76,16 @@ internal class LevelConverter : MetadataJsonConverter<Level>
 						foreach (FileReference file in fileEvent.Files)
 							if (!file.IsEmpty && file.IsExist(DirectoryName!))
 								ReadSettings.OnFileReferenceEncountered(level, file);
-					if (e is BaseTileEvent tileE)
+					if (e is BaseTileEvent)
 					{
 						if (isTileLoad)
-							level[tileE._floor].Add(tileE);
+							level[GetFloor(e)].Add(e);
 						else
-							tileEventsNotLoad.Add(tileE);
+							tileEventsNotLoad.Add(e);
+					}
+					else if (e is BaseEvent free)
+					{
+						level.Add(free);
 					}
 				}
 				reader.Read();
@@ -113,9 +117,26 @@ internal class LevelConverter : MetadataJsonConverter<Level>
 				reader.Read();
 			}
 		}
+		// Seed the tick-authoritative position of free events from the floor/angleOffset stored in the file.
+		level.Calculator.MarkDirty();
+		level.Calculator.Refresh();
+		foreach (BaseEvent free in level.FreeEvents)
+		{
+			if (free._floor < 0)
+				continue;
+			float tick = level.Calculator.TileOffsetToTick(free._floor, free.AngleOffset);
+			free.TickTime = level.Calculator.TickOf(tick);
+		}
 		reader.Read();
 		return level;
 	}
+
+	private static int GetFloor(IBaseEvent e) => e switch
+	{
+		BaseEvent be => be._floor,
+		BaseTileEvent bte => bte._floor,
+		_ => -1
+	};
 
 	public override void Write(Utf8JsonWriter writer, Level value, MetadataJsonSerializerOptions options)
 	{
@@ -139,7 +160,20 @@ internal class LevelConverter : MetadataJsonConverter<Level>
 		writer.WritePropertyName("settings");
 		settingsConverter.Write(writer, value.Settings, options.JsonSerializerOptions);
 		writer.WriteStartArray("actions");
-		noIndentScope.WriteNoIndentArrayTo(options.WriteIndented, false, writer, value.SelectMany(i => i.Cast<IBaseEvent>()), (writer, e, options) =>
+		// Free events carry a tick-authoritative position; resolve their floor/angleOffset on export.
+		value.Calculator.MarkDirty();
+		value.Calculator.Refresh();
+		foreach (BaseEvent free in value.FreeEvents)
+		{
+			(int floor, float angleOffset) = value.Calculator.TickToTileOffset(free.TickTime.Tick);
+			free._floor = floor;
+			free.AngleOffset = angleOffset;
+		}
+		IEnumerable<IBaseEvent> actions = value.SelectMany(i => i.Cast<IBaseEvent>())
+			.Concat(value.FreeEvents)
+			.OrderBy(GetFloor)
+			.ThenBy(e => e is BaseEvent angleEvent ? angleEvent.AngleOffset : 0f);
+		noIndentScope.WriteNoIndentArrayTo(options.WriteIndented, false, writer, actions, (writer, e, options) =>
 		{
 			baseEventConverter.Write(writer, e, options);
 			if (WriteSettings.LoadAssets && !string.IsNullOrEmpty(DirectoryName) && e is IFileEvent fileEvent)

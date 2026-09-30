@@ -18,25 +18,21 @@ internal class MemberConverterBaseTileEvent<TEvent> : MemberConverter<TEvent> wh
 		return true;
 	}
 }
-internal class MemberConverterBaseTaggedTileEvent<TEvent> : MemberConverterBaseTileEvent<TEvent> where TEvent : BaseTaggedTileEvent, new()
+internal class MemberConverterBaseTaggedTileEvent<TEvent> : MemberConverter<TEvent> where TEvent : BaseTaggedTileEvent, new()
 {
 	protected override bool Read(ref Utf8JsonReader reader, ref TEvent value, MetadataJsonSerializerOptions options)
 	{
 		if (base.Read(ref reader, ref value, options))
 			return true;
-		if (reader.ValueTextEquals("eventTag"u8) && reader.Read())
+		if (reader.ValueTextEquals("floor"u8) && reader.Read())
+			value._floor = reader.GetInt32();
+		else if (reader.ValueTextEquals("eventTag"u8) && reader.Read())
 			value.EventTag = reader.GetString() ?? "";
 		else if (reader.ValueTextEquals("angleOffset"u8) && reader.Read())
 			value.AngleOffset = reader.GetSingle();
 		else
 			return false;
 		return true;
-	}
-	protected override void Write(Utf8JsonWriter writer, ref TEvent value, MetadataJsonSerializerOptions options)
-	{
-		base.Write(writer, ref value, options);
-		writer.WriteString("eventTag"u8, value.EventTag);
-		writer.WriteNumber("angleOffset"u8, value.AngleOffset);
 	}
 }
 internal class MemberConverterSetFilterAdvanced : MemberConverterBaseTaggedTileEvent<SetFilterAdvanced>

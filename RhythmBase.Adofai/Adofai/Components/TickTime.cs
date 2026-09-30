@@ -13,7 +13,9 @@ partial struct TickTime
 		{
 			if ((!MustFromCache || !_isTickLoaded) && _calculator is not null)
 			{
-				if (_isTimeSpanLoaded)
+				if (_isTileLoaded && _tile is not null)
+					_tick = _calculator.TileOffsetToTick(_tile.Index, _b_angleOffset) - 1f;
+				else if (_isTimeSpanLoaded)
 					_tick = _calculator.TimeSpanToTick(_TimeSpan) - 1f;
 				_isTickLoaded = true;
 			}
@@ -109,7 +111,29 @@ partial struct TickTime
 			_tick = _calculator.TimeSpanToTick(TimeSpan) - 1f;
 		}
 	}
-	public readonly partial bool IsEmpty => _calculator == null || !_isTickLoaded && !_isTimeSpanLoaded;
+	/// <summary>
+	/// Creates a tile-authoritative position from a tile plus an angle offset (degrees).
+	/// </summary>
+	/// <param name="calculator">The owning calculator.</param>
+	/// <param name="tile">The owning tile. Its current index is resolved lazily, so tile insertions or removals are picked up.</param>
+	/// <param name="angleOffset">The angle offset (degrees) into the tile.</param>
+	public TickTime(BeatCalculator calculator, Tile tile, float angleOffset)
+	{
+		this = default;
+		_calculator = calculator;
+		_tile = tile;
+		_b_angleOffset = angleOffset;
+		_isTileLoaded = true;
+	}
+	/// <summary>
+	/// Gets the owning tile when this value is tile-authoritative; otherwise <see langword="null"/>.
+	/// </summary>
+	public readonly Tile? Tile => _isTileLoaded ? _tile : null;
+	/// <summary>
+	/// Gets the angle offset (degrees) when this value is tile-authoritative; otherwise 0.
+	/// </summary>
+	public readonly float AngleOffset => _isTileLoaded ? _b_angleOffset : 0f;
+	public readonly partial bool IsEmpty => _calculator == null || !_isTickLoaded && !_isTimeSpanLoaded && !_isTileLoaded;
 	public partial void ResetCache()
 	{
 		_ = Tick;
@@ -191,4 +215,7 @@ partial struct TickTime
 			ToString = $"[{_tick}?]";
 		return ToString;
 	}
+	private bool _isTileLoaded;
+	private Tile? _tile;
+	private float _b_angleOffset;
 }
