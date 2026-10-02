@@ -15,7 +15,6 @@ namespace RhythmBase.RhythmDoctor.Components.Lang;
 /// </summary>
 internal sealed class ExpressionRuntime
 {
-	private static readonly Random _random = new Random();
 	private readonly ExpressionContext _context;
 	private readonly Parser _parser;
 	private readonly bool _conditional;
@@ -215,22 +214,24 @@ internal sealed class ExpressionRuntime
 	{
 		switch (name)
 		{
-			case "Rand":
-				if (args.Count != 1)
-					throw new FormatException("Rand() expects 1 argument.");
-				return RandomInt(ToInt(args[0]));
+			// IIf is language-level control flow, not a simulation function.
 			case "IIf":
 				if (args.Count != 3)
 					throw new FormatException("IIf() expects 3 arguments.");
 				return ToBool(args[0]) ? args[1] : args[2];
+			// The remaining built-ins are delegated to the sandbox with typed arguments.
+			case "Rand":
+				if (args.Count != 1)
+					throw new FormatException("Rand() expects 1 argument.");
+				return _context.Variables.Rand(ToInt(args[0]));
 			case "atLeastRank":
 				if (args.Count != 1)
 					throw new FormatException("atLeastRank() expects 1 argument.");
-				return global::RhythmBase.RhythmDoctor.Components.Variables.atLeastRank(ToStr(args[0]));
+				return _context.Variables.atLeastRank(ToRank(args[0]));
 			case "atLeastNPerfects":
 				if (args.Count != 2)
 					throw new FormatException("atLeastNPerfects() expects 2 arguments.");
-				return global::RhythmBase.RhythmDoctor.Components.Variables.atLeastNPerfects(ToInt(args[0]), ToInt(args[1]));
+				return _context.Variables.atLeastNPerfects(ToInt(args[0]), ToInt(args[1]));
 			default:
 				return InvokeEnvironmentFunction(name, args);
 		}
@@ -258,6 +259,8 @@ internal sealed class ExpressionRuntime
 				converted[i] = ToBool(args[i]);
 			else if (type == typeof(string))
 				converted[i] = ToStr(args[i]);
+			else if (type == typeof(Rank))
+				converted[i] = ToRank(args[i]);
 			else
 				converted[i] = args[i];
 		}
@@ -403,15 +406,6 @@ internal sealed class ExpressionRuntime
 
 	private static bool IsIntegral(object? value) => value is int || value is bool;
 
-	private static int RandomInt(int value)
-	{
-		if (value > 0)
-			return _random.Next(1, value + 1);
-		if (value < 0)
-			return -_random.Next(1, -value + 1);
-		return 0;
-	}
-
 	private string RuleName(ParserRuleContext ctx) => _parser.RuleNames[ctx.RuleIndex];
 
 	private ParserRuleContext RequiredChild(ParserRuleContext ctx, string rule)
@@ -512,6 +506,30 @@ internal sealed class ExpressionRuntime
 				return string.Equals(s, "true", StringComparison.OrdinalIgnoreCase);
 			default:
 				return false;
+		}
+	}
+
+	/// <summary>Converts a runtime value to a <see cref="Rank"/>.</summary>
+	internal static Rank ToRank(object? value)
+	{
+		switch (ToStr(value))
+		{
+			case "S+":
+				return Rank.SPlus;
+			case "S":
+				return Rank.S;
+			case "A":
+				return Rank.A;
+			case "B":
+				return Rank.B;
+			case "C":
+				return Rank.C;
+			case "D":
+				return Rank.D;
+			case "F":
+				return Rank.F;
+			default:
+				throw new FormatException($"Invalid rank '{ToStr(value)}'.");
 		}
 	}
 

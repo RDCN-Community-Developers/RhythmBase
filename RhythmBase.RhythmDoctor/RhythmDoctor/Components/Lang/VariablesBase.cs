@@ -18,6 +18,10 @@ namespace RhythmBase.RhythmDoctor.Components.Lang;
 /// Return <see langword="false"/> from <see cref="TryGetVariable"/> for an unknown name, and
 /// <see langword="false"/> from <see cref="TrySetVariable"/> for a read-only or unknown name.
 /// </para>
+/// <para>
+/// The simulation functions of <see cref="IVariables"/> are left abstract on purpose so the
+/// deriving type can model them; for example <see cref="Rand"/> can be backed by an iterator.
+/// </para>
 /// </remarks>
 public abstract class VariablesBase : DynamicObject, IVariables
 {
@@ -39,6 +43,15 @@ public abstract class VariablesBase : DynamicObject, IVariables
 	/// read-only or unknown.
 	/// </returns>
 	public abstract bool TrySetVariable(string name, object? value);
+
+	/// <inheritdoc/>
+	public abstract int Rand(int value);
+
+	/// <inheritdoc/>
+	public abstract bool atLeastRank(Rank rank);
+
+	/// <inheritdoc/>
+	public abstract bool atLeastNPerfects(int hitsToCheck, int numberOfPerfects);
 
 	/// <summary>
 	/// Enumerates the names of every readable variable, for autocomplete and diagnostics.
