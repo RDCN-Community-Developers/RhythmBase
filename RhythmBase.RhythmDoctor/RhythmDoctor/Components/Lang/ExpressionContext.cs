@@ -24,6 +24,20 @@ public sealed class ExpressionContext
 	}
 
 	/// <summary>
+	/// Initializes a new context over the given environment and copies the fixed slots from
+	/// <paramref name="source"/>.
+	/// </summary>
+	/// <param name="variables">The virtual environment.</param>
+	/// <param name="source">The context whose fixed slots are copied.</param>
+	internal ExpressionContext(IVariables variables, ExpressionContext source)
+		: this(variables)
+	{
+		Array.Copy(source.I, I, I.Length);
+		Array.Copy(source.F, F, F.Length);
+		Array.Copy(source.B, B, B.Length);
+	}
+
+	/// <summary>
 	/// Gets the virtual environment supplying every variable outside the 30 fixed slots.
 	/// </summary>
 	public IVariables Variables { get; }
