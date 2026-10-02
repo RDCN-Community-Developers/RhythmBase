@@ -1,10 +1,12 @@
 using RhythmBase.Adofai.Events;
+using RhythmBase.Global.Diff;
 using System.Diagnostics.CodeAnalysis;
 namespace RhythmBase.Adofai.Components;
 
 /// <summary>
 /// Represents a tile in the ADOFAI level, containing events and properties related to the tile.
 /// </summary>
+[Diffable]
 public class Tile : TypedEventCollection
 {
     /// <summary>

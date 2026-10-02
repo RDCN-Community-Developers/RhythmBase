@@ -1,0 +1,320 @@
+{
+    "size": [
+        40,
+        40
+    ],
+    "name": "紫命伊伦",
+    "rowPreviewFrame": 2,
+    "rowPreviewOffset": [
+        0,
+        8
+    ],
+    "clips": [
+        {
+            "name": "neutral",
+            "frames": [
+                1,
+                0,
+                0,
+                0
+            ],
+            "loop": "onBeat",
+            "fps": 4,
+            "loopStart": 0,
+            "portraitOffset": [
+                7,
+                10
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "happy",
+            "frames": [
+                3,
+                2,
+                2,
+                2
+            ],
+            "loop": "onBeat",
+            "fps": 4,
+            "loopStart": 0,
+            "portraitOffset": [
+                7,
+                10
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "barely",
+            "frames": [
+                5,
+                4,
+                4,
+                4
+            ],
+            "loop": "onBeat",
+            "fps": 4,
+            "loopStart": 0,
+            "portraitOffset": [
+                7,
+                10
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "missed",
+            "frames": [
+                5,
+                4,
+                4,
+                4
+            ],
+            "loop": "onBeat",
+            "fps": 4,
+            "loopStart": 0,
+            "portraitOffset": [
+                7,
+                10
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "springButtonNeutral",
+            "frames": [
+                10,
+                6,
+                6,
+                6
+            ],
+            "loop": "onBeat",
+            "fps": 4,
+            "loopStart": 0,
+            "portraitOffset": [
+                7,
+                10
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "springButtonHappy",
+            "frames": [
+                7,
+                8,
+                9,
+                6
+            ],
+            "loop": "no",
+            "fps": 8,
+            "loopStart": 0,
+            "portraitOffset": [
+                7,
+                10
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "springButtonBarely",
+            "frames": [
+                11,
+                12,
+                13,
+                6
+            ],
+            "loop": "no",
+            "fps": 8,
+            "loopStart": 0,
+            "portraitOffset": [
+                7,
+                10
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "springButtonMissed",
+            "frames": [
+                15,
+                14,
+                14,
+                14
+            ],
+            "loop": "no",
+            "fps": 4,
+            "loopStart": 0,
+            "portraitOffset": [
+                7,
+                10
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "goldenspringButtonNeutral",
+            "frames": [
+                20,
+                16,
+                16,
+                16
+            ],
+            "loop": "onBeat",
+            "fps": 4,
+            "loopStart": 0,
+            "portraitOffset": [
+                7,
+                10
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "goldenspringButtonHappy",
+            "frames": [
+                17,
+                18,
+                19,
+                16
+            ],
+            "loop": "no",
+            "fps": 8,
+            "loopStart": 0,
+            "portraitOffset": [
+                7,
+                10
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "goldenspringButtonBarely",
+            "frames": [
+                21,
+                22,
+                23,
+                24
+            ],
+            "loop": "no",
+            "fps": 8,
+            "loopStart": 0,
+            "portraitOffset": [
+                7,
+                10
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "goldenspringButtonMissed",
+            "frames": [
+                25,
+                24,
+                24,
+                24
+            ],
+            "loop": "no",
+            "fps": 4,
+            "loopStart": 0,
+            "portraitOffset": [
+                7,
+                10
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "DeepThinking",
+            "frames": [
+                26,
+                27,
+                28,
+                29,
+                30,
+                31,
+                32,
+                33,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                41
+            ],
+            "loop": "onBeat",
+            "fps": 8,
+            "loopStart": 0,
+            "portraitOffset": [
+                7,
+                10
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "Walking",
+            "frames": [
+                42,
+                43,
+                44,
+                45
+            ],
+            "loop": "yes",
+            "fps": 6,
+            "loopStart": 0,
+            "portraitOffset": [
+                7,
+                10
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        }
+    ]
+}

@@ -1,11 +1,13 @@
 using RhythmBase.Global.Components.Easing;
 using RhythmBase.Global.Components.Vector;
+using RhythmBase.Global.Diff;
 using static RhythmBase.Adofai.Constants;
 namespace RhythmBase.Adofai.Components;
 
 	/// <summary>
 	/// Represents the settings for an ADOFAI (A Dance of Fire and Ice) level.
 	/// </summary>
+	[Diffable]
 	public class Settings
 	{
 		/// <summary>

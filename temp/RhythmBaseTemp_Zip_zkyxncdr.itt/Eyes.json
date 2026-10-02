@@ -1,0 +1,123 @@
+{
+    "size": [
+        88,
+        22
+    ],
+    "rowPreviewFrame": 0,
+    "rowPreviewOffset": [
+        0,
+        0
+    ],
+    "clips": [
+        {
+            "name": "Looking",
+            "frames": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "loop": "no",
+            "fps": 6,
+            "loopStart": 0,
+            "portraitOffset": [
+                0,
+                0
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "neutral",
+            "frames": [
+                0
+            ],
+            "loop": "yes",
+            "fps": 1,
+            "loopStart": 0,
+            "portraitOffset": [
+                0,
+                0
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "happy",
+            "frames": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "loop": "no",
+            "fps": 6,
+            "loopStart": 0,
+            "portraitOffset": [
+                0,
+                0
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "barely",
+            "frames": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "loop": "no",
+            "fps": 6,
+            "loopStart": 0,
+            "portraitOffset": [
+                0,
+                0
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "missed",
+            "frames": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "loop": "no",
+            "fps": 6,
+            "loopStart": 0,
+            "portraitOffset": [
+                0,
+                0
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        }
+    ]
+}

@@ -20,6 +20,7 @@ partial class ConverterGenerator
 	private const string JsonFlattenAttrName = "RhythmBase.JsonFlattenAttribute";
 	private const string AdapterTypeAttrName = "RhythmBase.AdapterTypeAttribute`6";
 	private const string JsonEnumCastingAttrName = "RhythmBase.JsonEnumCastingAttribute";
+	private const string DiffableAttrName = "RhythmBase.Global.Diff.DiffableAttribute";
 
 	// Type 类型
 	private const string IEventTypeName = "RhythmBase.Global.Events.IEvent";
