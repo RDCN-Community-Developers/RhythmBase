@@ -309,33 +309,39 @@ internal sealed class TextModule : IPlayheadObject
 		}
 	}
 
-	// Cumulative reveal sections, matching SpecificEventExtensions.SplitText: '/'-separated
-	// pieces accumulate so advancing reveals more text.
+	// Snapshot list matching LyricsGame.LoadLinesAndTimes(text, null, multilineMode: false):
+	// a raw newline starts a fresh line (so a new line replaces the previous one, and an empty line
+	// clears the text), while '/' sections accumulate within the line.
 	private static string[] SplitSections(string text)
 	{
-		if (string.IsNullOrEmpty(text))
-			return [];
-		List<string> sections = [];
-		StringBuilder builder = new();
-		for (int i = 0; i < text.Length; i++)
+		List<string> snapshots = [];
+		foreach (string line in (text ?? "").Replace("\r\n", "\n").Split('\n'))
 		{
-			char c = text[i];
-			if (c == '/')
+			StringBuilder builder = new();
+			StringBuilder accumulated = new();
+			for (int i = 0; i < line.Length; i++)
 			{
-				sections.Add(builder.ToString());
+				char c = line[i];
+				if (c == '/')
+				{
+					accumulated.Append(builder);
+					builder.Clear();
+					snapshots.Add(accumulated.ToString());
+				}
+				else if (c == '\\' && i + 1 < line.Length)
+				{
+					char next = line[++i];
+					builder.Append(next == 'n' ? '\n' : next == '/' ? '/' : next);
+				}
+				else
+				{
+					builder.Append(c);
+				}
 			}
-			else if (c == '\\' && i + 1 < text.Length)
-			{
-				char next = text[++i];
-				builder.Append(next == 'n' ? '\n' : next == '/' ? '/' : next);
-			}
-			else
-			{
-				builder.Append(c);
-			}
+			accumulated.Append(builder);
+			snapshots.Add(accumulated.ToString());
 		}
-		sections.Add(builder.ToString());
-		return [.. sections];
+		return [.. snapshots];
 	}
 
 	public object Snapshot() => new TextSnapshot
