@@ -74,18 +74,50 @@ public readonly struct RoomSnapshot
 	public float OriginY { get; init; }
 	/// <summary>Gets the angle in degrees.</summary>
 	public float Angle { get; init; }
+	/// <summary>Gets whether <see cref="X"/> was set by a MoveRoom event.</summary>
+	public bool PositionXSet { get; init; }
+	/// <summary>Gets whether <see cref="Y"/> was set by a MoveRoom event.</summary>
+	public bool PositionYSet { get; init; }
+	/// <summary>Gets whether <see cref="Width"/> was set by a MoveRoom event.</summary>
+	public bool ScaleXSet { get; init; }
+	/// <summary>Gets whether <see cref="HeightScale"/> was set by a MoveRoom event.</summary>
+	public bool ScaleYSet { get; init; }
+	/// <summary>Gets whether <see cref="Angle"/> was set by a MoveRoom event.</summary>
+	public bool AngleSet { get; init; }
+	/// <summary>Gets whether <see cref="OriginX"/>/<see cref="OriginY"/> were set by a MoveRoom event.</summary>
+	public bool PivotSet { get; init; }
 	/// <summary>Gets the content mode.</summary>
 	public ContentMode ContentMode { get; init; }
 	/// <summary>Gets the background color.</summary>
 	public PaletteColorWithAlpha BackgroundColor { get; init; }
 	/// <summary>Gets the background type.</summary>
 	public BackgroundType BackgroundType { get; init; }
+	/// <summary>Gets the background image files (<see cref="BackgroundType.Image"/>).</summary>
+	public IReadOnlyList<FileReference> BackgroundImages { get; init; }
+	/// <summary>Gets the background image content mode.</summary>
+	public ContentMode BackgroundContentMode { get; init; }
 	/// <summary>Gets the room camera state.</summary>
 	public CameraSnapshot Camera { get; init; }
 	/// <summary>Gets the room perspective corners.</summary>
 	public PerspectiveSnapshot Perspective { get; init; }
 	/// <summary>Gets the perspective corners composited with the room position and scale.</summary>
 	public PerspectiveSnapshot EffectivePerspective { get; init; }
+	/// <summary>Gets the room opacity (0-100).</summary>
+	public float Opacity { get; init; }
+	/// <summary>Gets whether a foreground is applied.</summary>
+	public bool HasForeground { get; init; }
+	/// <summary>Gets the foreground color.</summary>
+	public PaletteColorWithAlpha ForegroundColor { get; init; }
+	/// <summary>Gets the foreground image files.</summary>
+	public IReadOnlyList<FileReference> ForegroundImages { get; init; }
+	/// <summary>Gets the foreground image content mode.</summary>
+	public ContentMode ForegroundContentMode { get; init; }
+	/// <summary>Gets the current flash color.</summary>
+	public PaletteColorWithAlpha FlashColor { get; init; }
+	/// <summary>Gets the current flash opacity (0-100).</summary>
+	public float FlashOpacity { get; init; }
+	/// <summary>Gets whether the flash affects the background.</summary>
+	public bool FlashBackground { get; init; }
 }
 
 /// <summary>The state of every room.</summary>
@@ -93,6 +125,10 @@ public readonly struct RoomsSnapshot
 {
 	/// <summary>Gets the room snapshots.</summary>
 	public IReadOnlyList<RoomSnapshot> Items { get; init; }
+	/// <summary>Gets the room order (slot -&gt; room index).</summary>
+	public int[] Order { get; init; }
+	/// <summary>Gets the top (HUD) camera state; <see cref="RoomIndex.RoomTop"/> targets this camera.</summary>
+	public CameraSnapshot TopCamera { get; init; }
 }
 
 /// <summary>
@@ -166,6 +202,12 @@ public readonly struct RowSnapshot
 	public bool HeartMoved { get; init; }
 	/// <summary>Gets whether the character has been moved independently.</summary>
 	public bool CharacterMoved { get; init; }
+	/// <summary>Gets whether an expression has been played on the row.</summary>
+	public bool HasExpression { get; init; }
+	/// <summary>Gets the current row expression name.</summary>
+	public string Expression { get; init; }
+	/// <summary>Gets how many ticks (beats) have elapsed since the expression last changed.</summary>
+	public float ExpressionElapsedTicks { get; init; }
 }
 
 /// <summary>
@@ -204,6 +246,7 @@ public readonly struct RowsSnapshot
 internal sealed class RoomModule : IPlayheadObject
 {
 	private readonly RoomState[] _rooms;
+	private int[] _order = [0, 1, 2, 3];
 
 	internal RoomModule(Playhead playhead)
 	{
@@ -211,7 +254,13 @@ internal sealed class RoomModule : IPlayheadObject
 		int count = Constants.RoomCapacity + 1;
 		_rooms = new RoomState[count];
 		for (int i = 0; i < count; i++)
-			_rooms[i] = new RoomState { Visible = i == 0, Height = FloatTween.Constant(i == 0 ? 100f : 0f) };
+		{
+			// The game enables only room 0 by default (full window); the others start hidden
+			// (zero-height quad) until ShowRooms or MoveRoom reveals them. See RDRoom setup.
+			_rooms[i] = i == 0
+				? new RoomState { Visible = true, Height = FloatTween.Constant(100f) }
+				: new RoomState { Visible = false, Height = FloatTween.Constant(0f) };
+		}
 	}
 
 	private RoomModule(RoomModule source)
@@ -220,6 +269,7 @@ internal sealed class RoomModule : IPlayheadObject
 		_rooms = new RoomState[source._rooms.Length];
 		for (int i = 0; i < _rooms.Length; i++)
 			_rooms[i] = source._rooms[i].Clone();
+		_order = (int[])source._order.Clone();
 	}
 
 	public Playhead Playhead { get; private set; }
@@ -241,6 +291,11 @@ internal sealed class RoomModule : IPlayheadObject
 		EventType.MoveCamera,
 		EventType.PulseCamera,
 		EventType.SetRoomPerspective,
+		EventType.ReorderRooms,
+		EventType.FadeRoom,
+		EventType.SetForeground,
+		EventType.Flash,
+		EventType.CustomFlash,
 	];
 
 	public void MoveNext(IBaseEvent e)
@@ -263,8 +318,13 @@ internal sealed class RoomModule : IPlayheadObject
 				{
 					if (!Valid(room))
 						continue;
-					_rooms[room].BackgroundColor = background.Color;
-					_rooms[room].BackgroundType = background.BackgroundType;
+					RoomState state = _rooms[room];
+					state.BackgroundColor = background.Color;
+					state.BackgroundType = background.BackgroundType;
+					state.BackgroundImages = background.BackgroundType == BackgroundType.Image ? [.. background.Images] : [];
+					state.BackgroundContentMode = background.ContentMode;
+					state.BackgroundTiling = background.TilingType;
+					state.BackgroundFps = background.Fps;
 				}
 				break;
 			case MoveCamera camera:
@@ -283,8 +343,65 @@ internal sealed class RoomModule : IPlayheadObject
 			case SetRoomPerspective perspective:
 				ApplyPerspective(perspective, tick);
 				break;
+			case ReorderRooms reorder:
+				_order = [.. reorder.Order];
+				break;
+			case FadeRoom fade:
+				if (Valid(fade.Room.Value))
+				{
+					RoomState room = _rooms[fade.Room.Value];
+					room.Opacity = FloatTween.Start(room.Opacity.At(tick), fade.Opacity, tick, fade.Duration, fade.Ease);
+				}
+				break;
+			case SetForeground foreground:
+				foreach (byte room in foreground.Rooms.Rooms)
+				{
+					if (!Valid(room))
+						continue;
+					RoomState state = _rooms[room];
+					state.ForegroundColor = foreground.Color;
+					state.ForegroundImages = [.. foreground.Images];
+					state.ForegroundContentMode = foreground.ContentMode;
+					state.ForegroundTiling = foreground.TilingType;
+					state.ForegroundFps = foreground.Fps;
+					// With no images the game disables the foreground layer.
+					state.HasForeground = state.ForegroundImages.Count > 0;
+				}
+				break;
+			case Flash flash:
+				foreach (byte room in flash.Rooms.Rooms)
+				{
+					if (!Valid(room))
+						continue;
+					RoomState state = _rooms[room];
+					state.FlashColor = Global.Components.Color.White;
+					state.FlashStartTick = tick;
+					state.FlashDuration = FlashDurationTicks(flash.Duration);
+					state.FlashStartOpacity = 100f;
+					state.FlashEndOpacity = 0f;
+					state.FlashBackground = false;
+				}
+				break;
+			case CustomFlash custom:
+				foreach (byte room in custom.Rooms.Rooms)
+				{
+					if (!Valid(room))
+						continue;
+					RoomState state = _rooms[room];
+					state.FlashColor = custom.EndColor is { } end
+						? end.Color
+						: custom.StartColor is { } start ? start.Color : Global.Components.Color.White;
+					state.FlashStartTick = tick;
+					state.FlashDuration = custom.Duration;
+					state.FlashStartOpacity = custom.StartOpacity ?? 0f;
+					state.FlashEndOpacity = custom.EndOpacity ?? 0f;
+					state.FlashBackground = custom.Background;
+				}
+				break;
 		}
 	}
+
+	private static float FlashDurationTicks(DurationType duration) => (float)duration;
 
 	private void ApplyPerspective(SetRoomPerspective perspective, float tick)
 	{
@@ -339,39 +456,61 @@ internal sealed class RoomModule : IPlayheadObject
 			return;
 		RoomState room = _rooms[index];
 		float duration = move.Duration;
-		if (move.Position is { } position)
-		{
-			if (position.X is { } x)
-				room.X = FloatTween.Start(room.X.At(tick), x, tick, duration, move.Ease);
-			if (position.Y is { } y)
-				room.Y = FloatTween.Start(room.Y.At(tick), y, tick, duration, move.Ease);
-		}
-		if (move.Scale is { } scale)
-		{
-			if (scale.Width is { } width)
-				room.Width = FloatTween.Start(room.Width.At(tick), width, tick, duration, move.Ease);
-			if (scale.Height is { } height)
-				room.HeightScale = FloatTween.Start(room.HeightScale.At(tick), height, tick, duration, move.Ease);
-		}
-		if (move.Angle is { } angle)
-			room.Angle = FloatTween.Start(room.Angle.At(tick), angle, tick, duration, move.Ease);
-		if (move.Pivot is { } pivot)
-		{
-			if (pivot.X is { } ox)
-				room.OriginX = FloatTween.Start(room.OriginX.At(tick), ox, tick, duration, move.Ease);
-			if (pivot.Y is { } oy)
-				room.OriginY = FloatTween.Start(room.OriginY.At(tick), oy, tick, duration, move.Ease);
-		}
+
+		// The game's MoveRoom fields are non-null with used=true defaults and its deserializer only
+		// overwrites present keys, so an event always re-applies the components it does not specify:
+		// position (50,50) = window center, scale (100,100) = window size, angle 0, pivot (50,50).
+		// This is what makes a scale-only MoveRoom fill the window instead of just its band.
+		float targetW = move.Scale?.Width ?? 100f;
+		float targetH = move.Scale?.Height ?? 100f;
+		room.X = FloatTween.Start(room.X.At(tick), move.Position?.X ?? 50f, tick, duration, move.Ease);
+		room.Y = FloatTween.Start(room.Y.At(tick), move.Position?.Y ?? 50f, tick, duration, move.Ease);
+		room.PositionXSet = true;
+		room.PositionYSet = true;
+
+		room.Width = FloatTween.Start(room.Width.At(tick), targetW, tick, duration, move.Ease);
+		room.HeightScale = FloatTween.Start(room.HeightScale.At(tick), targetH, tick, duration, move.Ease);
+		room.ScaleXSet = true;
+		room.ScaleYSet = true;
+
+		room.Angle = FloatTween.Start(room.Angle.At(tick), move.Angle ?? 0f, tick, duration, move.Ease);
+		room.AngleSet = true;
+
+		room.OriginX = FloatTween.Start(room.OriginX.At(tick), move.Pivot?.X ?? 50f, tick, duration, move.Ease);
+		room.OriginY = FloatTween.Start(room.OriginY.At(tick), move.Pivot?.Y ?? 50f, tick, duration, move.Ease);
+		room.PivotSet = true;
+
+		// A non-zero quad makes the room render; a zero-sized one hides it (RDRoom.EnableRendering...).
+		room.Visible = Math.Abs(targetW) * Math.Abs(targetH) > 1E-06f;
 	}
 
 	private void ApplyShowRooms(ShowRooms show, float tick)
 	{
 		float[] percents = show.Height.GetHeightPercents(show.Rooms);
+		// The game only repositions the rooms listed in the event; other rooms keep their state.
 		for (int i = 0; i < _rooms.Length; i++)
 		{
-			_rooms[i].Visible = show.Rooms[(byte)i];
+			if (!show.Rooms[(byte)i])
+				continue;
+			_rooms[i].Visible = true;
 			if (i < percents.Length)
 				_rooms[i].Height = FloatTween.Start(_rooms[i].Height.At(tick), percents[i] * 100f, tick, show.Duration, show.Ease);
+			// ShowRooms calls AnimateQuad, which resets the MoveRoom overrides and sets the quad
+			// back to the band (see scrVfxControl.ShowRooms / RDRoom.AnimateQuad).
+			RoomState room = _rooms[i];
+			room.X = FloatTween.Start(room.X.At(tick), 50f, tick, show.Duration, show.Ease);
+			room.Y = FloatTween.Start(room.Y.At(tick), 50f, tick, show.Duration, show.Ease);
+			room.Width = FloatTween.Start(room.Width.At(tick), 100f, tick, show.Duration, show.Ease);
+			room.HeightScale = FloatTween.Start(room.HeightScale.At(tick), 100f, tick, show.Duration, show.Ease);
+			room.OriginX = FloatTween.Start(room.OriginX.At(tick), 50f, tick, show.Duration, show.Ease);
+			room.OriginY = FloatTween.Start(room.OriginY.At(tick), 50f, tick, show.Duration, show.Ease);
+			room.Angle = FloatTween.Start(room.Angle.At(tick), 0f, tick, show.Duration, show.Ease);
+			room.PositionXSet = false;
+			room.PositionYSet = false;
+			room.ScaleXSet = false;
+			room.ScaleYSet = false;
+			room.AngleSet = false;
+			room.PivotSet = false;
 		}
 	}
 
@@ -383,7 +522,13 @@ internal sealed class RoomModule : IPlayheadObject
 		List<RoomSnapshot> items = [];
 		for (int i = 0; i < _rooms.Length; i++)
 			items.Add(BuildRoom(i, tick));
-		return new RoomsSnapshot { Items = items };
+		return new RoomsSnapshot
+		{
+			Items = items,
+			Order = (int[])_order.Clone(),
+			// The last slot is the top (HUD) camera, targeted by RoomIndex.RoomTop.
+			TopCamera = BuildRoom(_rooms.Length - 1, tick).Camera,
+		};
 	}
 
 	public IReadOnlyList<PlayheadObjectSnapshot> Describe()
@@ -413,10 +558,25 @@ internal sealed class RoomModule : IPlayheadObject
 			RightTopX = room.PerspRtX.At(tick),
 			RightTopY = room.PerspRtY.At(tick),
 		};
+		float flashOpacity = 0f;
+		if (room.FlashStartTick >= 0f)
+		{
+			float progress = room.FlashDuration > 0f ? (tick - room.FlashStartTick) / room.FlashDuration : 1f;
+			progress = progress < 0f ? 0f : progress > 1f ? 1f : progress;
+			flashOpacity = room.FlashStartOpacity + ((room.FlashEndOpacity - room.FlashStartOpacity) * progress);
+		}
 		return new RoomSnapshot
 		{
 			Index = i,
 			Visible = room.Visible,
+			Opacity = room.Opacity.At(tick),
+			HasForeground = room.HasForeground,
+			ForegroundColor = room.ForegroundColor,
+			ForegroundImages = room.ForegroundImages,
+			ForegroundContentMode = room.ForegroundContentMode,
+			FlashColor = room.FlashColor,
+			FlashOpacity = flashOpacity,
+			FlashBackground = room.FlashBackground,
 			Height = room.Height.At(tick),
 			X = room.X.At(tick),
 			Y = room.Y.At(tick),
@@ -425,9 +585,17 @@ internal sealed class RoomModule : IPlayheadObject
 			OriginX = room.OriginX.At(tick),
 			OriginY = room.OriginY.At(tick),
 			Angle = room.Angle.At(tick),
+			PositionXSet = room.PositionXSet,
+			PositionYSet = room.PositionYSet,
+			ScaleXSet = room.ScaleXSet,
+			ScaleYSet = room.ScaleYSet,
+			AngleSet = room.AngleSet,
+			PivotSet = room.PivotSet,
 			ContentMode = room.ContentMode,
 			BackgroundColor = room.BackgroundColor,
 			BackgroundType = room.BackgroundType,
+			BackgroundImages = room.BackgroundImages,
+			BackgroundContentMode = room.BackgroundContentMode,
 			Camera = new CameraSnapshot
 			{
 				X = room.CameraX.At(tick),
@@ -475,9 +643,19 @@ internal sealed class RoomModule : IPlayheadObject
 		public FloatTween OriginX = FloatTween.Constant(50f);
 		public FloatTween OriginY = FloatTween.Constant(50f);
 		public FloatTween Angle = FloatTween.Constant(0f);
+		public bool PositionXSet;
+		public bool PositionYSet;
+		public bool ScaleXSet;
+		public bool ScaleYSet;
+		public bool AngleSet;
+		public bool PivotSet;
 		public ContentMode ContentMode;
 		public PaletteColorWithAlpha BackgroundColor;
 		public BackgroundType BackgroundType;
+		public List<FileReference> BackgroundImages = [];
+		public ContentMode BackgroundContentMode;
+		public TilingType BackgroundTiling;
+		public float BackgroundFps = 30f;
 		public FloatTween CameraX = FloatTween.Constant(50f);
 		public FloatTween CameraY = FloatTween.Constant(50f);
 		public FloatTween CameraZoom = FloatTween.Constant(100f);
@@ -493,6 +671,19 @@ internal sealed class RoomModule : IPlayheadObject
 		public FloatTween PerspLtY = FloatTween.Constant(100f);
 		public FloatTween PerspRtX = FloatTween.Constant(100f);
 		public FloatTween PerspRtY = FloatTween.Constant(100f);
+		public FloatTween Opacity = FloatTween.Constant(100f);
+		public PaletteColorWithAlpha ForegroundColor;
+		public bool HasForeground;
+		public List<FileReference> ForegroundImages = [];
+		public ContentMode ForegroundContentMode;
+		public TilingType ForegroundTiling;
+		public float ForegroundFps = 30f;
+		public PaletteColorWithAlpha FlashColor;
+		public float FlashStartTick = -1f;
+		public float FlashDuration;
+		public float FlashStartOpacity;
+		public float FlashEndOpacity;
+		public bool FlashBackground;
 
 		public RoomState Clone() => (RoomState)MemberwiseClone();
 	}
@@ -546,6 +737,7 @@ internal sealed class RowModule : IPlayheadObject
 		EventType.ReorderRow,
 		EventType.SpinningRows,
 		EventType.SetOneshotWave,
+		EventType.PlayExpression,
 	];
 
 	public void MoveNext(IBaseEvent e)
@@ -611,6 +803,18 @@ internal sealed class RowModule : IPlayheadObject
 					state.WaveHeight = wave.Height;
 					state.WaveWidth = wave.Width;
 					state.WaveWobble = wave.Wobble;
+				}
+				break;
+			case PlayExpression expression:
+				if (Valid(expression.Row))
+				{
+					// Replace a substring of the current expression, or switch to the new one.
+					RowState state = _rows[expression.Row];
+					state.Expression = expression.Replace && state.HasExpression
+						? state.Expression.Replace(expression.Target, expression.Expression)
+						: expression.Expression;
+					state.ExpressionStartTick = tick;
+					state.HasExpression = true;
 				}
 				break;
 		}
@@ -741,6 +945,9 @@ internal sealed class RowModule : IPlayheadObject
 			CharacterMoved = row.CharacterMoved,
 			Heart = BuildTransform(row.Heart, tick),
 			Character = BuildTransform(row.Character, tick),
+			HasExpression = row.HasExpression,
+			Expression = row.Expression,
+			ExpressionElapsedTicks = row.HasExpression ? Math.Max(0f, tick - row.ExpressionStartTick) : 0f,
 		};
 	}
 
@@ -798,6 +1005,9 @@ internal sealed class RowModule : IPlayheadObject
 		public int WaveHeight;
 		public int WaveWidth;
 		public bool? WaveWobble;
+		public string Expression = "";
+		public float ExpressionStartTick;
+		public bool HasExpression;
 
 		public RowState Clone()
 		{

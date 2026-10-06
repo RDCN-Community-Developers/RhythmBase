@@ -227,7 +227,8 @@ public interface IPlayheadObject
 /// </summary>
 public readonly struct PlayheadSnapshot
 {
-	private readonly IReadOnlyDictionary<Type, object> _modules;
+	private static readonly IReadOnlyDictionary<Type, object> EmptyModules = new Dictionary<Type, object>();
+	private readonly IReadOnlyDictionary<Type, object>? _modules;
 
 	internal PlayheadSnapshot(TickTime tickTime, IReadOnlyDictionary<Type, object> modules, IReadOnlyList<PlayheadObjectSnapshot> objects)
 	{
@@ -240,7 +241,7 @@ public readonly struct PlayheadSnapshot
 	public TickTime TickTime { get; }
 
 	/// <summary>Gets the raw module snapshots keyed by snapshot type.</summary>
-	public IReadOnlyDictionary<Type, object> Modules => _modules;
+	public IReadOnlyDictionary<Type, object> Modules => _modules ?? EmptyModules;
 
 	/// <summary>Gets the object-oriented snapshots, one per simulated object.</summary>
 	public IReadOnlyList<PlayheadObjectSnapshot> Objects { get; init; }
@@ -251,7 +252,7 @@ public readonly struct PlayheadSnapshot
 	/// <returns><see langword="true"/> when the module was monitored.</returns>
 	public bool TryGet<T>(out T value)
 	{
-		if (_modules.TryGetValue(typeof(T), out object? snapshot) && snapshot is T typed)
+		if (_modules is not null && _modules.TryGetValue(typeof(T), out object? snapshot) && snapshot is T typed)
 		{
 			value = typed;
 			return true;

@@ -140,8 +140,18 @@ public readonly struct TextCommand
 	public float Y { get; init; }
 	/// <summary>Gets the color.</summary>
 	public PaletteColorWithAlpha Color { get; init; }
+	/// <summary>Gets the outline color.</summary>
+	public PaletteColorWithAlpha OutlineColor { get; init; }
 	/// <summary>Gets the size.</summary>
 	public int Size { get; init; }
+	/// <summary>Gets the rotation angle in degrees.</summary>
+	public float Angle { get; init; }
+	/// <summary>Gets the anchor / alignment.</summary>
+	public FloatingTextAnchorStyle Anchor { get; init; }
+	/// <summary>Gets the fade-out mode.</summary>
+	public FloatingTextFadeOutMode Mode { get; init; }
+	/// <summary>Gets the floating-text id (used to match <c>AdvanceText</c>); -1 for other text.</summary>
+	public int Id { get; init; }
 }
 
 /// <summary>
@@ -155,6 +165,8 @@ public readonly struct FloatingTextSnapshot
 	public int Advance { get; init; }
 	/// <summary>Gets the currently displayed section.</summary>
 	public string CurrentText { get; init; }
+	/// <summary>Gets when the current section was shown (the event or the last <c>AdvanceText</c>), so the fade restarts each time.</summary>
+	public TickTime ChangedAt { get; init; }
 }
 
 /// <summary>
@@ -180,6 +192,7 @@ internal sealed class TextModule : IPlayheadObject
 	private readonly List<TextCommand> _commands = [];
 	private readonly List<(int Id, string[] Sections, TextCommand Command)> _floatingTexts = [];
 	private readonly Dictionary<int, int> _textAdvances = [];
+	private readonly Dictionary<int, List<TickTime>> _textAdvanceTimes = [];
 	private string? _dialogue;
 	private string? _status;
 
@@ -194,6 +207,8 @@ internal sealed class TextModule : IPlayheadObject
 		_commands = [.. source._commands];
 		_floatingTexts = [.. source._floatingTexts];
 		_textAdvances = new Dictionary<int, int>(source._textAdvances);
+		foreach (var pair in source._textAdvanceTimes)
+			_textAdvanceTimes[pair.Key] = new List<TickTime>(pair.Value);
 		_dialogue = source._dialogue;
 		_status = source._status;
 	}
@@ -215,12 +230,17 @@ internal sealed class TextModule : IPlayheadObject
 		{
 			(int id, string[] sections, TextCommand command) = _floatingTexts[i];
 			int advance = id >= 0 && _textAdvances.TryGetValue(id, out int count) ? count : 0;
-			string current = sections.Length > 0 ? sections[Math.Min(advance, sections.Length - 1)] : command.Text;
+			int index = sections.Length > 0 ? Math.Min(advance, sections.Length - 1) : 0;
+			string current = sections.Length > 0 ? sections[index] : command.Text;
+			// The fade restarts whenever a new section is revealed (LyricsGame.AdvanceText).
+			TickTime changedAt = command.TickTime;
+			if (index > 0 && id >= 0 && _textAdvanceTimes.TryGetValue(id, out List<TickTime>? times) && times.Count >= index)
+				changedAt = times[index - 1];
 			objects.Add(new PlayheadObjectSnapshot
 			{
 				Id = id >= 0 ? "floating" + id : "floating" + i,
 				Kind = PlayheadObjectKind.FloatingText,
-				State = new FloatingTextSnapshot { Command = command, Advance = advance, CurrentText = current },
+				State = new FloatingTextSnapshot { Command = command, Advance = advance, CurrentText = current, ChangedAt = changedAt },
 			});
 		}
 		if (_dialogue is not null)
@@ -255,7 +275,12 @@ internal sealed class TextModule : IPlayheadObject
 					X = floating.Position.X ?? 0f,
 					Y = floating.Position.Y ?? 0f,
 					Color = floating.Color,
+					OutlineColor = floating.OutlineColor,
 					Size = floating.Size,
+					Angle = floating.Angle,
+					Anchor = floating.Anchor,
+					Mode = floating.Mode,
+					Id = floating.Id,
 				};
 				_commands.Add(command);
 				_floatingTexts.Add((floating.Id, SplitSections(floatingText), command));
@@ -276,6 +301,9 @@ internal sealed class TextModule : IPlayheadObject
 				{
 					int count = _textAdvances.TryGetValue(header.Id, out int current) ? current : 0;
 					_textAdvances[header.Id] = count + 1;
+					if (!_textAdvanceTimes.TryGetValue(header.Id, out List<TickTime>? times))
+						_textAdvanceTimes[header.Id] = times = [];
+					times.Add(e.TickTime);
 				}
 				break;
 		}
