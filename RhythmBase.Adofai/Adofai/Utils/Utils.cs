@@ -20,6 +20,7 @@ public static class Utils
 		MetadataJsonSerializerOptions options = new() { JsonSerializerOptions = new() };
 		options.ReadSettings = settings;
 		options.DirectoryName = filepath;
+		options.UpgradeToLatest = settings.UpgradeToLatest;
 		return options;
 	}
 	/// <summary>
