@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
@@ -11,11 +10,11 @@ namespace RhythmBase.RhythmDoctor.Components.Lang;
 
 /// <summary>
 /// Walks a parsed expression tree and produces values. It is shared by
-/// <see cref="ExpressionEvaluator"/> and <see cref="ConditionalExpressionEvaluator"/>.
+/// <see cref="FloatExpressionEvaluator"/>, <see cref="CallCustomMethodEvaluator"/> and
+/// <see cref="ConditionalExpressionEvaluator"/>.
 /// </summary>
 internal sealed class ExpressionRuntime
 {
-	private static readonly Random _random = new Random();
 	private readonly ExpressionContext _context;
 	private readonly Parser _parser;
 	private readonly bool _conditional;
@@ -34,7 +33,21 @@ internal sealed class ExpressionRuntime
 	}
 
 	/// <summary>
-	/// Evaluates a <c>program</c> tree and returns the value of its last statement.
+	/// Evaluates an <c>entry</c> tree (the pure-expression entry point returned by
+	/// <see cref="ExpressionParser.entry"/>) and returns its value.
+	/// </summary>
+	public object? EvalEntry(ParserRuleContext entry)
+	{
+		for (int i = 0; i < entry.ChildCount; i++)
+		{
+			if (entry.GetChild(i) is ParserRuleContext child && RuleName(child) == "expression")
+				return EvalExpression(child);
+		}
+		return null;
+	}
+
+	/// <summary>
+	/// Evaluates a <c>program</c> tree and returns the value of its statement.
 	/// </summary>
 	public object? EvalProgram(ParserRuleContext program)
 	{
@@ -202,7 +215,7 @@ internal sealed class ExpressionRuntime
 	private object? EvalFunctionCall(ParserRuleContext ctx)
 	{
 		string name = RequiredChild(ctx, "identifier").GetText();
-		List<object?> args = new List<object?>();
+		List<object?> args = [];
 		for (int i = 0; i < ctx.ChildCount; i++)
 		{
 			if (ctx.GetChild(i) is ParserRuleContext child && RuleName(child) == "expression")
@@ -213,32 +226,14 @@ internal sealed class ExpressionRuntime
 
 	private object? Invoke(string name, List<object?> args)
 	{
-		switch (name)
-		{
-			case "Rand":
-				if (args.Count != 1)
-					throw new FormatException("Rand() expects 1 argument.");
-				return RandomInt(ToInt(args[0]));
-			case "IIf":
-				if (args.Count != 3)
-					throw new FormatException("IIf() expects 3 arguments.");
-				return ToBool(args[0]) ? args[1] : args[2];
-			case "atLeastRank":
-				if (args.Count != 1)
-					throw new FormatException("atLeastRank() expects 1 argument.");
-				return global::RhythmBase.RhythmDoctor.Components.Variables.atLeastRank(ToStr(args[0]));
-			case "atLeastNPerfects":
-				if (args.Count != 2)
-					throw new FormatException("atLeastNPerfects() expects 2 arguments.");
-				return global::RhythmBase.RhythmDoctor.Components.Variables.atLeastNPerfects(ToInt(args[0]), ToInt(args[1]));
-			default:
-				return InvokeEnvironmentFunction(name, args);
-		}
+		if (_context.TryInvokeFunction(name, args, out object? result))
+			return result;
+		return InvokeReflectedFunction(name, args);
 	}
 
-	private object? InvokeEnvironmentFunction(string name, List<object?> args)
+	private object? InvokeReflectedFunction(string name, List<object?> args)
 	{
-		MethodInfo? method = _context.Variables.GetType().GetMethod(name, BindingFlags.Public | BindingFlags.Instance);
+		MethodInfo? method = _context.GetType().GetMethod(name, BindingFlags.Public | BindingFlags.Instance);
 		if (method == null)
 			throw new FormatException($"Function '{name}' is not supported.");
 
@@ -261,25 +256,12 @@ internal sealed class ExpressionRuntime
 			else
 				converted[i] = args[i];
 		}
-		return method.Invoke(_context.Variables, converted);
+		return method.Invoke(_context, converted);
 	}
 
 	private object? Resolve(string name)
 	{
-		if (ExpressionContext.TryParseFixed(name, out char kind, out int index))
-		{
-			switch (kind)
-			{
-				case 'i':
-					return _context.I[index];
-				case 'f':
-					return _context.F[index];
-				default:
-					return _context.B[index];
-			}
-		}
-
-		if (TryGetVariable(name, out object? value))
+		if (_context.TryGetVariable(name, out object? value))
 			return value;
 
 		// In conditional strings an unknown identifier denotes an enum-like literal
@@ -292,23 +274,7 @@ internal sealed class ExpressionRuntime
 
 	private void Assign(string name, object? value)
 	{
-		if (ExpressionContext.TryParseFixed(name, out char kind, out int index))
-		{
-			switch (kind)
-			{
-				case 'i':
-					_context.I[index] = ToInt(value);
-					return;
-				case 'f':
-					_context.F[index] = ToFloat(value);
-					return;
-				default:
-					_context.B[index] = ToBool(value);
-					return;
-			}
-		}
-
-		if (TrySetVariable(name, value))
+		if (_context.TrySetVariable(name, value))
 			return;
 
 		throw new FormatException($"Variable '{name}' is read-only or unknown.");
@@ -317,27 +283,11 @@ internal sealed class ExpressionRuntime
 	private object? EvalModeKeyword(ParserRuleContext ctx)
 	{
 		string text = ctx.GetText();
-		if (TryGetVariable(text, out object? direct))
+		if (_context.TryGetVariable(text, out object? direct))
 			return ToBool(direct);
-		if (TryGetVariable("twoPlayerMode", out object? twoPlayer))
+		if (_context.TryGetVariable("twoPlayerMode", out object? twoPlayer))
 			return text == "2pMode" ? ToBool(twoPlayer) : !ToBool(twoPlayer);
 		return text == "1pMode";
-	}
-
-	// Variables outside the 30 fixed slots are read/written through the dynamic member
-	// protocol, so any VariablesBase (DynamicObject) environment works transparently.
-	private bool TryGetVariable(string name, out object? value)
-	{
-		if (_context.Variables is not DynamicObject dynamicVariables)
-			throw new InvalidOperationException("The IVariables environment must derive from System.Dynamic.DynamicObject, for example VariablesBase.");
-		return dynamicVariables.TryGetMember(new VariableGetBinder(name), out value);
-	}
-
-	private bool TrySetVariable(string name, object? value)
-	{
-		if (_context.Variables is not DynamicObject dynamicVariables)
-			throw new InvalidOperationException("The IVariables environment must derive from System.Dynamic.DynamicObject, for example VariablesBase.");
-		return dynamicVariables.TrySetMember(new VariableSetBinder(name), value);
 	}
 
 	private static object ApplyBinary(string op, object? left, object? right)
@@ -402,15 +352,6 @@ internal sealed class ExpressionRuntime
 	}
 
 	private static bool IsIntegral(object? value) => value is int || value is bool;
-
-	private static int RandomInt(int value)
-	{
-		if (value > 0)
-			return _random.Next(1, value + 1);
-		if (value < 0)
-			return -_random.Next(1, -value + 1);
-		return 0;
-	}
 
 	private string RuleName(ParserRuleContext ctx) => _parser.RuleNames[ctx.RuleIndex];
 
@@ -533,30 +474,5 @@ internal sealed class ExpressionRuntime
 			default:
 				return value.ToString() ?? "";
 		}
-	}
-
-	// Minimal binders carrying only the member name; they are consumed by
-	// VariablesBase.TryGetMember / TrySetMember, so the fallbacks are only reached when the
-	// environment reports the member as missing (or read-only).
-	private sealed class VariableGetBinder : GetMemberBinder
-	{
-		public VariableGetBinder(string name)
-			: base(name, ignoreCase: false)
-		{
-		}
-
-		public override DynamicMetaObject FallbackGetMember(DynamicMetaObject target, DynamicMetaObject? errorSuggestion)
-			=> errorSuggestion ?? throw new InvalidOperationException($"Variable '{Name}' does not exist.");
-	}
-
-	private sealed class VariableSetBinder : SetMemberBinder
-	{
-		public VariableSetBinder(string name)
-			: base(name, ignoreCase: false)
-		{
-		}
-
-		public override DynamicMetaObject FallbackSetMember(DynamicMetaObject target, DynamicMetaObject value, DynamicMetaObject? errorSuggestion)
-			=> errorSuggestion ?? throw new InvalidOperationException($"Variable '{Name}' is read-only or unknown.");
 	}
 }

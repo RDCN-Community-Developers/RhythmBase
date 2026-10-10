@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from ConditionalExpression.g4 by ANTLR 4.13.2
+// Generated from D:/vb.net/RDLevel/RhythmBase.RhythmDoctor/RhythmDoctor/Components/Lang/ConditionalExpression.g4 by ANTLR 4.13.2
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -54,55 +54,15 @@ public interface IConditionalExpressionListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitMode_keyword([NotNull] ConditionalExpressionParser.Mode_keywordContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="ConditionalExpressionParser.program"/>.
+	/// Enter a parse tree produced by <see cref="ConditionalExpressionParser.entry"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterProgram([NotNull] ConditionalExpressionParser.ProgramContext context);
+	void EnterEntry([NotNull] ConditionalExpressionParser.EntryContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="ConditionalExpressionParser.program"/>.
+	/// Exit a parse tree produced by <see cref="ConditionalExpressionParser.entry"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitProgram([NotNull] ConditionalExpressionParser.ProgramContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="ConditionalExpressionParser.statement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterStatement([NotNull] ConditionalExpressionParser.StatementContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="ConditionalExpressionParser.statement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitStatement([NotNull] ConditionalExpressionParser.StatementContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="ConditionalExpressionParser.assignment"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterAssignment([NotNull] ConditionalExpressionParser.AssignmentContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="ConditionalExpressionParser.assignment"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitAssignment([NotNull] ConditionalExpressionParser.AssignmentContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="ConditionalExpressionParser.increment"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterIncrement([NotNull] ConditionalExpressionParser.IncrementContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="ConditionalExpressionParser.increment"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitIncrement([NotNull] ConditionalExpressionParser.IncrementContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="ConditionalExpressionParser.decrement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterDecrement([NotNull] ConditionalExpressionParser.DecrementContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="ConditionalExpressionParser.decrement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitDecrement([NotNull] ConditionalExpressionParser.DecrementContext context);
+	void ExitEntry([NotNull] ConditionalExpressionParser.EntryContext context);
 	/// <summary>
 	/// Enter a parse tree produced by the <c>add</c>
 	/// labeled alternative in <see cref="ConditionalExpressionParser.expression"/>.

@@ -111,8 +111,10 @@ public partial class Level :
     {
         get
         {
-            ChartDictionary<Level> dictionary = new();
-            dictionary.Add(Name, this);
+            ChartDictionary<Level> dictionary = new()
+						{
+							{ Name, this }
+						};
             return dictionary;
         }
     }

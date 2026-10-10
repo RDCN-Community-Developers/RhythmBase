@@ -4,29 +4,11 @@ grammar Expression;
 namespace RhythmBase.RhythmDoctor.Components.Lang;
 }
 
-// A program is a single statement. An expression is itself a statement, so the same
-// grammar serves numeric fields, `{...}` text interpolation and CallCustomMethod arguments.
-program
-    : statement? EOF
-    ;
-
-statement
-    : assignment
-    | increment
-    | decrement
-    | expression
-    ;
-
-assignment
-    : identifier '=' expression
-    ;
-
-increment
-    : identifier '++'
-    ;
-
-decrement
-    : identifier '--'
+// Entry point: a single expression, used by numeric fields and `{...}` text
+// interpolation (the game's FloatExpression) and by CallCustomMethod arguments.
+// Side-effecting statements live in the CallCustomMethod grammar.
+entry
+    : expression? EOF
     ;
 
 // Operator precedence, highest first (the order of left-recursive alternatives).

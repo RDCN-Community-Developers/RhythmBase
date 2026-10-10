@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from Expression.g4 by ANTLR 4.13.2
+// Generated from D:/vb.net/RDLevel/RhythmBase.RhythmDoctor/RhythmDoctor/Components/Lang/Expression.g4 by ANTLR 4.13.2
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -34,55 +34,15 @@ using IToken = Antlr4.Runtime.IToken;
 [System.CLSCompliant(false)]
 public interface IExpressionListener : IParseTreeListener {
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="ExpressionParser.program"/>.
+	/// Enter a parse tree produced by <see cref="ExpressionParser.entry"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterProgram([NotNull] ExpressionParser.ProgramContext context);
+	void EnterEntry([NotNull] ExpressionParser.EntryContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="ExpressionParser.program"/>.
+	/// Exit a parse tree produced by <see cref="ExpressionParser.entry"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitProgram([NotNull] ExpressionParser.ProgramContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="ExpressionParser.statement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterStatement([NotNull] ExpressionParser.StatementContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="ExpressionParser.statement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitStatement([NotNull] ExpressionParser.StatementContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="ExpressionParser.assignment"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterAssignment([NotNull] ExpressionParser.AssignmentContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="ExpressionParser.assignment"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitAssignment([NotNull] ExpressionParser.AssignmentContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="ExpressionParser.increment"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterIncrement([NotNull] ExpressionParser.IncrementContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="ExpressionParser.increment"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitIncrement([NotNull] ExpressionParser.IncrementContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="ExpressionParser.decrement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterDecrement([NotNull] ExpressionParser.DecrementContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="ExpressionParser.decrement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitDecrement([NotNull] ExpressionParser.DecrementContext context);
+	void ExitEntry([NotNull] ExpressionParser.EntryContext context);
 	/// <summary>
 	/// Enter a parse tree produced by the <c>add</c>
 	/// labeled alternative in <see cref="ExpressionParser.expression"/>.

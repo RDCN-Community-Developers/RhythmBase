@@ -154,7 +154,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 		public INamedTypeSymbol RootConverterType;
 		public string TypePropertyName;
 	}
-	List<Exception> exceptions = new();
+	List<Exception> exceptions = [];
 	private static readonly Lazy<Dictionary<string, string>> _embeddedTemplates = new(LoadEmbeddedTemplates);
 
 	private static Dictionary<string, string> LoadEmbeddedTemplates()
@@ -205,7 +205,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 		IncrementalValueProvider<(string?, List<Diagnostic>)> registryInfo = context.CompilationProvider
 				.Select((compilation, ct) =>
 		{
-			List<Diagnostic> diagnostics = new();
+			List<Diagnostic> diagnostics = [];
 			try
 			{
 				var attrType = compilation.GetTypeByMetadataName(JsonConverterIdAttrName);
@@ -247,7 +247,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 				if (attrType == null) return default;
 				var assembly = compilation.Assembly;
 				List<ClassGenAttr> types = [];
-				List<Diagnostic> diagnostics = new();
+				List<Diagnostic> diagnostics = [];
 				foreach (var attr in assembly.GetAttributes())
 				{
 					if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.OriginalDefinition, attrType))
@@ -522,7 +522,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 			{
 				var (allasms, compilation) = allasmsAndCompilation;
 				var currentAsm = compilation.Assembly;
-				List<(ITypeSymbol, INamedTypeSymbol)> result = new();
+				List<(ITypeSymbol, INamedTypeSymbol)> result = [];
 				var attrType = compilation.GetTypeByMetadataName(JsonConverterForAttrName);
 				static IEnumerable<INamedTypeSymbol> GetAllTypes(INamespaceSymbol namespaceSymbol)
 				{

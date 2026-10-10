@@ -60,7 +60,7 @@ public class FileReferenceArgs(FileReference Reference) : EventArgs
 /// </remarks>
 public class LevelReadOrWriteConfig
 {
-	private Dictionary<string, object?> _customData = new();
+	private Dictionary<string, object?> _customData = [];
 	/// <summary>
 	/// Gets or sets a custom data value by key.
 	/// </summary>
@@ -205,7 +205,7 @@ public class LevelReadConfig : LevelReadOrWriteConfig
 	/// </summary>
 	public bool UpgradeToLatest { get; set; } = true;
 
-	private readonly List<(Type matchType, string field, Func<object, JsonElement, bool> handler)> _userHandlers = new();
+	private readonly List<(Type matchType, string field, Func<object, JsonElement, bool> handler)> _userHandlers = [];
 
 	/// <summary>
 	/// Registers a user-level handler for a specific unhandled field on a specific type.

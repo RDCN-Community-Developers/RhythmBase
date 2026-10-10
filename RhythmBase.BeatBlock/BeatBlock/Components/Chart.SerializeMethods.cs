@@ -93,7 +93,7 @@ partial class Chart
 	{
 		settings ??= new LevelReadConfig();
 		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
-		Chart chart = new("");
+		Chart chart = [with("")];
 		Level.FileConverter.DeserializeChart(new StreamDataSource(chartStream), options, chart, settings);
 		return chart;
 	}
@@ -115,7 +115,7 @@ partial class Chart
 	{
 		settings ??= new LevelReadConfig();
 		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
-		Chart chart = new("");
+		Chart chart = [with("")];
 		Level.FileConverter.DeserializeChart(new StreamDataSource(chartStream), options, chart, settings);
 		Level.FileConverter.DeserializeLevel(new StreamDataSource(levelStream), options, chart, settings);
 		return chart;
@@ -176,7 +176,7 @@ partial class Chart
 	{
 		settings ??= new LevelReadConfig();
 		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
-		Chart chart = new("");
+		Chart chart = [with("")];
 		Level.FileConverter.DeserializeChart(new ReadOnlyMemoryDataSource(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(json))), options, chart, settings);
 		return chart;
 	}
@@ -191,7 +191,7 @@ partial class Chart
 	{
 		settings ??= new LevelReadConfig();
 		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
-		Chart chart = new("");
+		Chart chart = [with("")];
 		Level.FileConverter.DeserializeChart(new ReadOnlyMemoryDataSource(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(chartJson))), options, chart, settings);
 		Level.FileConverter.DeserializeLevel(new ReadOnlyMemoryDataSource(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(levelJson))), options, chart, settings);
 		return chart;
@@ -205,7 +205,7 @@ partial class Chart
 	{
 		settings ??= new LevelReadConfig();
 		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
-		Chart chart = new("");
+		Chart chart = [with("")];
 		Level.FileConverter.DeserializeChart(new JsonDocumentDataSource(jsonDocument), options, chart, settings);
 		return chart;
 	}
@@ -217,7 +217,7 @@ partial class Chart
 	{
 		settings ??= new LevelReadConfig();
 		MetadataJsonSerializerOptions options = JsonSerializerOptionsUtils.GetJsonSerializerOptionsForRead(settings);
-		Chart chart = new("");
+		Chart chart = [with("")];
 		Level.FileConverter.DeserializeChart(new JsonDocumentDataSource(chartDocument), options, chart, settings);
 		Level.FileConverter.DeserializeLevel(new JsonDocumentDataSource(levelDocument), options, chart, settings);
 		return chart;

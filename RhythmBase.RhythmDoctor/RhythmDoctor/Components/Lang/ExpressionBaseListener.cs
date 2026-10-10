@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from Expression.g4 by ANTLR 4.13.2
+// Generated from D:/vb.net/RDLevel/RhythmBase.RhythmDoctor/RhythmDoctor/Components/Lang/Expression.g4 by ANTLR 4.13.2
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -39,65 +39,17 @@ using ParserRuleContext = Antlr4.Runtime.ParserRuleContext;
 [System.CLSCompliant(false)]
 public partial class ExpressionBaseListener : IExpressionListener {
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="ExpressionParser.program"/>.
+	/// Enter a parse tree produced by <see cref="ExpressionParser.entry"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterProgram([NotNull] ExpressionParser.ProgramContext context) { }
+	public virtual void EnterEntry([NotNull] ExpressionParser.EntryContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="ExpressionParser.program"/>.
+	/// Exit a parse tree produced by <see cref="ExpressionParser.entry"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitProgram([NotNull] ExpressionParser.ProgramContext context) { }
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="ExpressionParser.statement"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterStatement([NotNull] ExpressionParser.StatementContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="ExpressionParser.statement"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitStatement([NotNull] ExpressionParser.StatementContext context) { }
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="ExpressionParser.assignment"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterAssignment([NotNull] ExpressionParser.AssignmentContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="ExpressionParser.assignment"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitAssignment([NotNull] ExpressionParser.AssignmentContext context) { }
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="ExpressionParser.increment"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterIncrement([NotNull] ExpressionParser.IncrementContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="ExpressionParser.increment"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitIncrement([NotNull] ExpressionParser.IncrementContext context) { }
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="ExpressionParser.decrement"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterDecrement([NotNull] ExpressionParser.DecrementContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="ExpressionParser.decrement"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitDecrement([NotNull] ExpressionParser.DecrementContext context) { }
+	public virtual void ExitEntry([NotNull] ExpressionParser.EntryContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by the <c>add</c>
 	/// labeled alternative in <see cref="ExpressionParser.expression"/>.

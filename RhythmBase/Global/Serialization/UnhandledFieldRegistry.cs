@@ -19,7 +19,7 @@ public delegate bool UnhandledPropertyHandler<TTarget>(ref TTarget target, JsonE
 /// </summary>
 public static class UnhandledFieldRegistry
 {
-	private static readonly List<(Type matchType, string field, Delegate handler)> _handlers = new();
+	private static readonly List<(Type matchType, string field, Delegate handler)> _handlers = [];
 	private static Func<Type, Func<int, bool>>? _predicateFactory;
 
 	/// <summary>

@@ -30,7 +30,7 @@ public partial class Level :
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Level"/> class with a new empty main chart.
 	/// </summary>
-	public Level() : this(new Chart())
+	public Level() : this([])
 	{
 	}
 
@@ -42,7 +42,7 @@ public partial class Level :
 	public Level(Chart mainChart, IReadOnlyDictionary<string, Chart>? charts = null)
 	{
 		MainChart = mainChart ?? throw new ArgumentNullException(nameof(mainChart));
-		_charts = new ChartDictionary<Chart>();
+		_charts = [];
 		RegisterChart(DefaultChartName, mainChart);
 		if (charts is not null)
 			foreach (var pair in charts)

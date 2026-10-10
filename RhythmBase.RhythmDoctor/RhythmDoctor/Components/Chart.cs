@@ -40,12 +40,6 @@ public partial class Chart :
 	public event RDEventHandler? EventRemoved;
 
 	internal List<FloatingText> _floatingTexts = [];
-
-	/// <summary>
-	/// Variables.
-	/// </summary>
-	public readonly Variables Variables;
-
 	/// <inheritdoc/>
 	public override int Count => base.Count;
 
@@ -115,7 +109,6 @@ public partial class Chart :
 	/// </summary>
 	public Chart()
 	{
-		Variables = new Variables();
 		Calculator = new BeatCalculator(this);
 		Settings = new Settings();
 		Conditionals = new(this);

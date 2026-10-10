@@ -166,7 +166,7 @@ public partial class Level :
 	{
 		get
 		{
-			ChartDictionary<Chart> dictionary = new();
+			ChartDictionary<Chart> dictionary = [];
 			foreach (Chart chart in Charts)
 				dictionary.Add(chart.Name, chart);
 			return dictionary;

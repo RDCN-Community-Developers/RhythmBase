@@ -63,7 +63,7 @@ public record class MetadataJsonSerializerOptions
 	/// </summary>
 	public LevelWriteConfig? WriteSettings { get; set; }
 
-	private readonly List<(Type matchType, string field, Func<object, JsonElement, bool> handler)> _userHandlers = new();
+	private readonly List<(Type matchType, string field, Func<object, JsonElement, bool> handler)> _userHandlers = [];
 
 	/// <summary>
 	/// Registers a user-level handler for a specific unhandled field on a specific type.
