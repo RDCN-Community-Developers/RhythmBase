@@ -1,3 +1,4 @@
+using RhythmBase.Global.Diff;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -10,6 +11,7 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// <remarks>This structure provides indexed access to a collection of player types, where the valid index range
 /// is 0 to 15.  Attempting to access an index outside this range will result in an <see
 /// cref="IndexOutOfRangeException"/>.</remarks>
+[Diffable]
 [CollectionBuilder(typeof(CollectionBuilders), nameof(CollectionBuilders.BuildPlayerTypeGroup))]
 public readonly struct PlayerTypeGroup() : IEquatable<PlayerTypeGroup>, IEnumerable<PlayerType>
 {

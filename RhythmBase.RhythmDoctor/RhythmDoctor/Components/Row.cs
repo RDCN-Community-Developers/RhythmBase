@@ -1,3 +1,4 @@
+using RhythmBase.Global.Diff;
 using RhythmBase.RhythmDoctor.Events;
 using System.Text.Json;
 namespace RhythmBase.RhythmDoctor.Components;
@@ -5,6 +6,7 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// <summary>
 /// A collection of row events.
 /// </summary>
+[Diffable]
 public class Row : OrderedEventCollection<BaseRowAction>, IEventEnumerable<BaseRowAction>
 {
 	/// <summary>

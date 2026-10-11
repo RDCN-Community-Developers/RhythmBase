@@ -1,3 +1,4 @@
+using RhythmBase.Global.Diff;
 using RhythmBase.RhythmDoctor.Events;
 using System.Text.Json;
 namespace RhythmBase.RhythmDoctor.Components;
@@ -5,6 +6,7 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// <summary>
 /// A decoration.
 /// </summary>
+[Diffable]
 public class Decoration : OrderedEventCollection<BaseDecorationAction>, IEventEnumerable<BaseDecorationAction>
 {
 	/// <summary>

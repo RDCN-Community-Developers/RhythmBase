@@ -415,6 +415,31 @@ public partial class ConverterGenerator : IIncrementalGenerator
 		});
 		IncrementalValueProvider<INamedTypeSymbol?> classConverterBaseInfo = context.CompilationProvider
 				.Select((compilation, ct) => compilation.GetTypeByMetadataName(MemberConverterTypeName));
+		IncrementalValueProvider<INamedTypeSymbol[]> diffableInfo = context.CompilationProvider.Combine(allasms).Select((input, ct) =>
+		{
+			try
+			{
+				(Compilation compilation, IAssemblySymbol[] asms) = input;
+				var attrType = compilation.GetTypeByMetadataName(DiffableAttrName);
+				if (attrType == null) return Array.Empty<INamedTypeSymbol>();
+				List<INamedTypeSymbol> result = [];
+				var currentAsm = compilation.Assembly;
+				foreach (var asm in asms)
+					foreach (INamedTypeSymbol type in GetAllTypes(asm.GlobalNamespace).OfType<INamedTypeSymbol>())
+					{
+						if (type.IsAbstract || type.IsGenericType) continue;
+						if (!SymbolEqualityComparer.Default.Equals(type.ContainingAssembly, currentAsm) && type.DeclaredAccessibility != Accessibility.Public) continue;
+						if (type.GetAttributes().Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, attrType)))
+							result.Add(type);
+					}
+				return result.Distinct(SymbolEqualityComparer.Default).Cast<INamedTypeSymbol>().ToArray();
+			}
+			catch (Exception ex)
+			{
+				exceptions.Add(ex);
+			}
+			return Array.Empty<INamedTypeSymbol>();
+		});
 
 		var enumNeedCvtr = context.CompilationProvider.Combine(allasms).Select((compilationAndAsms, ct) =>
 		{
@@ -621,6 +646,7 @@ public partial class ConverterGenerator : IIncrementalGenerator
 
 		GenerateTypeConverterRegistry(context, registryInfo.Combine(jsonObjSlzLnksInfo));
 		GenerateConverter(context, (registryInfo.Combine(context.CompilationProvider)).Combine((jsonClassCvtrMapGenInfo.Combine(jsonObjSlzLnksInfo))));
+		GenerateDiff(context, (registryInfo.Combine(context.CompilationProvider)).Combine(jsonClassCvtrMapGenInfo.Combine(jsonObjSlzLnksInfo)).Combine(diffableInfo));
 		GenerateEventTypeRegistry(context, registryInfo.Combine(context.CompilationProvider).Combine(EventTypeRegistryInfo));
 		GenerateEnumConverter(context, registryInfo);
 		GenerateOtherFiles(context, registryInfo.Combine(templates));

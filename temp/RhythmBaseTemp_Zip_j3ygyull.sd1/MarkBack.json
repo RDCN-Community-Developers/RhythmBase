@@ -1,0 +1,98 @@
+{
+    "size": [
+        80,
+        80
+    ],
+    "name": "马克",
+    "rowPreviewFrame": 0,
+    "rowPreviewOffset": [
+        0,
+        9
+    ],
+    "clips": [
+        {
+            "name": "neutral",
+            "frames": [
+                1,
+                2,
+                3,
+                0
+            ],
+            "loop": "onBeat",
+            "fps": 4,
+            "loopStart": 0,
+            "portraitOffset": [
+                25,
+                35
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "happy",
+            "frames": [
+                1,
+                2,
+                3,
+                0
+            ],
+            "loop": "onBeat",
+            "fps": 4,
+            "loopStart": 0,
+            "portraitOffset": [
+                25,
+                35
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "barely",
+            "frames": [
+                1,
+                2,
+                3,
+                0
+            ],
+            "loop": "onBeat",
+            "fps": 4,
+            "loopStart": 0,
+            "portraitOffset": [
+                25,
+                35
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        },
+        {
+            "name": "missed",
+            "frames": [
+                1,
+                2,
+                3,
+                0
+            ],
+            "loop": "onBeat",
+            "fps": 4,
+            "loopStart": 0,
+            "portraitOffset": [
+                25,
+                35
+            ],
+            "portraitSize": [
+                25,
+                25
+            ],
+            "portraitScale": 2
+        }
+    ]
+}

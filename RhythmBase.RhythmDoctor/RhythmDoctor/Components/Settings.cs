@@ -1,9 +1,11 @@
+using RhythmBase.Global.Diff;
 using System.Text.Json;
 namespace RhythmBase.RhythmDoctor.Components;
 
 /// <summary>  
 /// Level settings.  
 /// </summary>  
+[Diffable]
 public class Settings
 {
 	private int[] rankMaxMistakes = new int[4];

@@ -1,8 +1,11 @@
-﻿namespace RhythmBase.RhythmDoctor.Components;
+﻿using RhythmBase.Global.Diff;
+
+namespace RhythmBase.RhythmDoctor.Components;
 
 /// <summary>
 /// Represents an audio file with properties for volume, pitch, pan, and offset.
 /// </summary>
+[Diffable]
 public class Audio
 {
 	/// <summary>
