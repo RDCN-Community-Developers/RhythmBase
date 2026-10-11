@@ -173,7 +173,10 @@ public static partial class Extensions
 		/// Check if it can be hit by player or cpu.
 		/// </summary>
 		public bool IsHittable => e.Pulse == (e.Parent?.Length ?? throw new NullReferenceException());
-
+		/// <summary>
+		/// Check if it is bomb beat.
+		/// </summary>
+		public bool IsBombBeat => e.Pulse == -1;
 		/// <summary>
 		/// Gets the hit information for the current instance.
 		/// </summary>
