@@ -168,7 +168,8 @@ public sealed class JsonUnitAttribute : Attribute
 /// </para>
 /// <para>
 /// The bounds describe the member's model value, that is the value after any conversion applied by
-/// <see cref="JsonUnitAttribute"/>.
+/// <see cref="JsonUnitAttribute"/>. For a member that holds several numeric components, such as a
+/// two-dimensional point or size, the same range applies to every component.
 /// </para>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]

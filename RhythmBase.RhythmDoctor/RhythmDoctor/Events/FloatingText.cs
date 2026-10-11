@@ -25,6 +25,7 @@ public record class FloatingText : BaseEvent, IRoomEvent, IDurationEvent, IColor
 	public Room Rooms { get; set; } = new Room([0]);
 	/// <inheritdoc/>
 	[JsonAlias("fadeOutRate")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	/// <inheritdoc/>
 	public PaletteColorWithAlpha Color { get; set; } = Global.Components.Color.White;
@@ -32,6 +33,7 @@ public record class FloatingText : BaseEvent, IRoomEvent, IDurationEvent, IColor
 	public float Angle { get; set; } = 0;
 	float? ITextEvent.Angle { get => Angle; set => Angle = value ?? 0; }
 	/// <inheritdoc/>
+	[ValueRange<int>(0, int.MaxValue)]
 	public int Size { get; set; } = 8;
 	/// <inheritdoc/>
 	public PaletteColorWithAlpha OutlineColor { get; set; } = Global.Components.Color.Black;

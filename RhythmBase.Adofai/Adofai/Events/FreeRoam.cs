@@ -13,10 +13,12 @@ public class FreeRoam : BaseTileEvent, IEaseEvent, ISingleEvent
 	/// <summary>
 	/// Gets or sets the duration of the Free Roam event.
 	/// </summary>
+	[ValueRange<float>(4f, 10000f)]
 	public float Duration { get; set; } = 16;
 	/// <summary>
 	/// Gets or sets the size of the Free Roam area.
 	/// </summary>
+	[ValueRange<float>(1f, 50f)]
 	public SizeN Size { get; set; } = new(4, 4);
 	/// <summary>
 	/// Gets or sets the position offset for the Free Roam event.
@@ -42,6 +44,7 @@ public class FreeRoam : BaseTileEvent, IEaseEvent, ISingleEvent
 	/// <summary>
 	/// Gets or sets the number of countdown ticks for the Free Roam event.
 	/// </summary>
+	[ValueRange<int>(0, 12)]
 	public int CountdownTicks { get; set; } = 4;
 	/// <summary>
 	/// Gets or sets the angle correction direction for the Free Roam event.

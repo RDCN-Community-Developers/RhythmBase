@@ -21,10 +21,12 @@ public record class PulseCamera : BaseEvent, IRoomEvent
 	/// <summary>
 	/// Gets or sets the count of pulses.
 	/// </summary>
+	[ValueRange<int>(0, int.MaxValue)]
 	public int Count { get; set; } = 1;
 	/// <summary>
 	/// Gets or sets the frequency of the pulses.
 	/// </summary>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Frequency { get; set; } = 1;
 	///<inheritdoc/>
 	public override EventType Type => EventType.PulseCamera;

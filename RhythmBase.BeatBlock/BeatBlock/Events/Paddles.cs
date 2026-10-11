@@ -15,6 +15,7 @@ public record class Paddles : BaseEvent, IChartEvent, IPureEvent
 	/// <summary>
 	/// What paddle to change? 0 = all paddles
 	/// </summary>
+	[ValueRange<int>(0, 8)]
 	public int Paddle { get; set; }
 	/// <summary>
 	/// New width to ease to

@@ -29,6 +29,7 @@ public class ChangeTrack : BaseTileEvent
 	/// <summary>
 	/// Gets or sets the duration of the color animation in beats.
 	/// </summary>
+	[ValueRange<float>(float.Epsilon, 1000f)]
 	public float TrackColorAnimDuration { get; set; } = 2;
 
 	/// <summary>
@@ -39,6 +40,7 @@ public class ChangeTrack : BaseTileEvent
 	/// <summary>
 	/// Gets or sets the number of beats the color pulse lasts.
 	/// </summary>
+	[ValueRange<int>(2, 1000)]
 	public int TrackPulseLength { get; set; } = 10;
 
 	/// <summary>

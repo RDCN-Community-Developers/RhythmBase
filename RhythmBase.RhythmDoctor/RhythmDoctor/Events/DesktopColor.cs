@@ -26,6 +26,7 @@ public record class DesktopColor : BaseWindowEvent, IEaseEvent, IColorEvent
 	/// The brightness of the desktop background color, ranging from 0 to 100.
 	/// </summary>
 	[JsonCondition($"!$&.{nameof(IsCustom)}")]
+	[ValueRange<float>(0f, 200f)]
 	public float Brightness { get; set; } = 100f;
 	///<inheritdoc/>
 	public override EventType Type => EventType.DesktopColor;

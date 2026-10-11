@@ -17,10 +17,12 @@ public record class Bounce : BaseEvent, IChartEvent, IPureEvent, IEaseSequenceEv
     /// <summary>
     /// How many times to bounce
     /// </summary>
+    [ValueRange<int>(1, int.MaxValue)]
     public int Bounces { get; set; } 
     /// <summary>
     /// Time between bounces
     /// </summary>
+    [ValueRange<float>(0f, float.PositiveInfinity)]
     public float Delay { get; set; } 
     /// <summary>
     /// Rotation between bounces

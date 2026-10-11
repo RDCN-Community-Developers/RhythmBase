@@ -12,6 +12,7 @@ public class ScalePlanets : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the duration of the scaling event.  
 	/// </summary>  
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 1f;
 	/// <summary>  
 	/// Gets or sets the target planet(s) for the scaling event.  
@@ -21,6 +22,7 @@ public class ScalePlanets : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// Gets or sets the scale factor for the planets.  
 	/// </summary>  
 	[Tween]
+	[ValueRange<float>(0f, 500f)]
 	public float Scale { get; set; } = 100f;
 	/// <summary>  
 	/// Gets or sets the easing type for the scaling transition.  

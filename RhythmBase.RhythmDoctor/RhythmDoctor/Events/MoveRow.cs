@@ -72,6 +72,7 @@ public record class MoveRow : BaseRowAction, IEaseEvent
 	$&.{nameof(AccelerationDuration)} is not null &&
 	($&.{nameof(EnableCustomPosition)} || $&.{nameof(Target)} is RhythmBase.RhythmDoctor.{nameof(MoveRowTarget)}.{nameof(MoveRowTarget.WholeRow)})
 	""")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float? AccelerationDuration { get; set; }
 	/// <summary>
 	/// Gets or sets the deceleration duration for the move row event.
@@ -81,6 +82,7 @@ public record class MoveRow : BaseRowAction, IEaseEvent
 	$&.{nameof(AccelerationDuration)} is not null &&
 	($&.{nameof(EnableCustomPosition)} || $&.{nameof(Target)} is RhythmBase.RhythmDoctor.{nameof(MoveRowTarget)}.{nameof(MoveRowTarget.WholeRow)})
 	""")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float? DecelerationDuration { get; set; }
 	///<inheritdoc/>
 	[JsonCondition($"""

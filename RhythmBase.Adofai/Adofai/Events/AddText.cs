@@ -58,6 +58,7 @@ public class AddText : BaseTileEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the depth of the text in the rendering order.  
 	/// </summary>  
+	[ValueRange<int>(-32767, 32768)]
 	public int Depth { get; set; } = -1;
 	/// <summary>  
 	/// Gets or sets the parallax effect of the text.  

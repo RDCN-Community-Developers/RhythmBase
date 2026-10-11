@@ -35,6 +35,7 @@ public class AddObject : BaseTileEvent, IBeginningEvent
 	/// Gets or sets the angle of the track.  
 	/// </summary>  
 	[JsonCondition($"$&.{nameof(TrackType)} is not RhythmBase.Adofai.{nameof(Adofai.TrackType)}.{nameof(TrackType.Midspin)}")]
+	[ValueRange<float>(0f, 360f)]
 	public float TrackAngle { get; set; }
 	/// <summary>  
 	/// Gets or sets the type of the track's color.  
@@ -51,6 +52,7 @@ public class AddObject : BaseTileEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the duration of the track color animation.  
 	/// </summary>  
+	[ValueRange<float>(float.Epsilon, 1000f)]
 	public float TrackColorAnimDuration { get; set; } = 2f;
 	/// <summary>  
 	/// Gets or sets the opacity of the track.  
@@ -67,6 +69,7 @@ public class AddObject : BaseTileEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the angle of the track icon.  
 	/// </summary>  
+	[ValueRange<float>(0f, 360f)]
 	public float TrackIconAngle { get; set; } = 0;
 	/// <summary>
 	/// Gets or sets a value indicating whether the track icon is flipped.
@@ -143,6 +146,7 @@ public class AddObject : BaseTileEvent, IBeginningEvent
 	/// Gets or sets the depth of the object.  
 	/// </summary>  
 	[JsonCondition($"!$&.{nameof(SyncFloorDepth)}")]
+	[ValueRange<int>(-32767, 32768)]
 	public int Depth { get; set; } = -1;
 	/// <summary>
 	/// Gets or sets a value indicating whether the floor depth synchronization is enabled.

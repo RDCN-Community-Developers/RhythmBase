@@ -33,6 +33,7 @@ public class PositionTrack : BaseTileEvent
 	/// Gets or sets the opacity of the track.  
 	/// </summary>  
 	[JsonCondition($"$&.{nameof(Opacity)} is not null")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float? Opacity { get; set; }
 	/// <summary>  
 	/// Gets or sets a value indicating whether the event applies only to the current tile.  

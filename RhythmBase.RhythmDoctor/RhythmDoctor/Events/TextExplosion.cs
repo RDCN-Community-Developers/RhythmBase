@@ -25,6 +25,7 @@ public record class TextExplosion : BaseEvent, IRoomEvent, IColorEvent
 	/// Must be a value between 1 and 1000.
 	/// </remarks>
 	[JsonCondition($"$&.{nameof(Speed)} != 100f")]
+	[ValueRange<float>(1f, 1000f)]
     public float Speed { get; set; } = 100f;
 	/// <summary>
 	/// Gets or sets the direction of the text explosion.

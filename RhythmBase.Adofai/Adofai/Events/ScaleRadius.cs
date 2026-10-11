@@ -11,5 +11,6 @@ public class ScaleRadius : BaseTileEvent, ISingleEvent
 	/// <summary>
 	/// Gets or sets the scale value for the radius adjustment.
 	/// </summary>
+	[ValueRange<float>(-10000f, 10000f)]
 	public float Scale { get; set; } = 100f;
 }

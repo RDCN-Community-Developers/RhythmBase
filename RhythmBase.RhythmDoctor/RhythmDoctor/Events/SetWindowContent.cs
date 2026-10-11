@@ -25,6 +25,7 @@ public record class SetWindowContent : BaseWindowEvent, IEaseEvent
 	/// Gets or sets the position represented by a two-dimensional point.
 	/// </summary>
 	[Tween]
+	[ValueRange<float>(-1000f, 1000f)]
 	public Point? Position { get; set; }
 	/// <summary>
 	/// Gets or sets the zoom level for the content.
@@ -34,6 +35,7 @@ public record class SetWindowContent : BaseWindowEvent, IEaseEvent
 	/// Leave it null to keep the original zoom level.
 	/// </remarks>
 	[Tween]
+	[ValueRange<int>(1, 9999)]
 	public int? Zoom { get; set; }
 	/// <summary>
 	/// Gets or sets the angle value.
@@ -43,6 +45,7 @@ public record class SetWindowContent : BaseWindowEvent, IEaseEvent
 	/// Leave it null to keep the original angle.
 	/// </remarks>
 	[Tween]
+	[ValueRange<float>(-9999f, 9999f)]
 	public float? Angle { get; set; }
 	///<inheritdoc/>
 	public EaseType Ease { get; set; }

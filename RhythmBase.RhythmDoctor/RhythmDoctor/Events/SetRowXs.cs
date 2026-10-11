@@ -27,6 +27,7 @@ public record class SetRowXs : BaseBeat
 	/// A value of 0 means no swing, while a value of 1 means maximum swing.
 	/// </remarks>
 	[JsonCondition($"$&.{nameof(SyncoBeat)} >= 0")]
+	[ValueRange<float>(0f, 1f)]
 	public float SyncoSwing { get; set; }
 	/// <summary>
 	/// Gets or sets the syncopation beat's cue style.
@@ -52,6 +53,7 @@ public record class SetRowXs : BaseBeat
 	/// The percentage of the original volume. 
 	/// </remarks>
 	[JsonCondition($"$&.{nameof(SyncoBeat)} >= 0")]
+	[ValueRange<int>(0, 200)]
 	public int SyncoVolume { get; set; }
 	/// <summary>
 	/// Gets or sets the pitch adjustment value for synchronization operations.
@@ -61,5 +63,6 @@ public record class SetRowXs : BaseBeat
 	/// The percentage of the original pitch.
 	/// </remarks>
 	[JsonCondition($"$&.{nameof(SyncoBeat)} >= 0")]
+	[ValueRange<int>(0, 200)]
 	public int SyncoPitch { get; set; } = 100;	
 }

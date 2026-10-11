@@ -15,6 +15,7 @@ public record class AddClassicBeat : BaseBeat
 	/// Must be non-negative value.
 	/// </remark>
 	/// </summary>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Tick { get; set; } = 1f;
 	/// <summary>
 	/// Gets or sets the swing value.
@@ -23,6 +24,7 @@ public record class AddClassicBeat : BaseBeat
 	/// </remark>
 	/// </summary>
 	[JsonCondition($"$&.{nameof(Swing)} is not 1f and not 0f")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Swing { get; set; }
 	/// <summary>
 	/// Gets or sets the hold value.
@@ -39,6 +41,7 @@ public record class AddClassicBeat : BaseBeat
 	/// </remark>
 	/// </summary>   
 	[JsonCondition($"$&.{nameof(Length)} != 7")]
+	[ValueRange<int>(1, 7)]
 	public int Length { get; set; } = 7;
 	/// <summary>
 	/// Gets or sets the audio content associated with this instance.

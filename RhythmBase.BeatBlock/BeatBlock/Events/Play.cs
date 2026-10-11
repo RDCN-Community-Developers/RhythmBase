@@ -27,5 +27,6 @@ public record class Play : BaseEvent, IPureEvent
 	/// <summary>
 	/// Offset of the song, in seconds.
 	/// </summary>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float? Offset { get; set; }
 }

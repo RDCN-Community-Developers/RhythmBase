@@ -18,6 +18,7 @@ public record class PlaySound : BaseEvent
     /// <summary>
     /// Volume of the sound. 1 = Full Volume
     /// </summary>
+    [ValueRange<float>(0f, 1f)]
     public float? Volume { get; set; }
     /// <summary>
     /// Pitch Shifting of sound. 1 = Normal Pitch

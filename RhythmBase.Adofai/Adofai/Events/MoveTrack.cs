@@ -22,10 +22,12 @@ public class MoveTrack : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the gap length between tiles.  
 	/// </summary>  
+	[ValueRange<int>(0, 100)]
 	public int GapLength { get; set; }
 	/// <summary>  
 	/// Gets or sets the duration of the track movement.  
 	/// </summary>  
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	/// <summary>  
 	/// Gets or sets the position offset for the track movement.  

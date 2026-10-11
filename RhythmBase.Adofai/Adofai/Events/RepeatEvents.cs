@@ -15,15 +15,18 @@ public class RepeatEvents : BaseTileEvent
 	/// <summary>  
 	/// Gets or sets the number of repetitions for the event.  
 	/// </summary>  
+	[ValueRange<int>(1, int.MaxValue)]
 	public int Repetitions { get; set; } = 1;
 	/// <summary>  
 	/// Gets or sets the number of floors affected by the event.  
 	/// </summary>  
+	[ValueRange<int>(1, int.MaxValue)]
 	public int FloorCount { get; set; } = 1;
 	/// <summary>  
 	/// Gets or sets the interval between repetitions.  
 	/// </summary>  
 	[JsonCondition($"$&.{nameof(RepeatType)} == RhythmBase.Adofai.{nameof(Adofai.RepeatType)}.{nameof(RepeatType.Beat)}")]
+	[ValueRange<float>(float.Epsilon, float.PositiveInfinity)]
 	public float Interval { get; set; } = 1f;
 	/// <summary>  
 	/// Gets or sets a value indicating whether the event should execute on the current floor.  

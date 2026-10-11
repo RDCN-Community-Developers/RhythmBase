@@ -108,6 +108,7 @@ public record class TextDecoration : BaseEvent
     /// <summary>
     /// Order in layer, lower is drawn first
     /// </summary>
+    [ValueRange<int>(-10000, 10000)]
     public int? DrawOrder { get; set; }
     /// <summary>
     /// Hide the deco

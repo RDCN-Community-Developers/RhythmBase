@@ -46,6 +46,7 @@ public record class PaintHands : BaseEvent, IEaseEvent, IRoomEvent, IColorEvent,
 	/// Gets or sets the opacity of the hands.
 	/// </summary>
 	[Tween]
+	[ValueRange<int>(0, 100)]
 	public int? Opacity { get; set; }
 	/// <summary>
 	/// Gets or sets a value indicating whether the hands should be tinted.
@@ -53,6 +54,7 @@ public record class PaintHands : BaseEvent, IEaseEvent, IRoomEvent, IColorEvent,
 	[JsonAlias("tint")]
 	public bool? IsTint { get; set; }
 	///<inheritdoc/>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 0;
 	///<inheritdoc/>
 	public Room Rooms { get; set; } = new Room([0]);

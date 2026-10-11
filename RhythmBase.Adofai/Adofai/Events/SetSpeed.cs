@@ -16,10 +16,12 @@ public class SetSpeed : BaseTaggedTileEvent
 	/// Gets or sets the beats per minute (BPM) value.  
 	/// </summary>  
 	[JsonCondition($"$&.{nameof(SpeedType)} is RhythmBase.Adofai.{nameof(Adofai. SpeedType)}.{nameof(SpeedType.Bpm)}")]
+	[ValueRange<float>(0.001f, 10000f)]
 	public float BeatsPerMinute { get; set; } = 100f;
 	/// <summary>  
 	/// Gets or sets the BPM multiplier value.  
 	/// </summary>  
 	[JsonCondition($"$&.{nameof(SpeedType)} is RhythmBase.Adofai.{nameof(Adofai. SpeedType)}.{nameof(SpeedType.Multiplier)}")]
+	[ValueRange<float>(1e-07f, 128f)]
 	public float BpmMultiplier { get; set; } = 1f;
 }

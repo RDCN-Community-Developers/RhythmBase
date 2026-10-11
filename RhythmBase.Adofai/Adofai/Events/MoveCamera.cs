@@ -13,6 +13,7 @@ public class MoveCamera : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the duration of the camera movement.  
 	/// </summary>  
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 1f;
 	/// <summary>  
 	/// Gets or sets the easing type for the camera movement.  

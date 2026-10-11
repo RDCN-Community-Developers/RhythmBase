@@ -43,5 +43,6 @@ public record class NarrateRowInfo : BaseRowAction
 	/// Gets or sets the custom length of the row. The default value is 7.
 	/// </summary>
 	[JsonCondition($"$&.{nameof(CustomRowLength)} is 7")]
+	[ValueRange<int>(1, 7)]
 	public int CustomRowLength { get; set; } = 7;
 }

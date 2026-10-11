@@ -12,6 +12,7 @@ public class Flash : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the duration of the flash event.  
 	/// </summary>  
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 1f;
 	/// <summary>  
 	/// Gets or sets the plane on which the flash occurs.  
@@ -24,6 +25,7 @@ public class Flash : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the starting opacity of the flash.  
 	/// </summary>  
+	[ValueRange<float>(0f, 100f)]
 	public float StartOpacity { get; set; } = 100f;
 	/// <summary>  
 	/// Gets or sets the ending color of the flash.  
@@ -32,6 +34,7 @@ public class Flash : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the ending opacity of the flash.  
 	/// </summary>  
+	[ValueRange<float>(0f, 100f)]
 	public float EndOpacity { get; set; } = 0f;
 	/// <summary>  
 	/// Gets or sets the easing type for the flash transition.  

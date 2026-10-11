@@ -16,6 +16,7 @@ public record class Stutter : BaseEvent, IRoomEvent
 	/// <remarks>
 	/// Must be a value greater than 0 to avoid potential issues with non-positive values.
 	/// </remarks>
+	[ValueRange<float>(1f, float.PositiveInfinity)]
 	public float SourceBeat
 	{
 		get;
@@ -32,6 +33,7 @@ public record class Stutter : BaseEvent, IRoomEvent
 	/// <remarks>
 	/// Must be a value greater than 0 to avoid potential issues with non-positive values.
 	/// </remarks>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Length
 	{
 		get;
@@ -52,6 +54,7 @@ public record class Stutter : BaseEvent, IRoomEvent
 	/// <remarks>
 	/// Must be a value greater than 1 to avoid potential issues with non-positive values.
 	/// </remarks>
+	[ValueRange<int>(1, int.MaxValue)]
 	public int Loops
 	{
 		get;

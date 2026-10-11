@@ -21,5 +21,6 @@ public class SetFrameRate : BaseTaggedTileEvent, IBeginningEvent
 	/// Gets or sets the frame rate value to be applied.  
 	/// </summary>  
 	[JsonCondition($"$&.{nameof(Enabled)}")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float FrameRate { get; set; }
 }

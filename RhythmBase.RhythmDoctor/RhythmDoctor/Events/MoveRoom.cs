@@ -19,6 +19,7 @@ public record class MoveRoom : BaseEvent, IEaseEvent, ISingleRoomEvent
 	/// </remarks>
 	[Tween]
 	[JsonAlias("roomPosition")]
+	[ValueRange<float>(-10000f, 10000f)]
 	public Point? Position { get; set; }
 	/// <summary>
 	/// Gets or sets the scale of the room.
@@ -37,6 +38,7 @@ public record class MoveRoom : BaseEvent, IEaseEvent, ISingleRoomEvent
 	/// Leave it null to keep the original angle.
 	/// </remarks>
 	[Tween]
+	[ValueRange<float>(-9999f, 9999f)]
 	public float? Angle { get; set; } = null;
 	/// <summary>
 	/// Gets or sets the pivot point of the room.

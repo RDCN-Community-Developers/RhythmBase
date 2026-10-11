@@ -52,6 +52,7 @@ public record class TintRows : BaseRowAction, IEaseEvent, IColorEvent, IRoomEven
 	/// Gets or sets the opacity level.
 	/// </summary>
 	[Tween]
+	[ValueRange<int>(0, 100)]
 	public int? Opacity { get; set; }
 	/// <summary>
 	/// Gets or sets a value indicating whether to apply tint.
@@ -60,6 +61,7 @@ public record class TintRows : BaseRowAction, IEaseEvent, IColorEvent, IRoomEven
 	public bool? IsTint { get; set; }
 	///<inheritdoc/>
 	[JsonCondition($"$&.{nameof(Duration)} != 0f")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	/// <summary>
 	/// Gets or sets the row effect.

@@ -43,6 +43,7 @@ public record class Tint : BaseDecorationAction, IEaseEvent, IColorEvent, ITintE
 	/// Gets or sets the opacity for the tint event.
 	/// </summary>
 	[Tween]
+	[ValueRange<int>(0, 100)]
 	public int? Opacity { get; set; }
 	/// <summary>
 	/// Gets or sets a value indicating whether this event is a tint.
@@ -57,6 +58,7 @@ public record class Tint : BaseDecorationAction, IEaseEvent, IColorEvent, ITintE
 	public PaletteColorWithAlpha TintColor { get; set; } = Color.White;
 	///<inheritdoc/>
 	[JsonCondition($"$&.{nameof(Duration)} != 0f")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	///<inheritdoc/>
 	public override EventType Type => EventType.Tint;

@@ -52,9 +52,11 @@ public record class Tile : BaseDecorationAction, IEaseEvent
 	/// The beat interval for the tiling. It is only used when <see cref="TilingType"/> is <see cref="TilingType.Pulse"/>. The default value is 1.
 	/// </remarks>
 	[JsonCondition($"$&.{nameof(TilingType)} is RhythmBase.RhythmDoctor.{nameof(TilingType)}.{nameof(Tile.TilingType.Pulse)}")]
+	[ValueRange<float>(0.01f, float.PositiveInfinity)]
 	public float Interval { get; set; }
 	///<inheritdoc/>
 	public EaseType Ease { get; set; }
 	///<inheritdoc/>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 }

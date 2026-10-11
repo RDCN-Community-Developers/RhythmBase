@@ -12,6 +12,7 @@ public class SetObject : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// <summary>
 	/// Gets or sets the duration of the event.
 	/// </summary>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 1f;
 	/// <summary>
 	/// Gets or sets the tag associated with the object.
@@ -35,6 +36,7 @@ public class SetObject : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// Gets or sets the angle of the track.
 	/// </summary>
 	[JsonCondition($"$&.{nameof(TrackAngle)} is not null")]
+	[ValueRange<float>(0f, 360f)]
 	public float? TrackAngle { get; set; }
 	/// <summary>
 	/// Gets or sets the type of the track color.
@@ -55,6 +57,7 @@ public class SetObject : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// Gets or sets the duration of the track color animation.
 	/// </summary>
 	[JsonCondition($"$&.{nameof(TrackColorAnimDuration)} is not null")]
+	[ValueRange<float>(float.Epsilon, 1000f)]
 	public float? TrackColorAnimDuration { get; set; }
 	/// <summary>
 	/// Gets or sets the opacity of the track.
@@ -75,6 +78,7 @@ public class SetObject : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// Gets or sets the angle of the track icon.
 	/// </summary>
 	[JsonCondition($"$&.{nameof(TrackIconAngle)} is not null")]
+	[ValueRange<float>(0f, 360f)]
 	public float? TrackIconAngle { get; set; }
 	/// <summary>
 	/// Gets or sets a value indicating whether the track has a red swirl.

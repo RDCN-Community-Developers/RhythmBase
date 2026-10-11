@@ -33,6 +33,7 @@ public class SetHoldSound : BaseTileEvent, ISingleEvent
 	/// Gets or sets the delay before the mid-hold sound is played.  
 	/// </summary>  
 	[JsonCondition($"$&.{nameof(HoldMidSound)} is not RhythmBase.Adofai.{nameof(Adofai.HoldMidSound)}.{nameof(HoldMidSound.None)}")]
+	[ValueRange<float>(0.25f, float.PositiveInfinity)]
 	public float HoldMidSoundDelay { get; set; } = 0.5f;
 	/// <summary>  
 	/// Gets or sets the timing reference for the mid-hold sound.  
@@ -42,5 +43,6 @@ public class SetHoldSound : BaseTileEvent, ISingleEvent
 	/// <summary>  
 	/// Gets or sets the volume of the hold sound.  
 	/// </summary>  
+	[ValueRange<int>(1, 100)]
 	public int HoldSoundVolume { get; set; } = 100;
 }

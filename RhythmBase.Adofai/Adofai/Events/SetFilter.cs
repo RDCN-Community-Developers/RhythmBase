@@ -84,6 +84,7 @@ public class SetFilter : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 		RhythmBase.Adofai.{nameof(Adofai.Filter)}.{nameof(Filter.WaterDrop)} or
 		RhythmBase.Adofai.{nameof(Adofai.Filter)}.{nameof(Filter.LightWater)}
 	""")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	/// <summary>  
 	/// Gets or sets the easing type for the filter effect.  

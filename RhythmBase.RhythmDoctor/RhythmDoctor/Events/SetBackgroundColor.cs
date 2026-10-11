@@ -47,6 +47,7 @@ public record class SetBackgroundColor : BaseEvent, IEaseEvent, IRoomEvent, ICol
 	$&.{nameof(ContentMode)} == RhythmBase.RhythmDoctor.{nameof(ContentMode)}.{nameof(ContentMode.Tiled)} &&
 	$&.{nameof(TilingType)} == RhythmBase.RhythmDoctor.{nameof(TilingType)}.{nameof(TilingType.Pulse)}
 	""")]
+	[ValueRange<float>(0.01f, float.PositiveInfinity)]
 	public float Interval
 	{
 		get => field > 0.01f ? field : 0.01f;
@@ -63,6 +64,7 @@ public record class SetBackgroundColor : BaseEvent, IEaseEvent, IRoomEvent, ICol
 	$&.{nameof(BackgroundType)} == RhythmBase.RhythmDoctor.{nameof(BackgroundType)}.{nameof(BackgroundType.Image)} &&
 	$&.{nameof(ContentMode)} == RhythmBase.RhythmDoctor.{nameof(ContentMode)}.{nameof(ContentMode.Tiled)}
 	""")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 0f;
 	/// <summary>
 	/// Gets or sets the frames per second for the event.
@@ -71,6 +73,7 @@ public record class SetBackgroundColor : BaseEvent, IEaseEvent, IRoomEvent, ICol
 	$&.{nameof(BackgroundType)} == RhythmBase.RhythmDoctor.{nameof(BackgroundType)}.{nameof(BackgroundType.Image)} &&
 	$&.{nameof(Images)}.Count > 1
 	""")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Fps { get; set; } = 30f;
 	/// <summary>
 	/// Gets or sets the list of images for the background.

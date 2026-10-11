@@ -21,6 +21,7 @@ public record class AddFreeTimeBeat : BaseBeat
 	/// Must be value between 0 and 6, inclusive. 6 is considered as the hit beat.
 	/// </remark>
 	/// </summary>
+	[ValueRange<sbyte>(-1, 6)]
 	public sbyte Pulse { get; set; }
 	/// <inheritdoc/>
 	public override EventType Type => EventType.AddFreeTimeBeat;}

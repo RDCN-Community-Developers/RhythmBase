@@ -11,10 +11,12 @@ public class Pause : BaseTileEvent, ISingleEvent
 	/// <summary>  
 	/// Gets or sets the duration of the pause in seconds.  
 	/// </summary>  
+	[ValueRange<float>(0f, 1000f)]
 	public float Duration { get; set; } = 1f;
 	/// <summary>  
 	/// Gets or sets the number of countdown ticks during the pause.  
 	/// </summary>  
+	[ValueRange<int>(0, 12)]
 	public int CountdownTicks { get; set; } = 0;
 	/// <summary>  
 	/// Gets or sets the direction of angle correction during the pause.  

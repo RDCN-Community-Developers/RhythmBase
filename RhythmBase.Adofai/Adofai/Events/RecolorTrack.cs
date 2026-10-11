@@ -21,10 +21,12 @@ public class RecolorTrack : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the gap length between tiles for the recolor action.  
 	/// </summary>  
+	[ValueRange<int>(0, 100)]
 	public int GapLength { get; set; } = 0;
 	/// <summary>  
 	/// Gets or sets the duration of the recolor animation.  
 	/// </summary>  
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 0;
 	/// <summary>  
 	/// Gets or sets the type of track color to apply.  
@@ -41,6 +43,7 @@ public class RecolorTrack : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the duration of the track color animation.  
 	/// </summary>  
+	[ValueRange<float>(float.Epsilon, 1000f)]
 	public float TrackColorAnimDuration { get; set; } = 2f;
 	/// <summary>  
 	/// Gets or sets the track color pulse type.  
@@ -49,6 +52,7 @@ public class RecolorTrack : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the length of the track pulse.  
 	/// </summary>  
+	[ValueRange<int>(2, 1000)]
 	public int TrackPulseLength { get; set; } = 10;
 	/// <summary>  
 	/// Gets or sets the style of the track.  
@@ -57,6 +61,7 @@ public class RecolorTrack : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the intensity of the track glow effect.  
 	/// </summary>  
+	[ValueRange<float>(0f, 100f)]
 	public float TrackGlowIntensity { get; set; } = 100f;
 	/// <summary>  
 	/// Gets or sets the easing type for the recolor animation.  

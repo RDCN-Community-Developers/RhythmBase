@@ -24,6 +24,7 @@ public class ColorTrack : BaseTileEvent, ISingleEvent, IImageFileEvent
 	/// Gets or sets the duration of the track color animation.  
 	/// </summary>  
 	[JsonAlias("trackColorAnimDuration")]
+	[ValueRange<float>(float.Epsilon, 1000f)]
 	public float TrackColorAnimationDuration { get; set; } = 2;
 	/// <summary>  
 	/// Gets or sets the track color pulse type.  
@@ -32,6 +33,7 @@ public class ColorTrack : BaseTileEvent, ISingleEvent, IImageFileEvent
 	/// <summary>  
 	/// Gets or sets the length of the track pulse.  
 	/// </summary>  
+	[ValueRange<float>(2f, 1000f)]
 	public float TrackPulseLength { get; set; } = 10;
 	/// <summary>  
 	/// Gets or sets the style of the track.  
@@ -45,10 +47,12 @@ public class ColorTrack : BaseTileEvent, ISingleEvent, IImageFileEvent
 	/// <summary>  
 	/// Gets or sets the scale of the track texture.  
 	/// </summary>  
+	[ValueRange<float>(float.Epsilon, 1000f)]
 	public float TrackTextureScale { get; set; } = 1f;
 	/// <summary>  
 	/// Gets or sets the intensity of the track glow.  
 	/// </summary>  
+	[ValueRange<float>(0f, 100f)]
 	public float TrackGlowIntensity { get; set; } = 100f;
 	/// <summary>
 	/// Gets or sets a value indicating whether floor icon outlines are enabled.

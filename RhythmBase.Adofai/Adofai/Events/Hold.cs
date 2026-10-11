@@ -11,6 +11,7 @@ namespace RhythmBase.Adofai.Events;
 		/// <summary>  
 		/// Gets or sets the duration of the hold event.  
 		/// </summary>  
+		[ValueRange<int>(0, int.MaxValue)]
 		public int Duration { get; set; } = 0;
 		/// <summary>  
 		/// Gets or sets the distance multiplier for the hold event.  

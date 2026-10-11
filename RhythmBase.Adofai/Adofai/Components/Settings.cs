@@ -51,10 +51,12 @@ namespace RhythmBase.Adofai.Components;
 		/// <summary>
 		/// Gets or sets the start time of the preview song in seconds.
 		/// </summary>
+		[ValueRange<float>(0f, 10000f)]
 		public float PreviewSongStart { get; set; } = 0;
 		/// <summary>
 		/// Gets or sets the duration of the preview song in seconds.
 		/// </summary>
+		[ValueRange<float>(0f, 10000f)]
 		public float PreviewSongDuration { get; set; } = 10;
 		/// <summary>
 		/// Gets or sets a value indicating whether the level has a seizure warning.
@@ -75,6 +77,7 @@ namespace RhythmBase.Adofai.Components;
 		/// <summary>
 		/// Gets or sets the target speed for the trial.
 		/// </summary>
+		[ValueRange<float>(0f, float.PositiveInfinity)]
 		public float SpeedTrialAim { get; set; } = 0;
 		/// <summary>
 		/// Gets or sets the difficulty level of the level.
@@ -91,18 +94,22 @@ namespace RhythmBase.Adofai.Components;
 		/// <summary>
 		/// Gets or sets the beats per minute (BPM) of the song.
 		/// </summary>
+		[ValueRange<float>(0.001f, 10000f)]
 		public float Bpm { get; set; } = 100;
 		/// <summary>
 		/// Gets or sets the volume of the song.
 		/// </summary>
+		[ValueRange<float>(0f, 100f)]
 		public float Volume { get; set; } = 100;
 		/// <summary>
 		/// Gets or sets the offset of the song in seconds.
 		/// </summary>
+		[ValueRange<float>(-10000f, 300000f)]
 		public float Offset { get; set; } = 0;
 		/// <summary> 
 		/// Gets or sets the pitch of the song.
 		/// </summary>
+		[ValueRange<float>(1f, 1000f)]
 		public float Pitch { get; set; } = 100;
 		/// <summary>
 		/// Gets or sets the hitsound used in the level.
@@ -111,10 +118,12 @@ namespace RhythmBase.Adofai.Components;
 		/// <summary>
 		/// Gets or sets the volume of the hitsound.
 		/// </summary>
+		[ValueRange<float>(0f, 100f)]
 		public float HitsoundVolume { get; set; } = 100;
 		/// <summary>
 		/// Gets or sets the number of countdown ticks before the level starts.
 		/// </summary>
+		[ValueRange<float>(2f, 12f)]
 		public float CountdownTicks { get; set; } = 4;
 		/// <summary>
 		/// Gets or sets the shape of the tile.
@@ -135,6 +144,7 @@ namespace RhythmBase.Adofai.Components;
 		/// <summary>
 		/// Gets or sets the duration of the track color animation in seconds.
 		/// </summary>
+		[ValueRange<float>(float.Epsilon, 1000f)]
 		public float TrackColorAnimDuration { get; set; } = 2;
 		/// <summary>
 		/// Gets or sets the type of track color pulse.
@@ -143,6 +153,7 @@ namespace RhythmBase.Adofai.Components;
 		/// <summary>
 		/// Gets or sets the length of the track pulse.
 		/// </summary>
+		[ValueRange<float>(2f, 1000f)]
 		public float TrackPulseLength { get; set; } = 10;
 		/// <summary>
 		/// Gets or sets the style of the track.
@@ -159,6 +170,7 @@ namespace RhythmBase.Adofai.Components;
 		/// <summary>  
 		/// Gets or sets the intensity of the track glow effect.  
 		/// </summary>  
+		[ValueRange<int>(0, 100)]
 		public int TrackGlowIntensity { get; set; } = 100;
 		/// <summary>
 		/// Gets or sets the type of track animation.
@@ -231,6 +243,7 @@ namespace RhythmBase.Adofai.Components;
 		/// <summary>
 		/// Gets or sets the scaling ratio for the background.
 		/// </summary>
+		[ValueRange<float>(1f, 1000f)]
 		public float ScalingRatio { get; set; } = 100;
 		/// <summary>
 		/// Gets or sets the reference point for the camera.
@@ -263,6 +276,7 @@ namespace RhythmBase.Adofai.Components;
 		/// <summary>
 		/// Gets or sets the offset of the video in milliseconds.
 		/// </summary>
+		[ValueRange<int>(-10000, 300000)]
 		public int VidOffset { get; set; } = 0;
 		/// <summary>
 		/// Gets or sets a value indicating whether floor icons have outlines.
@@ -279,6 +293,7 @@ namespace RhythmBase.Adofai.Components;
 		/// <summary>
 		/// Gets or sets the number of parts for the planet easing.
 		/// </summary>
+		[ValueRange<int>(1, 128)]
 		public int PlanetEaseParts { get; set; } = 1;
 		/// <summary>
 		/// Gets or sets the behavior of the planet easing parts.

@@ -83,6 +83,7 @@ public record class Decoration : BaseEvent, IEaseEvent
 	/// <summary>
 	/// Order in layer, lower is drawn first
 	/// </summary>
+	[ValueRange<int>(-10000, 10000)]
 	public int? DrawOrder { get; set; }
 	/// <summary>
 	/// Color to replace all non-alpha with (-1 to use original colors)

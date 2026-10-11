@@ -12,6 +12,7 @@ public record class PlaySong : BaseBeatsPerMinute, IBarBeginningEvent, IAudioFil
 	/// Gets or sets the beats per minute (BPM) for the song.
 	/// </summary>
 	[JsonAlias("bpm")]
+	[ValueRange<float>(1f, float.PositiveInfinity)]
 	public override float BeatsPerMinute
 	{
 		get => base.BeatsPerMinute;

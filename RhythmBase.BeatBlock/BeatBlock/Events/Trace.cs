@@ -21,10 +21,12 @@ public record class Trace : BaseEvent, IChartEvent, IPureEvent, IEaseSequenceEve
 	/// <summary>
 	/// How many beats the trace lasts
 	/// </summary>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	/// <summary>
 	/// Force a certain number of line segments
 	/// </summary>
+	[ValueRange<int>(1, int.MaxValue)]
 	public int? Segments { get; set; }
 	/// <summary>
 	/// Change ease from angle1 to angle2

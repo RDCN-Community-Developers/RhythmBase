@@ -13,10 +13,12 @@ public class ScreenTile : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the duration of the screen tile effect.  
 	/// </summary>  
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 0;
 	/// <summary>  
 	/// Gets or sets the tile position for the screen tile effect.  
 	/// </summary>  
+	[ValueRange<float>(-20f, 20f)]
 	public PointN Tile { get; set; } = new(1, 1);
 	/// <summary>  
 	/// Gets or sets the easing type for the screen tile effect.  

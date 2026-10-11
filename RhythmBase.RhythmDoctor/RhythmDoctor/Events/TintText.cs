@@ -25,6 +25,7 @@ public record class TintText : BaseDecorationAction, IEaseEvent, IColorEvent
 	public PaletteColorWithAlpha? TintColor { get; set; } = Color.White;
 	///<inheritdoc/>
 	[JsonCondition($"$&.{nameof(Duration)} != 0f")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	///<inheritdoc/>
 	public override EventType Type => EventType.TintText;

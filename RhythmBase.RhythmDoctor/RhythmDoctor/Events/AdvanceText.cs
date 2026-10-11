@@ -36,6 +36,7 @@ public record class AdvanceText : BaseEvent, IRoomEvent, IDurationEvent, IAdvanc
 	/// <remarks>The duration must be a non-negaiive value if specified. If set to zero, the fade-out effect will not
 	/// occur.</remarks>
 	[JsonAlias("fadeOutDuration")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float? Duration { get; set; }
 	/// <summary>
 	/// Gets the ID of the parent floating text.

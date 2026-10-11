@@ -55,6 +55,7 @@ public class AddDecoration : BaseTileEvent, IBeginningEvent, IImageFileEvent
 	$&.{nameof(BlendMode)} is RhythmBase.Adofai.{nameof(Adofai.BlendMode)}.{nameof(BlendMode.None)} &&
 	$&.{nameof(MaskingType)} is not RhythmBase.Adofai.{nameof(Adofai.MaskingType)}.{nameof(MaskingType.Mask)}
 	""")]
+	[ValueRange<float>(1f, float.PositiveInfinity)]
 	public SizeN Tile { get; set; } = new(1, 1);
 	/// <summary>  
 	/// Gets or sets the color of the decoration.  
@@ -72,6 +73,7 @@ public class AddDecoration : BaseTileEvent, IBeginningEvent, IImageFileEvent
 	$&.{nameof(MaskingType)} is not RhythmBase.Adofai.{nameof(Adofai.MaskingType)}.{nameof(MaskingType.Mask)} &&
 	!$&.{nameof(SyncFloorDepth)}
 	""")]
+	[ValueRange<int>(-32767, 32768)]
 	public int Depth { get; set; } = -1;
 	/// <summary>
 	/// Gets or sets a value indicating whether the floor depth synchronization is enabled.
@@ -132,6 +134,7 @@ public class AddDecoration : BaseTileEvent, IBeginningEvent, IImageFileEvent
 	/// <summary>
 	/// Gets or sets the interval, in milliseconds, at which the hitbox is repeatedly activated.
 	/// </summary>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float HitboxRepeatInterval { get; set; } = 1000f;
 	/// <summary>  
 	/// Gets or sets the event tag associated with the hitbox.  
@@ -157,6 +160,7 @@ public class AddDecoration : BaseTileEvent, IBeginningEvent, IImageFileEvent
 	/// <summary>  
 	/// Gets or sets the scale of the fail hitbox.  
 	/// </summary>  
+	[ValueRange<float>(1f, float.PositiveInfinity)]
 	public SizeN FailHitboxScale { get; set; } = new(100, 100);
 	/// <summary>  
 	/// Gets or sets the offset of the fail hitbox.  

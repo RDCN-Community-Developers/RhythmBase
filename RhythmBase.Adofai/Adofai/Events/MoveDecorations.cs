@@ -14,6 +14,7 @@ public class MoveDecorations : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent,
 	/// <summary>  
 	/// Gets or sets the duration of the event.  
 	/// </summary>  
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 1f;
 	/// <summary>  
 	/// Gets or sets the tag associated with the decoration.  
@@ -72,6 +73,7 @@ public class MoveDecorations : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent,
 	/// Gets or sets the depth of the decoration.  
 	/// </summary>  
 	[JsonCondition($"$&.{nameof(Depth)} is not null")]
+	[ValueRange<int>(-32767, 32768)]
 	public int? Depth { get; set; }
 	/// <summary>  
 	/// Gets or sets the parallax value for the decoration.  

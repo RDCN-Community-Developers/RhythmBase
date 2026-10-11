@@ -58,6 +58,7 @@ public class AddParticle : BaseEvent, IBeginningEvent, IImageFileEvent
 	/// <summary>
 	/// Gets or sets the maximum number of particles.
 	/// </summary>
+	[ValueRange<int>(0, int.MaxValue)]
 	public int MaxParticles { get; set; } = 1000;
 
 	/// <summary>
@@ -78,11 +79,13 @@ public class AddParticle : BaseEvent, IBeginningEvent, IImageFileEvent
 	/// <summary>
 	/// Gets or sets the lifetime range of the particles.
 	/// </summary>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public ValueRange ParticleLifetime { get; set; } = new ValueRange(10);
 
 	/// <summary>
 	/// Gets or sets the size of the particles.
 	/// </summary>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public SizeN ParticleSize { get; set; } = new SizeN(100, 100);
 
 	/// <summary>
@@ -128,6 +131,7 @@ public class AddParticle : BaseEvent, IBeginningEvent, IImageFileEvent
 	/// <summary>
 	/// Gets or sets the random seed for the particle effect.
 	/// </summary>
+	[ValueRange<int>(0, int.MaxValue)]
 	public int RandomSeed { get; set; } = 0;
 
 	/// <summary>
@@ -158,6 +162,7 @@ public class AddParticle : BaseEvent, IBeginningEvent, IImageFileEvent
 	/// <summary>
 	/// Gets or sets the depth of the particle effect.
 	/// </summary>
+	[ValueRange<int>(-32767, 32768)]
 	public int Depth { get; set; } = -1;
 
 	/// <summary>

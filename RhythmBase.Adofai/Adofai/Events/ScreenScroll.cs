@@ -13,5 +13,6 @@ public class ScreenScroll : BaseTaggedTileEvent, IBeginningEvent
 	/// <summary>  
 	/// Gets or sets the scroll size for the screen.  
 	/// </summary>  
+	[ValueRange<float>(-1000f, 1000f)]
 	public SizeN Scroll { get; set; } = new(0, 0);
 }

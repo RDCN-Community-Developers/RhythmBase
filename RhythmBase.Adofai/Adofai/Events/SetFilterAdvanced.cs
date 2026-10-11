@@ -24,6 +24,7 @@ public class SetFilterAdvanced : BaseTaggedTileEvent, IEaseEvent, IBeginningEven
 	/// <summary>
 	/// Gets or sets the duration of the filter effect in seconds.
 	/// </summary>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	/// <summary>
 	/// Gets or sets the easing type for the filter effect.

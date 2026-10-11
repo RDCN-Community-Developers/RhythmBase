@@ -16,6 +16,7 @@ public class SetParticle : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// <summary>
 	/// Gets or sets the duration of the particle effect.
 	/// </summary>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 1f;
 	/// <summary>
 	/// Gets or sets the tag associated with the particle effect.

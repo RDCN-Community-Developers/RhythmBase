@@ -19,5 +19,6 @@ public class SetHitsound : BaseTileEvent, ISingleEvent
 	/// <summary>  
 	/// Gets or sets the volume of the hitsound.  
 	/// </summary>  
+	[ValueRange<int>(1, 100)]
 	public int HitsoundVolume { get; set; } = 100;
 }

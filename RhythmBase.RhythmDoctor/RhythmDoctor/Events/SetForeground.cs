@@ -37,6 +37,7 @@ public record class SetForeground : BaseEvent, IEaseEvent, IRoomEvent, IColorEve
 	/// Gets or sets the frames per second for the foreground animation.  
 	/// </summary>  
 	[JsonCondition($"$&.{nameof(ContentMode)} == RhythmBase.RhythmDoctor.{nameof(ContentMode)}.{nameof(ContentMode.Tiled)}")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Fps { get; set; } = 30f;
 	/// <summary>
 	/// Gets or sets the horizontal scroll value.
@@ -86,6 +87,7 @@ public record class SetForeground : BaseEvent, IEaseEvent, IRoomEvent, IColorEve
 	/// Gets or sets the duration of the event.  
 	/// </summary>  
 	[JsonCondition($"$&.{nameof(ContentMode)} == RhythmBase.RhythmDoctor.{nameof(ContentMode)}.{nameof(ContentMode.Tiled)}")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 0;
 	/// <summary>  
 	/// Gets or sets the interval between frames.  
@@ -94,6 +96,7 @@ public record class SetForeground : BaseEvent, IEaseEvent, IRoomEvent, IColorEve
 	$&.{nameof(ContentMode)} == RhythmBase.RhythmDoctor.{nameof(ContentMode)}.{nameof(ContentMode.Tiled)} &&
 	$&.{nameof(TilingType)} == RhythmBase.RhythmDoctor.{nameof(TilingType)}.{nameof(SetForeground.TilingType.Pulse)}
 	""")]
+	[ValueRange<float>(0.01f, float.PositiveInfinity)]
 	public float Interval
 	{
 		get => field;

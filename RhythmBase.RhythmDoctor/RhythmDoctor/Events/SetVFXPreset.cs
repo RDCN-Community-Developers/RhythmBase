@@ -30,6 +30,7 @@ public record class SetVfxPreset : BaseEvent, IEaseEvent, IRoomEvent, IColorEven
 	/// Gets or sets the intensity of the VFX.
 	/// </summary>
 	[Tween]
+	[ValueRange<float>(-9999f, 9999f)]
 	public float? Intensity { get; set; }
 	/// <summary>
 	/// Gets or sets the color of the VFX.
@@ -52,6 +53,7 @@ public record class SetVfxPreset : BaseEvent, IEaseEvent, IRoomEvent, IColorEven
 	/// Gets or sets the speed percentage for the effect.
 	/// </summary>
 	[Tween]
+	[ValueRange<float>(-9999f, 9999f)]
 	public float? SpeedPercentage { get; set; } = 100f;
 	///<inheritdoc/>
 	public EaseType Ease { get; set; } = EaseType.Linear;

@@ -20,6 +20,7 @@ public record class ShowStatusSign : BaseEvent, IDurationEvent
 	/// </summary>
 	public string Text { get; set; } = "";
 	///<inheritdoc/>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	/// <summary>
 	/// Gets or sets the duration of the status sign as a <see cref="TimeSpan"/>.

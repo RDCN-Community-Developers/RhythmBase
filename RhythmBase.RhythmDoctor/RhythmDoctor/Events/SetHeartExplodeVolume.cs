@@ -9,6 +9,7 @@ public record class SetHeartExplodeVolume : BaseEvent, IBarBeginningEvent
 	/// <summary>
 	/// Gets or sets the volume of the heart explosion sound.
 	/// </summary>
+	[ValueRange<int>(0, int.MaxValue)]
 	public int Volume { get; set; }
 	///<inheritdoc/>
 	public override EventType Type => EventType.SetHeartExplodeVolume;

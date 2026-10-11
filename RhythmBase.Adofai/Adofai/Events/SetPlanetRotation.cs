@@ -16,6 +16,7 @@ public class SetPlanetRotation : BaseTileEvent, ISingleEvent
 	/// <summary>  
 	/// Gets or sets the number of parts the easing function is divided into.  
 	/// </summary>  
+	[ValueRange<int>(1, 128)]
 	public int EaseParts { get; set; } = 1;
 	/// <summary>  
 	/// Gets or sets the behavior of the easing parts.  

@@ -17,6 +17,7 @@ public class Bloom : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// Gets or sets the threshold value for the bloom effect.  
 	/// </summary>  
 	[JsonCondition($"$&.{nameof(Enabled)}")]
+	[ValueRange<int>(0, int.MaxValue)]
 	public int Threshold { get; set; } = 50;
 	/// <summary>  
 	/// Gets or sets the intensity of the bloom effect.  
@@ -32,6 +33,7 @@ public class Bloom : BaseTaggedTileEvent, IEaseEvent, IBeginningEvent
 	/// Gets or sets the duration of the bloom effect.  
 	/// </summary>  
 	[JsonCondition($"$&.{nameof(Enabled)}")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	/// <summary>  
 	/// Gets or sets the easing type for the bloom effect.  

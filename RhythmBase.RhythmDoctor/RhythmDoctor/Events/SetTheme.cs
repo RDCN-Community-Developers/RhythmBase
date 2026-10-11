@@ -77,6 +77,7 @@ public record class SetTheme : BaseEvent, IRoomEvent, IEaseEvent
 	$&.{nameof(EnablePosition)} &&
 	RhythmBase.RhythmDoctor.Events.{nameof(SetTheme)}.{nameof(ThemesHasPosition)}.{nameof(ReadOnlyEnumCollection<>.Contains)}($&.{nameof(Preset)})
 	""")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	internal static readonly ReadOnlyEnumCollection<Theme> ThemesHasPosition = [
 		Theme.TrainDay,

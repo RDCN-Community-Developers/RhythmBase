@@ -25,6 +25,7 @@ public record class SetCrotchetsPerBar : BaseEvent, IBarBeginningEvent
 	/// <remarks>
 	/// Must be a value greater than 1.
 	/// </remarks>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float VisualBeatMultiplier { get; set; } = 1;
 	/// <summary>
 	/// Gets or sets the number of crotchets per bar.
@@ -32,6 +33,7 @@ public record class SetCrotchetsPerBar : BaseEvent, IBarBeginningEvent
 	/// <remarks>
 	/// Must be a value greater than 1.
 	/// </remarks>
+	[ValueRange<int>(1, int.MaxValue)]
 	public int CrotchetsPerBar
 	{
 		get => _crotchetsPerBar + 1;

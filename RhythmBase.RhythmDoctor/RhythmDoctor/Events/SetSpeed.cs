@@ -17,8 +17,10 @@ public record class SetSpeed : BaseEvent, IEaseEvent
 	/// 1 is the original speed, less than 1 is slower, and greater than 1 is faster.
 	/// </remarks>
 	[Tween]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Speed { get; set; }
 	///<inheritdoc/>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	///<inheritdoc/>
 	public override EventType Type => EventType.SetSpeed;

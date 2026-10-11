@@ -24,11 +24,13 @@ public record class ShakeScreenCustom : BaseEvent, IRoomEvent, IDurationEvent
 	/// </summary>
 	/// <remarks>The duration value must be a non-negative floating-point number. A value of zero indicates that the
 	/// event has no duration.</remarks>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 
 	/// <summary>
 	/// Gets or sets the amplitude of the shake effect.
 	/// </summary>
+	[ValueRange<float>(0f, 50f)]
 	public float Amplitude { get; set; }
 
 	/// <summary>
@@ -41,6 +43,7 @@ public record class ShakeScreenCustom : BaseEvent, IRoomEvent, IDurationEvent
 	/// Only used when <see cref="ShakeType"/> is not <see cref="ShakeType.Normal"/>.
 	/// </summary>
 	[JsonCondition($"$&.{nameof(ShakeType)} is not RhythmBase.RhythmDoctor.{nameof(ShakeType)}.{nameof(ShakeType.Normal)}")]
+	[ValueRange<float>(0f, 50f)]
 	public float Frequency { get; set; }
 
 	/// <summary>
