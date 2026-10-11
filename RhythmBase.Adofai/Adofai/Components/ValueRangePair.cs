@@ -1,8 +1,10 @@
 namespace RhythmBase.Adofai.Components;
 
 /// <summary>
-/// Initializes a new instance of the <see cref="ValueRangePair"/> struct with the specified X and Y value ranges.
+/// Represents a pair of X and Y value ranges.
 /// </summary>
+/// <param name="x">The X value range.</param>
+/// <param name="y">The Y value range.</param>
 public struct ValueRangePair(ValueRange x, ValueRange y)
 {
 	/// <summary>

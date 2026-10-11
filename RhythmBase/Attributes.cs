@@ -158,6 +158,42 @@ public sealed class JsonUnitAttribute : Attribute
 	public string? ReverseFunction { get; }
 }
 /// <summary>
+/// Marks the valid inclusive range of a data model member, for example <c>[ValueRange&lt;float&gt;(0f, 100f)]</c>.
+/// </summary>
+/// <typeparam name="T">The numeric type of the range bounds.</typeparam>
+/// <remarks>
+/// <para>
+/// This attribute is informational only: it is a marker describing the expected value range of the annotated
+/// member and is not read or emitted by the serialization pipeline.
+/// </para>
+/// <para>
+/// The bounds describe the member's model value, that is the value after any conversion applied by
+/// <see cref="JsonUnitAttribute"/>.
+/// </para>
+/// </remarks>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+public class ValueRangeAttribute<T> : Attribute where T : struct, IComparable<T>
+{
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ValueRangeAttribute{T}"/> class.
+	/// </summary>
+	/// <param name="min">The minimum value of the range.</param>
+	/// <param name="max">The maximum value of the range.</param>
+	/// <param name="unit">The unit of the value range; empty when unspecified.</param>
+	public ValueRangeAttribute(T min, T max, string unit = "")
+	{
+		Min = min;
+		Max = max;
+		Unit = unit;
+	}
+	/// <summary>Gets the minimum value of the range.</summary>
+	public T Min { get; }
+	/// <summary>Gets the maximum value of the range.</summary>
+	public T Max { get; }
+	/// <summary>Gets the unit of the range, if any (for example "px" or "ms").</summary>
+	public string Unit { get; }
+}
+/// <summary>
 /// Registers a hand-written converter as the converter for the specified target type in the
 /// generated <c>TypeConverterRegistry</c>.
 /// </summary>
