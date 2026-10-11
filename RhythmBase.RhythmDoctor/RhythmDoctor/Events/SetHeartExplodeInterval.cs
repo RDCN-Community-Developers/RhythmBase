@@ -13,6 +13,7 @@ public record class SetHeartExplodeInterval : BaseEvent
 	/// <summary>
 	/// Gets or sets the interval value.
 	/// </summary>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Interval { get; set; } = 1f;
 	///<inheritdoc/>
 	public override EventType Type => EventType.SetHeartExplodeInterval;

@@ -63,6 +63,7 @@ public record class MoveRow : BaseRowAction, IEaseEvent
 	[JsonCondition($"""
 	$&.{nameof(EnableCustomPosition)}
 	""")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 1;
 	/// <summary>
 	/// Gets or sets the acceleration duration for the move row event.

@@ -20,6 +20,7 @@ public record class DesktopColor : BaseWindowEvent, IEaseEvent, IColorEvent
 	/// <summary>
 	/// Optional end (or sole) color for the desktop background.
 	/// </summary>
+	[Tween]
 	[JsonCondition($"$&.{nameof(IsCustom)}")]
 	public PaletteColor? EndColor { get; set; }
 	/// <summary>

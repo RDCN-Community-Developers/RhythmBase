@@ -53,6 +53,7 @@ public record class Move : BaseDecorationAction, IEaseEvent
 	[Tween]
 	public Point? Pivot { get; set; }
 	///<inheritdoc/>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	///<inheritdoc/>
 	public EaseType Ease { get; set; } = EaseType.Linear;

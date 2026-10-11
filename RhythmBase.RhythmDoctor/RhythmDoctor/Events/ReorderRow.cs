@@ -29,7 +29,8 @@ public record class ReorderRow : BaseRowAction
 	/// <remarks>
 	/// Leave it null to keep the original order.
 	/// </remarks>
-	[ValueRange<int>(1, 16)]
+	[JsonUnit(1, -1)]
+	[ValueRange<int>(0, 15)]
 	public int? Order { get; set; }
 	/// <summary>
 	/// Gets or sets the sorting order for the row.

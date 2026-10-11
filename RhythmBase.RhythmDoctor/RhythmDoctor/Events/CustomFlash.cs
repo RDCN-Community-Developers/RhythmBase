@@ -23,6 +23,7 @@ public record class CustomFlash : BaseEvent, IEaseEvent, IRoomEvent, IColorEvent
 	[Tween]
 	public PaletteColor? EndColor { get; set; }
 	/// <inheritdoc />
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	/// <summary>
 	/// Gets or sets the start opacity of the flash.
@@ -30,6 +31,7 @@ public record class CustomFlash : BaseEvent, IEaseEvent, IRoomEvent, IColorEvent
 	/// Must be a value between 0 and 100, inclusive, if specified. 0 and 100 are considered as fully transparent and fully opaque, respectively.
 	/// </remark>
 	/// </summary>
+	[ValueRange<int>(0, 100)]
 	public int? StartOpacity { get; set; }
 	/// <summary>
 	/// Gets or sets the end opacity of the flash.
@@ -38,6 +40,7 @@ public record class CustomFlash : BaseEvent, IEaseEvent, IRoomEvent, IColorEvent
 	/// </remark>
 	/// </summary>
 	[Tween]
+	[ValueRange<int>(0, 100)]
 	public int? EndOpacity { get; set; }
 	/// <summary>
 	/// Gets or sets a value indicating the event affect background or foreground. If true, the flash will affect the background instead of the foreground.

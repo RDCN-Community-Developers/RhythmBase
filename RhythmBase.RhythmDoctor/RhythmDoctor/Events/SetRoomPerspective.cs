@@ -21,6 +21,7 @@ public record class SetRoomPerspective : BaseEvent, IEaseEvent, ISingleRoomEvent
 	[JsonAlias("cornerPositions")]
 	public Corner Corner { get; set; }
 	///<inheritdoc/>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	///<inheritdoc/>
 	public EaseType Ease { get; set; }

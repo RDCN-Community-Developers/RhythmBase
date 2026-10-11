@@ -12,6 +12,7 @@ public record class PulseFreeTimeBeat : BaseBeat
 	/// <remarks>
 	/// Must be a non-negative value. If it's greater than 0, the pulse will be held for the specified duration in seconds.
 	/// </remarks>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Hold { get; set; }
 	/// <summary>
 	/// Gets or sets the custom pulse value.

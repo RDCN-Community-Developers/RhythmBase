@@ -18,7 +18,9 @@ public record class AddFreeTimeBeat : BaseBeat
 	/// <summary>
 	/// Gets or sets the pulse value of the beat.
 	/// <remark>
-	/// Must be value between 0 and 6, inclusive. 6 is considered as the hit beat.
+	/// Must be value between -1 and 6, inclusive. 
+	/// -1 is considered as the bomb beat.
+	/// 6 is considered as the hit beat.
 	/// </remark>
 	/// </summary>
 	[ValueRange<sbyte>(-1, 6)]

@@ -21,7 +21,6 @@ public record class MoveCamera : BaseEvent, IEaseEvent, IRoomEvent
 	/// </remarks>
 	[Tween]
 	[JsonAlias("cameraPosition")]
-	[ValueRange<float>(-100f, 200f)]
 	public Point? Position { get; set; }
 	/// <summary>
 	/// Gets or sets the zoom level.
@@ -31,7 +30,7 @@ public record class MoveCamera : BaseEvent, IEaseEvent, IRoomEvent
 	/// Leave it null to keep the original zoom level.
 	/// </remarks>
 	[Tween]
-	[ValueRange<int>(1, 9999)]
+	[ValueRange<int>(1, int.MaxValue)]
 	public int? Zoom { get; set; }
 	/// <summary>
 	/// Gets or sets the angle of the camera.
@@ -41,9 +40,9 @@ public record class MoveCamera : BaseEvent, IEaseEvent, IRoomEvent
 	/// Leave it null to keep the original angle.
 	/// </remarks>
 	[Tween]
-	[ValueRange<float>(-9999f, 9999f)]
 	public float? Angle { get; set; }
 	///<inheritdoc/>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 1;
 	/// <summary>
 	/// Gets or sets a value indicating whether the camera will show the view out of the room.

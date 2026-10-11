@@ -65,6 +65,7 @@ public record class WindowResize : BaseWindowEvent, IEaseEvent, IRoomEvent
 	/// <inheritdoc/>
 	public EaseType Ease { get; set; }
 	/// <inheritdoc/>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	/// <inheritdoc/>
 	public Room Rooms { get; set; }

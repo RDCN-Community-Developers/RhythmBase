@@ -43,7 +43,7 @@ public record class ShakeScreenCustom : BaseEvent, IRoomEvent, IDurationEvent
 	/// Only used when <see cref="ShakeType"/> is not <see cref="ShakeType.Normal"/>.
 	/// </summary>
 	[JsonCondition($"$&.{nameof(ShakeType)} is not RhythmBase.RhythmDoctor.{nameof(ShakeType)}.{nameof(ShakeType.Normal)}")]
-	[ValueRange<float>(0f, 50f)]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Frequency { get; set; }
 
 	/// <summary>

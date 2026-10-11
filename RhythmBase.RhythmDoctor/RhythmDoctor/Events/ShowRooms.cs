@@ -26,6 +26,7 @@ public record class ShowRooms : BaseEvent, IEaseEvent, IRoomEvent
 	/// Gets or sets the duration of the transition.  
 	/// </summary>  
 	[JsonAlias("transitionTime")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 1;
 	/// <summary>  
 	/// Gets the type of the event.  

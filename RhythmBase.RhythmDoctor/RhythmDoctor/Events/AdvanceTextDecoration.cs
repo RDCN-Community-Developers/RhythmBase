@@ -19,6 +19,7 @@ public record class AdvanceTextDecoration : BaseDecorationAction, IAdvanceText
 	/// <remarks>The duration must be a non-negaiive value if specified. If set to zero, the fade-out effect will not
 	/// occur.</remarks>
 	[JsonAlias("fadeOutDuration")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float? Duration { get; set; }
 	float IDurationEvent.Duration { get => Duration ?? this.FrontOrDefault<SetText>()?.Duration ?? -1; set => Duration = value; }
 	/// <inheritdoc/>

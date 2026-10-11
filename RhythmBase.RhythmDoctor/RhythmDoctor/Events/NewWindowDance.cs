@@ -69,6 +69,7 @@ public record class NewWindowDance : BaseWindowEvent, IEaseEvent
 		&&
 	$&.{nameof(SamePresetBehavior)} is not RhythmBase.RhythmDoctor.{nameof(SamePresetBehavior)}.{nameof(SamePresetBehavior.Keep)}
 	""")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Speed { get; set; } = 0;
 	/// <summary>
 	/// Gets or sets the amplitude.
@@ -80,6 +81,7 @@ public record class NewWindowDance : BaseWindowEvent, IEaseEvent
 	$&.{nameof(Preset)} is not RhythmBase.RhythmDoctor.{nameof(WindowDancePreset)}.{nameof(WindowDancePreset.ShakePer)} &&
 	$&.{nameof(Preset)} is not RhythmBase.RhythmDoctor.{nameof(WindowDancePreset)}.{nameof(WindowDancePreset.Move)}
 	""")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float? Amplitude { get; set; } = 0f;
 	/// <summary>
 	/// Gets or sets the amplitude vector.
@@ -91,6 +93,7 @@ public record class NewWindowDance : BaseWindowEvent, IEaseEvent
 	$&.{nameof(Preset)} is RhythmBase.RhythmDoctor.{nameof(WindowDancePreset)}.{nameof(WindowDancePreset.ShakePer)}) &&
 	$&.{nameof(Preset)} is not RhythmBase.RhythmDoctor.{nameof(WindowDancePreset)}.{nameof(WindowDancePreset.Move)}
 	""")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public Point AmplitudeVector { get; set; } = new(0f, 0f);
 	/// <summary>
 	/// Gets or sets the angle.
@@ -115,6 +118,7 @@ public record class NewWindowDance : BaseWindowEvent, IEaseEvent
 	or RhythmBase.RhythmDoctor.{nameof(WindowDancePreset)}.{nameof(WindowDancePreset.ShakePer)} &&
 	$&.{nameof(SamePresetBehavior)} is not RhythmBase.RhythmDoctor.{nameof(SamePresetBehavior)}.{nameof(SamePresetBehavior.Keep)}
 	""")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Frequency { get; set; } = 0f;
 	/// <summary>
 	/// Gets or sets the period.
@@ -124,6 +128,7 @@ public record class NewWindowDance : BaseWindowEvent, IEaseEvent
 	$&.{nameof(Preset)} is RhythmBase.RhythmDoctor.{nameof(WindowDancePreset)}.{nameof(WindowDancePreset.ShakePer)} &&
 	$&.{nameof(SamePresetBehavior)} is not RhythmBase.RhythmDoctor.{nameof(SamePresetBehavior)}.{nameof(SamePresetBehavior.Keep)}
 	""")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Period { get; set; } = 0f;
 	/// <summary>
 	/// Gets or sets the ease type.
@@ -146,6 +151,7 @@ public record class NewWindowDance : BaseWindowEvent, IEaseEvent
 	public EaseType SubEaseType { get; set; } = Global.Components.Easing.EaseType.Linear;
 	///<inheritdoc/>
 	[JsonAlias("easingDuration")]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; } = 0;
 	///<inheritdoc/>
 	public EaseType Ease { get; set; } = Global.Components.Easing.EaseType.Linear;

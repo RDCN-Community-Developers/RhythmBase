@@ -101,7 +101,7 @@ public sealed class JsonUnitAttribute : Attribute
 	/// </summary>
 	/// <param name="multiplier">The multiplier applied to the raw value.</param>
 	/// <param name="addend">The offset added after multiplying.</param>
-	public JsonUnitAttribute(float multiplier, float addend = 0)
+	public JsonUnitAttribute(float multiplier = 1f, float addend = 0)
 	{
 		Multiplier = multiplier;
 		Addend = addend;
@@ -112,7 +112,7 @@ public sealed class JsonUnitAttribute : Attribute
 	/// </summary>
 	/// <param name="multiplier">The multiplier applied to the raw value.</param>
 	/// <param name="addend">The offset added after multiplying.</param>
-	public JsonUnitAttribute(int multiplier, int addend = 0)
+	public JsonUnitAttribute(int multiplier = 1, int addend = 0)
 	{
 		Multiplier = multiplier;
 		Addend = addend;
@@ -124,7 +124,7 @@ public sealed class JsonUnitAttribute : Attribute
 	/// <param name="member">The name of the member to convert.</param>
 	/// <param name="multiplier">The multiplier applied to the raw member value.</param>
 	/// <param name="addend">The offset added after multiplying.</param>
-	public JsonUnitAttribute(string member, float multiplier, float addend = 0)
+	public JsonUnitAttribute(string member, float multiplier = 1f, float addend = 0)
 	{
 		Member = member;
 		Multiplier = multiplier;

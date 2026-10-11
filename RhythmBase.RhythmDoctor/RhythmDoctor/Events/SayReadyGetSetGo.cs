@@ -22,6 +22,7 @@ public record class SayReadyGetSetGo : BaseEvent, IRoomEvent
 	/// <remarks>
 	/// If the phrase is splitable, the tick value determines how many ticks the phrase will be split into.
 	/// </remarks>
+	[ValueRange<float>(1f, float.PositiveInfinity)]
 	public float Tick
 	{
 		get => Splitable ? field : 1;

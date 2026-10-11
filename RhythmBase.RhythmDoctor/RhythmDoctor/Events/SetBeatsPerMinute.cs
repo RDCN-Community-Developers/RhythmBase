@@ -8,7 +8,7 @@ public record class SetBeatsPerMinute : BaseBeatsPerMinute
 {
 	/// <inheritdoc/>
 	[JsonAlias("beatsPerMinute")]
-	[ValueRange<float>(1f, 1000f)]
+	[ValueRange<float>(1f, float.PositiveInfinity)]
 	public override float BeatsPerMinute { get => base.BeatsPerMinute; set => base.BeatsPerMinute = value; }
 	/// <inheritdoc/>
 	public override EventType Type => EventType.SetBeatsPerMinute;

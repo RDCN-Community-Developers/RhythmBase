@@ -24,7 +24,7 @@ public record class AddClassicBeat : BaseBeat
 	/// </remark>
 	/// </summary>
 	[JsonCondition($"$&.{nameof(Swing)} is not 1f and not 0f")]
-	[ValueRange<float>(0f, float.PositiveInfinity)]
+	[ValueRange<float>(0f, 2f)]
 	public float Swing { get; set; }
 	/// <summary>
 	/// Gets or sets the hold value.

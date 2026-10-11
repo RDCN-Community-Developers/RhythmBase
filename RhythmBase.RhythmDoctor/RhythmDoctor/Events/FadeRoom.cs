@@ -21,7 +21,7 @@ public record class FadeRoom : BaseEvent, IEaseEvent, ISingleRoomEvent
 	[ValueRange<int>(0, 100)]
 	public int Opacity { get; set; } = 100;
 	///<inheritdoc/>
-	[ValueRange<float>(0f, int.MaxValue)]
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public float Duration { get; set; }
 	///<inheritdoc/>
 	public override EventType Type => EventType.FadeRoom;

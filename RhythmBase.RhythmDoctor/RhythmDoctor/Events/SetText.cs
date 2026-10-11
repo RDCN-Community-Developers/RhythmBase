@@ -26,6 +26,7 @@ public record class SetText : BaseDecorationAction, IRoomEvent, IDurationEvent, 
 	/// <inheritdoc/>
 	public float? Angle { get; set; }
 	/// <inheritdoc/>
+	[ValueRange<float>(0f, float.PositiveInfinity)]
 	public int Size { get; set; } = 8;
 	/// <inheritdoc/>
 	public PaletteColorWithAlpha OutlineColor { get; set; } = Global.Components.Color.Black;

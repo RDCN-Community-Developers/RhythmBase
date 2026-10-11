@@ -37,15 +37,18 @@ namespace RhythmBase.RhythmDoctor.Events
 		/// Gets or sets the character spacing for the font. A value of 0 indicates that the character spacing is not specified. This property is only applicable when using a custom font.
 		/// </summary>
 		[JsonCondition($"$&.{nameof(Font)}.IsCustom")]
+		[ValueRange<float>(0f, float.PositiveInfinity)]
 		public float CharacterSpacing { get; set; } = 0f;
 		/// <summary>
 		/// Gets or sets the outline width for the font. A value of 0 indicates that the outline width is not specified. This property is only applicable when using a custom font.
 		/// </summary>
 		[JsonCondition($"$&.{nameof(Font)}.IsCustom")]
+		[ValueRange<float>(0f, float.PositiveInfinity)]
 		public float OutlineWidth { get; set; } = 0f;
 		/// <summary>
 		/// Gets or sets the wrapping width for the font as a percentage of the screen width. A value of 0 results in a zero wrapping width.
 		/// </summary>
+		[ValueRange<float>(0f, float.PositiveInfinity)]
 		public float WrappingWidth { get; set; } = 100f;
 		IEnumerable<FileReference> IFontFileEvent.FontFiles => Font.IsCustom ? [Font.Value] : [];
 		IEnumerable<FileReference> IFileEvent.Files => Font.IsCustom ? [Font.Value] : [];
