@@ -42,7 +42,7 @@ public partial class Level :
 	{
 		get
 		{
-			ChartDictionary<Chart> dictionary = new();
+			ChartDictionary<Chart> dictionary = [];
 			foreach (Chart variant in Variants)
 				dictionary.Add(variant.Name, variant);
 			return dictionary;

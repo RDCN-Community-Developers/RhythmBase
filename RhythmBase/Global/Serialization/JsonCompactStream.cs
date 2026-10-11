@@ -52,7 +52,7 @@ public class JsonCompactStream : Stream
 
 	private long _totalInputBytes;
 	private long _totalOutputBytes;
-	private readonly List<(long output, long input)> _checkpoints = new();
+	private readonly List<(long output, long input)> _checkpoints = [];
 
 	/// <summary>
 	/// Gets the position mapping checkpoints recorded during processing.

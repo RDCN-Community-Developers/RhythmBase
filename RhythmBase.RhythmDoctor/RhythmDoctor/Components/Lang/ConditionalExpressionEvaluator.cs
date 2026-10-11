@@ -9,20 +9,20 @@ namespace RhythmBase.RhythmDoctor.Components.Lang;
 /// </summary>
 /// <remarks>
 /// Every accepted form is an expression interpreted as a boolean, except the two player-mode
-/// keywords <c>2pMode</c> / <c>1pMode</c>. Identifiers outside the 30 fixed slots are resolved
-/// through the <see cref="IVariables"/> virtual environment; unknown identifiers are treated
-/// as enum-like literals (for example <c>English</c>, <c>Chinese</c>, <c>Windows</c>, <c>Mac</c>).
+/// keywords <c>2pMode</c> / <c>1pMode</c>. Every identifier and function is resolved from the
+/// shared <see cref="ExpressionContext"/>; unknown identifiers are treated as enum-like literals
+/// (for example <c>English</c>, <c>Chinese</c>, <c>Windows</c>, <c>Mac</c>) when the context's
+/// <see cref="ExpressionContext.UnknownMembers"/> policy leaves them unresolved.
 /// </remarks>
 public sealed class ConditionalExpressionEvaluator
 {
 	private readonly ExpressionContext _context;
 
 	/// <summary>
-	/// Initializes a new evaluator over a virtual environment, creating a private context.
+	/// Initializes a new evaluator over a new, private context.
 	/// </summary>
-	/// <param name="variables">The virtual environment; must not be <see langword="null"/>.</param>
-	public ConditionalExpressionEvaluator(IVariables variables)
-		: this(new ExpressionContext(variables))
+	public ConditionalExpressionEvaluator()
+		: this(new ExpressionContext())
 	{
 	}
 
@@ -40,11 +40,6 @@ public sealed class ConditionalExpressionEvaluator
 	/// Gets the shared expression state.
 	/// </summary>
 	public ExpressionContext Context => _context;
-
-	/// <summary>
-	/// Gets the virtual environment used for identifiers outside the 30 fixed slots.
-	/// </summary>
-	public IVariables Variables => _context.Variables;
 
 	/// <summary>
 	/// Evaluates a conditional string.

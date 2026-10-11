@@ -316,7 +316,7 @@ internal sealed class SetGameSoundObjectUpgrader : JsonObjectUpgrader
 
 	private static List<Slot> EmptySlots(int count)
 	{
-		List<Slot> slots = new(count);
+		List<Slot> slots = [with(count)];
 		for (int i = 0; i < count; i++)
 			slots.Add(new Slot { Used = false });
 		return slots;

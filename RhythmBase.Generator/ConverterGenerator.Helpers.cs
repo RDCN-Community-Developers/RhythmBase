@@ -53,7 +53,7 @@ public partial class ConverterGenerator
 			foreach (var diag in diagnostics)
 				spc.ReportDiagnostic(diag);
 			(var enums1, var enums2) = enumSymbolsAll;
-			List<(INamedTypeSymbol Type, bool PascalCase, IFieldSymbol[] Members)> enums = new();
+			List<(INamedTypeSymbol Type, bool PascalCase, IFieldSymbol[] Members)> enums = [];
 			foreach (var (enumType, pascalCase, members) in enums1)
 			{
 				enums.Add((enumType, pascalCase, members));
@@ -1313,7 +1313,7 @@ public partial class ConverterGenerator
 		public Dictionary<INamedTypeSymbol, ISymbol> ClassEnumDoubleMap { get; internal set; }
 		public INamedTypeSymbol? FallbackClassType { get; internal set; }
 		public ISymbol? FallbackClassTypeEnum { get; internal set; }
-		public List<Diagnostic> Diagnostics { get; set; } = new();
+		public List<Diagnostic> Diagnostics { get; set; } = [];
 	}
 	private static void GenerateEventTypeUtils(SourceProductionContext spc, (((string?, List<Diagnostic>), Compilation), EventTypeRegistryGenerationInfo[]) classSymbols)
 	{

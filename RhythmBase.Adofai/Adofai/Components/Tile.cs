@@ -234,7 +234,7 @@ public class Tile : TypedEventCollection
     /// </summary>
     /// <param name="isMidSpin"></param>
 
-    public static implicit operator Tile(bool isMidSpin) => new(isMidSpin);
+    public static implicit operator Tile(bool isMidSpin) => [with(isMidSpin)];
     /// <summary>
     /// The internal storage for the angle of the tile.
     /// </summary>

@@ -11,7 +11,7 @@ namespace RhythmBase.Global.Components;
 public class ChartDictionary<TChart> : IDictionary<string, IChart>
 	where TChart : IChart
 {
-	private readonly Dictionary<string, TChart> _dict = new(StringComparer.OrdinalIgnoreCase);
+	private readonly Dictionary<string, TChart> _dict = [with(StringComparer.OrdinalIgnoreCase)];
 
 	/// <summary>
 	/// Gets or sets the chart with the specified name.

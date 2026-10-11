@@ -67,7 +67,7 @@ partial class Level
 		if (string.IsNullOrWhiteSpace(directoryPath))
 			throw new InvalidOperationException($"Cannot save to zip because the level has no resolved directory and no directory is specified in the {nameof(settings)}.{nameof(LevelWriteConfig.ResolvedDirectory)}.");
 		DirectoryInfo directory = new(directoryPath);
-		HashSet<FileReference> files = new();
+		HashSet<FileReference> files = [];
 		void AddFileReference(object? sender, FileReferenceArgs args) => files.Add(args.Reference);
 		settings.FileReferenceEncountered += AddFileReference;
 		bool loadAssets = settings.LoadAssets;
