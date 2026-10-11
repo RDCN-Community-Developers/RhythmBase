@@ -118,7 +118,7 @@ partial class Level
 				throw new NotSupportedException("File not supported.");
 			using FileStream stream = File.Open(filepath, FileMode.Open, FileAccess.Read);
 			MetadataJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(Path.GetDirectoryName(Path.GetFullPath(filepath)), settings);
-			level = FileMainEntryConverter.DeserializeMainEntry<Level>(new StreamDataSource(stream), options);
+			level = FileMainEntryConverter.DeserializeMainEntry<Level>(AdofaiUpgrader.Wrap(new StreamDataSource(stream), options), options);
 			level.Filepath = level.ResolvedPath = Path.GetFullPath(filepath);
 			if (ChartNaming.Instance.TryGetChartName(Path.GetFileName(filepath), out string chartName))
 				level.Name = chartName;
@@ -205,7 +205,7 @@ partial class Level
 		settings ??= new LevelReadConfig();
 		MetadataJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
 		Level? level;
-		level = await FileMainEntryConverter.DeserializeMainEntryAsync<Level>(new StreamDataSource(stream), options, cancellationToken);
+		level = await FileMainEntryConverter.DeserializeMainEntryAsync<Level>(AdofaiUpgrader.Wrap(new StreamDataSource(stream), options), options, cancellationToken);
 		return level ?? [];
 	}
 	/// <inheritdoc/>
@@ -226,7 +226,7 @@ partial class Level
 		settings ??= new LevelReadConfig();
 		MetadataJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
 		Level? level;
-		level = FileMainEntryConverter.DeserializeMainEntry<Level>(new ReadOnlyMemoryDataSource(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(json))), options);
+		level = FileMainEntryConverter.DeserializeMainEntry<Level>(AdofaiUpgrader.Wrap(new ReadOnlyMemoryDataSource(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(json))), options), options);
 		return level ?? [];
 	}
 	/// <inheritdoc/>
@@ -249,7 +249,7 @@ partial class Level
 		settings ??= new LevelReadConfig();
 		MetadataJsonSerializerOptions options = Utils.Utils.GetJsonSerializerOptions(settings: settings);
 		Level? level;
-		level = FileMainEntryConverter.DeserializeMainEntry<Level>(new JsonDocumentDataSource(jsonDocument), options);
+		level = FileMainEntryConverter.DeserializeMainEntry<Level>(AdofaiUpgrader.Wrap(new JsonDocumentDataSource(jsonDocument), options), options);
 		return level ?? [];
 	}
 	/// <inheritdoc/>
