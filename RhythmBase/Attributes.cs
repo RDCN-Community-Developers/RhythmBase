@@ -75,6 +75,89 @@ public sealed class JsonTimeAttribute(JsonTimeType type) : Attribute { }
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public sealed class JsonConverterAttribute(Type converterType) : Attribute { }
 /// <summary>
+/// Applies a unit conversion between the JSON value and the model value of a property.
+/// </summary>
+/// <remarks>
+/// <para>
+/// On deserialization the model value is <c>raw * multiplier + addend</c>; on serialization the
+/// JSON value is <c>(model - addend) / multiplier</c>. When a custom converter is also present, the
+/// converter runs first (into a temporary) and the unit conversion is applied afterwards; on
+/// serialization the unit conversion runs first and the converter writes the result.
+/// </para>
+/// <para>
+/// On a complex type, pass the member name (for example <c>nameof(Point.X)</c>) to convert that
+/// member; the attribute may be repeated for several members.
+/// </para>
+/// <para>
+/// For non-linear conversions, reference a pair of static <c>float (float)</c> methods: the first
+/// maps the raw value to the model value, the second reverses it.
+/// </para>
+/// </remarks>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true, Inherited = false)]
+public sealed class JsonUnitAttribute : Attribute
+{
+	/// <summary>
+	/// Converts a numeric value as <c>raw * multiplier + addend</c>.
+	/// </summary>
+	/// <param name="multiplier">The multiplier applied to the raw value.</param>
+	/// <param name="addend">The offset added after multiplying.</param>
+	public JsonUnitAttribute(float multiplier, float addend = 0)
+	{
+		Multiplier = multiplier;
+		Addend = addend;
+	}
+
+	/// <summary>
+	/// Converts a numeric value as <c>raw * multiplier + addend</c>, truncating to an integer.
+	/// </summary>
+	/// <param name="multiplier">The multiplier applied to the raw value.</param>
+	/// <param name="addend">The offset added after multiplying.</param>
+	public JsonUnitAttribute(int multiplier, int addend = 0)
+	{
+		Multiplier = multiplier;
+		Addend = addend;
+	}
+
+	/// <summary>
+	/// Converts a single member of a complex value, for example <c>[JsonUnit(nameof(Point.X), 19.2f, -960f)]</c>.
+	/// </summary>
+	/// <param name="member">The name of the member to convert.</param>
+	/// <param name="multiplier">The multiplier applied to the raw member value.</param>
+	/// <param name="addend">The offset added after multiplying.</param>
+	public JsonUnitAttribute(string member, float multiplier, float addend = 0)
+	{
+		Member = member;
+		Multiplier = multiplier;
+		Addend = addend;
+	}
+
+	/// <summary>
+	/// Converts a value through a pair of static <c>float (float)</c> methods.
+	/// </summary>
+	/// <param name="scale">The static method mapping the raw value to the model value.</param>
+	/// <param name="reverse">The static method mapping the model value back to the raw value.</param>
+	public JsonUnitAttribute(string scale, string reverse)
+	{
+		ScaleFunction = scale;
+		ReverseFunction = reverse;
+	}
+
+	/// <summary>Gets the multiplier applied to the raw value.</summary>
+	public float Multiplier { get; }
+
+	/// <summary>Gets the offset added after multiplying.</summary>
+	public float Addend { get; }
+
+	/// <summary>Gets the member name to convert on a complex value, if any.</summary>
+	public string? Member { get; }
+
+	/// <summary>Gets the static method mapping the raw value to the model value, if any.</summary>
+	public string? ScaleFunction { get; }
+
+	/// <summary>Gets the static method mapping the model value back to the raw value, if any.</summary>
+	public string? ReverseFunction { get; }
+}
+/// <summary>
 /// Registers a hand-written converter as the converter for the specified target type in the
 /// generated <c>TypeConverterRegistry</c>.
 /// </summary>

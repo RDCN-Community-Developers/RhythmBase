@@ -12,6 +12,7 @@ partial class ConverterGenerator
 	private const string JsonDefaultSerializerAttrName = "RhythmBase.JsonDefaultSerializerAttribute";
 	private const string JsonConditionAttrName = "RhythmBase.JsonConditionAttribute";
 	private const string JsonTimeAttrName = "RhythmBase.JsonTimeAttribute";
+	private const string JsonUnitAttrName = "RhythmBase.JsonUnitAttribute";
 	private const string JsonConverterAttrName = "RhythmBase.JsonConverterAttribute";
 	private const string JsonConverterForAttrName = "RhythmBase.JsonConverterForAttribute";
 	private const string JsonConverterLinkAttrName = "RhythmBase.JsonConverterLinkAttribute`2";

@@ -19,7 +19,7 @@ namespace RhythmBase.RhythmDoctor.Events
 		/// </summary>
 		public FontName Font { get; set; } = FontName.Default;
 		/// <summary>
-		/// Gets or sets the size of the font in points. A value of null indicates that the size is not specified.
+		/// Gets or sets a value indicating whether the font is bold. This property is only applicable when using a custom font.
 		/// </summary>
 		[JsonCondition($"$&.{nameof(Font)}.IsCustom")]
 		public bool Bold { get; set; }
@@ -44,7 +44,7 @@ namespace RhythmBase.RhythmDoctor.Events
 		[JsonCondition($"$&.{nameof(Font)}.IsCustom")]
 		public float OutlineWidth { get; set; } = 0f;
 		/// <summary>
-		/// Gets or sets the wrapping width for the font. A value of 0 indicates that the wrapping width is not specified. This property is only applicable when using a custom font.
+		/// Gets or sets the wrapping width for the font as a percentage of the screen width. A value of 0 results in a zero wrapping width.
 		/// </summary>
 		public float WrappingWidth { get; set; } = 100f;
 		IEnumerable<FileReference> IFontFileEvent.FontFiles => Font.IsCustom ? [Font.Value] : [];

@@ -420,7 +420,7 @@ public partial class ConverterGenerator
 
 					var type = UnwarpNullable(prop.Property.Type);
 
-					GenerateReadProperty(new GeneratePropertyInfo(compilation, sb, classGenMap, index, attrs, dftCvtrAttrSmp, jsonEnumAttrSmp, isNullable, jsonCvtr, timeEnum, valueAccess, type));
+					GenerateReadProperty(new GeneratePropertyInfo(compilation, sb, classGenMap, index, attrs, dftCvtrAttrSmp, jsonEnumAttrSmp, isNullable, jsonCvtr, timeEnum, valueAccess, type, info.ClassType));
 					if (isNullable)
 						sb.Append("}");
 					sb.AppendLine();
@@ -493,7 +493,7 @@ public partial class ConverterGenerator
 					var subAttrs = subProp.GetAttributes();
 					INamedTypeSymbol? subJsonCvtr = subAttrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as INamedTypeSymbol;
 					int? subTimeEnum = subAttrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, timeCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as int?;
-					GenerateReadProperty(new GeneratePropertyInfo(compilation, sb, classGenMap, index, subAttrs, dftCvtrAttrSmp, jsonEnumAttrSmp, subIsNullable, subJsonCvtr, subTimeEnum, flatValueAccess, subType));
+					GenerateReadProperty(new GeneratePropertyInfo(compilation, sb, classGenMap, index, subAttrs, dftCvtrAttrSmp, jsonEnumAttrSmp, subIsNullable, subJsonCvtr, subTimeEnum, flatValueAccess, subType, info.ClassType));
 					if (parentIsValueType)
 					{
 						sb.AppendLine($$"""  {{parentAccess}} = __flatParent;""");
@@ -533,7 +533,7 @@ public partial class ConverterGenerator
 
 	private class GeneratePropertyInfo
 	{
-		public GeneratePropertyInfo(Compilation compilation, StringBuilder sb, (ITypeSymbol, INamedTypeSymbol)[] classGenMap, int index, ImmutableArray<AttributeData> attrs, INamedTypeSymbol? dftCvtrAttrSmp, INamedTypeSymbol? jsonEnumAttrSmp, bool isNullable, INamedTypeSymbol? jsonCvtr, int? timeEnum, string valueAccess, ITypeSymbol type)
+		public GeneratePropertyInfo(Compilation compilation, StringBuilder sb, (ITypeSymbol, INamedTypeSymbol)[] classGenMap, int index, ImmutableArray<AttributeData> attrs, INamedTypeSymbol? dftCvtrAttrSmp, INamedTypeSymbol? jsonEnumAttrSmp, bool isNullable, INamedTypeSymbol? jsonCvtr, int? timeEnum, string valueAccess, ITypeSymbol type, INamedTypeSymbol containingType)
 		{
 			Compilation = compilation;
 			StringBuilder = sb;
@@ -547,6 +547,7 @@ public partial class ConverterGenerator
 			TimeEnum = timeEnum;
 			ValueAccess = valueAccess;
 			Type = type;
+			ContainingType = containingType;
 		}
 
 		public Compilation Compilation { get; set; }
@@ -561,6 +562,7 @@ public partial class ConverterGenerator
 		public int? TimeEnum { get; }
 		public string ValueAccess { get; }
 		public ITypeSymbol Type { get; }
+		public INamedTypeSymbol ContainingType { get; }
 	}
 	private void GenerateReadProperty(GeneratePropertyInfo info)
 	{
@@ -576,6 +578,11 @@ public partial class ConverterGenerator
 		var jsonEnumAttrSmp = info.JsonEnumAttrSmp;
 		var attrs = info.Attrs;
 		var index = info.Index;
+		// JsonUnit 单位转换
+		var jsonUnitAttrSmp = compilation.GetTypeByMetadataName(JsonUnitAttrName);
+		AttributeData[] unitAttrs = attrs.Where(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonUnitAttrSmp)).ToArray();
+		if (unitAttrs.Length > 0 && TryEmitUnitRead(info, unitAttrs))
+			return;
 		// 已注册转换器
 		if (jsonCvtr is null && classGenMap.FirstOrDefault(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)) is var (classGen, cvtr) && classGen is not null)
 		{
@@ -653,6 +660,141 @@ public partial class ConverterGenerator
 		else
 			sb.Append($$"""{{valueAccess}} = TypeConverterRegistry.Read<{{type.ToDisplayString()}}>(ref reader, options);""");
 	}
+	private static string FloatLiteral(object? value)
+	{
+		float f = Convert.ToSingle(value, System.Globalization.CultureInfo.InvariantCulture);
+		return f.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + "f";
+	}
+
+	// Returns false when the property type is not supported by JsonUnit, so the caller falls back
+	// to the regular read path.
+	private bool TryEmitUnitRead(GeneratePropertyInfo info, AttributeData[] unitAttrs)
+	{
+		var sb = info.StringBuilder;
+		var type = info.Type;
+		var jsonCvtr = info.JsonCvtr;
+		var classGenMap = info.ClassGenMap;
+		var compilation = info.Compilation;
+		string? raw;
+		if (jsonCvtr is not null)
+		{
+			raw = SymbolEqualityComparer.Default.Equals(jsonCvtr.BaseType.OriginalDefinition, compilation.GetTypeByMetadataName(MetadataJsonConverterTypeName))
+				? $"new {jsonCvtr.ToDisplayString()}().Read(ref reader, typeof({type.ToDisplayString()}), options)"
+				: $"new {jsonCvtr.ToDisplayString()}().Read(ref reader, typeof({type.ToDisplayString()}), options.JsonSerializerOptions)";
+		}
+		else if (classGenMap.Any(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)))
+			raw = $"TypeConverterRegistry.Read<{type.ToDisplayString()}>(ref reader, options)";
+		else if (type.SpecialType == SpecialType.System_Single)
+			raw = "reader.GetSingle()";
+		else if (type.SpecialType == SpecialType.System_Double)
+			raw = "reader.GetDouble()";
+		else if (type.SpecialType == SpecialType.System_Int32)
+			raw = "reader.GetInt32()";
+		else if (type.SpecialType == SpecialType.System_Int64)
+			raw = "reader.GetInt64()";
+		else
+			return false;
+
+		sb.Append("{ ");
+		AttributeData? fn = unitAttrs.FirstOrDefault(a => a.ConstructorArguments.Length == 2 && a.ConstructorArguments[0].Value is string && a.ConstructorArguments[1].Value is string);
+		if (fn is AttributeData f)
+		{
+			string scaleFn = (string)f.ConstructorArguments[0].Value!;
+			sb.Append($"{info.ValueAccess} = {info.ContainingType.ToDisplayString()}.{scaleFn}({raw});");
+		}
+		else
+		{
+			AttributeData[] members = unitAttrs.Where(a => a.ConstructorArguments.Length >= 2 && a.ConstructorArguments[0].Value is string).ToArray();
+			if (members.Length > 0)
+			{
+				string tmp = $"__unit{info.Index}";
+				sb.Append($"var {tmp} = {raw};");
+				foreach (AttributeData a in members)
+				{
+					string member = (string)a.ConstructorArguments[0].Value!;
+					string m = FloatLiteral(a.ConstructorArguments[1].Value);
+					string b = a.ConstructorArguments.Length >= 3 ? FloatLiteral(a.ConstructorArguments[2].Value) : "0f";
+					sb.Append($"{tmp}.{member} = {tmp}.{member} * {m} + {b};");
+				}
+				sb.Append($"{info.ValueAccess} = {tmp};");
+			}
+			else
+			{
+				AttributeData s = unitAttrs[0];
+				string sm = FloatLiteral(s.ConstructorArguments[0].Value);
+				string sbv = s.ConstructorArguments.Length >= 2 ? FloatLiteral(s.ConstructorArguments[1].Value) : "0f";
+				sb.Append($"{info.ValueAccess} = ({type.ToDisplayString()})({raw} * {sm} + {sbv});");
+			}
+		}
+		sb.Append(" }");
+		return true;
+	}
+
+	private void EmitNormalWrite(StringBuilder sb, string alias, string expr, ITypeSymbol type, INamedTypeSymbol? jsonCvtr, (ITypeSymbol, INamedTypeSymbol)[] classGenMap, Compilation compilation)
+	{
+		if (jsonCvtr is not null)
+		{
+			string arg = SymbolEqualityComparer.Default.Equals(jsonCvtr.BaseType.OriginalDefinition, compilation.GetTypeByMetadataName(MetadataJsonConverterTypeName))
+				? "options"
+				: "options.JsonSerializerOptions";
+			sb.Append($"writer.WritePropertyName(\"{alias}\"u8); new {jsonCvtr.ToDisplayString()}().Write(writer, {expr}, {arg});");
+		}
+		else if (classGenMap.Any(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)))
+			sb.Append($"writer.WritePropertyName(\"{alias}\"u8); TypeConverterRegistry.Write(writer, {expr}, options);");
+		else
+			sb.Append($"writer.Write{GetJsonWriterMethod(type)}(\"{alias}\"u8, {expr});");
+	}
+
+	private void EmitUnitWrite(StringBuilder sb, string alias, string valueAccess, ITypeSymbol type, INamedTypeSymbol? jsonCvtr, AttributeData[] unitAttrs, (ITypeSymbol, INamedTypeSymbol)[] classGenMap, Compilation compilation, INamedTypeSymbol containingType, int index, bool hasCondition)
+	{
+		string open = hasCondition ? "{ " : "";
+		string close = hasCondition ? " }" : "";
+		AttributeData? fn = unitAttrs.FirstOrDefault(a => a.ConstructorArguments.Length == 2 && a.ConstructorArguments[0].Value is string && a.ConstructorArguments[1].Value is string);
+		if (fn is AttributeData f)
+		{
+			string reverse = (string)f.ConstructorArguments[1].Value!;
+			string tmp = $"__unit{index}";
+			sb.Append(open);
+			sb.Append($"var {tmp} = {containingType.ToDisplayString()}.{reverse}({valueAccess});");
+			EmitNormalWrite(sb, alias, tmp, type, jsonCvtr, classGenMap, compilation);
+			sb.Append(close);
+			return;
+		}
+		AttributeData[] members = unitAttrs.Where(a => a.ConstructorArguments.Length >= 2 && a.ConstructorArguments[0].Value is string).ToArray();
+		if (members.Length > 0)
+		{
+			string tmp = $"__unit{index}";
+			sb.Append(open);
+			sb.Append($"var {tmp} = {valueAccess};");
+			foreach (AttributeData a in members)
+			{
+				string member = (string)a.ConstructorArguments[0].Value!;
+				string m = FloatLiteral(a.ConstructorArguments[1].Value);
+				string b = a.ConstructorArguments.Length >= 3 ? FloatLiteral(a.ConstructorArguments[2].Value) : "0f";
+				sb.Append($"{tmp}.{member} = ({tmp}.{member} - {b}) / {m};");
+			}
+			EmitNormalWrite(sb, alias, tmp, type, jsonCvtr, classGenMap, compilation);
+			sb.Append(close);
+			return;
+		}
+		AttributeData s = unitAttrs[0];
+		string sm = FloatLiteral(s.ConstructorArguments[0].Value);
+		string sbv = s.ConstructorArguments.Length >= 2 ? FloatLiteral(s.ConstructorArguments[1].Value) : "0f";
+		string expr = $"({valueAccess} - {sbv}) / {sm}";
+		if (jsonCvtr is not null)
+		{
+			string tmp = $"__unit{index}";
+			sb.Append(open);
+			sb.Append($"var {tmp} = ({type.ToDisplayString()})({expr});");
+			EmitNormalWrite(sb, alias, tmp, type, jsonCvtr, classGenMap, compilation);
+			sb.Append(close);
+		}
+		else
+		{
+			sb.Append($"{open}writer.Write{GetJsonWriterMethod(type)}(\"{alias}\"u8, {expr});{close}");
+		}
+	}
+
 	private class GenerateWritePropertyInfo
 	{
 		public Compilation Compilation { get; set; }
@@ -835,8 +977,15 @@ public partial class ConverterGenerator
 					hasCondition = true;
 				}
 
+				// JsonUnit 单位转换
+				var jsonUnitAttrSmpW = compilation.GetTypeByMetadataName(JsonUnitAttrName);
+				AttributeData[] unitWriteAttrs = attrs.Where(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonUnitAttrSmpW)).ToArray();
+				if (unitWriteAttrs.Length > 0)
+				{
+					EmitUnitWrite(sb, alias, valueAccess, type, jsonCvtr, unitWriteAttrs, classGenMap, compilation, info.ClassType, index, hasCondition);
+				}
 				// 已注册转换器
-				if (jsonCvtr is null && classGenMap.FirstOrDefault(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)) is var (classGen, cvtr) && classGen is not null)
+				else if (jsonCvtr is null && classGenMap.FirstOrDefault(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)) is var (classGen, cvtr) && classGen is not null)
 				{
 					sb.Append($$"""{{(hasCondition ? "{" : "")}} writer.WritePropertyName("{{alias}}"u8); TypeConverterRegistry.Write(writer, {{valueAccess}}, options); {{(hasCondition ? "}" : "")}}""");
 				}
