@@ -45,6 +45,41 @@ partial class Level
 		return level;
 	}
 	/// <summary>
+	/// Loads a level from a <c>.rdlevel</c>/<c>.json</c> chart file, a directory of charts, or a
+	/// <c>.rdzip</c>/<c>.zip</c> archive, dispatching on the path.
+	/// </summary>
+	/// <param name="path">The chart file, directory or archive path.</param>
+	/// <param name="settings">Optional read settings.</param>
+	public static Level FromFile(string path, LevelReadConfig? settings = null)
+		=> FromFileAsync(path, settings).GetAwaiter().GetResult();
+	/// <summary>
+	/// Asynchronously loads a level from a chart file, directory or archive.
+	/// </summary>
+	/// <param name="path">The chart file, directory or archive path.</param>
+	/// <param name="settings">Optional read settings.</param>
+	/// <param name="cancellationToken">A cancellation token.</param>
+	public static Task<Level> FromFileAsync(string path, LevelReadConfig? settings = null, CancellationToken cancellationToken = default)
+	{
+		if (Directory.Exists(path))
+			return FromDirectoryAsync(path, settings, cancellationToken);
+		string extension = Path.GetExtension(path);
+		return extension switch
+		{
+			".rdzip" or ".zip" => FromZipAsync(path, settings, cancellationToken),
+			".rdlevel" or ".json" => FromChartFileAsync(path, settings, cancellationToken),
+			_ => throw new NotSupportedException($"File type '{extension}' is not supported."),
+		};
+	}
+	private static async Task<Level> FromChartFileAsync(string path, LevelReadConfig? settings, CancellationToken cancellationToken)
+	{
+		Chart chart = await Chart.FromFileAsync(path, settings, cancellationToken);
+		return new Level(chart)
+		{
+			Filepath = chart.Filepath,
+			ResolvedPath = chart.ResolvedPath,
+		};
+	}
+	/// <summary>
 	/// Saves all charts contained in this level to the specified directory.
 	/// </summary>
 	public void SaveToDirectory(string directoryPath, LevelWriteConfig? settings = null)
@@ -93,15 +128,10 @@ partial class Level
 #elif NETSTANDARD2_0_OR_GREATER
 					ZipFile.ExtractToDirectory(filepath, tempDirectory.FullName);
 #endif
-					string? rdlevelPath = null;
-					foreach (FileInfo? file in tempDirectory.GetFiles())
-					{
-						if (file.Name == ChartNaming.Instance.GetFileName(DefaultChartName))
-						{
-							rdlevelPath = file.FullName;
-							break;
-						}
-					}
+					// The archive is extracted recursively, so search all directories.
+					string? rdlevelPath = tempDirectory
+						.GetFiles(ChartNaming.Instance.GetFileName(DefaultChartName), SearchOption.AllDirectories)
+						.FirstOrDefault()?.FullName;
 					if (rdlevelPath == null)
 						throw new FileNotFoundException("No RDLevel file has been found.");
 					main = await Chart.FromFileAsync(rdlevelPath, settings, cancellationToken);
@@ -109,7 +139,7 @@ partial class Level
 					main.Filepath = Path.GetFullPath(filepath);
 					main.isZip = true;
 					main.isExtracted = true;
-					foreach (FileInfo file in tempDirectory.GetFiles("*.rdlevel"))
+					foreach (FileInfo file in tempDirectory.GetFiles("*.rdlevel", SearchOption.AllDirectories))
 					{
 						if (file.Name == ChartNaming.Instance.GetFileName(DefaultChartName))
 							continue;
