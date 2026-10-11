@@ -79,13 +79,11 @@ with(StringComparer.Ordinal),
 	}
 
 	/// <summary>
-	/// Initializes a new context over the given environment and copies the fixed slots from
-	/// <paramref name="source"/>.
+	/// Copies the 30 fixed slots from <paramref name="source"/> into this context, so a clone can
+	/// continue from the same slot state.
 	/// </summary>
-	/// <param name="variables">The virtual environment.</param>
 	/// <param name="source">The context whose fixed slots are copied.</param>
-	internal ExpressionContext(IVariables variables, ExpressionContext source)
-		: this(variables)
+	internal void CopySlotsFrom(ExpressionContext source)
 	{
 		Array.Copy(source.I, I, I.Length);
 		Array.Copy(source.F, F, F.Length);
@@ -93,7 +91,8 @@ with(StringComparer.Ordinal),
 	}
 
 	/// <summary>
-	/// Gets the virtual environment supplying every variable outside the 30 fixed slots.
+	/// Gets the sandbox rule backing <c>atLeastRank</c>. This property itself is not dynamically
+	/// accessible.
 	/// </summary>
 	public IRankSimulation RankSimulation { get; set; }
 
@@ -215,7 +214,7 @@ with(StringComparer.Ordinal),
 				return true;
 			case "atLeastRank":
 				RequireArgs(name, args, 1);
-				result = RankSimulation.AtLeast(ExpressionRuntime.ToStr(args[0]));
+				result = RankSimulation.AtLeast(ExpressionRuntime.ToRank(args[0]));
 				return true;
 			case "atLeastNPerfects":
 				RequireArgs(name, args, 2);

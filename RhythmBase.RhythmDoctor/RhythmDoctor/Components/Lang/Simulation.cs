@@ -15,9 +15,9 @@ public interface IRankSimulation
 	/// <summary>
 	/// Evaluates whether the simulated rank is at least <paramref name="rank"/>.
 	/// </summary>
-	/// <param name="rank">The rank literal, for example <c>S+</c>.</param>
+	/// <param name="rank">The rank literal, for example <see cref="ExpressionContext.RDRank.SPlus"/>.</param>
 	/// <returns><see langword="true"/> when the simulated rank reaches <paramref name="rank"/>.</returns>
-	bool AtLeast(string rank);
+	bool AtLeast(ExpressionContext.RDRank rank);
 }
 
 /// <summary>
@@ -52,17 +52,7 @@ public sealed class DefaultSimulation : IRankSimulation, IPerfectsSimulation
 	public float SuccessRate { get; set; } = 0.9f;
 
 	/// <inheritdoc/>
-	public bool AtLeast(string rank) => rank switch
-	{
-		"S+" => RankCap <= ExpressionContext.RDRank.SPlus,
-		"S" => RankCap <= ExpressionContext.RDRank.S,
-		"A" => RankCap <= ExpressionContext.RDRank.A,
-		"B" => RankCap <= ExpressionContext.RDRank.B,
-		"C" => RankCap <= ExpressionContext.RDRank.C,
-		"D" => RankCap <= ExpressionContext.RDRank.D,
-		"F" => RankCap <= ExpressionContext.RDRank.F,
-		_ => throw new ArgumentException("Invalid rank"),
-	};
+	public bool AtLeast(ExpressionContext.RDRank rank) => RankCap <= rank;
 
 	/// <inheritdoc/>
 	public bool AtLeastNPerfects(int hitsToCheck, int numberOfPerfects)

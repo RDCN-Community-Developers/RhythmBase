@@ -13,28 +13,37 @@ namespace RhythmBase.RhythmDoctor.Components.Lang;
 /// the current time. It also shares its timeline with <c>LastHit</c> conditions when no separate
 /// <see cref="PlayheadConfig.HitTimeline"/> is given.
 /// </remarks>
-public sealed class HitVariables : VariablesBase
+public sealed class HitVariables : ExpressionContext, IRankSimulation, IPerfectsSimulation
 {
-	private readonly VariablesBase? _inner;
+	private readonly ExpressionContext? _inner;
 	private readonly IRandomSimulator _random;
 	private readonly List<HitRecord> _hits = [];
 
 	/// <summary>Initializes a new environment.</summary>
 	/// <param name="inner">An optional environment to forward variable access to.</param>
 	/// <param name="random">An optional random source.</param>
-	public HitVariables(VariablesBase? inner = null, IRandomSimulator? random = null)
+	public HitVariables(ExpressionContext? inner = null, IRandomSimulator? random = null)
 	{
 		_inner = inner;
 		_random = random ?? new RandomSimulator();
+		Rand = NextRandom;
+		RankSimulation = this;
+		PerfectsSimulation = this;
 	}
 
 	/// <summary>Gets or sets an optional rank provider given the current time.</summary>
-	public Func<float, Rank>? RankProvider { get; set; }
+	public Func<float, ExpressionContext.RDRank>? RankProvider { get; set; }
 
 	/// <summary>Gets the hit timeline.</summary>
 	public IReadOnlyList<HitRecord> Hits => _hits;
 
 	internal Func<float>? TickProvider { get; set; }
+
+	/// <inheritdoc/>
+	public ExpressionContext.RDRank RankCap { get; set; } = ExpressionContext.RDRank.S;
+
+	/// <inheritdoc/>
+	public float SuccessRate { get; set; } = 0.9f;
 
 	/// <summary>Adds a hit to the timeline.</summary>
 	/// <param name="hit">The hit.</param>
@@ -45,7 +54,7 @@ public sealed class HitVariables : VariablesBase
 	}
 
 	/// <inheritdoc/>
-	public override bool TryGetVariable(string name, out object? value)
+	protected override bool TryGetMemberValue(string name, out object? value)
 	{
 		if (_inner is not null)
 			return _inner.TryGetVariable(name, out value);
@@ -54,13 +63,10 @@ public sealed class HitVariables : VariablesBase
 	}
 
 	/// <inheritdoc/>
-	public override bool TrySetVariable(string name, object? value) => _inner is not null && _inner.TrySetVariable(name, value);
+	protected override bool TrySetMemberValue(string name, object? value) => _inner is not null && _inner.TrySetVariable(name, value);
 
 	/// <inheritdoc/>
-	public override int Rand(int value) => _inner?.Rand(value) ?? (value > 0 ? _random.Next(1, value + 1) : value < 0 ? -_random.Next(1, -value + 1) : 0);
-
-	/// <inheritdoc/>
-	public override bool atLeastNPerfects(int hitsToCheck, int numberOfPerfects)
+	public bool AtLeastNPerfects(int hitsToCheck, int numberOfPerfects)
 	{
 		float tick = TickProvider?.Invoke() ?? float.PositiveInfinity;
 		int perfect = 0;
@@ -77,13 +83,18 @@ public sealed class HitVariables : VariablesBase
 	}
 
 	/// <inheritdoc/>
-	public override bool atLeastRank(Rank rank)
+	public bool AtLeast(ExpressionContext.RDRank rank)
 	{
 		float tick = TickProvider?.Invoke() ?? float.PositiveInfinity;
-		Rank current = RankProvider?.Invoke(tick) ?? RankFromMistakes(CountMistakes(tick));
-		Rank basis = rank & ~(Rank.Plus | Rank.Minus);
-		return (int)current <= (int)basis;
+		ExpressionContext.RDRank current = RankProvider?.Invoke(tick) ?? RankFromMistakes(CountMistakes(tick));
+		// RDRank numbers each grade as minus(3k), base(3k+1), plus(3k+2); compare on the base grade.
+		int basis = (int)rank - ((int)rank % 3) + 1;
+		return (int)current <= basis;
 	}
+
+	private int NextRandom(int value) => _inner is not null
+		? _inner.Rand(value)
+		: value > 0 ? _random.Next(1, value + 1) : value < 0 ? -_random.Next(1, -value + 1) : 0;
 
 	private int CountMistakes(float tick)
 	{
@@ -98,13 +109,13 @@ public sealed class HitVariables : VariablesBase
 		return mistakes;
 	}
 
-	private static Rank RankFromMistakes(int mistakes) => mistakes switch
+	private static ExpressionContext.RDRank RankFromMistakes(int mistakes) => mistakes switch
 	{
-		<= 0 => Rank.S,
-		<= 2 => Rank.A,
-		<= 5 => Rank.B,
-		<= 10 => Rank.C,
-		<= 20 => Rank.D,
-		_ => Rank.F,
+		<= 0 => ExpressionContext.RDRank.S,
+		<= 2 => ExpressionContext.RDRank.A,
+		<= 5 => ExpressionContext.RDRank.B,
+		<= 10 => ExpressionContext.RDRank.C,
+		<= 20 => ExpressionContext.RDRank.D,
+		_ => ExpressionContext.RDRank.F,
 	};
 }

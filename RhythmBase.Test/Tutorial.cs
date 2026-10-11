@@ -1,5 +1,6 @@
 using RhythmBase.Global.Components.Easing;
-using RhythmBase.Global.Settings;
+using RhythmBase.Global;
+using RhythmBase.Global.Serialization;
 using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Events;
 using RhythmBase.RhythmDoctor.Extensions;
@@ -47,7 +48,7 @@ namespace RhythmBase.Test;
                 using Level rdlevel3 = Level.FromZip(@"your\level.zip");
 
                 // Write a level file
-                rdlevel1.SaveToFile(@"your\outLevel.rdlevel");
+                rdlevel1.SaveToZip(@"your\outLevel.rdzip");
             }
         }
         [TestMethod]
@@ -67,10 +68,6 @@ namespace RhythmBase.Test;
                 // Load asset paths when reading or writing the level
                 LoadAssets = true,
             };
-            // The cache path is required when reading zip level packs
-            // Default is the Temp path.
-            Config.CachePath = @"your\cache\path";
-
             lock (this)
             { using Level _rdlevel1 = Level.FromFile(@"your\level.rdlevel", settings); }
         }
@@ -79,8 +76,8 @@ namespace RhythmBase.Test;
         {
             LevelWriteConfig settings = new();
 
-            JsonDocument jdoc = _rdlevel.ToJsonDocument();
-            string json = _rdlevel.ToJsonString(settings);
+            JsonDocument jdoc = _rdlevel.MainChart.ToJsonDocument();
+            string json = _rdlevel.MainChart.ToJsonString(settings);
             Console.WriteLine(jdoc);
             Console.WriteLine(json);
         }
@@ -311,7 +308,7 @@ namespace RhythmBase.Test;
             }
 
             // Write to a new level file
-            vfxLevel.SaveToFile(@"result.rdlevel");
+            vfxLevel.SaveToZip(@"result.rdzip");
         }
         // Create a MyEvent type  
         //   Inherit from CustomEvent  

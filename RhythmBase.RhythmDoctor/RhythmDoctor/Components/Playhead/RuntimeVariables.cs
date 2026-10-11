@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RhythmBase.RhythmDoctor.Components.Lang;
 
 namespace RhythmBase.RhythmDoctor.Components;
@@ -7,20 +8,21 @@ namespace RhythmBase.RhythmDoctor.Components;
 /// button count, narration flags, passed levels, ...) and forwards everything else to the
 /// underlying environment.
 /// </summary>
-internal sealed class RuntimeVariables : VariablesBase
+internal sealed class RuntimeVariables : ExpressionContext
 {
-	private readonly VariablesBase _inner;
+	private readonly ExpressionContext _inner;
 	private readonly PlayheadConfig _config;
 
-	internal RuntimeVariables(VariablesBase inner, PlayheadConfig config)
+	internal RuntimeVariables(ExpressionContext inner, PlayheadConfig config)
 	{
 		_inner = inner;
 		_config = config;
 	}
 
-	internal VariablesBase Inner => _inner;
+	internal ExpressionContext Inner => _inner;
 
-	public override bool TryGetVariable(string name, out object? value)
+	/// <inheritdoc/>
+	protected override bool TryGetMemberValue(string name, out object? value)
 	{
 		switch (name)
 		{
@@ -56,13 +58,11 @@ internal sealed class RuntimeVariables : VariablesBase
 		return _inner.TryGetVariable(name, out value);
 	}
 
-	public override bool TrySetVariable(string name, object? value) => _inner.TrySetVariable(name, value);
+	/// <inheritdoc/>
+	protected override bool TrySetMemberValue(string name, object? value) => _inner.TrySetVariable(name, value);
 
-	public override int Rand(int value) => _inner.Rand(value);
-
-	public override bool atLeastRank(Rank rank) => _inner.atLeastRank(rank);
-
-	public override bool atLeastNPerfects(int hitsToCheck, int numberOfPerfects) => _inner.atLeastNPerfects(hitsToCheck, numberOfPerfects);
+	/// <inheritdoc/>
+	public override bool TryInvokeFunction(string name, IReadOnlyList<object?> args, out object? result) => _inner.TryInvokeFunction(name, args, out result);
 
 	/// <summary>Answers <c>passedLevel(Name)</c> from the configured set.</summary>
 	public bool passedLevel(string level) => _config.PassedLevels is not null && _config.PassedLevels.Contains(level);

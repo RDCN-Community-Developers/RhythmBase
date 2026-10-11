@@ -106,7 +106,7 @@ public sealed class PlayheadConfig
 	/// Gets or sets the sandbox environment used to resolve variables and simulation functions.
 	/// When <see langword="null"/> the playhead creates a minimal default environment.
 	/// </summary>
-	public IVariables? Variables { get; set; }
+	public ExpressionContext? Variables { get; set; }
 
 	/// <summary>Gets or sets the modules whose snapshots are produced.</summary>
 	public PlayheadModules MonitoredModules { get; set; } = PlayheadModules.All;
@@ -150,7 +150,7 @@ public sealed class PlayheadConfig
 	public IRandomSimulator Random { get; set; } = new RandomSimulator();
 
 	/// <summary>Gets or sets an optional factory that clones the sandbox for <see cref="Playhead.Clone"/>.</summary>
-	public Func<IVariables, IVariables>? VariablesCloner { get; set; }
+	public Func<ExpressionContext, ExpressionContext>? VariablesCloner { get; set; }
 
 	/// <summary>
 	/// Gets or sets the simulated hit timeline used for <c>LastHit</c> conditions. Provide a
@@ -284,7 +284,8 @@ public sealed class Playhead
 	private readonly ConductorModule _conductor;
 	private readonly ConditionEvaluator _condition;
 	private readonly ExpressionContext _expressionContext;
-	private readonly ExpressionEvaluator _expressionEvaluator;
+	private readonly FloatExpressionEvaluator _expressionEvaluator;
+	private readonly CallCustomMethodEvaluator _customMethodEvaluator;
 	private readonly VariablesModule _variablesModule;
 	private readonly HitModule? _hitModule;
 	private readonly int[] _timesRun;
@@ -322,9 +323,10 @@ public sealed class Playhead
 		_calculator = chart.Calculator;
 		_currentTick = 1f;
 		_scheduler = new EventScheduler(chart);
-		VariablesBase baseEnvironment = Config.Variables as VariablesBase ?? EmptyVariables.Instance;
-		_expressionContext = new ExpressionContext(new RuntimeVariables(baseEnvironment, Config));
-		_expressionEvaluator = new ExpressionEvaluator(_expressionContext);
+		ExpressionContext baseEnvironment = Config.Variables ?? new ExpressionContext();
+		_expressionContext = new RuntimeVariables(baseEnvironment, Config);
+		_expressionEvaluator = new FloatExpressionEvaluator(_expressionContext);
+		_customMethodEvaluator = new CallCustomMethodEvaluator(_expressionContext);
 		IReadOnlyList<HitRecord>? hitTimeline = Config.HitTimeline ?? (Config.Variables as HitVariables)?.Hits;
 		_hitModule = hitTimeline is null ? null : new HitModule(this, hitTimeline);
 		if (Config.Variables is HitVariables hitVariables)
@@ -369,7 +371,8 @@ public sealed class Playhead
 		_modules = modules;
 		_conductor = conductor;
 		_expressionContext = expressionContext;
-		_expressionEvaluator = new ExpressionEvaluator(expressionContext);
+		_expressionEvaluator = new FloatExpressionEvaluator(expressionContext);
+		_customMethodEvaluator = new CallCustomMethodEvaluator(expressionContext);
 		_variablesModule = null!;
 		_hitModule = null;
 		foreach (IPlayheadObject module in modules)
@@ -388,7 +391,7 @@ public sealed class Playhead
 				break;
 			}
 		}
-		if (expressionContext.Variables is RuntimeVariables runtime && runtime.Inner is HitVariables hitVariables)
+		if (expressionContext is RuntimeVariables runtime && runtime.Inner is HitVariables hitVariables)
 			hitVariables.TickProvider = () => _currentTick;
 		_condition = new ConditionEvaluator(
 			chart,
@@ -530,11 +533,11 @@ public sealed class Playhead
 	/// <returns>The clone.</returns>
 	public Playhead Clone()
 	{
-		IVariables environment = Config.Variables is null
-			? EmptyVariables.Instance
+		ExpressionContext environment = Config.Variables is null
+			? new ExpressionContext()
 			: Config.VariablesCloner is not null ? Config.VariablesCloner(Config.Variables) : Config.Variables;
-		VariablesBase baseEnvironment = environment as VariablesBase ?? EmptyVariables.Instance;
-		ExpressionContext expressionContext = new(new RuntimeVariables(baseEnvironment, Config), _expressionContext);
+		RuntimeVariables expressionContext = new(environment, Config);
+		expressionContext.CopySlotsFrom(_expressionContext);
 		List<IPlayheadObject> modules = [];
 		ConductorModule? conductor = null;
 		foreach (IPlayheadObject module in _modules)
@@ -647,7 +650,7 @@ public sealed class Playhead
 		// function calls resolve against the shared context (fixed slots + sandbox).
 		try
 		{
-			_expressionEvaluator.Evaluate(text);
+			_customMethodEvaluator.Execute(text);
 		}
 		catch (Exception)
 		{

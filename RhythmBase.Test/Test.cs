@@ -1,5 +1,6 @@
+using RhythmBase.Global;
 using RhythmBase.Global.Components;
-using RhythmBase.Global.Settings;
+using RhythmBase.Global.Serialization;
 using RhythmBase.RhythmDoctor;
 using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Serialization;
@@ -79,13 +80,12 @@ public sealed class Test
 			}
 		}
 		lock (this)
-			level.SaveToFile("out.rdlevel");
-		level = Level.FromJsonString(level.ToJsonString());
+			level.SaveToZip("out.rdzip");
+		level = new Level(Chart.FromJsonString(level.MainChart.ToJsonString()));
 	}
 	[TestMethod]
 	public void ReadWriteSpeedTest()
 	{
-		Config.CachePath = "cache";
 		{
 			List<(double, double)> results = [];
 			LevelReadConfig settings = new()
@@ -110,7 +110,7 @@ public sealed class Test
 				Console.Write($"|{i}\t|{readTime,10} ms\t|");
 				sw.Restart();
 				lock (this)
-					level.SaveToFile("out.rdlevel");
+					level.SaveToZip("out.rdzip");
 				writeTime = sw.Elapsed.TotalMilliseconds;
 				Console.WriteLine($"{writeTime,10} ms\t|");
 				results.Add((readTime, writeTime));
@@ -248,7 +248,7 @@ public sealed class Test
 		{
 
 		};
-		Console.WriteLine(level.ToJsonString(settings));
+		Console.WriteLine(level.MainChart.ToJsonString(settings));
 	}
 	[TestMethod]
 	public void OthersTest()
