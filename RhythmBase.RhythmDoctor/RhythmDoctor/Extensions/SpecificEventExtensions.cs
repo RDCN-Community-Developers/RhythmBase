@@ -353,6 +353,10 @@ public static partial class Extensions
 			}
 		}
 		/// <summary>
+		/// Check if it is bomb beat.
+		/// </summary>
+		public bool IsBombBeat => e.Action == PulseAction.Custom && e.CustomPulse == -1;
+		/// <summary>
 		/// Gets the hit information for the current instance.
 		/// </summary>
 		public Hit Hit => new(e, e.TickTime,
