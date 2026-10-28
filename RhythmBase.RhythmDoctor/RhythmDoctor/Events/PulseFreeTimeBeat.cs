@@ -21,7 +21,8 @@ public record class PulseFreeTimeBeat : BaseBeat
 	/// Must be an integer between 0 and 6, inclutive. This property is only applicable when the <see cref="Action"/> is set to <see cref="PulseAction.Custom"/>.
 	/// </remarks>
 	[JsonCondition($"$&.{nameof(Action)} is RhythmBase.RhythmDoctor.{nameof(PulseAction)}.{nameof(PulseAction.Custom)}")]
-	public uint CustomPulse { get; set; }
+	[ValueRange<sbyte>(-1, 6)]
+	public sbyte CustomPulse { get; set; }
 	/// <summary>
 	/// Gets or sets the action type.
 	/// </summary>
