@@ -26,4 +26,19 @@ public record class AddFreeTimeBeat : BaseBeat
 	[ValueRange<sbyte>(-1, 6)]
 	public sbyte Pulse { get; set; }
 	/// <inheritdoc/>
-	public override EventType Type => EventType.AddFreeTimeBeat;}
+	public override EventType Type => EventType.AddFreeTimeBeat;
+	/// <inheritdoc/>
+	protected override bool PrintMembers(System.Text.StringBuilder builder)
+	{
+		if (base.PrintMembers(builder))
+			builder.Append(", ");
+		builder.Append($"{nameof(Hold)} = {Hold}");
+		builder.Append($", Pulse = {Pulse switch
+		{
+			6 => "H",
+			-1 => "*",
+			_ => Pulse.ToString(),
+		}}");
+		return true;
+	}
+}

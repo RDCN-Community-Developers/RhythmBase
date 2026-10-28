@@ -66,9 +66,9 @@ public struct Condition
 	{
 		return new Condition
 		{
-			Duration = this.Duration,
-			_index_conditions = _index_conditions is null ? null : (ulong[]?)this._index_conditions?.Clone(),
-			_char_conditions = _char_conditions is null ? null : (ulong[]?)this._char_conditions?.Clone()
+			Duration = Duration,
+			_index_conditions = _index_conditions is null ? null : (ulong[]?)_index_conditions?.Clone(),
+			_char_conditions = _char_conditions is null ? null : (ulong[]?)_char_conditions?.Clone()
 		};
 	}
 	/// <summary>

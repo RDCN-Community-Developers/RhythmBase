@@ -32,7 +32,7 @@ public class Decoration : OrderedEventCollection<BaseDecorationAction>, IEventEn
 			int y = 0;
 			for (int i = 0; i < Parent?.Decorations.Count; i++)
 			{
-				if (Parent.Decorations[i].Room == this.Room && Parent.Decorations[i] == this)
+				if (Parent.Decorations[i].Room == Room && Parent.Decorations[i] == this)
 					return y;
 				y++;
 			}

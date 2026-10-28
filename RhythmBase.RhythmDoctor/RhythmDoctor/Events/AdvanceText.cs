@@ -59,8 +59,8 @@ public record class AdvanceText : BaseEvent, IRoomEvent, IDurationEvent, IAdvanc
 	{
 		if (base.PrintMembers(builder))
 			builder.Append(", ");
-		builder.Append($"{nameof(Room)} = {this.Rooms}");
-		builder.Append($", {nameof(Duration)} = {this.Duration}");
+		builder.Append($"{nameof(Room)} = {Rooms}");
+		builder.Append($", {nameof(Duration)} = {Duration}");
 		if (Header is null)
 			return true;
 		string[] texts = Header.SplittedTexts;

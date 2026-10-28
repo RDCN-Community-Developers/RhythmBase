@@ -46,7 +46,7 @@ public record class ForwardEvent : BaseEvent, IForwardEvent
 			else if (prop.NameEquals("y"u8)) Y = prop.Value.GetInt32();
 			else _extraData[prop.Name] = prop.Value;
 		}
-		this._tick = (_bar, _beat);
+		_tick = (_bar, _beat);
 	}
 	/// <inheritdoc/>
 	protected override bool PrintMembers(System.Text.StringBuilder builder)

@@ -497,7 +497,7 @@ public class RedBlackTree<TKey, TValue> : ICollection<KeyValuePair<TKey, TValue>
     /// <returns>The first key-value pair that satisfies the condition, or the default value if no such pair is found.</returns>
     public KeyValuePair<TKey, TValue> FirstOrDefault(Func<KeyValuePair<TKey, TValue>, bool> predicate)
     {
-        var first = this._root;
+        var first = _root;
         while (first is not null)
         {
             if (predicate(new KeyValuePair<TKey, TValue>(first.Key, first.Value)))
@@ -524,7 +524,7 @@ public class RedBlackTree<TKey, TValue> : ICollection<KeyValuePair<TKey, TValue>
     /// <returns>The last key-value pair that satisfies the condition, or the default value if no such pair is found.</returns>
     public KeyValuePair<TKey, TValue> LastOrDefault(Func<KeyValuePair<TKey, TValue>, bool> predicate)
     {
-        var last = this._root;
+        var last = _root;
         while (last is not null)
         {
             if (predicate(new KeyValuePair<TKey, TValue>(last.Key, last.Value)))
@@ -550,7 +550,7 @@ public class RedBlackTree<TKey, TValue> : ICollection<KeyValuePair<TKey, TValue>
     /// <returns>The first key-value pair, or the default value if the tree is empty.</returns>
     public KeyValuePair<TKey, TValue> FirstOrDefault()
     {
-        var first = this._root;
+        var first = _root;
         while (first is not null)
         {
             if (first.Left is not null)
@@ -566,7 +566,7 @@ public class RedBlackTree<TKey, TValue> : ICollection<KeyValuePair<TKey, TValue>
     /// <returns>The last key-value pair, or the default value if the tree is empty.</returns>
     public KeyValuePair<TKey, TValue> LastOrDefault()
     {
-        var last = this._root;
+        var last = _root;
         while (last is not null)
         {
             if (last.Right is not null)

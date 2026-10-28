@@ -82,7 +82,7 @@ public struct Hit
 	/// <returns>Returns <c>true</c> if the hits were successfully merged; otherwise, <c>false</c>.</returns>
 	public bool Merge(Hit other, [MaybeNullWhen(false)] out Hit result)
 	{
-		if (!IsCompatible(other) || this.Player != other.Player)
+		if (!IsCompatible(other) || Player != other.Player)
 		{
 			result = default;
 			return false;

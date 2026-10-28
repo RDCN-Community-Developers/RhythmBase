@@ -35,13 +35,15 @@ public record class PulseFreeTimeBeat : BaseBeat
 	{
 		if (base.PrintMembers(builder))
 			builder.Append(", ");
-		builder.Append($"{nameof(Hold)} = {this.Hold}");
-		builder.Append($", Action = {this.Action switch
+		builder.Append($"{nameof(Hold)} = {Hold}");
+		builder.Append($", Action = {(Action, CustomPulse) switch
 		{
-			PulseAction.Increment => ">",
-			PulseAction.Decrement => "<",
-			PulseAction.Custom => (CustomPulse + 1).ToString(),
-			PulseAction.Remove => "X",
+			(PulseAction.Increment, _) => ">",
+			(PulseAction.Decrement, _) => "<",
+			(PulseAction.Custom, 6) => "H",
+			(PulseAction.Custom, -1) => "*",
+			(PulseAction.Custom, _) => CustomPulse.ToString(),
+			(PulseAction.Remove, _) => "X",
 			_ => throw new NotImplementedException()
 		}}");
 		return true;

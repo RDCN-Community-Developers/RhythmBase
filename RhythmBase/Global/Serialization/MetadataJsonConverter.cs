@@ -21,7 +21,7 @@ public abstract class MetadataJsonConverter<T> : JsonConverter<T>
 	/// <returns>This converter instance for fluent chaining.</returns>
 	public MetadataJsonConverter<T> WithOptions(JsonSerializerOptions options)
 	{
-		this.JsonSerializerOptions ??= new MetadataJsonSerializerOptions { JsonSerializerOptions = options };
+		JsonSerializerOptions ??= new MetadataJsonSerializerOptions { JsonSerializerOptions = options };
 		return this;
 	}
 	/// <summary>
@@ -31,7 +31,7 @@ public abstract class MetadataJsonConverter<T> : JsonConverter<T>
 	/// <returns>This converter instance for fluent chaining.</returns>
 	public MetadataJsonConverter<T> WithOptions(MetadataJsonSerializerOptions options)
 	{
-		this.JsonSerializerOptions = options;
+		JsonSerializerOptions = options;
 		return this;
 	}
 	/// <summary>
@@ -52,11 +52,11 @@ public abstract class MetadataJsonConverter<T> : JsonConverter<T>
 	/// <inheritdoc/>
 	public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
-		return Read(ref reader, typeToConvert, this.JsonSerializerOptions ?? new MetadataJsonSerializerOptions { JsonSerializerOptions = options });
+		return Read(ref reader, typeToConvert, JsonSerializerOptions ?? new MetadataJsonSerializerOptions { JsonSerializerOptions = options });
 	}
 	/// <inheritdoc/>
 	public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
 	{
-		Write(writer, value, this.JsonSerializerOptions ?? new MetadataJsonSerializerOptions { JsonSerializerOptions = options });
+		Write(writer, value, JsonSerializerOptions ?? new MetadataJsonSerializerOptions { JsonSerializerOptions = options });
 	}
 }

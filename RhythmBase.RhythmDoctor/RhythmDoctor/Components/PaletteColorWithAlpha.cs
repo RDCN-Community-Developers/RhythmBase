@@ -57,7 +57,7 @@ public struct PaletteColorWithAlpha
 	/// <param name="index">The index of the palette color to be used.</param>
 	public PaletteColorWithAlpha(int index)
 	{
-		Color = default; this.PaletteIndex = index;
+		Color = default; PaletteIndex = index;
 	}
 	/// <inheritdoc/>
 	public readonly override string ToString() => EnablePanel ? $"[{_panel}][?]" : "[-]" + _color.ToString("#AARRGGBB");

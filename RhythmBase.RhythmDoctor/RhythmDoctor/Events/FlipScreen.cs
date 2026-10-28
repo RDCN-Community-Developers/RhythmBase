@@ -40,7 +40,7 @@ public record class FlipScreen : BaseEvent, IRoomEvent
 	{
 		if (base.PrintMembers(builder))
 			builder.Append(", ");
-		builder.Append($"{nameof(Room)} = {this.Rooms}");
+		builder.Append($"{nameof(Room)} = {Rooms}");
 		builder.Append($", Flip = {(FlipX, FlipY) switch { 
 			(true, true) => "X",
 			(true, false) => "^v",

@@ -97,7 +97,7 @@ public class Row : OrderedEventCollection<BaseRowAction>, IEventEnumerable<BaseR
 		item.Parent?.Remove(item);
 		if (Parent is not null)
 			item._tick = item._tick.WithLink(Parent);
-		item._row = this.Index;
+		item._row = Index;
 		bool success = base.Add(item);
 		if (Parent is not null)
 			success &= Parent.AddDirectlyInternal(item);

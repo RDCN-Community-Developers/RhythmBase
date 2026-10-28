@@ -1,4 +1,4 @@
-﻿using RhythmBase.RhythmDoctor.Components;
+using RhythmBase.RhythmDoctor.Components;
 using RhythmBase.RhythmDoctor.Extensions;
 
 namespace RhythmBase.RhythmDoctor.Events;
@@ -27,7 +27,7 @@ public record class AdvanceTextDecoration : BaseDecorationAction, IAdvanceText
 	{
 		if (base.PrintMembers(builder))
 			builder.Append(", ");
-		builder.Append($", {nameof(Duration)} = {this.Duration}");
+		builder.Append($", {nameof(Duration)} = {Duration}");
 		var head = this.Header;
 		if (head is null)
 			return true;

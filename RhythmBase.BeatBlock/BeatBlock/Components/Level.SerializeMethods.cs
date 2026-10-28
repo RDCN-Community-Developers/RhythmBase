@@ -1,4 +1,4 @@
-﻿using RhythmBase.BeatBlock.Events;
+using RhythmBase.BeatBlock.Events;
 using RhythmBase.BeatBlock.Serialization;
 using System.Diagnostics;
 using System.IO.Compression;
@@ -217,8 +217,8 @@ partial class Level
 		FileMainEntryConverter.SerializeMainEntry(this, manifestFs, options);
 		string defaultLevelFile = Path.Combine(directoryPath, "level.json");
 		using FileStream levelFs = File.Open(defaultLevelFile, FileMode.Create, FileAccess.Write);
-		if (this.Variants.Any(i => i.IsUsingDefaultLevel))
-			FileConverter.WriteVariantLevelToStream(levelFs, noIndentScope, this.Variants.Default, options);
+		if (Variants.Any(i => i.IsUsingDefaultLevel))
+			FileConverter.WriteVariantLevelToStream(levelFs, noIndentScope, Variants.Default, options);
 		foreach (Chart variant in Variants)
 		{
 			if (!variant.IsUsingDefaultLevel)
@@ -231,7 +231,7 @@ partial class Level
 			using FileStream chartFs = File.Open(chartFile, FileMode.Create, FileAccess.Write);
 			FileConverter.WriteVariantChartsToStream(chartFs, noIndentScope, variant, options);
 		}
-		if (this.TagEvents.Count > 0)
+		if (TagEvents.Count > 0)
 		{
 			string tagsDir = Path.Combine(directoryPath, "tags");
 			Directory.CreateDirectory(tagsDir);

@@ -22,8 +22,8 @@ public struct ValueRange
 	/// <param name="max">The maximum value of the range.</param>
 	public ValueRange(float min, float max)
 	{
-		this.Min = min;
-		this.Max = max;
+		Min = min;
+		Max = max;
 	}
 
 	/// <summary>
@@ -32,7 +32,7 @@ public struct ValueRange
 	/// <param name="value">The value to set for both minimum and maximum.</param>
 	public ValueRange(float value)
 	{
-		this.Min = value;
-		this.Max = value;
+		Min = value;
+		Max = value;
 	}
 }
