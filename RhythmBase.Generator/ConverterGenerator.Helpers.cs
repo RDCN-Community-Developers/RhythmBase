@@ -376,15 +376,11 @@ public partial class ConverterGenerator
 			return namedType.TypeArguments[0];
 		return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
 	}
-	private void GenerateReadBody(Compilation compilation, StringBuilder sb, ClassGenCvtrInfo info, (ITypeSymbol, INamedTypeSymbol)[] classGenMap)
+	private BlockSyntax GenerateReadBody(Compilation compilation, ClassGenCvtrInfo info, (ITypeSymbol, INamedTypeSymbol)[] classGenMap)
 	{
-		//sb.AppendLine("/*\n");
-
-
-		sb.AppendLine("""
-							if (base.Read(ref reader, ref value, options))
-								return true;
-					""");
+		List<(ExpressionSyntax Condition, StatementSyntax Body)> arms = [];
+		int firstArmIndex = -1;
+		bool firstArmIsFlatten = false;
 		int index = 0;
 		foreach (var prop in info.Properties.OrderBy(i => i.Property.Name))
 		{
@@ -402,7 +398,6 @@ public partial class ConverterGenerator
 			bool isNullable = prop.Property.Type.NullableAnnotation == NullableAnnotation.Annotated;
 			if (shouldGenerate)
 			{
-
 				string alias = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, aliasAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string
 						?? ToLowerCamelCase(prop.Property.ToDisplayParts().Last().ToString());
 				string? condition = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, condAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string;
@@ -410,21 +405,24 @@ public partial class ConverterGenerator
 				int? timeEnum = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, timeCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as int?;
 
 				string valueAccess = $"value.{prop.Property.ToDisplayParts().Last()}";
+				var type = UnwarpNullable(prop.Property.Type);
+
+				StatementSyntax read = GenerateReadPropertySyntax(new GenerateReadPropertyInfo(
+					compilation, classGenMap, index, attrs, dftCvtrAttrSmp, jsonEnumAttrSmp,
+					isNullable, jsonCvtr, timeEnum, valueAccess, type, info.ClassType));
+				if (isNullable)
 				{
-					sb.AppendLine($$"""{{(index == 0 ? "" : "else ")}}if (reader.ValueTextEquals("{{alias}}"u8) && reader.Read())""");
-					if (isNullable)
-						sb.AppendLine($$"""
-						{ if (reader.TokenType == JsonTokenType.Null) value.{{prop.Property.ToDisplayParts().Last()}} = null;
-							else
-				""");
-
-					var type = UnwarpNullable(prop.Property.Type);
-
-					GenerateReadProperty(new GeneratePropertyInfo(compilation, sb, classGenMap, index, attrs, dftCvtrAttrSmp, jsonEnumAttrSmp, isNullable, jsonCvtr, timeEnum, valueAccess, type, info.ClassType));
-					if (isNullable)
-						sb.Append("}");
-					sb.AppendLine();
+					read = SyntaxFactory.Block(SyntaxFactory.IfStatement(
+						SyntaxFactory.ParseExpression("reader.TokenType == JsonTokenType.Null"),
+						SyntaxFactory.ParseStatement($"value.{prop.Property.ToDisplayParts().Last()} = null;"),
+						SyntaxFactory.ElseClause(read)));
 				}
+				if (firstArmIndex < 0)
+				{
+					firstArmIndex = index;
+					firstArmIsFlatten = false;
+				}
+				arms.Add((SynReaderMatch(alias), read));
 			}
 			// JsonFlatten: 展平子属性到当前层级
 			AttributeData[] jsonFlattenAttrs = attrs.Where(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonFlattenAttrSmp)).ToArray();
@@ -446,68 +444,72 @@ public partial class ConverterGenerator
 					var subType = UnwarpNullable(subProp.Type);
 					string parentAccess = $"value.{prop.Property.Name}";
 
-					sb.AppendLine($$"""else if (reader.ValueTextEquals("{{aliasName}}"u8) && reader.Read())""");
-
+					List<StatementSyntax> flatBody = [];
 					string flatValueAccess;
 					if (parentIsValueType)
 					{
 						if (isNullable)
 						{
-							sb.AppendLine($$"""
-							{ {{parentAccess}} ??= new();
-							  var __flatParent = {{parentAccess}}.Value;
-						""");
+							flatBody.Add(SyntaxFactory.ParseStatement($"{parentAccess} ??= new();"));
+							flatBody.Add(SyntaxFactory.ParseStatement($"var __flatParent = {parentAccess}.Value;"));
 						}
 						else
 						{
-							sb.AppendLine($$"""
-							{ var __flatParent = {{parentAccess}};
-						""");
+							flatBody.Add(SyntaxFactory.ParseStatement($"var __flatParent = {parentAccess};"));
 						}
 						flatValueAccess = $"__flatParent.{subPropName}";
 					}
 					else
 					{
 						if (isNullable)
-						{
-							sb.AppendLine($$"""
-							{ {{parentAccess}} ??= new();
-						""");
-						}
-						else
-						{
-							sb.AppendLine("{");
-						}
+							flatBody.Add(SyntaxFactory.ParseStatement($"{parentAccess} ??= new();"));
 						flatValueAccess = $"{parentAccess}.{subPropName}";
-					}
-
-					if (subIsNullable)
-					{
-						sb.AppendLine($$"""
-						if (reader.TokenType == JsonTokenType.Null) {{flatValueAccess}} = null;
-						else
-					""");
 					}
 
 					// 查找子属性上的 JsonAlias / JsonTime / JsonConverter / JsonDefaultSerializer
 					var subAttrs = subProp.GetAttributes();
 					INamedTypeSymbol? subJsonCvtr = subAttrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as INamedTypeSymbol;
 					int? subTimeEnum = subAttrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, timeCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as int?;
-					GenerateReadProperty(new GeneratePropertyInfo(compilation, sb, classGenMap, index, subAttrs, dftCvtrAttrSmp, jsonEnumAttrSmp, subIsNullable, subJsonCvtr, subTimeEnum, flatValueAccess, subType, info.ClassType));
-					if (parentIsValueType)
+					StatementSyntax subRead = GenerateReadPropertySyntax(new GenerateReadPropertyInfo(
+						compilation, classGenMap, index, subAttrs, dftCvtrAttrSmp, jsonEnumAttrSmp,
+						subIsNullable, subJsonCvtr, subTimeEnum, flatValueAccess, subType, info.ClassType));
+					if (subIsNullable)
 					{
-						sb.AppendLine($$"""  {{parentAccess}} = __flatParent;""");
+						subRead = SyntaxFactory.IfStatement(
+							SyntaxFactory.ParseExpression("reader.TokenType == JsonTokenType.Null"),
+							SyntaxFactory.ParseStatement($"{flatValueAccess} = null;"),
+							SyntaxFactory.ElseClause(subRead));
 					}
-					sb.AppendLine("}");
+					flatBody.Add(subRead);
+					if (parentIsValueType)
+						flatBody.Add(SyntaxFactory.ParseStatement($"{parentAccess} = __flatParent;"));
+					if (firstArmIndex < 0)
+					{
+						firstArmIndex = index;
+						firstArmIsFlatten = true;
+					}
+					arms.Add((SynReaderMatch(aliasName), SyntaxFactory.Block(flatBody.ToArray())));
 				}
 			}
 
 			index++;
 		}
-		sb.AppendLine("""
-							else return false;
-							return true;
-					""");
+
+		StatementSyntax chain = SyntaxFactory.ParseStatement("return false;");
+		for (int i = arms.Count - 1; i >= 0; i--)
+			chain = SyntaxFactory.IfStatement(arms[i].Condition, arms[i].Body, SyntaxFactory.ElseClause(chain));
+
+		ExpressionSyntax prologueCondition = SyntaxFactory.ParseExpression("base.Read(ref reader, ref value, options)");
+		StatementSyntax prologueBody = SyntaxFactory.ParseStatement("return true;");
+		bool attachToPrologue = firstArmIndex > 0 || firstArmIsFlatten;
+		StatementSyntax prologue = attachToPrologue
+			? SyntaxFactory.IfStatement(prologueCondition, prologueBody, SyntaxFactory.ElseClause(chain))
+			: SyntaxFactory.IfStatement(prologueCondition, prologueBody);
+		List<StatementSyntax> body = [prologue];
+		if (!attachToPrologue)
+			body.Add(chain);
+		body.Add(SyntaxFactory.ParseStatement("return true;"));
+		return SyntaxFactory.Block(body.ToArray());
 	}
 
 	private static bool GetShouldGenerate(PropertyGenerateConverterInfo prop, Compilation compilation)
@@ -529,270 +531,6 @@ public partial class ConverterGenerator
 							i.ConstructorArguments[0].Value is string s &&
 							s != "false") // 没有 JsonCondition(false) 属性
 						;
-	}
-
-	private class GeneratePropertyInfo
-	{
-		public GeneratePropertyInfo(Compilation compilation, StringBuilder sb, (ITypeSymbol, INamedTypeSymbol)[] classGenMap, int index, ImmutableArray<AttributeData> attrs, INamedTypeSymbol? dftCvtrAttrSmp, INamedTypeSymbol? jsonEnumAttrSmp, bool isNullable, INamedTypeSymbol? jsonCvtr, int? timeEnum, string valueAccess, ITypeSymbol type, INamedTypeSymbol containingType)
-		{
-			Compilation = compilation;
-			StringBuilder = sb;
-			ClassGenMap = classGenMap;
-			Index = index;
-			Attrs = attrs;
-			DftCvtrAttrSmp = dftCvtrAttrSmp;
-			JsonEnumAttrSmp = jsonEnumAttrSmp;
-			IsNullable = isNullable;
-			JsonCvtr = jsonCvtr;
-			TimeEnum = timeEnum;
-			ValueAccess = valueAccess;
-			Type = type;
-			ContainingType = containingType;
-		}
-
-		public Compilation Compilation { get; set; }
-		public StringBuilder StringBuilder { get; set; }
-		public (ITypeSymbol, INamedTypeSymbol)[] ClassGenMap { get; set; }
-		public int Index { get; set; }
-		public ImmutableArray<AttributeData> Attrs { get; }
-		public INamedTypeSymbol? DftCvtrAttrSmp { get; }
-		public INamedTypeSymbol? JsonEnumAttrSmp { get; }
-		public bool IsNullable { get; }
-		public INamedTypeSymbol? JsonCvtr { get; }
-		public int? TimeEnum { get; }
-		public string ValueAccess { get; }
-		public ITypeSymbol Type { get; }
-		public INamedTypeSymbol ContainingType { get; }
-	}
-	private void GenerateReadProperty(GeneratePropertyInfo info)
-	{
-		var jsonCvtr = info.JsonCvtr;
-		var classGenMap = info.ClassGenMap;
-		var valueAccess = info.ValueAccess;
-		var type = info.Type;
-		var isNullable = info.IsNullable;
-		var timeEnum = info.TimeEnum;
-		var sb = info.StringBuilder;
-		var compilation = info.Compilation;
-		var dftCvtrAttrSmp = info.DftCvtrAttrSmp;
-		var jsonEnumAttrSmp = info.JsonEnumAttrSmp;
-		var attrs = info.Attrs;
-		var index = info.Index;
-		// JsonUnit 单位转换
-		var jsonUnitAttrSmp = compilation.GetTypeByMetadataName(JsonUnitAttrName);
-		AttributeData[] unitAttrs = attrs.Where(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonUnitAttrSmp)).ToArray();
-		if (unitAttrs.Length > 0 && TryEmitUnitRead(info, unitAttrs))
-			return;
-		// 已注册转换器
-		if (jsonCvtr is null && classGenMap.FirstOrDefault(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)) is var (classGen, cvtr) && classGen is not null)
-		{
-			sb.Append($$"""{{valueAccess}} = TypeConverterRegistry.Read<{{type.ToDisplayString()}}>(ref reader, options);""");
-		}
-		// 自定义转换器
-		else if (jsonCvtr is not null)
-		{
-			if (SymbolEqualityComparer.Default.Equals(jsonCvtr.BaseType.OriginalDefinition, compilation.GetTypeByMetadataName(MetadataJsonConverterTypeName)))
-				sb.Append($$"""{{valueAccess}} = new {{jsonCvtr.ToDisplayString()}}().Read(ref reader, typeof({{type.ToDisplayString()}}), options);""");
-			else
-				sb.Append($$"""{{valueAccess}} = new {{jsonCvtr.ToDisplayString()}}().Read(ref reader, typeof({{type.ToDisplayString()}}), options.JsonSerializerOptions);""");
-		}
-		// 时间
-		else if (timeEnum is int timeType)
-		{
-			switch (timeType)
-			{
-				case 0:
-					sb.Append($"{valueAccess} = TimeSpan.FromMilliseconds(reader.GetDouble());");
-					break;
-				case 1:
-					sb.Append($"{valueAccess} = TimeSpan.FromSeconds(reader.GetDouble());");
-					break;
-				default:
-					sb.Append($$"""{ throw new NotImplementedException(); /* Unsupported time converter type: {{timeType}} */ }""");
-					break;
-			}
-		}
-		// 枚举
-		else if (type.TypeKind == TypeKind.Enum)
-		{
-			if (
-				!attrs.Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) &&
-				type.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
-				sb.Append($$"""{ if (global::RhythmBase.Global.Serialization.EnumConverter.TryParse(ref reader, out {{type.ToDisplayString()}} enumValue{{index}})) {{valueAccess}} = enumValue{{index}}; else return false; }""");
-			else
-				// - 非枚举或无需序列化器
-				sb.Append($$"""{{valueAccess}} = ({{type.ToDisplayString()}})reader.GetInt64();""");
-		}
-		// 默认类型
-		else if (type.SpecialType is not SpecialType.None)
-			sb.Append($$"""{{valueAccess}} = reader.Get{{GetJsonReadMethod(type)}}(){{((GetJsonReadMethod(type) == "String" && !isNullable) ? " ?? \"\"" : "")}};""");
-		// 其他
-		else if (IsConcreteEnumerable(type) is ITypeSymbol elementType)
-		{
-			string listType = $"System.Collections.Generic.List<{elementType.ToDisplayString()}>";
-			sb.AppendLine($$"""
-					{
-						var list = new {{listType}}();
-						if (reader.TokenType == JsonTokenType.StartArray)
-						{
-							while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-							{
-			""");
-			if (elementType.SpecialType is not SpecialType.None)
-				sb.Append($$"""  var elementValue = reader.Get{{GetJsonReadMethod(elementType)}}(){{((GetJsonReadMethod(elementType) == "String" && !isNullable) ? " ?? \"\"" : "")}};""");
-			else if (elementType.TypeKind == TypeKind.Enum)
-				if (
-					elementType.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
-					sb.Append($$"""  global::RhythmBase.Global.Serialization.EnumConverter.TryParse(reader.GetString(), out {{elementType.ToDisplayString()}} elementValue);""");
-				else
-					// - 非枚举或无需序列化器
-					sb.AppendLine($$"""					var elementValue = ({{elementType.ToDisplayString()}})reader.GetInt64();""");
-			else
-				sb.Append($$"""					var elementValue = TypeConverterRegistry.Read<{{elementType.ToDisplayString()}}>(ref reader, options);""");
-			sb.AppendLine($$"""
-								list.Add(elementValue);
-							}
-						}
-						{{valueAccess}} = [..list];
-					}
-			""");
-		}
-		else
-			sb.Append($$"""{{valueAccess}} = TypeConverterRegistry.Read<{{type.ToDisplayString()}}>(ref reader, options);""");
-	}
-	private static string FloatLiteral(object? value)
-	{
-		float f = Convert.ToSingle(value, System.Globalization.CultureInfo.InvariantCulture);
-		return f.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + "f";
-	}
-
-	// Returns false when the property type is not supported by JsonUnit, so the caller falls back
-	// to the regular read path.
-	private bool TryEmitUnitRead(GeneratePropertyInfo info, AttributeData[] unitAttrs)
-	{
-		var sb = info.StringBuilder;
-		var type = info.Type;
-		var jsonCvtr = info.JsonCvtr;
-		var classGenMap = info.ClassGenMap;
-		var compilation = info.Compilation;
-		string? raw;
-		if (jsonCvtr is not null)
-		{
-			raw = SymbolEqualityComparer.Default.Equals(jsonCvtr.BaseType.OriginalDefinition, compilation.GetTypeByMetadataName(MetadataJsonConverterTypeName))
-				? $"new {jsonCvtr.ToDisplayString()}().Read(ref reader, typeof({type.ToDisplayString()}), options)"
-				: $"new {jsonCvtr.ToDisplayString()}().Read(ref reader, typeof({type.ToDisplayString()}), options.JsonSerializerOptions)";
-		}
-		else if (classGenMap.Any(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)))
-			raw = $"TypeConverterRegistry.Read<{type.ToDisplayString()}>(ref reader, options)";
-		else if (type.SpecialType == SpecialType.System_Single)
-			raw = "reader.GetSingle()";
-		else if (type.SpecialType == SpecialType.System_Double)
-			raw = "reader.GetDouble()";
-		else if (type.SpecialType == SpecialType.System_Int32)
-			raw = "reader.GetInt32()";
-		else if (type.SpecialType == SpecialType.System_Int64)
-			raw = "reader.GetInt64()";
-		else
-			return false;
-
-		sb.Append("{ ");
-		AttributeData? fn = unitAttrs.FirstOrDefault(a => a.ConstructorArguments.Length == 2 && a.ConstructorArguments[0].Value is string && a.ConstructorArguments[1].Value is string);
-		if (fn is AttributeData f)
-		{
-			string scaleFn = (string)f.ConstructorArguments[0].Value!;
-			sb.Append($"{info.ValueAccess} = {info.ContainingType.ToDisplayString()}.{scaleFn}({raw});");
-		}
-		else
-		{
-			AttributeData[] members = unitAttrs.Where(a => a.ConstructorArguments.Length >= 2 && a.ConstructorArguments[0].Value is string).ToArray();
-			if (members.Length > 0)
-			{
-				string tmp = $"__unit{info.Index}";
-				sb.Append($"var {tmp} = {raw};");
-				foreach (AttributeData a in members)
-				{
-					string member = (string)a.ConstructorArguments[0].Value!;
-					string m = FloatLiteral(a.ConstructorArguments[1].Value);
-					string b = a.ConstructorArguments.Length >= 3 ? FloatLiteral(a.ConstructorArguments[2].Value) : "0f";
-					sb.Append($"{tmp}.{member} = {tmp}.{member} * {m} + {b};");
-				}
-				sb.Append($"{info.ValueAccess} = {tmp};");
-			}
-			else
-			{
-				AttributeData s = unitAttrs[0];
-				string sm = FloatLiteral(s.ConstructorArguments[0].Value);
-				string sbv = s.ConstructorArguments.Length >= 2 ? FloatLiteral(s.ConstructorArguments[1].Value) : "0f";
-				sb.Append($"{info.ValueAccess} = ({type.ToDisplayString()})({raw} * {sm} + {sbv});");
-			}
-		}
-		sb.Append(" }");
-		return true;
-	}
-
-	private void EmitNormalWrite(StringBuilder sb, string alias, string expr, ITypeSymbol type, INamedTypeSymbol? jsonCvtr, (ITypeSymbol, INamedTypeSymbol)[] classGenMap, Compilation compilation)
-	{
-		if (jsonCvtr is not null)
-		{
-			string arg = SymbolEqualityComparer.Default.Equals(jsonCvtr.BaseType.OriginalDefinition, compilation.GetTypeByMetadataName(MetadataJsonConverterTypeName))
-				? "options"
-				: "options.JsonSerializerOptions";
-			sb.Append($"writer.WritePropertyName(\"{alias}\"u8); new {jsonCvtr.ToDisplayString()}().Write(writer, {expr}, {arg});");
-		}
-		else if (classGenMap.Any(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)))
-			sb.Append($"writer.WritePropertyName(\"{alias}\"u8); TypeConverterRegistry.Write(writer, {expr}, options);");
-		else
-			sb.Append($"writer.Write{GetJsonWriterMethod(type)}(\"{alias}\"u8, {expr});");
-	}
-
-	private void EmitUnitWrite(StringBuilder sb, string alias, string valueAccess, ITypeSymbol type, INamedTypeSymbol? jsonCvtr, AttributeData[] unitAttrs, (ITypeSymbol, INamedTypeSymbol)[] classGenMap, Compilation compilation, INamedTypeSymbol containingType, int index, bool hasCondition)
-	{
-		string open = hasCondition ? "{ " : "";
-		string close = hasCondition ? " }" : "";
-		AttributeData? fn = unitAttrs.FirstOrDefault(a => a.ConstructorArguments.Length == 2 && a.ConstructorArguments[0].Value is string && a.ConstructorArguments[1].Value is string);
-		if (fn is AttributeData f)
-		{
-			string reverse = (string)f.ConstructorArguments[1].Value!;
-			string tmp = $"__unit{index}";
-			sb.Append(open);
-			sb.Append($"var {tmp} = {containingType.ToDisplayString()}.{reverse}({valueAccess});");
-			EmitNormalWrite(sb, alias, tmp, type, jsonCvtr, classGenMap, compilation);
-			sb.Append(close);
-			return;
-		}
-		AttributeData[] members = unitAttrs.Where(a => a.ConstructorArguments.Length >= 2 && a.ConstructorArguments[0].Value is string).ToArray();
-		if (members.Length > 0)
-		{
-			string tmp = $"__unit{index}";
-			sb.Append(open);
-			sb.Append($"var {tmp} = {valueAccess};");
-			foreach (AttributeData a in members)
-			{
-				string member = (string)a.ConstructorArguments[0].Value!;
-				string m = FloatLiteral(a.ConstructorArguments[1].Value);
-				string b = a.ConstructorArguments.Length >= 3 ? FloatLiteral(a.ConstructorArguments[2].Value) : "0f";
-				sb.Append($"{tmp}.{member} = ({tmp}.{member} - {b}) / {m};");
-			}
-			EmitNormalWrite(sb, alias, tmp, type, jsonCvtr, classGenMap, compilation);
-			sb.Append(close);
-			return;
-		}
-		AttributeData s = unitAttrs[0];
-		string sm = FloatLiteral(s.ConstructorArguments[0].Value);
-		string sbv = s.ConstructorArguments.Length >= 2 ? FloatLiteral(s.ConstructorArguments[1].Value) : "0f";
-		string expr = $"({valueAccess} - {sbv}) / {sm}";
-		if (jsonCvtr is not null)
-		{
-			string tmp = $"__unit{index}";
-			sb.Append(open);
-			sb.Append($"var {tmp} = ({type.ToDisplayString()})({expr});");
-			EmitNormalWrite(sb, alias, tmp, type, jsonCvtr, classGenMap, compilation);
-			sb.Append(close);
-		}
-		else
-		{
-			sb.Append($"{open}writer.Write{GetJsonWriterMethod(type)}(\"{alias}\"u8, {expr});{close}");
-		}
 	}
 
 	private class GenerateWritePropertyInfo
@@ -830,98 +568,10 @@ public partial class ConverterGenerator
 			HasCondition = hasCondition;
 		}
 	}
-	private void GenerateWriteProperty(GenerateWritePropertyInfo info)
+	private BlockSyntax GenerateWriteBody(Compilation compilation, ClassGenCvtrInfo info, (ITypeSymbol, INamedTypeSymbol)[] classGenMap)
 	{
-		var jsonCvtr = info.JsonCvtr;
-		var classGenMap = info.ClassGenMap;
-		var valueAccess = info.ValueAccess;
-		var type = info.Type;
-		var isNullable = info.IsNullable;
-		var timeEnum = info.TimeEnum;
-		var sb = info.StringBuilder;
-		var compilation = info.Compilation;
-		var dftCvtrAttrSmp = info.DftCvtrAttrSmp;
-		var jsonEnumAttrSmp = info.JsonEnumAttrSmp;
-		var attrs = info.Attrs;
-		var alias = info.Alias;
-		var hasCondition = info.HasCondition;
-		var metadataJsonConverterType = compilation.GetTypeByMetadataName(MetadataJsonConverterTypeName);
-		// 已注册转换器
-		if (jsonCvtr is null && classGenMap.FirstOrDefault(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)) is var (classGen, cvtr) && classGen is not null)
-		{
-			sb.Append($$"""{{(hasCondition ? "{" : "")}} writer.WritePropertyName("{{alias}}"u8); TypeConverterRegistry.Write(writer, {{valueAccess}}, options); {{(hasCondition ? "}" : "")}}""");
-		}
-		// 自定义转换器
-		else if (jsonCvtr is not null)
-		{
-			if (SymbolEqualityComparer.Default.Equals(jsonCvtr.BaseType.OriginalDefinition, metadataJsonConverterType))
-				sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); new {{jsonCvtr.ToDisplayString()}}().Write(writer, {{valueAccess}}, options); }""");
-			else
-				sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); new {{jsonCvtr.ToDisplayString()}}().Write(writer, {{valueAccess}}, options.JsonSerializerOptions); }""");
-		}
-		// 时间
-		else if (timeEnum is int timeType)
-		{
-			switch (timeType)
-			{
-				case 0:
-					sb.Append($"writer.WriteNumber(\"{alias}\"u8, {valueAccess}.TotalMilliseconds);");
-					break;
-				case 1:
-					sb.Append($"writer.WriteNumber(\"{alias}\"u8, {valueAccess}.TotalSeconds);");
-					break;
-				default:
-					sb.Append($$"""{ throw new NotImplementedException(); /* Unsupported time converter type: {{timeType}} */ }""");
-					break;
-			}
-		}
-		// 枚举
-		else if (type.TypeKind == TypeKind.Enum)
-		{
-			if (
-				!attrs.Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) &&
-				type.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
-				sb.Append($"writer.WriteString(\"{alias}\"u8, {valueAccess}.ToEnumUtf8String());");
-			else
-				sb.Append($"writer.WriteNumber(\"{alias}\"u8, System.Convert.ToInt64({valueAccess}));");
-		}
-		// 默认类型
-		else if (type.SpecialType is not SpecialType.None)
-			sb.Append($$"""{ writer.Write{{GetJsonWriterMethod(type)}}("{{alias}}"u8, {{valueAccess}}); }""");
-		// 其他
-		else if (IsConcreteEnumerable(type) is ITypeSymbol elementType)
-		{
-			string itemVar = $"item{info.Index}";
-			sb.AppendLine($$"""
-		{ writer.WritePropertyName("{{alias}}"u8);
-			writer.WriteStartArray();
-			foreach (var {{itemVar}} in {{valueAccess}})
-			{
-		""");
-			if (elementType.SpecialType is not SpecialType.None)
-				sb.Append($$"""  writer.Write{{GetJsonWriterMethod(elementType)}}Value({{itemVar}});""");
-			else if (elementType.TypeKind == TypeKind.Enum)
-				if (
-					elementType.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
-					sb.Append($$"""  writer.WriteStringValue({{itemVar}}.ToEnumUtf8String());""");
-				else
-					sb.Append($"writer.WriteNumberValue(System.Convert.ToInt64({valueAccess}));");
-			else
-				sb.Append($$"""  TypeConverterRegistry.Write(writer, {{itemVar}}, options);""");
-			sb.AppendLine($$"""
-			}
-			writer.WriteEndArray(); }
-		""");
-		}
-		else
-			sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); TypeConverterRegistry.Write(writer, {{valueAccess}}, options); }""");
-	}
-
-	private void GenerateWriteBody(Compilation compilation, StringBuilder sb, ClassGenCvtrInfo info, (ITypeSymbol, INamedTypeSymbol)[] classGenMap)
-	{
-		//sb.AppendLine("/*\n");
-
-		sb.AppendLine("base.Write(writer, ref value, options);");
+		List<StatementSyntax> statements = [];
+		statements.Add(SyntaxFactory.ParseStatement("base.Write(writer, ref value, options);"));
 
 		int index = 0;
 		var metadataJsonConverterType = compilation.GetTypeByMetadataName(MetadataJsonConverterTypeName);
@@ -948,118 +598,29 @@ public partial class ConverterGenerator
 			bool isNullable = prop.Property.Type.NullableAnnotation == NullableAnnotation.Annotated;
 			if (shouldGenerate)
 			{
-
 				string alias = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, aliasAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string
 						?? ToLowerCamelCase(prop.Property.ToDisplayParts().Last().ToString());
 				string? condition = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, condAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string;
 				INamedTypeSymbol? jsonCvtr = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as INamedTypeSymbol;
 				int? timeEnum = attrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, timeCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as int?;
-
 				var type = UnwarpNullable(prop.Property.Type);
-
-				string valueAccess = $"value.{prop.Property.ToDisplayParts().Last().ToString()}";
+				string memberAccess = prop.Property.ToDisplayParts().Last().ToString();
+				string valueAccess = $"value.{memberAccess}";
 				if (isNullable)
 				{
 					valueAccess = $"localValue{index}";
-					sb.Append($$"""
-					if (value.{{prop.Property.ToDisplayParts().Last().ToString()}} is {{type.ToDisplayString()}} localValue{{index}})
-					{ 
-			""");
-					;
 					index++;
 				}
 
-				bool hasCondition = false;
-				if (!string.IsNullOrEmpty(condition))
-				{
-					var conditionLines = ReplaceVariableWithName(condition).Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
-					sb.AppendLine($"		if ({string.Join("\n\t\t\t", conditionLines)})");
-					hasCondition = true;
-				}
-
-				// JsonUnit 单位转换
-				var jsonUnitAttrSmpW = compilation.GetTypeByMetadataName(JsonUnitAttrName);
-				AttributeData[] unitWriteAttrs = attrs.Where(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonUnitAttrSmpW)).ToArray();
-				if (unitWriteAttrs.Length > 0)
-				{
-					EmitUnitWrite(sb, alias, valueAccess, type, jsonCvtr, unitWriteAttrs, classGenMap, compilation, info.ClassType, index, hasCondition);
-				}
-				// 已注册转换器
-				else if (jsonCvtr is null && classGenMap.FirstOrDefault(i => i.Item1.Equals(type, SymbolEqualityComparer.Default)) is var (classGen, cvtr) && classGen is not null)
-				{
-					sb.Append($$"""{{(hasCondition ? "{" : "")}} writer.WritePropertyName("{{alias}}"u8); TypeConverterRegistry.Write(writer, {{valueAccess}}, options); {{(hasCondition ? "}" : "")}}""");
-				}
-				// 自定义转换器
-				else if (jsonCvtr is not null)
-				{
-					if (SymbolEqualityComparer.Default.Equals(jsonCvtr.BaseType.OriginalDefinition, metadataJsonConverterType))
-						sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); new {{jsonCvtr.ToDisplayString()}}().Write(writer, {{valueAccess}}, options); }""");
-					else
-						sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); new {{jsonCvtr.ToDisplayString()}}().Write(writer, {{valueAccess}}, options.JsonSerializerOptions); }""");
-				}
-				// 时间
-				else if (timeEnum is int timeType)
-				{
-					switch (timeType)
-					{
-						case 0:
-							sb.Append($"writer.WriteNumber(\"{alias}\"u8, {valueAccess}.TotalMilliseconds);");
-							break;
-						case 1:
-							sb.Append($"writer.WriteNumber(\"{alias}\"u8, {valueAccess}.TotalSeconds);");
-							break;
-						default:
-							sb.Append($$"""{ throw new NotImplementedException(); /* Unsupported time converter type: {{timeType}} */ }""");
-							break;
-					}
-				}
-				// 枚举
-				else if (type.TypeKind == TypeKind.Enum)
-				{
-					if (
-						!attrs.Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, dftCvtrAttrSmp)) &&
-						type.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
-						sb.Append($"writer.WriteString(\"{alias}\"u8, {valueAccess}.ToEnumUtf8String());");
-					else
-						// - 非枚举或无需序列化器
-						sb.Append($"writer.WriteNumber(\"{alias}\"u8, System.Convert.ToInt64({valueAccess}));");
-				}
-				// 默认类型
-				else if (type.SpecialType is not SpecialType.None)
-					sb.Append($$"""{ writer.Write{{GetJsonWriterMethod(type)}}("{{alias}}"u8, {{valueAccess}}); }""");
-				// 其他
-				else if (IsConcreteEnumerable(type) is ITypeSymbol elementType)
-				{
-					string itemVar = $"item{index}";
-					sb.AppendLine($$"""
-			{ writer.WritePropertyName("{{alias}}"u8);
-				writer.WriteStartArray();
-				foreach (var {{itemVar}} in {{valueAccess}})
-				{
-			""");
-					// 根据 elementType 写入每个元素
-					if (elementType.SpecialType is not SpecialType.None)
-						sb.Append($$"""  writer.Write{{GetJsonWriterMethod(elementType)}}Value({{itemVar}});""");
-					else if (elementType.TypeKind == TypeKind.Enum)
-						if (
-							elementType.GetAttributes().Any(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonEnumAttrSmp)))
-							sb.Append($$"""  writer.WriteStringValue({{itemVar}}.ToEnumUtf8String());""");
-						else
-							// - 非枚举或无需序列化器
-							sb.Append($"writer.WriteNumberValue(System.Convert.ToInt64({valueAccess}));");
-					else
-						sb.Append($$"""  TypeConverterRegistry.Write(writer, {{itemVar}}, options);""");
-					sb.AppendLine($$"""
-				}
-				writer.WriteEndArray(); }
-			""");
-				}
-				else
-					sb.Append($$"""{ writer.WritePropertyName("{{alias}}"u8); TypeConverterRegistry.Write(writer, {{valueAccess}}, options); }""");
+				var propertyInfo = new GenerateWritePropertyInfo(compilation, new StringBuilder(), classGenMap, index, attrs, dftCvtrAttrSmp, jsonEnumAttrSmp, isNullable, jsonCvtr, timeEnum, valueAccess, type, alias, !string.IsNullOrEmpty(condition));
+				List<StatementSyntax> inner = BuildWriteStatements(propertyInfo, info.ClassType, condition);
 				if (isNullable)
-					sb.AppendLine(" }");
-				else
-					sb.AppendLine();
+				{
+					inner = [SyntaxFactory.IfStatement(
+						SyntaxFactory.ParseExpression($"value.{memberAccess} is {type.ToDisplayString()} {valueAccess}"),
+						SyntaxFactory.Block(inner.ToArray()))];
+				}
+				statements.AddRange(inner);
 			}
 
 			// JsonFlatten: 展平子属性写入
@@ -1087,46 +648,38 @@ public partial class ConverterGenerator
 						? $"{parentAccess}.Value.{subPropName}"
 						: $"{parentAccess}.{subPropName}";
 
-					// 查找子属性上的 JsonAlias / JsonTime / JsonConverter / JsonDefaultSerializer
 					var subAttrs = subProp.GetAttributes();
 					INamedTypeSymbol? subJsonCvtr = subAttrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, jsonCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as INamedTypeSymbol;
 					int? subTimeEnum = subAttrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, timeCvtrAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as int?;
 					string? subCondition = subAttrs.FirstOrDefault(i => SymbolEqualityComparer.Default.Equals(i.AttributeClass, condAttrSmp) && i.ConstructorArguments.Length == 1)?.ConstructorArguments[0].Value as string;
 
-					// 父属性 JsonCondition 影响子属性
-					if (!string.IsNullOrEmpty(parentCondition))
-					{
-						var parentConditionLines = ReplaceVariableWithName(parentCondition).Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
-						sb.AppendLine($"if ({string.Join("\n\t\t\t", parentConditionLines)})");
-					}
-
-					// 父对象为空时跳过
-					if (isNullable)
-						sb.Append($$"""if ({{parentAccess}} is not null) """);
-
-					bool hasSubCondition = false;
-					if (!string.IsNullOrEmpty(subCondition))
-					{
-						var conditionLines = ReplaceVariableWithName(subCondition).Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
-						sb.AppendLine($"if ({string.Join("\n\t\t\t", conditionLines)})");
-						hasSubCondition = true;
-					}
-
-					// 可空子属性：模式匹配获取非空值
+					ExpressionSyntax? subNullableCondition = null;
 					if (subIsNullable)
 					{
 						string localVar = $"__flatValue{index}";
-						sb.Append($$"""if ({{flatValueAccess}} is {{subType.ToDisplayString()}} {{localVar}}) """);
+						subNullableCondition = SyntaxFactory.ParseExpression($"{flatValueAccess} is {subType.ToDisplayString()} {localVar}");
 						flatValueAccess = localVar;
 						index++;
 					}
 
-					// 生成子属性写入
-					GenerateWriteProperty(new GenerateWritePropertyInfo(compilation, sb, classGenMap, index, subAttrs, dftCvtrAttrSmp, jsonEnumAttrSmp, subIsNullable, subJsonCvtr, subTimeEnum, flatValueAccess, subType, aliasName, hasSubCondition));
+					var subInfo = new GenerateWritePropertyInfo(compilation, new StringBuilder(), classGenMap, index, subAttrs, dftCvtrAttrSmp, jsonEnumAttrSmp, subIsNullable, subJsonCvtr, subTimeEnum, flatValueAccess, subType, aliasName, !string.IsNullOrEmpty(subCondition));
+					(List<StatementSyntax> branch, bool needsConditionBlock) = BuildWriteBranch(subInfo, info.ClassType);
+					if (!string.IsNullOrEmpty(subCondition) && needsConditionBlock)
+						branch = [SyntaxFactory.Block(branch.ToArray())];
+					StatementSyntax body = branch.Count == 1 ? branch[0] : SyntaxFactory.Block(branch.ToArray());
+					if (subNullableCondition is not null)
+						body = SyntaxFactory.IfStatement(subNullableCondition, body);
+					if (!string.IsNullOrEmpty(subCondition))
+						body = SyntaxFactory.IfStatement(SynCondition(subCondition), body);
+					if (isNullable)
+						body = SyntaxFactory.IfStatement(SyntaxFactory.ParseExpression($"{parentAccess} is not null"), body);
+					if (!string.IsNullOrEmpty(parentCondition))
+						body = SyntaxFactory.IfStatement(SynCondition(parentCondition), body);
+					statements.Add(body);
 				}
 			}
 		}
-		//sb.AppendLine("*/throw new NotImplementedException();");
+		return SyntaxFactory.Block(statements.ToArray());
 	}
 	private string GetJsonReadMethod(ITypeSymbol type)
 	{
@@ -1184,24 +737,8 @@ public partial class ConverterGenerator
 			if (string.IsNullOrEmpty(registryId) || registryId == CoreNs)
 				return;
 			string ns = $"RhythmBase.{registryId}.Serialization";
-			StringBuilder classCvtrSb = new();
-			StringBuilder classMapSb = new();
-			classCvtrSb.AppendLine($"""
-					// <auto-generated/>
-					#nullable enable
-					
-					using System;
-					using RhythmBase.Global.Serialization;
-					using System.Text.Json;
-					using static RhythmBase.Global.Serialization.EnumConverter;
-					
-					namespace {ns};
-					""");
-
-			classMapSb.AppendLine($$"""
-					internal static class EventConverterMap {
-					""");
-
+			List<MemberDeclarationSyntax> converters = [];
+			List<MethodDeclarationSyntax> mapMethods = [];
 
 			foreach (var classGen in classGens)
 			{
@@ -1212,10 +749,8 @@ public partial class ConverterGenerator
 					ctx.ReportDiagnostic(Diagnostic.Create(GenericConverterBaseMustBeNonGenericRule, classGen.Item2.RootConverterType.Locations.FirstOrDefault(), rootConverterTypeBase?.ToDisplayString(), classGen.Item2.RootConverterType.ToDisplayString()));
 					return;
 				}
-				classMapSb.AppendLine($$"""
-						internal static {{rootConverterTypeBase.ToDisplayString()}} GetConverter({{classGen.Item2.EnumType.ToDisplayString()}} type) => type switch
-						{
-					""");
+
+				List<SwitchExpressionArmSyntax> arms = [];
 				foreach (var c in classes.OrderBy(i => i.ICGClassType.Name))
 				{
 					var t = c.ICGClassType;
@@ -1226,13 +761,12 @@ public partial class ConverterGenerator
 					if (baseRecord is null && !isDirectImplementation) continue;
 					if (c is ClassGenCvtrInfo c1)
 					{
-						string baseConverterName;
 						if (c1.ClassType.IsAbstract)
 						{
 							ctx.ReportDiagnostic(Diagnostic.Create(GenericConverterBaseMustBeNonGenericRule, c1.ClassType.Locations.FirstOrDefault(), c1.ClassType.ToDisplayString(), "abstract classes cannot be converted"));
 							continue;
 						}
-						ISymbol enumValueSymbol = c1.ClassTypeEnum;
+						string baseConverterName;
 						INamedTypeSymbol ocvtr = classGen.Item2.RootConverterType.OriginalDefinition.Construct(t);
 						if (baseRecord is ClassGenCvtrInfo baseRecord1)
 						{
@@ -1242,7 +776,7 @@ public partial class ConverterGenerator
 						{
 							var baseConverter = baseRecord2.ConverterType;
 							if (baseConverter.IsGenericType)
-								baseConverterName = baseConverter.OriginalDefinition.Construct(t).ToDisplayString();
+								baseConverterName = baseConverter.OriginalDefinition.Construct(t).ToDisplayString(SynFullyQualified);
 							else
 							{
 								ctx.ReportDiagnostic(Diagnostic.Create(NonGenericBaseConverterRule, c1.ClassType.Locations.FirstOrDefault(), baseConverter.ToDisplayString(), $"{ns}.{baseRecord2.ClassType.Name}Converter"));
@@ -1251,57 +785,73 @@ public partial class ConverterGenerator
 						}
 						else
 						{
-							baseConverterName = ocvtr.ToDisplayString();
+							baseConverterName = ocvtr.ToDisplayString(SynFullyQualified);
 						}
-						classCvtrSb.AppendLine($$"""
-					internal class {{t.Name}}Converter : {{baseConverterName}}
-					{
-						protected override bool Read(ref Utf8JsonReader reader, ref {{t.ToDisplayString()}} value, global::RhythmBase.Global.Serialization.MetadataJsonSerializerOptions options)
-						{
-					""");
-						if (c1.Properties.Any(i => GetShouldGenerate(i, compilation)))
-							GenerateReadBody(compilation, classCvtrSb, c1, classGenMap);
-						else
-							classCvtrSb.AppendLine($$"""
-							return base.Read(ref reader, ref value, options);
-					""");
-						classCvtrSb.AppendLine($$"""
-						}
-						protected override void Write(Utf8JsonWriter writer, ref {{t.ToDisplayString()}} value, global::RhythmBase.Global.Serialization.MetadataJsonSerializerOptions options)
-						{
-					""");
-						GenerateWriteBody(compilation, classCvtrSb, c1, classGenMap);
-						classCvtrSb.AppendLine("""
-						}
+
+						string fullName = t.ToDisplayString(SynFullyQualified);
+						BlockSyntax readBody = c1.Properties.Any(i => GetShouldGenerate(i, compilation))
+							? GenerateReadBody(compilation, c1, classGenMap)
+							: (BlockSyntax)SyntaxFactory.ParseStatement("{ return base.Read(ref reader, ref value, options); }");
+						BlockSyntax writeBody = GenerateWriteBody(compilation, c1, classGenMap);
+
+						MethodDeclarationSyntax readMethod = SyntaxFactory.MethodDeclaration(
+								SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)),
+								"Read")
+							.AddModifiers(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword), SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
+							.WithParameterList(SyntaxFactory.ParseParameterList($"(ref global::System.Text.Json.Utf8JsonReader reader, ref {fullName} value, global::RhythmBase.Global.Serialization.MetadataJsonSerializerOptions options)"))
+							.WithBody(readBody);
+						MethodDeclarationSyntax writeMethod = SyntaxFactory.MethodDeclaration(
+								SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
+								"Write")
+							.AddModifiers(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword), SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
+							.WithParameterList(SyntaxFactory.ParseParameterList($"(global::System.Text.Json.Utf8JsonWriter writer, ref {fullName} value, global::RhythmBase.Global.Serialization.MetadataJsonSerializerOptions options)"))
+							.WithBody(writeBody);
+
+						converters.Add(SyntaxFactory.ClassDeclaration($"{t.Name}Converter")
+							.AddModifiers(SyntaxFactory.Token(SyntaxKind.InternalKeyword))
+							.AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName(baseConverterName)))
+							.AddMembers(readMethod, writeMethod));
+						arms.Add(SyntaxFactory.SwitchExpressionArm(
+							SyntaxFactory.ConstantPattern(SyntaxFactory.ParseExpression(c1.ClassTypeEnum.ToDisplayString(SynQualifiedMember))),
+							SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName($"{t.Name}Converter")).WithArgumentList(SyntaxFactory.ArgumentList())));
 					}
-					""");
-					}
-					switch (c)
+					else if (c is ClassRefConverterInfo c3 && !c3.ClassType.IsAbstract && c3.ClassTypeEnum is not null)
 					{
-						case ClassGenCvtrInfo c2:
-							classMapSb.AppendLine($$"""
-							{{c2.ClassTypeEnum.ToDisplayString()}} => new {{t.Name}}Converter(),
-					""");
-							break;
-						case ClassRefConverterInfo c3:
-							if (!c3.ClassType.IsAbstract && c3.ClassTypeEnum is not null)
-								classMapSb.AppendLine($$"""
-							{{c3.ClassTypeEnum.ToDisplayString()}} => new {{c3.ConverterType.ToDisplayString()}}(),
-					""");
-							break;
+						arms.Add(SyntaxFactory.SwitchExpressionArm(
+							SyntaxFactory.ConstantPattern(SyntaxFactory.ParseExpression(c3.ClassTypeEnum.ToDisplayString(SynQualifiedMember))),
+							SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName(c3.ConverterType.ToDisplayString(SynFullyQualified))).WithArgumentList(SyntaxFactory.ArgumentList())));
 					}
 				}
-				classMapSb.AppendLine($$"""
-							_ => throw new NotImplementedException(),
-						};
-					""");
-			}
-			classMapSb.AppendLine("""
-					}
-					""");
-			classCvtrSb.Append(classMapSb);
 
-			ctx.AddSource($"Converters.{registryId}.g.cs", classCvtrSb.ToString());
+				arms.Add(SyntaxFactory.SwitchExpressionArm(
+					SyntaxFactory.DiscardPattern(),
+					SyntaxFactory.ThrowExpression(SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName("global::System.NotImplementedException")).WithArgumentList(SyntaxFactory.ArgumentList()))));
+				mapMethods.Add(SyntaxFactory.MethodDeclaration(
+						SyntaxFactory.ParseTypeName(rootConverterTypeBase.ToDisplayString(SynFullyQualified)),
+						"GetConverter")
+					.AddModifiers(SyntaxFactory.Token(SyntaxKind.InternalKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+					.AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("type")).WithType(SyntaxFactory.ParseTypeName(classGen.Item2.EnumType.ToDisplayString(SynFullyQualified))))
+					.WithExpressionBody(SyntaxFactory.ArrowExpressionClause(SyntaxFactory.SwitchExpression(SyntaxFactory.IdentifierName("type"), SyntaxFactory.SeparatedList(arms))))
+					.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+			}
+
+			List<MemberDeclarationSyntax> members = [.. converters];
+			if (mapMethods.Count > 0)
+			{
+				members.Add(SyntaxFactory.ClassDeclaration("EventConverterMap")
+					.AddModifiers(SyntaxFactory.Token(SyntaxKind.InternalKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+					.AddMembers(mapMethods.ToArray()));
+			}
+
+			CompilationUnitSyntax unit = SyntaxFactory.CompilationUnit()
+				.AddUsings(
+					SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")),
+					SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("RhythmBase.Global.Serialization")),
+					SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Text.Json")),
+					SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("RhythmBase.Global.Serialization.EnumConverter")).WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
+				.AddMembers(SyntaxFactory.FileScopedNamespaceDeclaration(SyntaxFactory.ParseName(ns)).AddMembers(members.ToArray()))
+				.NormalizeWhitespace("\t");
+			ctx.AddSource($"Converters.{registryId}.g.cs", "// <auto-generated/>\n#nullable enable\n" + unit.ToFullString());
 		});
 	}
 	private class EventTypeRegistryGenerationInfo
@@ -1592,26 +1142,22 @@ internal static class UnhandledFieldHelper
 				spc.ReportDiagnostic(diag);
 			if (string.IsNullOrEmpty(registryId) || registryId == CoreNs)
 				return;
-			StringBuilder sb = new();
-			sb.AppendLine("// <auto-generated/>");
-			sb.AppendLine("#nullable enable");
-			sb.AppendLine("using System;");
-			sb.AppendLine("using System.Collections.Generic;");
-			sb.AppendLine("using System.Text.Json;");
-			sb.AppendLine("using RhythmBase.Global.Diff;");
-			sb.AppendLine($"namespace RhythmBase.{registryId}.Diff;");
-			List<string> registrations = [];
+
+			List<MemberDeclarationSyntax> members = [];
+			List<(ExpressionSyntax Type, ExpressionSyntax Differ)> registrations = [];
 			HashSet<string> emittedNames = new(StringComparer.Ordinal);
+
 			void EmitDiffer(INamedTypeSymbol classType)
 			{
 				if (classType.IsAbstract || classType.IsGenericType)
 					return;
-				string fullName = classType.ToDisplayString();
 				string simpleName = classType.Name;
 				if (!emittedNames.Add(simpleName))
 					return;
+
+				string fullName = classType.ToDisplayString(SynFullyQualified);
 				string? extraDataAccess = GetExtraDataAccess(classType);
-				List<string> propertyLines = [];
+				List<StatementSyntax> statements = [];
 				foreach (PropertyGenerateConverterInfo prop in EnumerateDiffProperties(classType))
 				{
 					if (!GetShouldGenerate(prop, compilation))
@@ -1619,90 +1165,120 @@ internal static class UnhandledFieldHelper
 					// Skip position and navigation back-references (they are not serialized content).
 					if (prop.Property.Name is "TickTime" or "Parent" or "BaseChart" or "Previous" or "Next")
 						continue;
-					string alias = GetPropertyAlias(prop.Property, compilation);
-					propertyLines.Add($"\t\tc.Compare(\"{alias}\", left.{prop.Property.Name}, right.{prop.Property.Name});");
+					statements.Add(SynCompare(GetPropertyAlias(prop.Property, compilation), prop.Property.Name, prop.Property.Name));
 				}
 				// Collection-like types without comparable properties (for example PlayerTypeGroup) are
 				// compared element by element instead.
-				bool enumerableOnly = propertyLines.Count == 0 && IsConcreteEnumerable(classType) is not null;
-				if (propertyLines.Count == 0 && !enumerableOnly && extraDataAccess is null)
+				bool enumerableOnly = statements.Count == 0 && IsConcreteEnumerable(classType) is not null;
+				if (statements.Count == 0 && !enumerableOnly && extraDataAccess is null)
 					return; // nothing to compare; leave it to the canonical/Equals fallback
-				registrations.Add($"[typeof({fullName})] = new {simpleName}Differ()");
-				sb.AppendLine($"internal sealed class {simpleName}Differ : global::RhythmBase.Global.Diff.EventDiffer<{fullName}>");
-				sb.AppendLine("{");
-				sb.AppendLine($"\tprotected override void DiffCore({fullName} left, {fullName} right, global::RhythmBase.Global.Diff.DiffCollector c)");
-				sb.AppendLine("\t{");
 				if (enumerableOnly)
-				{
-					sb.AppendLine("\t\tc.CompareSequence(\"\", (global::System.Collections.IEnumerable)left, (global::System.Collections.IEnumerable)right);");
-				}
-				else
-				{
-					foreach (string line in propertyLines)
-						sb.AppendLine(line);
-					if (extraDataAccess is not null)
-						sb.AppendLine($"\t\tglobal::RhythmBase.Global.Diff.DiffCollector.CompareExtraData(c, left.{extraDataAccess}, right.{extraDataAccess});");
-				}
-				sb.AppendLine("\t}");
-				sb.AppendLine("}");
+					statements.Add(SynCompareSequence());
+				else if (extraDataAccess is not null)
+					statements.Add(SynCompareExtraData(extraDataAccess));
+
+				MethodDeclarationSyntax method = SyntaxFactory.MethodDeclaration(
+						SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
+						"DiffCore")
+					.AddModifiers(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword), SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
+					.AddParameterListParameters(
+						SyntaxFactory.Parameter(SyntaxFactory.Identifier("left")).WithType(SynType(fullName)),
+						SyntaxFactory.Parameter(SyntaxFactory.Identifier("right")).WithType(SynType(fullName)),
+						SyntaxFactory.Parameter(SyntaxFactory.Identifier("c")).WithType(SynType("global::RhythmBase.Global.Diff.DiffCollector")))
+					.WithBody(SyntaxFactory.Block(statements.ToArray()));
+
+				members.Add(SyntaxFactory.ClassDeclaration($"{simpleName}Differ")
+					.AddModifiers(SyntaxFactory.Token(SyntaxKind.InternalKeyword), SyntaxFactory.Token(SyntaxKind.SealedKeyword))
+					.AddBaseListTypes(SyntaxFactory.SimpleBaseType(SynType($"global::RhythmBase.Global.Diff.EventDiffer<{fullName}>")))
+					.AddMembers(method));
+				registrations.Add((
+					SyntaxFactory.TypeOfExpression(SynType(fullName)),
+					SyntaxFactory.ObjectCreationExpression(SynType($"{simpleName}Differ")).WithArgumentList(SyntaxFactory.ArgumentList())));
 			}
+
 			foreach ((IClassGen[] gens, ClassGenAttr _) in classGens)
 				foreach (IClassGen gen in gens)
 					EmitDiffer(gen.ICGClassType);
 			foreach (INamedTypeSymbol diffable in diffableTypes)
 				EmitDiffer(diffable);
-			sb.AppendLine("internal static class DiffValue");
-			sb.AppendLine("{");
-			sb.AppendLine("\tprivate static readonly global::RhythmBase.Global.Serialization.MetadataJsonSerializerOptions _options = new() { JsonSerializerOptions = new global::System.Text.Json.JsonSerializerOptions { WriteIndented = false } };");
-			sb.AppendLine("\tprivate static readonly Dictionary<Type, Action<global::System.Text.Json.Utf8JsonWriter, object, global::RhythmBase.Global.Serialization.MetadataJsonSerializerOptions>> _writers = new()");
-			sb.AppendLine("\t{");
-			HashSet<string> emittedTypes = new(StringComparer.Ordinal);
-			foreach ((ITypeSymbol typeSymbol, INamedTypeSymbol _) in classGenMap)
-			{
-				if (typeSymbol is not INamedTypeSymbol named || named.IsGenericType || named.TypeKind == TypeKind.Interface)
-					continue;
-				string typeName = typeSymbol.ToDisplayString();
-				if (!emittedTypes.Add(typeName))
-					continue;
-				sb.AppendLine($"\t\t[typeof({typeName})] = static (w, o, opt) => global::RhythmBase.{registryId}.Serialization.TypeConverterRegistry.Write(w, ({typeName})o, opt),");
-			}
-			sb.AppendLine("\t};");
-			sb.AppendLine("\tpublic static string? Canonicalize(object? value)");
-			sb.AppendLine("\t{");
-			sb.AppendLine("\t\tif (value is null || !_writers.TryGetValue(value.GetType(), out var write))");
-			sb.AppendLine("\t\t\treturn null;");
-			sb.AppendLine("\t\ttry");
-			sb.AppendLine("\t\t{");
-			sb.AppendLine("\t\t\tusing global::System.IO.MemoryStream stream = new();");
-			sb.AppendLine("\t\t\tusing (global::System.Text.Json.Utf8JsonWriter writer = new(stream))");
-			sb.AppendLine("\t\t\t{");
-			sb.AppendLine("\t\t\t\twrite(writer, value, _options);");
-			sb.AppendLine("\t\t\t}");
-			sb.AppendLine("\t\t\treturn global::System.Text.Encoding.UTF8.GetString(stream.ToArray());");
-			sb.AppendLine("\t\t}");
-			sb.AppendLine("\t\tcatch");
-			sb.AppendLine("\t\t{");
-			sb.AppendLine("\t\t\treturn null;");
-			sb.AppendLine("\t\t}");
-			sb.AppendLine("\t}");
-			sb.AppendLine("}");
-			sb.AppendLine("internal static class EventDifferMap");
-			sb.AppendLine("{");
-			sb.AppendLine("\tprivate static readonly Dictionary<Type, IEventDiffer> _map = new()");
-			sb.AppendLine("\t{");
-			foreach (string registration in registrations)
-				sb.AppendLine("\t\t" + registration + ",");
-			sb.AppendLine("\t};");
-			sb.AppendLine("\tpublic static IEventDiffer? Get(Type type)");
-			sb.AppendLine("\t{");
-			sb.AppendLine("\t\tif (_map.TryGetValue(type, out IEventDiffer? differ))");
-			sb.AppendLine("\t\t\treturn differ;");
-			sb.AppendLine("\t\treturn global::RhythmBase.Global.Diff.DiffRegistry.TryGet(type, out IEventDiffer? custom) ? custom : null;");
-			sb.AppendLine("\t}");
-			sb.AppendLine("}");
-			spc.AddSource($"Differs.{registryId}.g.cs", sb.ToString());
+
+			members.Add(BuildDiffValue(registryId, classGenMap));
+			members.Add(BuildEventDifferMap(registrations));
+
+			CompilationUnitSyntax unit = SyntaxFactory.CompilationUnit()
+				.AddUsings(
+					SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")),
+					SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic")),
+					SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Text.Json")),
+					SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("RhythmBase.Global.Diff")))
+				.AddMembers(SyntaxFactory.FileScopedNamespaceDeclaration(SyntaxFactory.ParseName($"RhythmBase.{registryId}.Diff"))
+					.AddMembers(members.ToArray()))
+				.NormalizeWhitespace("\t");
+			spc.AddSource($"Differs.{registryId}.g.cs", "// <auto-generated/>\n#nullable enable\n" + unit.ToFullString());
 		});
 	}
+
+	private static ClassDeclarationSyntax BuildDiffValue(string registryId, (ITypeSymbol, INamedTypeSymbol)[] classGenMap)
+	{
+		FieldDeclarationSyntax optionsField = SynStaticReadOnlyField(
+			"global::RhythmBase.Global.Serialization.MetadataJsonSerializerOptions",
+			"_options",
+			SyntaxFactory.ParseExpression("new() { JsonSerializerOptions = new global::System.Text.Json.JsonSerializerOptions { WriteIndented = false } }"));
+
+		const string writersType = "global::System.Collections.Generic.Dictionary<global::System.Type, global::System.Action<global::System.Text.Json.Utf8JsonWriter, object, global::RhythmBase.Global.Serialization.MetadataJsonSerializerOptions>>";
+		List<ExpressionSyntax> writers = [];
+		HashSet<string> emittedTypes = new(StringComparer.Ordinal);
+		foreach ((ITypeSymbol typeSymbol, INamedTypeSymbol _) in classGenMap)
+		{
+			if (typeSymbol is not INamedTypeSymbol named || named.IsGenericType || named.TypeKind == TypeKind.Interface)
+				continue;
+			string typeName = typeSymbol.ToDisplayString(SynFullyQualified);
+			if (!emittedTypes.Add(typeName))
+				continue;
+			writers.Add(SynCollectionEntry(
+				SyntaxFactory.TypeOfExpression(SynType(typeName)),
+				SyntaxFactory.ParseExpression($"static (w, o, opt) => global::RhythmBase.{registryId}.Serialization.TypeConverterRegistry.Write(w, ({typeName})o, opt)")));
+		}
+		FieldDeclarationSyntax writersField = SynStaticReadOnlyField(writersType, "_writers", SynNewWithInitializer(writersType, writers));
+
+		MethodDeclarationSyntax canonicalize = (MethodDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration(
+			"public static string? Canonicalize(object? value)" +
+			"{" +
+			"if (value is null || !_writers.TryGetValue(value.GetType(), out var write)) return null;" +
+			"try" +
+			"{" +
+			"using global::System.IO.MemoryStream stream = new();" +
+			"using (global::System.Text.Json.Utf8JsonWriter writer = new(stream)) { write(writer, value, _options); }" +
+			"return global::System.Text.Encoding.UTF8.GetString(stream.ToArray());" +
+			"}" +
+			"catch { return null; }" +
+			"}")!;
+
+		return SyntaxFactory.ClassDeclaration("DiffValue")
+			.AddModifiers(SyntaxFactory.Token(SyntaxKind.InternalKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+			.AddMembers(optionsField, writersField, canonicalize);
+	}
+
+	private static ClassDeclarationSyntax BuildEventDifferMap(List<(ExpressionSyntax Type, ExpressionSyntax Differ)> registrations)
+	{
+		const string mapType = "global::System.Collections.Generic.Dictionary<global::System.Type, global::RhythmBase.Global.Diff.IEventDiffer>";
+		List<ExpressionSyntax> entries = [];
+		foreach ((ExpressionSyntax type, ExpressionSyntax differ) in registrations)
+			entries.Add(SynCollectionEntry(type, differ));
+
+		FieldDeclarationSyntax mapField = SynStaticReadOnlyField(mapType, "_map", SynNewWithInitializer(mapType, entries));
+		MethodDeclarationSyntax get = (MethodDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration(
+			"public static global::RhythmBase.Global.Diff.IEventDiffer? Get(global::System.Type type)" +
+			"{" +
+			"if (_map.TryGetValue(type, out global::RhythmBase.Global.Diff.IEventDiffer? differ)) return differ;" +
+			"return global::RhythmBase.Global.Diff.DiffRegistry.TryGet(type, out global::RhythmBase.Global.Diff.IEventDiffer? custom) ? custom : null;" +
+			"}")!;
+
+		return SyntaxFactory.ClassDeclaration("EventDifferMap")
+			.AddModifiers(SyntaxFactory.Token(SyntaxKind.InternalKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+			.AddMembers(mapField, get);
+	}
+
 
 	private static IEnumerable<PropertyGenerateConverterInfo> EnumerateDiffProperties(INamedTypeSymbol type)
 	{
