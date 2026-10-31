@@ -38,6 +38,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RhythmBase.RhythmDoctor\RhythmBase.RhythmDoctor.csproj" />
+    <ProjectReference Include="..\RhythmBase.RhythmDoctor.Lang\RhythmBase.RhythmDoctor.Lang.csproj" />
+    <ProjectReference Include="..\RhythmBase.RhythmDoctor.Playhead\RhythmBase.RhythmDoctor.Playhead.csproj" />
   </ItemGroup>
 
 </Project>

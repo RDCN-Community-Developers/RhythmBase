@@ -37,7 +37,8 @@ public sealed class HitVariables : ExpressionContext, IRankSimulation, IPerfects
 	/// <summary>Gets the hit timeline.</summary>
 	public IReadOnlyList<HitRecord> Hits => _hits;
 
-	internal Func<float>? TickProvider { get; set; }
+	/// <summary>Gets or sets the current-time provider used by the hit-based rank checks.</summary>
+	public Func<float>? TickProvider { get; set; }
 
 	/// <inheritdoc/>
 	public ExpressionContext.RDRank RankCap { get; set; } = ExpressionContext.RDRank.S;

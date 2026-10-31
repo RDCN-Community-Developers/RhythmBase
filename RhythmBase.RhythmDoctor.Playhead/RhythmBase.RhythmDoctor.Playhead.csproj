@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RootNamespace>RhythmBase.RhythmDoctor.Components</RootNamespace>
+		<AssemblyName>RhythmBase.RhythmDoctor.Playhead</AssemblyName>
+		<Version>1.3.13</Version>
+		<Title>RhythmBase.RhythmDoctor.Playhead</Title>
+		<Description>Read-only level simulation (playhead, event scheduler, condition evaluation and state modules) for the Rhythm Doctor adapter.</Description>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<LangVersion>Preview</LangVersion>
+		<IsAotCompatible>false</IsAotCompatible>
+		<RhythmBaseVersion Condition="'$(RhythmBaseVersion)' == ''">1.3.13</RhythmBaseVersion>
+	</PropertyGroup>
+	<ItemGroup>
+		<Compile Include="../DotnetCompatibility.cs" />
+		<PackageReference Include="RhythmBase" Version="$(RhythmBaseVersion)" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="../RhythmBase.RhythmDoctor/RhythmBase.RhythmDoctor.csproj" />
+		<ProjectReference Include="../RhythmBase.RhythmDoctor.Lang/RhythmBase.RhythmDoctor.Lang.csproj" />
+	</ItemGroup>
+</Project>

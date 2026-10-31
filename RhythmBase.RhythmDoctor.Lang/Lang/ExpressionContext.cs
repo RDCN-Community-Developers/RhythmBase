@@ -83,7 +83,7 @@ with(StringComparer.Ordinal),
 	/// continue from the same slot state.
 	/// </summary>
 	/// <param name="source">The context whose fixed slots are copied.</param>
-	internal void CopySlotsFrom(ExpressionContext source)
+	public void CopySlotsFrom(ExpressionContext source)
 	{
 		Array.Copy(source.I, I, I.Length);
 		Array.Copy(source.F, F, F.Length);
