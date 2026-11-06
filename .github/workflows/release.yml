@@ -63,19 +63,19 @@ jobs:
 
       - name: Restore sub-packages
         run: |
-          for PROJ in RhythmBase.RhythmDoctor RhythmBase.BeatBlock RhythmBase.Adofai RhythmBase.Rizline; do
+          for PROJ in RhythmBase.RhythmDoctor RhythmBase.RhythmDoctor.Lang RhythmBase.RhythmDoctor.Playhead RhythmBase.BeatBlock RhythmBase.Adofai RhythmBase.Rizline; do
             dotnet restore "$PROJ/$PROJ.csproj" -p:RhythmBaseVersion=${{ steps.ver.outputs.version }}
           done
 
       - name: Build sub-packages
         run: |
-          for PROJ in RhythmBase.RhythmDoctor RhythmBase.BeatBlock RhythmBase.Adofai RhythmBase.Rizline; do
+          for PROJ in RhythmBase.RhythmDoctor RhythmBase.RhythmDoctor.Lang RhythmBase.RhythmDoctor.Playhead RhythmBase.BeatBlock RhythmBase.Adofai RhythmBase.Rizline; do
             dotnet build "$PROJ/$PROJ.csproj" -c Release --no-restore -p:RhythmBaseVersion=${{ steps.ver.outputs.version }}
           done
 
       - name: Pack sub-packages
         run: |
-          for PROJ in RhythmBase.RhythmDoctor RhythmBase.BeatBlock RhythmBase.Adofai RhythmBase.Rizline; do
+          for PROJ in RhythmBase.RhythmDoctor RhythmBase.RhythmDoctor.Lang RhythmBase.RhythmDoctor.Playhead RhythmBase.BeatBlock RhythmBase.Adofai RhythmBase.Rizline; do
             dotnet pack "$PROJ/$PROJ.csproj" -c Release --no-build -o ./pkg -p:Version=${{ steps.ver.outputs.version }} -p:RhythmBaseVersion=${{ steps.ver.outputs.version }}
           done
 

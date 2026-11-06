@@ -1,0 +1,31 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="arm64" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Games/">
+    <Project Path="RhythmBase.Adofai/RhythmBase.Adofai.csproj" />
+    <Project Path="RhythmBase.BeatBlock/RhythmBase.BeatBlock.csproj" />
+    <Project Path="RhythmBase.RhythmDoctor/RhythmBase.RhythmDoctor.csproj" />
+    <Project Path="RhythmBase.Rizline/RhythmBase.Rizline.csproj" />
+  </Folder>
+  <Folder Name="/Extensions/">
+    <Project Path="RhythmBase.RhythmDoctor.Lang/RhythmBase.RhythmDoctor.Lang.csproj" />
+    <Project Path="RhythmBase.RhythmDoctor.Playhead/RhythmBase.RhythmDoctor.Playhead.csproj" />
+  </Folder>
+  <Project Path="FastTest/FastTest.csproj">
+    <BuildDependency Project="RhythmBase.BeatBlock/RhythmBase.BeatBlock.csproj" />
+    <BuildDependency Project="RhythmBase.RhythmDoctor/RhythmBase.RhythmDoctor.csproj" />
+    <BuildDependency Project="RhythmBase.Rizline/RhythmBase.Rizline.csproj" />
+  </Project>
+  <Project Path="RhythmBase.Generator/RhythmBase.Generator.csproj" />
+  <Project Path="RhythmBase.Test/RhythmBase.Test.csproj">
+    <BuildDependency Project="RhythmBase.BeatBlock/RhythmBase.BeatBlock.csproj" />
+    <BuildDependency Project="RhythmBase.RhythmDoctor/RhythmBase.RhythmDoctor.csproj" />
+    <BuildDependency Project="RhythmBase.Rizline/RhythmBase.Rizline.csproj" />
+    <BuildDependency Project="RhythmBase/RhythmBase.csproj" />
+  </Project>
+  <Project Path="RhythmBase/RhythmBase.csproj" />
+</Solution>

@@ -11,10 +11,13 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<LangVersion>Preview</LangVersion>
 		<IsAotCompatible>false</IsAotCompatible>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageIcon>RhythmBase_logo_small.png</PackageIcon>
 	</PropertyGroup>
 	<ItemGroup>
 		<Compile Include="../DotnetCompatibility.cs" />
 		<PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
+		<None Include="../LICENSE.txt;../RhythmBase_logo_small.png" Pack="True" PackagePath="/" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="../RhythmBase.RhythmDoctor/RhythmBase.RhythmDoctor.csproj" />

@@ -34,6 +34,16 @@ jobs:
           dotnet nuget remove source local || true
           dotnet nuget add source ${{ github.workspace }}/pkg --name local
 
+      - name: Resolve version
+        id: ver
+        run: echo "version=$(grep -oP '<Version>\K[^<]+' RhythmBase/RhythmBase.csproj)" >> $GITHUB_OUTPUT
+
+      - name: Build sub-packages
+        run: |
+          for PROJ in RhythmBase.RhythmDoctor RhythmBase.RhythmDoctor.Lang RhythmBase.RhythmDoctor.Playhead RhythmBase.BeatBlock RhythmBase.Adofai RhythmBase.Rizline; do
+            dotnet build "$PROJ/$PROJ.csproj" -c Release -f net8.0 -p:RhythmBaseVersion=${{ steps.ver.outputs.version }}
+          done
+
       - name: Test
         run: |
           dotnet test RhythmBase.Test/RhythmBase.Test.csproj -c Release -f net8.0 || true
