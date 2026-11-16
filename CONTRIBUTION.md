@@ -49,6 +49,16 @@ dotnet pack -c Release -o ./nupkg --force
 
 > NuGet caching in sub-projects may prevent updates from taking effect. Run `dotnet nuget locals all --clear` to clear the cache, then restore again.
 
+**Unity/Mono-compatible assemblies**:
+
+Assembly-level attributes use generic attribute types by default. Set `RhythmBaseUseGenericAttributes=false` to emit non-generic assembly attributes instead. Apply the setting consistently to the core library and every adapter:
+
+```powershell
+dotnet pack RhythmBase/RhythmBase.csproj -c Release -p:RhythmBaseUseGenericAttributes=false -o ./nupkg
+# add ./nupkg to the local NuGet source, then:
+dotnet build RhythmBase.slnx -p:RhythmBaseUseGenericAttributes=false
+```
+
 ---
 
 ## Project Architecture

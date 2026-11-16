@@ -50,6 +50,16 @@ dotnet pack -c Release -o ./nupkg --force
 
 > 子项目的 NuGet 缓存可能导致更新不生效。可执行 `dotnet nuget locals all --clear` 清除缓存后重新 restore。
 
+**Unity/Mono 兼容程序集**：
+
+程序集特性默认使用泛型特性类型。设置 `RhythmBaseUseGenericAttributes=false` 可改为生成非泛型程序集特性。核心库和所有适配器必须使用同一设置：
+
+```powershell
+dotnet pack RhythmBase/RhythmBase.csproj -c Release -p:RhythmBaseUseGenericAttributes=false -o ./nupkg
+# 将 ./nupkg 添加到本地 NuGet 源后：
+dotnet build RhythmBase.slnx -p:RhythmBaseUseGenericAttributes=false
+```
+
 ---
 
 ## 项目架构

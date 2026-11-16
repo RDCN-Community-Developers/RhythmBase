@@ -244,35 +244,54 @@ public partial class ConverterGenerator : IIncrementalGenerator
 			.Select((compilation, ct) =>
 			{
 				var attrType = compilation.GetTypeByMetadataName(JsonConverterSourceTypeAttrName);
-				if (attrType == null) return default;
+				var nonGenericAttrType = compilation.GetTypeByMetadataName(JsonConverterSourceTypeNonGenericAttrName);
+				if (attrType == null && nonGenericAttrType == null) return default;
 				var assembly = compilation.Assembly;
 				List<ClassGenAttr> types = [];
 				List<Diagnostic> diagnostics = [];
 				foreach (var attr in assembly.GetAttributes())
 				{
-					if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.OriginalDefinition, attrType))
+					INamedTypeSymbol? type;
+					INamedTypeSymbol? enumType;
+					INamedTypeSymbol? converterBaseType;
+					string? enumPropertyName;
+					if (attrType != null && SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.OriginalDefinition, attrType))
 					{
 						if (attr.AttributeClass?.TypeArguments is not { Length: 2 } typeArgs) continue;
 						var args = attr.ConstructorArguments;
-						if (typeArgs[0] is not INamedTypeSymbol type) return default;
-						if (typeArgs[1] is not INamedTypeSymbol enumType || enumType.TypeKind != TypeKind.Enum)
-						{
-							diagnostics.Add(Diagnostic.Create(InvalidEnumTypeRule, type?.Locations.FirstOrDefault(), typeArgs[1]?.ToString() ?? "null"));
-							continue;
-						}
-						if (args[0].Value is not INamedTypeSymbol converterBaseType)
-						{
-							continue;
-						}
-						if (args[1].Value is not string enumPropertyName) return default;
-						types.Add(new()
-						{
-							RootType = type,
-							EnumType = enumType,
-							RootConverterType = converterBaseType,
-							TypePropertyName = enumPropertyName,
-						});
+						type = typeArgs[0] as INamedTypeSymbol;
+						enumType = typeArgs[1] as INamedTypeSymbol;
+						converterBaseType = args[0].Value as INamedTypeSymbol;
+						enumPropertyName = args[1].Value as string;
 					}
+					else if (nonGenericAttrType != null && SymbolEqualityComparer.Default.Equals(attr.AttributeClass, nonGenericAttrType))
+					{
+						var args = attr.ConstructorArguments;
+						if (args.Length != 4) continue;
+						type = args[0].Value as INamedTypeSymbol;
+						enumType = args[1].Value as INamedTypeSymbol;
+						converterBaseType = args[2].Value as INamedTypeSymbol;
+						enumPropertyName = args[3].Value as string;
+					}
+					else
+					{
+						continue;
+					}
+					if (type is null) continue;
+					if (enumType is null || enumType.TypeKind != TypeKind.Enum)
+					{
+						diagnostics.Add(Diagnostic.Create(InvalidEnumTypeRule, type.Locations.FirstOrDefault(), enumType?.ToString() ?? "null"));
+						continue;
+					}
+					if (converterBaseType is null) continue;
+					if (enumPropertyName is null) continue;
+					types.Add(new()
+					{
+						RootType = type,
+						EnumType = enumType,
+						RootConverterType = converterBaseType,
+						TypePropertyName = enumPropertyName,
+					});
 				}
 				return (compilation, types.ToArray(), diagnostics);
 			});
@@ -283,31 +302,40 @@ public partial class ConverterGenerator : IIncrementalGenerator
 		var tickTimeGenInfo = context.CompilationProvider.Select((compilation, ct) =>
 		{
 			var tickTimeAttr = compilation.GetTypeByMetadataName(AdapterTypeAttrName);
-			if (tickTimeAttr == null) return default;
-			List<INamedTypeSymbol> types = [];
+			var nonGenericTickTimeAttr = compilation.GetTypeByMetadataName(AdapterTypeNonGenericAttrName);
+			if (tickTimeAttr == null && nonGenericTickTimeAttr == null) return default;
 			foreach (var attr in compilation.Assembly.GetAttributes())
 			{
-				if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.OriginalDefinition, tickTimeAttr) && attr.AttributeClass?.TypeArguments.Length == 6)
+				INamedTypeSymbol?[] typeArgs;
+				if (tickTimeAttr != null && SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.OriginalDefinition, tickTimeAttr) && attr.AttributeClass?.TypeArguments.Length == 6)
 				{
-					var typeArgs = attr.AttributeClass.TypeArguments;
-					(
-						INamedTypeSymbol? chartType,
-						INamedTypeSymbol? levelType,
-						INamedTypeSymbol? calculatorType,
-						INamedTypeSymbol? tickTimeType,
-						INamedTypeSymbol? typeEnumType,
-						INamedTypeSymbol? typeInterfaceType
-						) result
-						= (
-							typeArgs[0] as INamedTypeSymbol ?? null, // 实现 IChart<>
-							typeArgs[1] as INamedTypeSymbol ?? null, // 实现 ILevel<>
-							typeArgs[2] as INamedTypeSymbol ?? null, // 实现 ICalculator
-							typeArgs[3] as INamedTypeSymbol ?? null,  // 实现 ITickTime
-							typeArgs[4] as INamedTypeSymbol ?? null, // 枚举类型
-							typeArgs[5] as INamedTypeSymbol ?? null  // 类型接口类型
-							);
-					return result;
+					typeArgs = [.. attr.AttributeClass.TypeArguments.Select(i => i as INamedTypeSymbol)];
 				}
+				else if (nonGenericTickTimeAttr != null && SymbolEqualityComparer.Default.Equals(attr.AttributeClass, nonGenericTickTimeAttr) && attr.ConstructorArguments.Length == 6)
+				{
+					typeArgs = [.. attr.ConstructorArguments.Select(i => i.Value as INamedTypeSymbol)];
+				}
+				else
+				{
+					continue;
+				}
+				(
+					INamedTypeSymbol? chartType,
+					INamedTypeSymbol? levelType,
+					INamedTypeSymbol? calculatorType,
+					INamedTypeSymbol? tickTimeType,
+					INamedTypeSymbol? typeEnumType,
+					INamedTypeSymbol? typeInterfaceType
+					) result
+					= (
+						typeArgs[0], // 实现 IChart<>
+						typeArgs[1], // 实现 ILevel<>
+						typeArgs[2], // 实现 ICalculator
+						typeArgs[3],  // 实现 ITickTime
+						typeArgs[4], // 枚举类型
+						typeArgs[5]  // 类型接口类型
+						);
+				return result;
 			}
 			return (null, null, null, null, null, null);
 		});
@@ -602,20 +630,34 @@ public partial class ConverterGenerator : IIncrementalGenerator
 				(Compilation compilation, IAssemblySymbol[] assemblies) = compilationAndAsms;
 				var currentAsm = compilation.Assembly;
 				var attrType = compilation.GetTypeByMetadataName(JsonConverterLinkAttrName);
-				if (attrType == null) return default;
+				var nonGenericAttrType = compilation.GetTypeByMetadataName(JsonConverterLinkNonGenericAttrName);
+				if (attrType == null && nonGenericAttrType == null) return default;
 				List<(ITypeSymbol, INamedTypeSymbol)> types = [];
 				foreach (var attr in assemblies.SelectMany(i => i.GetAttributes()))
 				{
-					if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.OriginalDefinition, attrType))
+					ITypeSymbol? arg0;
+					INamedTypeSymbol? arg1;
+					if (attrType != null && SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.OriginalDefinition, attrType))
 					{
 						if (attr.AttributeClass?.TypeArguments is not { Length: 2 } typeArgs) continue;
-						var arg0 = typeArgs[0] as ITypeSymbol;
-						var arg1 = typeArgs[1] as INamedTypeSymbol;
-						if (arg1 is not null
-							&& (arg0 is null || arg0.DeclaredAccessibility == Accessibility.Public || SymbolEqualityComparer.Default.Equals(arg0.ContainingAssembly, currentAsm))
-							&& (arg1.DeclaredAccessibility == Accessibility.Public || SymbolEqualityComparer.Default.Equals(arg1.ContainingAssembly, currentAsm)))
-							types.Add((arg0, arg1));
+						arg0 = typeArgs[0] as ITypeSymbol;
+						arg1 = typeArgs[1] as INamedTypeSymbol;
 					}
+					else if (nonGenericAttrType != null && SymbolEqualityComparer.Default.Equals(attr.AttributeClass, nonGenericAttrType))
+					{
+						var args = attr.ConstructorArguments;
+						if (args.Length != 2) continue;
+						arg0 = args[0].Value as ITypeSymbol;
+						arg1 = args[1].Value as INamedTypeSymbol;
+					}
+					else
+					{
+						continue;
+					}
+					if (arg1 is not null
+						&& (arg0 is null || arg0.DeclaredAccessibility == Accessibility.Public || SymbolEqualityComparer.Default.Equals(arg0.ContainingAssembly, currentAsm))
+						&& (arg1.DeclaredAccessibility == Accessibility.Public || SymbolEqualityComparer.Default.Equals(arg1.ContainingAssembly, currentAsm)))
+						types.Add((arg0!, arg1));
 				}
 				return types.ToArray();
 			}

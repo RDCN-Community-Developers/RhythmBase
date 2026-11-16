@@ -16,10 +16,13 @@ partial class ConverterGenerator
 	private const string JsonConverterAttrName = "RhythmBase.JsonConverterAttribute";
 	private const string JsonConverterForAttrName = "RhythmBase.JsonConverterForAttribute";
 	private const string JsonConverterLinkAttrName = "RhythmBase.JsonConverterLinkAttribute`2";
+	private const string JsonConverterLinkNonGenericAttrName = "RhythmBase.JsonConverterLinkAttribute";
 	private const string JsonConverterIdAttrName = "RhythmBase.JsonConverterIdAttribute";
 	private const string JsonConverterSourceTypeAttrName = "RhythmBase.JsonConverterSourceTypeAttribute`2";
+	private const string JsonConverterSourceTypeNonGenericAttrName = "RhythmBase.JsonConverterSourceTypeAttribute";
 	private const string JsonFlattenAttrName = "RhythmBase.JsonFlattenAttribute";
 	private const string AdapterTypeAttrName = "RhythmBase.AdapterTypeAttribute`6";
+	private const string AdapterTypeNonGenericAttrName = "RhythmBase.AdapterTypeAttribute";
 	private const string JsonEnumCastingAttrName = "RhythmBase.JsonEnumCastingAttribute";
 	private const string DiffableAttrName = "RhythmBase.Global.Diff.DiffableAttribute";
 

@@ -208,6 +208,39 @@ public sealed class JsonConverterForAttribute(Type targetType) : Attribute { }
 /// <param name="namespaceId">The namespace identifier (e.g. "RhythmDoctor", "Adofai").</param>
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false, Inherited = false)]
 public sealed class JsonConverterIdAttribute(string namespaceId) : Attribute { }
+#if RHYTHMBASE_NO_GENERIC_ATTRIBUTES
+/// <summary>
+/// Links a public type to a custom converter in the generated <c>TypeConverterRegistry</c>.
+/// </summary>
+/// <param name="objectType">The type to register.</param>
+/// <param name="converterType">The converter type for the specified object type. Must derive from
+/// <see cref="System.Text.Json.Serialization.JsonConverter"/>.</param>
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true, Inherited = false)]
+public sealed class JsonConverterLinkAttribute(Type objectType, Type converterType) : Attribute { }
+/// <summary>
+/// Declares the event type system for a game adapter, linking an event interface, its category enum,
+/// a converter base class, and the enum property name. Used by the source generator to produce
+/// <c>EventConverterMap</c>, <c>EventTypeRegistry</c>, and individual event converters.
+/// </summary>
+/// <param name="interfaceType">The event interface (e.g. <c>IBaseEvent</c>).</param>
+/// <param name="enumType">The enum type representing event categories (e.g. <c>EventType</c>).</param>
+/// <param name="converterBaseType">The open-generic converter base (e.g. <c>MemberConverter&lt;&gt;</c>).</param>
+/// <param name="typeEnumPropertyName">The property on the event interface that returns the enum value.</param>
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true, Inherited = false)]
+public sealed class JsonConverterSourceTypeAttribute(Type interfaceType, Type enumType, Type converterBaseType, string typeEnumPropertyName) : Attribute { }
+/// <summary>
+/// TickTime generation attribute for a game adapter, specifying the chart type, level type, calculator type,
+/// tick time type, event enum type, and event interface type.
+/// </summary>
+/// <param name="chartType">The chart type. Must implement <see cref="IChart"/>.</param>
+/// <param name="levelType">The level type. Must implement <see cref="ILevel"/>.</param>
+/// <param name="calculatorType">The calculator type.</param>
+/// <param name="tickTimeType">The tick time type. Must implement <see cref="ITickTime{TBeat}"/>.</param>
+/// <param name="enumType">The enum type representing event categories (e.g. <c>EventType</c>).</param>
+/// <param name="eventInterfaceType">The event interface (e.g. <c>IBaseEvent</c>).</param>
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false, Inherited = false)]
+public sealed class AdapterTypeAttribute(Type chartType, Type levelType, Type calculatorType, Type tickTimeType, Type enumType, Type eventInterfaceType) : Attribute { }
+#else
 /// <summary>
 /// Links a public type to a custom converter in the generated <c>TypeConverterRegistry</c>.
 /// </summary>
@@ -251,6 +284,7 @@ public sealed class AdapterTypeAttribute<TChart, TLevel, TCalculator, TTickTime,
 	where TEnum : struct, Enum
 	where TEventInterface : class
 { }
+#endif
 /// <summary>
 /// Specifies that a given enum type should be serialized as a string in JSON in new package, with an option for PascalCase or camelCase.
 /// </summary>

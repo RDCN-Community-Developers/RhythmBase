@@ -1,0 +1,8 @@
+<Project>
+	<PropertyGroup>
+		<RhythmBaseUseGenericAttributes Condition="'$(RhythmBaseUseGenericAttributes)' == ''">true</RhythmBaseUseGenericAttributes>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(RhythmBaseUseGenericAttributes)' == 'false'">
+		<DefineConstants>$(DefineConstants);RHYTHMBASE_NO_GENERIC_ATTRIBUTES</DefineConstants>
+	</PropertyGroup>
+</Project>
