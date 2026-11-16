@@ -7,12 +7,13 @@ on:
 permissions:
   contents: write
   id-token: write
-
+  
 jobs:
   check:
     runs-on: ubuntu-latest
     outputs:
       publish: ${{ steps.should.outputs.publish }}
+      silent: ${{ steps.should.outputs.silent }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,11 +29,18 @@ jobs:
 
       - name: Should publish?
         id: should
+        env:
+          COMMIT_MESSAGE: ${{ steps.msg.outputs.full_message }}
         run: |
-          if echo "${{ steps.msg.outputs.full_message }}" | grep -qi '\[PUBLISH\]'; then
-            echo "publish=true"  >> $GITHUB_OUTPUT
+          if printf '%s' "$COMMIT_MESSAGE" | grep -qi '\[SILENT\]'; then
+            echo "silent=true" >> "$GITHUB_OUTPUT"
           else
-            echo "publish=false" >> $GITHUB_OUTPUT
+            echo "silent=false" >> "$GITHUB_OUTPUT"
+          fi
+          if printf '%s' "$COMMIT_MESSAGE" | grep -qi '\[PUBLISH\]'; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
           fi
 
   build:
@@ -41,12 +49,12 @@ jobs:
 
   release:
     needs: build
-    if: needs.check.outputs.publish == 'true'
+    if: needs.check.outputs.publish == 'true' && needs.check.outputs.silent != 'true'
     uses: ./.github/workflows/release.yml
     secrets: inherit
 
   snapshot:
     needs: build
-    if: needs.check.outputs.publish != 'true'
+    if: needs.check.outputs.publish != 'true' && needs.check.outputs.silent != 'true'
     uses: ./.github/workflows/snapshot.yml
     secrets: inherit
