@@ -1,8 +1,8 @@
 namespace RhythmBase.Global.Diff;
 
 /// <summary>
-/// Controls which optional, non-event sections are included in a diff.
-/// Event-sequence diffing is always performed; these sections are opt-in.
+/// Controls which optional, non-event sections and path formats are included in a diff.
+/// Event-sequence diffing is always performed; these options are opt-in.
 /// </summary>
 public sealed class DiffOptions
 {
@@ -14,6 +14,11 @@ public sealed class DiffOptions
 	public bool IncludeDecorations { get; set; }
 	/// <summary>Gets or sets a value indicating whether tile/floor definitions are compared.</summary>
 	public bool IncludeTiles { get; set; }
+	/// <summary>
+	/// Gets or sets a value indicating whether CLR model paths are populated alongside
+	/// serialization paths on <see cref="DiffPropertyChange.ModelPath"/>.
+	/// </summary>
+	public bool IncludeModelPaths { get; set; }
 	/// <summary>Gets an options instance that enables every optional section.</summary>
 	public static DiffOptions All { get; } = new()
 	{
@@ -21,5 +26,6 @@ public sealed class DiffOptions
 		IncludeRows = true,
 		IncludeDecorations = true,
 		IncludeTiles = true,
+		IncludeModelPaths = true,
 	};
 }

@@ -22,12 +22,14 @@ public static class LevelDiffer
 	/// <param name="left">The left-hand level.</param>
 	/// <param name="right">The right-hand level.</param>
 	/// <param name="options">
-	/// Optional section flags. When <see langword="null"/> only the event sequence is compared.
+	/// Optional section and path flags. When <see langword="null"/> only the event sequence is compared
+	/// and model paths are omitted.
 	/// </param>
 	/// <returns>The differences between the two levels.</returns>
 	public static LevelDiff Diff(Level left, Level right, DiffOptions? options = null)
 	{
 		LevelDiff result = new();
+		bool includeModelPaths = options?.IncludeModelPaths ?? false;
 		Dictionary<EventKey, List<IBaseEvent>> leftGroups = Group(left);
 		Dictionary<EventKey, List<IBaseEvent>> rightGroups = Group(right);
 		foreach (EventKey key in leftGroups.Keys.Union(rightGroups.Keys)
@@ -37,7 +39,7 @@ public static class LevelDiffer
 			List<IBaseEvent> rightEvents = rightGroups.TryGetValue(key, out List<IBaseEvent>? b) ? b : [];
 			int matched = Math.Min(leftEvents.Count, rightEvents.Count);
 			for (int i = 0; i < matched; i++)
-				DiffEvent(leftEvents[i], rightEvents[i], result);
+				DiffEvent(leftEvents[i], rightEvents[i], result, includeModelPaths);
 			for (int i = matched; i < leftEvents.Count; i++)
 				result.Events.Add(CreateRemoved(leftEvents[i]));
 			for (int i = matched; i < rightEvents.Count; i++)
@@ -46,27 +48,27 @@ public static class LevelDiffer
 		if (options is not null)
 		{
 			if (options.IncludeSettings)
-				DiffStructure("Settings", left.Settings, right.Settings, result);
+				DiffStructure("Settings", left.Settings, right.Settings, result, includeModelPaths);
 			if (options.IncludeTiles)
-				DiffIndexed("Tile", left.Count, i => left[i], i => right[i], right.Count, result);
+				DiffIndexed("Tile", left.Count, i => left[i], i => right[i], right.Count, result, includeModelPaths);
 		}
 		return result;
 	}
 
-	private static void DiffIndexed(string label, int leftCount, Func<int, object> leftAt, Func<int, object> rightAt, int rightCount, LevelDiff result)
+	private static void DiffIndexed(string label, int leftCount, Func<int, object> leftAt, Func<int, object> rightAt, int rightCount, LevelDiff result, bool includeModelPaths)
 	{
 		int matched = Math.Min(leftCount, rightCount);
 		for (int i = 0; i < matched; i++)
-			DiffStructure($"{label} {i}", leftAt(i), rightAt(i), result);
+			DiffStructure($"{label} {i}", leftAt(i), rightAt(i), result, includeModelPaths);
 		for (int i = matched; i < leftCount; i++)
 			result.Structures.Add(CreateStructure($"{label} {i}", DiffChangeKind.Removed, leftAt(i), null));
 		for (int i = matched; i < rightCount; i++)
 			result.Structures.Add(CreateStructure($"{label} {i}", DiffChangeKind.Added, null, rightAt(i)));
 	}
 
-	private static void DiffStructure(string label, object? left, object? right, LevelDiff result)
+	private static void DiffStructure(string label, object? left, object? right, LevelDiff result, bool includeModelPaths)
 	{
-		DiffCollector collector = new(EventDifferMap.Get, DiffValue.Canonicalize);
+		DiffCollector collector = new(EventDifferMap.Get, DiffValue.Canonicalize, includeModelPaths);
 		IEventDiffer? differ = EventDifferMap.Get(left?.GetType() ?? right?.GetType() ?? typeof(object));
 		if (differ is not null)
 			differ.Diff(left, right, collector);
@@ -113,9 +115,9 @@ public static class LevelDiffer
 		list.Add(item);
 	}
 
-	private static void DiffEvent(IBaseEvent left, IBaseEvent right, LevelDiff result)
+	private static void DiffEvent(IBaseEvent left, IBaseEvent right, LevelDiff result, bool includeModelPaths)
 	{
-		DiffCollector collector = new(EventDifferMap.Get, DiffValue.Canonicalize);
+		DiffCollector collector = new(EventDifferMap.Get, DiffValue.Canonicalize, includeModelPaths);
 		IEventDiffer? differ = EventDifferMap.Get(left.GetType());
 		if (differ is not null)
 			differ.Diff(left, right, collector);

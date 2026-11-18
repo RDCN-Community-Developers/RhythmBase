@@ -36,8 +36,8 @@ public partial class ConverterGenerator
 	private static StatementSyntax SynCall(string receiverExpression, string method, params ExpressionSyntax[] arguments)
 		=> SyntaxFactory.ExpressionStatement(SynInvoke(SyntaxFactory.ParseExpression(receiverExpression), method, arguments));
 
-	private static StatementSyntax SynCompare(string alias, string leftProperty, string rightProperty)
-		=> SynCall("c", "Compare", SynString(alias), SynMember(SynName("left"), leftProperty), SynMember(SynName("right"), rightProperty));
+	private static StatementSyntax SynCompare(string alias, string modelPath, string leftProperty, string rightProperty)
+		=> SynCall("c", "Compare", SynString(alias), SynString(modelPath), SynMember(SynName("left"), leftProperty), SynMember(SynName("right"), rightProperty));
 
 	private static StatementSyntax SynCompareSequence()
 		=> SynCall(
@@ -53,7 +53,8 @@ public partial class ConverterGenerator
 			"CompareExtraData",
 			SynName("c"),
 			SynMember(SynName("left"), extraDataAccess),
-			SynMember(SynName("right"), extraDataAccess));
+			SynMember(SynName("right"), extraDataAccess),
+			SynString(extraDataAccess));
 
 	private static FieldDeclarationSyntax SynStaticReadOnlyField(string typeName, string fieldName, ExpressionSyntax initializer)
 		=> SyntaxFactory.FieldDeclaration(

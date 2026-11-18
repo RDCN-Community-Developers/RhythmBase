@@ -1165,7 +1165,7 @@ internal static class UnhandledFieldHelper
 					// Skip position and navigation back-references (they are not serialized content).
 					if (prop.Property.Name is "TickTime" or "Parent" or "BaseChart" or "Previous" or "Next")
 						continue;
-					statements.Add(SynCompare(GetPropertyAlias(prop.Property, compilation), prop.Property.Name, prop.Property.Name));
+					statements.Add(SynCompare(GetPropertyAlias(prop.Property, compilation), prop.Property.Name, prop.Property.Name, prop.Property.Name));
 				}
 				// Collection-like types without comparable properties (for example PlayerTypeGroup) are
 				// compared element by element instead.

@@ -21,14 +21,25 @@ public enum DiffChangeKind
 /// </summary>
 public sealed class DiffPropertyChange
 {
-	/// <summary>Gets the dotted path of the changed value (for example <c>files[0].path</c>).</summary>
+	/// <summary>Gets the serialization path of the changed value (for example <c>files[0].path</c>).</summary>
 	public string Path { get; init; } = "";
+	/// <summary>
+	/// Gets the CLR model path of the changed value when model paths are requested
+	/// (for example <c>Files[0].Path</c>); otherwise <see langword="null"/>.
+	/// </summary>
+	public string? ModelPath { get; init; }
 	/// <summary>Gets the value on the left-hand side.</summary>
 	public object? OldValue { get; init; }
 	/// <summary>Gets the value on the right-hand side.</summary>
 	public object? NewValue { get; init; }
 	/// <inheritdoc/>
-	public override string ToString() => $"{Path}: {Format(OldValue)} -> {Format(NewValue)}";
+	public override string ToString()
+	{
+		string path = ModelPath is { Length: > 0 } && ModelPath != Path
+			? (Path.Length > 0 ? $"{Path} (model: {ModelPath})" : $"model: {ModelPath}")
+			: Path;
+		return $"{path}: {Format(OldValue)} -> {Format(NewValue)}";
+	}
 	internal static string Format(object? value) => value switch
 	{
 		null => "<null>",
